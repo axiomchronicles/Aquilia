@@ -6,12 +6,12 @@ Aquilia workspace generated with `aq init workspace myapp`.
 
 ```
 myapp/
-  aquilia.aq          # Workspace manifest
+  aquilia.yaml        # Workspace manifest
   modules/            # Application modules
   config/             # Configuration files
-    base.aq          # Base config
-    dev.aq           # Development config
-    prod.aq          # Production config
+    base.yaml        # Base config
+    dev.yaml         # Development config
+    prod.yaml        # Production config
   artifacts/          # Compiled artifacts
   runtime/            # Runtime state
 ```

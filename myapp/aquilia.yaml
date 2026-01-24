@@ -6,11 +6,12 @@ runtime:
   mode: dev
   host: 127.0.0.1
   port: 8000
+  reload: true
   workers: 1
 modules:
-- name: mymodapp
-  fault_domain: MYMODAPP
-  route_prefix: /mymodapp
+- name: modeboom
+  fault_domain: MODEBOOM
+  route_prefix: /modeboom
   depends_on: []
 integrations:
   registry:

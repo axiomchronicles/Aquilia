@@ -1,5 +1,5 @@
 """
-Mymodapp module services (business logic).
+Modeboom module services (business logic).
 
 Services contain the core business logic and are auto-wired
 via dependency injection.
@@ -8,18 +8,21 @@ via dependency injection.
 from typing import Optional, List
 
 
-class MymodappService:
+class ModeboomService:
     """
-    Service for mymodapp business logic.
+    Service for modeboom business logic.
 
     This service is automatically registered with the DI container
     from the manifest and can be injected into controllers.
     """
+    
+    # Static storage for demo purposes (if service is transient)
+    _storage: List[dict] = []
+    _next_id = 1
 
     def __init__(self):
         # TODO: Inject dependencies (e.g., repositories, external services)
-        self._storage: List[dict] = []
-        self._next_id = 1
+        pass
 
     async def get_all(self) -> List[dict]:
         """Get all items."""
@@ -35,11 +38,11 @@ class MymodappService:
     async def create(self, data: dict) -> dict:
         """Create new item."""
         item = {
-            "id": self._next_id,
+            "id": ModeboomService._next_id,
             **data
         }
         self._storage.append(item)
-        self._next_id += 1
+        ModeboomService._next_id += 1
         return item
 
     async def update(self, item_id: int, data: dict) -> Optional[dict]:
