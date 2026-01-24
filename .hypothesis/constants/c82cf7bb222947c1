@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/patterns/cache.py
+# hypothesis_version: 6.150.3
+
+[0.0, 1000, 'errors', 'evictions', 'hit_rate', 'hits', 'misses', 'total_compile_time']

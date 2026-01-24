@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/flow.py
+# hypothesis_version: 6.150.3
+
+['*', '/', ':', 'CompiledFlow', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', '__origin__', '_wildcard', 'bool', 'ctx', 'float', 'guard', 'handler', 'handler_name', 'int', 'middleware', 'module', 'param', 'path', 'post_hook', 'req', 'request', 'self', 'static', 'str', 'transform', 'wildcard', '{', '}']

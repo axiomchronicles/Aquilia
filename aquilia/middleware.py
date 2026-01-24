@@ -1,0 +1,327 @@
+"""
+Middleware system - Composable, async-first middleware with effect awareness.
+"""
+
+from typing import Callable, Awaitable, Optional, Dict, Any, List
+from dataclasses import dataclass
+import time
+import uuid
+import traceback
+import logging
+
+from .request import Request
+from .response import Response, InternalError
+from .di import RequestCtx
+
+
+# Type alias for middleware
+Handler = Callable[[Request, RequestCtx], Awaitable[Response]]
+Middleware = Callable[[Request, RequestCtx, Handler], Awaitable[Response]]
+
+
+@dataclass
+class MiddlewareDescriptor:
+    """Descriptor for middleware registration."""
+    middleware: Middleware
+    scope: str  # "global", "app:name", "controller:name", "route:pattern"
+    priority: int
+    name: str
+
+
+class MiddlewareStack:
+    """
+    Manages middleware stack with deterministic ordering.
+    Order: Global < App < Controller < Route, then by priority.
+    """
+    
+    def __init__(self):
+        self.middlewares: List[MiddlewareDescriptor] = []
+    
+    def add(
+        self,
+        middleware: Middleware,
+        scope: str = "global",
+        priority: int = 50,
+        name: Optional[str] = None,
+    ):
+        """Add middleware to stack."""
+        if name is None:
+            name = middleware.__name__ if hasattr(middleware, "__name__") else "middleware"
+        
+        descriptor = MiddlewareDescriptor(
+            middleware=middleware,
+            scope=scope,
+            priority=priority,
+            name=name,
+        )
+        
+        self.middlewares.append(descriptor)
+        self._sort_middlewares()
+    
+    def _sort_middlewares(self):
+        """Sort middlewares by scope and priority."""
+        scope_order = {"global": 0, "app": 1, "controller": 2, "route": 3}
+        
+        def sort_key(desc: MiddlewareDescriptor):
+            scope_type = desc.scope.split(":")[0]
+            scope_rank = scope_order.get(scope_type, 99)
+            return (scope_rank, desc.priority)
+        
+        self.middlewares.sort(key=sort_key)
+    
+    def build_handler(self, final_handler: Handler) -> Handler:
+        """Build middleware chain wrapping the final handler."""
+        handler = final_handler
+        
+        # Wrap in reverse order so first middleware is outermost
+        for desc in reversed(self.middlewares):
+            handler = self._wrap_middleware(desc.middleware, handler)
+        
+        return handler
+    
+    def _wrap_middleware(self, middleware: Middleware, next_handler: Handler) -> Handler:
+        """Wrap a handler with middleware."""
+        async def wrapped(request: Request, ctx: RequestCtx) -> Response:
+            return await middleware(request, ctx, next_handler)
+        
+        return wrapped
+
+
+# Default middleware implementations
+
+class RequestIdMiddleware:
+    """Adds unique request ID to each request."""
+    
+    def __init__(self, header_name: str = "X-Request-ID"):
+        self.header_name = header_name
+    
+    async def __call__(self, request: Request, ctx: RequestCtx, next: Handler) -> Response:
+        # Generate or extract request ID
+        request_id = request.header(self.header_name) or str(uuid.uuid4())
+        
+        # Store in request state and context
+        request.state["request_id"] = request_id
+        ctx.request_id = request_id
+        
+        # Call next handler
+        response = await next(request, ctx)
+        
+        # Add to response headers
+        response.headers[self.header_name] = request_id
+        
+        return response
+
+
+class ExceptionMiddleware:
+    """Catches exceptions and converts them to error responses."""
+    
+    def __init__(self, debug: bool = False):
+        self.debug = debug
+        self.logger = logging.getLogger("aquilia.exceptions")
+    
+    async def __call__(self, request: Request, ctx: RequestCtx, next: Handler) -> Response:
+        try:
+            return await next(request, ctx)
+        
+        except ValueError as e:
+            # Client error
+            self.logger.warning(f"ValueError: {e}")
+            return Response.json(
+                {"error": str(e)},
+                status=400,
+            )
+        
+        except PermissionError as e:
+            # Forbidden
+            self.logger.warning(f"PermissionError: {e}")
+            return Response.json(
+                {"error": "Forbidden"},
+                status=403,
+            )
+        
+        except KeyError as e:
+            # Not found
+            self.logger.warning(f"KeyError: {e}")
+            return Response.json(
+                {"error": "Not found"},
+                status=404,
+            )
+        
+        except Exception as e:
+            # Internal error
+            self.logger.error(f"Unhandled exception: {e}", exc_info=True)
+            
+            error_data = {"error": "Internal server error"}
+            
+            if self.debug:
+                error_data["detail"] = str(e)
+                error_data["traceback"] = traceback.format_exc()
+            
+            return Response.json(error_data, status=500)
+
+
+class LoggingMiddleware:
+    """Logs request/response with timing."""
+    
+    def __init__(self):
+        self.logger = logging.getLogger("aquilia.requests")
+    
+    async def __call__(self, request: Request, ctx: RequestCtx, next: Handler) -> Response:
+        start_time = time.time()
+        
+        # Log request
+        self.logger.info(
+            f"{request.method} {request.path}",
+            extra={
+                "request_id": ctx.request_id,
+                "method": request.method,
+                "path": request.path,
+            }
+        )
+        
+        # Process request
+        response = await next(request, ctx)
+        
+        # Calculate duration
+        duration = time.time() - start_time
+        duration_ms = duration * 1000
+        
+        # Log response
+        self.logger.info(
+            f"{request.method} {request.path} - {response.status} ({duration_ms:.2f}ms)",
+            extra={
+                "request_id": ctx.request_id,
+                "method": request.method,
+                "path": request.path,
+                "status": response.status,
+                "duration_ms": duration_ms,
+            }
+        )
+        
+        # Warn on slow requests
+        if duration_ms > 1000:
+            self.logger.warning(
+                f"Slow request: {request.method} {request.path} took {duration_ms:.2f}ms",
+                extra={"request_id": ctx.request_id}
+            )
+        
+        return response
+
+
+class TimeoutMiddleware:
+    """Enforces request timeout."""
+    
+    def __init__(self, timeout_seconds: float = 30.0):
+        self.timeout = timeout_seconds
+    
+    async def __call__(self, request: Request, ctx: RequestCtx, next: Handler) -> Response:
+        import asyncio
+        
+        try:
+            return await asyncio.wait_for(
+                next(request, ctx),
+                timeout=self.timeout
+            )
+        except asyncio.TimeoutError:
+            return Response.json(
+                {"error": "Request timeout"},
+                status=504,
+            )
+
+
+class CORSMiddleware:
+    """Handles CORS headers."""
+    
+    def __init__(
+        self,
+        allow_origins: List[str] = None,
+        allow_methods: List[str] = None,
+        allow_headers: List[str] = None,
+        allow_credentials: bool = False,
+        max_age: int = 3600,
+    ):
+        self.allow_origins = allow_origins or ["*"]
+        self.allow_methods = allow_methods or ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        self.allow_headers = allow_headers or ["*"]
+        self.allow_credentials = allow_credentials
+        self.max_age = max_age
+    
+    async def __call__(self, request: Request, ctx: RequestCtx, next: Handler) -> Response:
+        # Handle preflight
+        if request.method == "OPTIONS":
+            return self._preflight_response(request)
+        
+        # Process request
+        response = await next(request, ctx)
+        
+        # Add CORS headers
+        origin = request.header("origin")
+        if origin and self._is_allowed_origin(origin):
+            response.headers["access-control-allow-origin"] = origin
+        elif "*" in self.allow_origins:
+            response.headers["access-control-allow-origin"] = "*"
+        
+        if self.allow_credentials:
+            response.headers["access-control-allow-credentials"] = "true"
+        
+        return response
+    
+    def _is_allowed_origin(self, origin: str) -> bool:
+        """Check if origin is allowed."""
+        return "*" in self.allow_origins or origin in self.allow_origins
+    
+    def _preflight_response(self, request: Request) -> Response:
+        """Handle OPTIONS preflight request."""
+        headers = {
+            "access-control-allow-methods": ", ".join(self.allow_methods),
+            "access-control-allow-headers": ", ".join(self.allow_headers),
+            "access-control-max-age": str(self.max_age),
+        }
+        
+        origin = request.header("origin")
+        if origin and self._is_allowed_origin(origin):
+            headers["access-control-allow-origin"] = origin
+        elif "*" in self.allow_origins:
+            headers["access-control-allow-origin"] = "*"
+        
+        if self.allow_credentials:
+            headers["access-control-allow-credentials"] = "true"
+        
+        return Response(b"", status=204, headers=headers)
+
+
+class CompressionMiddleware:
+    """Compresses response bodies."""
+    
+    def __init__(self, minimum_size: int = 500):
+        self.minimum_size = minimum_size
+    
+    async def __call__(self, request: Request, ctx: RequestCtx, next: Handler) -> Response:
+        response = await next(request, ctx)
+        
+        # Check if client accepts gzip
+        accept_encoding = request.header("accept-encoding", "")
+        if "gzip" not in accept_encoding.lower():
+            return response
+        
+        # Don't compress streaming responses
+        if hasattr(response._content, "__aiter__"):
+            return response
+        
+        # Get body
+        body = response._encode_body(response._content)
+        
+        # Only compress if large enough
+        if len(body) < self.minimum_size:
+            return response
+        
+        # Compress
+        import gzip
+        compressed = gzip.compress(body)
+        
+        # Update response
+        response._content = compressed
+        response.headers["content-encoding"] = "gzip"
+        response.headers["content-length"] = str(len(compressed))
+        
+        return response

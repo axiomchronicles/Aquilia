@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/patterns/openapi.py
+# hypothesis_version: 6.150.3
+
+['/', '1.0.0', '200', '3.0.3', 'Aquilia API', 'Successful response', 'description', 'info', 'openapi', 'operationId', 'parameters', 'paths', 'responses', 'summary', 'tags', 'title', 'version']

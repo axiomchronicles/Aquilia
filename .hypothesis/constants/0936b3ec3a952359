@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/response.py
+# hypothesis_version: 6.150.3
+
+[200, 201, 204, 307, 400, 401, 403, 404, 500, '/', '; HttpOnly', '; Secure', 'Bad Request', 'Forbidden', 'Not Found', 'Response', 'Unauthorized', '__aiter__', 'application/json', 'body', 'content-type', 'created', 'error', 'headers', 'http.response.body', 'http.response.start', 'location', 'more_body', 'ok', 'set-cookie', 'status', 'type', 'utf-8']

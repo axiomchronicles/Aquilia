@@ -1,0 +1,28 @@
+workspace:
+  name: myapp
+  version: 0.1.0
+  description: Aquilia workspace
+runtime:
+  mode: dev
+  host: 127.0.0.1
+  port: 8000
+  workers: 1
+modules:
+- name: mymod
+  fault_domain: MYMOD
+  route_prefix: /mymod
+  depends_on: []
+integrations:
+  registry:
+    enabled: true
+  dependency_injection:
+    enabled: true
+    auto_wire: true
+  routing:
+    enabled: true
+    strict_matching: true
+  fault_handling:
+    enabled: true
+    default_strategy: propagate
+  patterns:
+    enabled: true

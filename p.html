@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        h1 {
+            color: black;
+            margin-bottom: 20px;
+            font-family: "Courier New", monospace;
+            font-size: 32px;
+        }
+
+        .error-message {
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-family: "Courier New", monospace;
+            white-space: pre-wrap;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+            text-align: left;
+            font-size: 16px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+                height: 120vh;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .error-message {
+                font-size: 16px;
+            }
+            pre {
+                font-size: 14px;
+            }
+            .message-tool {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .error-message {
+                font-size: 14px;
+            }
+            pre {
+                font-size: 12px;
+            }
+            .message-tool {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            body {
+                padding: 20px;
+                height: auto;
+            }
+            h1 {
+                font-size: 18px;
+            }
+            .error-message {
+                font-size: 12px;
+            }
+            pre {
+                font-size: 10px;
+            }
+            .message-tool {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Application Error</h1>
+
+        <p class="error-message">
+            <b style="color: red;">Error:</b> Something went wrong while processing your request.
+        </p>
+
+        <h2 style="font-family: 'Courier New', monospace;">Traceback</h2>
+
+        <p style="color: red; font-size: smaller; font-family: 'Courier New', monospace; text-align: left; margin: 10px 0;">
+            <u>File: example.py | Line: 42</u>
+        </p>
+
+        <pre>Object: ExampleErrorObject</pre>
+
+        <h2 style="font-family: 'Courier New', monospace;">Traceback | Formatted</h2>
+        <pre>Formatted traceback details go here...</pre>
+
+        <h2 style="font-family: 'Courier New', monospace;">Traceback | Detailed</h2>
+        <pre>Detailed traceback with source code context...</pre>
+
+        <h2 style="font-family: 'Courier New', monospace;">Request Information</h2>
+        <pre>User-Agent: Browser
+Method: GET
+Path: /example</pre>
+
+        <h2 style="font-family: 'Courier New', monospace;">META</h2>
+        <pre>System: Evelax Runtime
+Environment: Production</pre>
+
+        <p class="message-tool" style="text-align: left; color: #2F4F4F;">
+            The Evelax caught an exception in your ASGI application. You can now look at the traceback which led to the error.
+        </p>
+
+        <p class="message-tool" style="text-align: left; color: #2F4F4F;">
+            A traceback interpreter is a tool that helps developers understand and diagnose errors in their code.
+        </p>
+
+        <ul class="message-tool" style="text-align: left; color: #2F4F4F;">
+            <li><b>Traceback Generation:</b> Analyze the call stack.</li>
+            <li><b>Formatting:</b> Produce human-readable error details.</li>
+        </ul>
+
+        <p class="message-tool" style="text-align: right; color: #708090;">
+            Powered by <b>Evelax</b>, your friendly <b>Aquilify</b> powered traceback interpreter.
+        </p>
+    </div>
+</body>
+</html>

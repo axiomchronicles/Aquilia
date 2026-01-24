@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/registry.py
+# hypothesis_version: 6.150.3
+
+[' -> ', ':', 'Context', 'Registry', 'app', 'apps', 'config', 'global', 'load_order', 'log']

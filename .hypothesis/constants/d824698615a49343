@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/server.py
+# hypothesis_version: 6.150.3
+
+[8000, '127.0.0.1', ':', 'Server ready', 'Server stopped', '_aquilia_flow', 'aquilia.server', 'debug', 'exception', 'global', 'info', 'logging', 'request_id']

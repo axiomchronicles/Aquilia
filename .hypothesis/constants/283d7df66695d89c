@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/patterns/compiler/ast_nodes.py
+# hypothesis_version: 6.150.3
+
+['/', 'args', 'constraints', 'default', 'end', 'enum', 'file', 'kind', 'max', 'min', 'name', 'optional', 'path', 'predicate', 'query_params', 'raw', 'regex', 'segments', 'span', 'splat', 'start', 'static', 'str', 'token', 'transform', 'type', 'value']

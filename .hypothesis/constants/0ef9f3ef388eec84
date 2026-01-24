@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/effects.py
+# hypothesis_version: 6.150.3
+
+['Cache', 'DBTx', 'Queue', 'T', 'cache', 'connection', 'custom', 'db', 'default', 'http', 'initialized', 'memory', 'mode', 'queue', 'read', 'storage', 'transaction']

@@ -1,0 +1,100 @@
+"""Manifest validation command."""
+
+from pathlib import Path
+from typing import Optional
+from dataclasses import dataclass
+
+from ..parsers import WorkspaceManifest, ModuleManifest
+
+
+@dataclass
+class ValidationResult:
+    """Result of manifest validation."""
+    
+    is_valid: bool
+    module_count: int
+    route_count: int
+    provider_count: int
+    faults: list[str]
+
+
+def validate_workspace(
+    strict: bool = False,
+    module_filter: Optional[str] = None,
+    verbose: bool = False,
+) -> ValidationResult:
+    """
+    Validate workspace manifests.
+    
+    Args:
+        strict: Enable strict (production-level) validation
+        module_filter: Validate only specific module
+        verbose: Enable verbose output
+    
+    Returns:
+        ValidationResult with validation status and statistics
+    """
+    workspace_root = Path.cwd()
+    manifest_path = workspace_root / 'aquilia.aq'
+    
+    if not manifest_path.exists():
+        raise ValueError("Not in an Aquilia workspace (aquilia.aq not found)")
+    
+    faults = []
+    module_count = 0
+    route_count = 0
+    provider_count = 0
+    
+    # Load workspace manifest
+    try:
+        workspace_manifest = WorkspaceManifest.from_file(manifest_path)
+    except Exception as e:
+        faults.append(f"Invalid workspace manifest: {e}")
+        return ValidationResult(
+            is_valid=False,
+            module_count=0,
+            route_count=0,
+            provider_count=0,
+            faults=faults,
+        )
+    
+    # Validate modules
+    modules_to_validate = [module_filter] if module_filter else workspace_manifest.modules
+    
+    for module_name in modules_to_validate:
+        module_path = workspace_root / 'modules' / module_name
+        module_manifest_path = module_path / 'module.aq'
+        
+        if not module_manifest_path.exists():
+            faults.append(f"Module '{module_name}' missing module.aq")
+            continue
+        
+        try:
+            module_manifest = ModuleManifest.from_file(module_manifest_path)
+            module_count += 1
+            route_count += len(module_manifest.routes)
+            provider_count += len(module_manifest.providers)
+            
+            # Validate module dependencies
+            for dep in module_manifest.depends_on:
+                if dep not in workspace_manifest.modules:
+                    faults.append(f"Module '{module_name}' depends on non-existent module '{dep}'")
+            
+            # Strict validation
+            if strict:
+                # Check for required files
+                required_files = ['flows.py', 'services.py', 'faults.py']
+                for file in required_files:
+                    if not (module_path / file).exists():
+                        faults.append(f"Module '{module_name}' missing required file '{file}'")
+        
+        except Exception as e:
+            faults.append(f"Invalid manifest in module '{module_name}': {e}")
+    
+    return ValidationResult(
+        is_valid=len(faults) == 0,
+        module_count=module_count,
+        route_count=route_count,
+        provider_count=provider_count,
+        faults=faults,
+    )

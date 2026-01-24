@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/patterns/types/registry.py
+# hypothesis_version: 6.150.3
+
+['-', '0', '1', 'TypeRegistry', '_', 'any', 'bool', 'false', 'float', 'int', 'json', 'no', 'off', 'on', 'path', 'slug', 'str', 'true', 'uuid', 'yes']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/middleware.py
+# hypothesis_version: 6.150.3
+
+[30.0, 204, 400, 403, 404, 500, 504, 1000, 3600, '*', ', ', ':', 'DELETE', 'Forbidden', 'GET', 'Not found', 'OPTIONS', 'POST', 'PUT', 'Request timeout', 'X-Request-ID', '__aiter__', '__name__', 'accept-encoding', 'app', 'aquilia.exceptions', 'aquilia.requests', 'content-encoding', 'content-length', 'controller', 'detail', 'duration_ms', 'error', 'global', 'gzip', 'method', 'middleware', 'origin', 'path', 'request_id', 'route', 'status', 'traceback', 'true']

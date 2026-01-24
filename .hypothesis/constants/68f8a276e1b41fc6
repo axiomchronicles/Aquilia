@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/patterns/types/__init__.py
+# hypothesis_version: 6.150.3
+
+['TypeRegistry', 'register_type']

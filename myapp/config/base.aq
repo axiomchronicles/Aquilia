@@ -1,0 +1,14 @@
+# Base Configuration
+# Shared across all environments
+
+app:
+  name: "Aquilia Application"
+  debug: false
+
+server:
+  timeout: 30
+  max_connections: 1000
+
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

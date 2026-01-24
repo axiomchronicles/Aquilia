@@ -1,0 +1,503 @@
+"""
+AquilaFaults - Domain-specific fault types.
+
+Provides concrete fault classes for each domain:
+- CONFIG faults
+- REGISTRY faults  
+- DI faults
+- ROUTING faults
+- FLOW faults
+- EFFECT faults
+- IO faults
+- SECURITY faults
+- SYSTEM faults
+"""
+
+from typing import Any, Optional
+from .core import Fault, FaultDomain, Severity
+
+
+# ============================================================================
+# CONFIG Faults
+# ============================================================================
+
+class ConfigFault(Fault):
+    """Base class for configuration faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.FATAL,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.CONFIG,
+            severity=severity,
+            retryable=False,
+            public=False,
+            metadata=metadata,
+        )
+
+
+class ConfigMissingFault(ConfigFault):
+    """Required configuration is missing."""
+    
+    def __init__(self, key: str, **kwargs):
+        super().__init__(
+            code="CONFIG_MISSING",
+            message=f"Required configuration key '{key}' is missing",
+            metadata={"key": key, **kwargs.get("metadata", {})},
+        )
+
+
+class ConfigInvalidFault(ConfigFault):
+    """Configuration value is invalid."""
+    
+    def __init__(self, key: str, reason: str, **kwargs):
+        super().__init__(
+            code="CONFIG_INVALID",
+            message=f"Configuration key '{key}' is invalid: {reason}",
+            metadata={"key": key, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+# ============================================================================
+# REGISTRY Faults
+# ============================================================================
+
+class RegistryFault(Fault):
+    """Base class for Aquilary registry faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.FATAL,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.REGISTRY,
+            severity=severity,
+            retryable=False,
+            public=False,
+            metadata=metadata,
+        )
+
+
+class DependencyCycleFault(RegistryFault):
+    """Circular dependency detected in app graph."""
+    
+    def __init__(self, cycle: list[str], **kwargs):
+        cycle_str = " → ".join(cycle)
+        super().__init__(
+            code="DEPENDENCY_CYCLE",
+            message=f"Circular dependency detected: {cycle_str}",
+            metadata={"cycle": cycle, **kwargs.get("metadata", {})},
+        )
+
+
+class ManifestInvalidFault(RegistryFault):
+    """Manifest validation failed."""
+    
+    def __init__(self, manifest_name: str, errors: list[str], **kwargs):
+        super().__init__(
+            code="MANIFEST_INVALID",
+            message=f"Manifest '{manifest_name}' validation failed: {'; '.join(errors)}",
+            metadata={"manifest": manifest_name, "errors": errors, **kwargs.get("metadata", {})},
+        )
+
+
+# ============================================================================
+# DI Faults
+# ============================================================================
+
+class DIFault(Fault):
+    """Base class for dependency injection faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.ERROR,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.DI,
+            severity=severity,
+            retryable=False,
+            public=False,
+            metadata=metadata,
+        )
+
+
+class ProviderNotFoundFault(DIFault):
+    """DI provider not found."""
+    
+    def __init__(self, provider_name: str, app: Optional[str] = None, **kwargs):
+        super().__init__(
+            code="PROVIDER_NOT_FOUND",
+            message=f"DI provider '{provider_name}' not found" + (f" in app '{app}'" if app else ""),
+            metadata={"provider": provider_name, "app": app, **kwargs.get("metadata", {})},
+        )
+
+
+class ScopeViolationFault(DIFault):
+    """DI scope violation."""
+    
+    def __init__(self, provider: str, expected_scope: str, actual_scope: str, **kwargs):
+        super().__init__(
+            code="SCOPE_VIOLATION",
+            message=f"Provider '{provider}' scope violation: expected {expected_scope}, got {actual_scope}",
+            metadata={
+                "provider": provider,
+                "expected_scope": expected_scope,
+                "actual_scope": actual_scope,
+                **kwargs.get("metadata", {}),
+            },
+        )
+
+
+class DIResolutionFault(DIFault):
+    """DI resolution failed."""
+    
+    def __init__(self, provider: str, reason: str, **kwargs):
+        super().__init__(
+            code="DI_RESOLUTION_FAILED",
+            message=f"Failed to resolve '{provider}': {reason}",
+            metadata={"provider": provider, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+# ============================================================================
+# ROUTING Faults
+# ============================================================================
+
+class RoutingFault(Fault):
+    """Base class for routing faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.ERROR,
+        public: bool = True,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.ROUTING,
+            severity=severity,
+            retryable=False,
+            public=public,
+            metadata=metadata,
+        )
+
+
+class RouteNotFoundFault(RoutingFault):
+    """Route not found."""
+    
+    def __init__(self, path: str, method: str, **kwargs):
+        super().__init__(
+            code="ROUTE_NOT_FOUND",
+            message=f"Route not found: {method} {path}",
+            metadata={"path": path, "method": method, **kwargs.get("metadata", {})},
+        )
+
+
+class RouteAmbiguousFault(RoutingFault):
+    """Multiple routes match the pattern."""
+    
+    def __init__(self, path: str, matches: list[str], **kwargs):
+        super().__init__(
+            code="ROUTE_AMBIGUOUS",
+            message=f"Multiple routes match '{path}': {', '.join(matches)}",
+            severity=Severity.WARN,
+            public=False,
+            metadata={"path": path, "matches": matches, **kwargs.get("metadata", {})},
+        )
+
+
+class PatternInvalidFault(RoutingFault):
+    """Route pattern is invalid."""
+    
+    def __init__(self, pattern: str, reason: str, **kwargs):
+        super().__init__(
+            code="PATTERN_INVALID",
+            message=f"Invalid route pattern '{pattern}': {reason}",
+            severity=Severity.FATAL,
+            public=False,
+            metadata={"pattern": pattern, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+# ============================================================================
+# FLOW Faults
+# ============================================================================
+
+class FlowFault(Fault):
+    """Base class for flow execution faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.ERROR,
+        retryable: bool = False,
+        public: bool = False,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.FLOW,
+            severity=severity,
+            retryable=retryable,
+            public=public,
+            metadata=metadata,
+        )
+
+
+class HandlerFault(FlowFault):
+    """Handler execution failed."""
+    
+    def __init__(self, handler_name: str, reason: str, **kwargs):
+        super().__init__(
+            code="HANDLER_FAILED",
+            message=f"Handler '{handler_name}' failed: {reason}",
+            metadata={"handler": handler_name, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class MiddlewareFault(FlowFault):
+    """Middleware execution failed."""
+    
+    def __init__(self, middleware_name: str, reason: str, **kwargs):
+        super().__init__(
+            code="MIDDLEWARE_FAILED",
+            message=f"Middleware '{middleware_name}' failed: {reason}",
+            metadata={"middleware": middleware_name, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class FlowCancelledFault(FlowFault):
+    """Flow was cancelled (timeout or client disconnect)."""
+    
+    def __init__(self, reason: str = "timeout", **kwargs):
+        super().__init__(
+            code="FLOW_CANCELLED",
+            message=f"Flow cancelled: {reason}",
+            severity=Severity.WARN,
+            retryable=False,
+            public=True,
+            metadata={"reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+# ============================================================================
+# EFFECT Faults
+# ============================================================================
+
+class EffectFault(Fault):
+    """Base class for effect (side-effect) faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.ERROR,
+        retryable: bool = True,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.EFFECT,
+            severity=severity,
+            retryable=retryable,
+            public=False,
+            metadata=metadata,
+        )
+
+
+class DatabaseFault(EffectFault):
+    """Database operation failed."""
+    
+    def __init__(self, operation: str, reason: str, **kwargs):
+        super().__init__(
+            code="DATABASE_FAULT",
+            message=f"Database {operation} failed: {reason}",
+            metadata={"operation": operation, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class CacheFault(EffectFault):
+    """Cache operation failed."""
+    
+    def __init__(self, operation: str, key: str, reason: str, **kwargs):
+        super().__init__(
+            code="CACHE_FAULT",
+            message=f"Cache {operation} for key '{key}' failed: {reason}",
+            severity=Severity.WARN,
+            metadata={"operation": operation, "key": key, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+# ============================================================================
+# IO Faults
+# ============================================================================
+
+class IOFault(Fault):
+    """Base class for I/O faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.WARN,
+        retryable: bool = True,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.IO,
+            severity=severity,
+            retryable=retryable,
+            public=False,
+            metadata=metadata,
+        )
+
+
+class NetworkFault(IOFault):
+    """Network operation failed."""
+    
+    def __init__(self, operation: str, reason: str, **kwargs):
+        super().__init__(
+            code="NETWORK_FAULT",
+            message=f"Network {operation} failed: {reason}",
+            metadata={"operation": operation, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class FilesystemFault(IOFault):
+    """Filesystem operation failed."""
+    
+    def __init__(self, operation: str, path: str, reason: str, **kwargs):
+        super().__init__(
+            code="FILESYSTEM_FAULT",
+            message=f"Filesystem {operation} on '{path}' failed: {reason}",
+            metadata={"operation": operation, "path": path, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+# ============================================================================
+# SECURITY Faults
+# ============================================================================
+
+class SecurityFault(Fault):
+    """Base class for security faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.ERROR,
+        public: bool = True,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.SECURITY,
+            severity=severity,
+            retryable=False,
+            public=public,
+            metadata=metadata,
+        )
+
+
+class AuthenticationFault(SecurityFault):
+    """Authentication failed."""
+    
+    def __init__(self, reason: str = "Invalid credentials", **kwargs):
+        super().__init__(
+            code="AUTHENTICATION_FAILED",
+            message=reason,
+            metadata={"reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class AuthorizationFault(SecurityFault):
+    """Authorization failed."""
+    
+    def __init__(self, resource: str, action: str, **kwargs):
+        super().__init__(
+            code="AUTHORIZATION_FAILED",
+            message=f"Not authorized to {action} resource '{resource}'",
+            metadata={"resource": resource, "action": action, **kwargs.get("metadata", {})},
+        )
+
+
+# ============================================================================
+# SYSTEM Faults
+# ============================================================================
+
+class SystemFault(Fault):
+    """Base class for fatal system faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.FATAL,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.SYSTEM,
+            severity=severity,
+            retryable=False,
+            public=False,
+            metadata=metadata,
+        )
+
+
+class UnrecoverableFault(SystemFault):
+    """Unrecoverable system fault."""
+    
+    def __init__(self, reason: str, **kwargs):
+        super().__init__(
+            code="UNRECOVERABLE",
+            message=f"Unrecoverable system fault: {reason}",
+            metadata={"reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class ResourceExhaustedFault(SystemFault):
+    """System resources exhausted."""
+    
+    def __init__(self, resource: str, **kwargs):
+        super().__init__(
+            code="RESOURCE_EXHAUSTED",
+            message=f"System resource exhausted: {resource}",
+            severity=Severity.FATAL,
+            metadata={"resource": resource, **kwargs.get("metadata", {})},
+        )
