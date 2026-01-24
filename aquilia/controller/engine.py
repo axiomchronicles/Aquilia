@@ -130,7 +130,7 @@ class ControllerEngine:
         try:
             # Call on_request hook if exists
             if hasattr(controller, "on_request"):
-                await self._safe_call(controller.on_request, request, ctx)
+                await self._safe_call(controller.on_request, ctx)
             
             # Execute handler
             result = await self._safe_call(handler_method, ctx, **kwargs)
@@ -140,7 +140,7 @@ class ControllerEngine:
             
             # Call on_response hook if exists
             if hasattr(controller, "on_response"):
-                await self._safe_call(controller.on_response, request, response)
+                await self._safe_call(controller.on_response, ctx, response)
             
             return response
         
@@ -167,7 +167,14 @@ class ControllerEngine:
         
         if hasattr(temp_instance, "on_startup"):
             try:
-                await self._safe_call(temp_instance.on_startup)
+                # Build a minimal context for startup (no actual request yet)
+                from ..request import Request as RequestClass
+                dummy_request = RequestClass(
+                    scope={"type": "http", "method": "GET", "path": "/", "query_string": b"", "headers": []},
+                    receive=lambda: None,
+                )
+                ctx = RequestCtx(request=dummy_request, identity=None, session=None, container=container, state={})
+                await self._safe_call(temp_instance.on_startup, ctx)
                 self.logger.info(f"Executed on_startup for {controller_class.__name__}")
             except Exception as e:
                 self.logger.error(

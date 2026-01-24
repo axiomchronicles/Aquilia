@@ -168,3 +168,74 @@ class CrossAppDependencyError(DIError):
         )
         
         super().__init__(msg)
+
+
+class CircularDependencyError(DIError):
+    """Circular dependency detected in service graph."""
+    
+    def __init__(
+        self,
+        cycles: List[List[str]],
+        locations: Optional[dict] = None,
+    ):
+        self.cycles = cycles
+        self.locations = locations or {}
+        
+        # Build detailed error message
+        msg = "Circular dependency detected in DI container\n"
+        
+        for i, cycle in enumerate(cycles, 1):
+            msg += f"\nCycle {i}:\n"
+            for j, token in enumerate(cycle):
+                arrow = " → " if j < len(cycle) - 1 else ""
+                msg += f"  {token}{arrow}"
+                
+                # Add location if available
+                if token in self.locations:
+                    file, line = self.locations[token]
+                    msg += f" ({file}:{line})"
+                
+                msg += "\n"
+            
+            # Close the cycle
+            if cycle:
+                msg += f"  {cycle[0]} (circular)\n"
+        
+        msg += "\nSuggested fixes:"
+        msg += "\n  1. Break the cycle by refactoring dependencies"
+        msg += "\n  2. Use lazy injection with Provider[T] or Callable"
+        msg += "\n  3. Extract shared dependencies into a separate service"
+        msg += "\n  4. Use events/callbacks instead of direct injection"
+        
+        super().__init__(msg)
+
+
+class MissingDependencyError(DIError):
+    """Required dependency not found in container."""
+    
+    def __init__(
+        self,
+        service_token: str,
+        dependency_token: str,
+        service_location: Optional[tuple] = None,
+    ):
+        self.service_token = service_token
+        self.dependency_token = dependency_token
+        self.service_location = service_location
+        
+        msg = (
+            f"Missing dependency: Service '{service_token}' "
+            f"requires '{dependency_token}' but it is not registered\n"
+        )
+        
+        if service_location:
+            file, line = service_location
+            msg += f"\nService location: {file}:{line}\n"
+        
+        msg += "\nSuggested fixes:"
+        msg += f"\n  1. Register '{dependency_token}' in the manifest services list"
+        msg += f"\n  2. Add the module containing '{dependency_token}' to your app"
+        msg += f"\n  3. Check for typos in the dependency name"
+        msg += f"\n  4. Make the dependency optional with Optional[{dependency_token}]"
+        
+        super().__init__(msg)

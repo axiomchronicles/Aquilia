@@ -103,8 +103,9 @@ def init_workspace(ctx, name: str, minimal: bool, template: Optional[str]):
 @click.option('--depends-on', multiple=True, help='Module dependencies')
 @click.option('--fault-domain', type=str, help='Custom fault domain')
 @click.option('--route-prefix', type=str, help='Route prefix')
+@click.option('--with-tests', is_flag=True, help='Generate test routes file')
 @click.pass_context
-def add(ctx, type: str, name: str, depends_on: tuple, fault_domain: Optional[str], route_prefix: Optional[str]):
+def add(ctx, type: str, name: str, depends_on: tuple, fault_domain: Optional[str], route_prefix: Optional[str], with_tests: bool):
     """
     Add module to workspace.
     
@@ -112,6 +113,7 @@ def add(ctx, type: str, name: str, depends_on: tuple, fault_domain: Optional[str
       aq add module users
       aq add module auth --depends-on=users
       aq add module admin --fault-domain=ADMIN --route-prefix=/admin
+      aq add module products --with-tests
     """
     from .commands.add import add_module
     
@@ -121,6 +123,7 @@ def add(ctx, type: str, name: str, depends_on: tuple, fault_domain: Optional[str
             depends_on=list(depends_on),
             fault_domain=fault_domain,
             route_prefix=route_prefix,
+            with_tests=with_tests,
             verbose=ctx.obj['verbose'],
         )
         
@@ -129,6 +132,8 @@ def add(ctx, type: str, name: str, depends_on: tuple, fault_domain: Optional[str
             info(f"  Location: {module_path}")
             if depends_on:
                 info(f"  Dependencies: {', '.join(depends_on)}")
+            if with_tests:
+                info(f"  Includes: Test routes")
             info(f"  Architecture: Controllers")
     
     except Exception as e:
@@ -147,9 +152,11 @@ def generate():
 @click.option('--prefix', type=str, help='Route prefix (default: /name)')
 @click.option('--resource', type=str, help='Resource name (default: name)')
 @click.option('--simple', is_flag=True, help='Generate simple controller')
+@click.option('--with-lifecycle', is_flag=True, help='Include lifecycle hooks')
+@click.option('--test', is_flag=True, help='Generate test/demo controller')
 @click.option('--output', type=click.Path(), help='Output directory')
 @click.pass_context
-def generate_controller(ctx, name: str, prefix: Optional[str], resource: Optional[str], simple: bool, output: Optional[str]):
+def generate_controller(ctx, name: str, prefix: Optional[str], resource: Optional[str], simple: bool, with_lifecycle: bool, test: bool, output: Optional[str]):
     """
     Generate a new controller.
     
@@ -157,6 +164,8 @@ def generate_controller(ctx, name: str, prefix: Optional[str], resource: Optiona
       aq generate controller Users
       aq generate controller Products --prefix=/api/products
       aq generate controller Health --simple
+      aq generate controller Admin --with-lifecycle
+      aq generate controller Test --test
       aq generate controller Admin --output=apps/admin/
     """
     from .generators.controller import generate_controller as _generate_controller
@@ -168,11 +177,17 @@ def generate_controller(ctx, name: str, prefix: Optional[str], resource: Optiona
             prefix=prefix,
             resource=resource,
             simple=simple,
+            with_lifecycle=with_lifecycle,
+            test=test,
         )
         
         if not ctx.obj['quiet']:
             success(f"✓ Generated controller '{name}'")
             info(f"  Location: {file_path}")
+            if with_lifecycle:
+                info(f"  Includes: Lifecycle hooks (on_startup, on_request, on_response)")
+            if test:
+                info(f"  Type: Test/Demo controller")
             info(f"\nNext steps:")
             info(f"  1. Add to manifest: controllers = ['{file_path.parent.name}.{file_path.stem}:{name}Controller']")
             info(f"  2. Implement your business logic")

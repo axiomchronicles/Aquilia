@@ -443,20 +443,237 @@ class Registry:
     
     def _load_manifest_services(self, manifest: Any) -> None:
         """Load services from manifest (phase 1)."""
-        # Implementation in next phase
-        pass
+        if not hasattr(manifest, 'services') or not manifest.services:
+            return
+        
+        from .providers import ClassProvider
+        import importlib
+        
+        for service_entry in manifest.services:
+            # Handle both string format and dict format
+            if isinstance(service_entry, str):
+                # Format: "module.path:ClassName"
+                service_str = service_entry
+                scope = "singleton"  # Default scope
+            elif isinstance(service_entry, dict):
+                # Format: {"class": "module.path:ClassName", "scope": "singleton"}
+                service_str = service_entry.get("class")
+                scope = service_entry.get("scope", "singleton")
+            else:
+                continue
+            
+            if not service_str or ':' not in service_str:
+                continue
+            
+            # Parse module path and class name
+            module_path, class_name = service_str.rsplit(':', 1)
+            
+            try:
+                # Import module
+                module = importlib.import_module(module_path)
+                
+                # Get class
+                service_class = getattr(module, class_name)
+                
+                # Create provider
+                provider = ClassProvider(
+                    cls=service_class,
+                    scope=scope,
+                )
+                
+                # Add to registry
+                self._providers.append(provider)
+                
+            except (ImportError, AttributeError) as e:
+                # Log error but continue
+                print(f"Warning: Could not load service {service_str}: {e}")
     
     def _build_dependency_graph(self) -> None:
-        """Build dependency graph (phase 2)."""
-        # Implementation in next phase
-        pass
+        """
+        Build dependency graph from registered providers (phase 2).
+        
+        Extracts dependencies from ClassProvider constructors and builds
+        the dependency graph for analysis.
+        
+        Raises:
+            MissingDependencyError: If a required dependency is not registered
+        """
+        from .graph import DependencyGraph
+        from .errors import MissingDependencyError
+        import inspect
+        
+        # Create dependency graph
+        self._dep_graph = DependencyGraph()
+        
+        # Add all providers to graph
+        for provider in self._providers:
+            dependencies = []
+            
+            # Extract dependencies from ClassProvider
+            if hasattr(provider, 'cls'):
+                try:
+                    # Get constructor signature
+                    sig = inspect.signature(provider.cls.__init__)
+                    
+                    for param_name, param in sig.parameters.items():
+                        if param_name == 'self':
+                            continue
+                        
+                        # Get type annotation
+                        if param.annotation != inspect.Parameter.empty:
+                            # Handle Optional types
+                            param_type = param.annotation
+                            
+                            # Skip if Optional (not required)
+                            origin = getattr(param_type, '__origin__', None)
+                            if origin is not None:
+                                # Handle Union types (Optional is Union[T, None])
+                                import typing
+                                if origin is typing.Union:
+                                    args = getattr(param_type, '__args__', ())
+                                    # If None in args, it's optional
+                                    if type(None) in args:
+                                        continue
+                                    # Otherwise use first non-None type
+                                    param_type = next((a for a in args if a is not type(None)), param_type)
+                            
+                            # Get token from type
+                            if hasattr(param_type, '__module__') and hasattr(param_type, '__name__'):
+                                dep_token = f"{param_type.__module__}.{param_type.__name__}"
+                                dependencies.append(dep_token)
+                        
+                        # If no annotation but has default, skip (optional)
+                        elif param.default != inspect.Parameter.empty:
+                            continue
+                
+                except Exception as e:
+                    # Log warning but continue
+                    print(f"Warning: Could not extract dependencies from {provider.meta.token}: {e}")
+            
+            # Add to graph
+            self._dep_graph.add_provider(provider, dependencies)
+            self._graph[provider.meta.token] = dependencies
+        
+        # Validate all dependencies exist
+        missing = []
+        for token, deps in self._graph.items():
+            for dep in deps:
+                if not any(p.meta.token == dep for p in self._providers):
+                    missing.append((token, dep))
+        
+        if missing:
+            # Report first missing dependency
+            service_token, dep_token = missing[0]
+            provider = next((p for p in self._providers if p.meta.token == service_token), None)
+            location = None
+            if provider and provider.meta.module and provider.meta.line:
+                location = (provider.meta.module, provider.meta.line)
+            
+            raise MissingDependencyError(
+                service_token=service_token,
+                dependency_token=dep_token,
+                service_location=location,
+            )
     
     def _detect_cycles(self) -> None:
-        """Detect cycles using Tarjan's algorithm (phase 3)."""
-        # Implementation in next phase
-        pass
+        """
+        Detect cycles using Tarjan's algorithm (phase 3).
+        
+        Uses the DependencyGraph's Tarjan implementation to find
+        strongly connected components (cycles).
+        
+        Raises:
+            CircularDependencyError: If circular dependencies detected
+        """
+        from .errors import CircularDependencyError
+        
+        if not hasattr(self, '_dep_graph'):
+            # Graph not built yet
+            return
+        
+        # Detect cycles using Tarjan's algorithm
+        cycles = self._dep_graph.detect_cycles()
+        
+        if cycles:
+            # Collect location information for error reporting
+            locations = {}
+            for cycle in cycles:
+                for token in cycle:
+                    provider = next((p for p in self._providers if p.meta.token == token), None)
+                    if provider and provider.meta.module and provider.meta.line:
+                        locations[token] = (provider.meta.module, provider.meta.line)
+            
+            raise CircularDependencyError(cycles=cycles, locations=locations)
     
     def _validate_cross_app_deps(self, manifests: List[Any]) -> None:
-        """Validate cross-app dependencies (phase 4)."""
-        # Implementation in next phase
-        pass
+        """
+        Validate cross-app dependencies (phase 4).
+        
+        Ensures that:
+        1. Cross-app dependencies are declared in manifest depends_on
+        2. No circular app dependencies
+        3. Dependency load order is correct
+        
+        Args:
+            manifests: List of AppManifest instances
+            
+        Raises:
+            CrossAppDependencyError: If cross-app dependency rules violated
+        """
+        from .errors import CrossAppDependencyError
+        
+        # Build app -> services mapping
+        app_services: Dict[str, List[str]] = {}
+        for manifest in manifests:
+            app_name = getattr(manifest, 'name', 'unknown')
+            services = []
+            
+            if hasattr(manifest, 'services'):
+                for service_entry in manifest.services:
+                    if isinstance(service_entry, str):
+                        service_str = service_entry
+                    elif isinstance(service_entry, dict):
+                        service_str = service_entry.get('class', '')
+                    else:
+                        continue
+                    
+                    if ':' in service_str:
+                        # Convert to token format
+                        module_path, class_name = service_str.rsplit(':', 1)
+                        token = f"{module_path}.{class_name}"
+                        services.append(token)
+            
+            app_services[app_name] = services
+        
+        # Build app dependencies from manifest
+        app_depends_on: Dict[str, List[str]] = {}
+        for manifest in manifests:
+            app_name = getattr(manifest, 'name', 'unknown')
+            depends_on = getattr(manifest, 'depends_on', [])
+            app_depends_on[app_name] = depends_on
+        
+        # Check each service's dependencies
+        for manifest in manifests:
+            consumer_app = getattr(manifest, 'name', 'unknown')
+            consumer_services = app_services.get(consumer_app, [])
+            
+            for service_token in consumer_services:
+                # Get dependencies of this service
+                deps = self._graph.get(service_token, [])
+                
+                for dep_token in deps:
+                    # Find which app provides this dependency
+                    provider_app = None
+                    for app, services in app_services.items():
+                        if dep_token in services:
+                            provider_app = app
+                            break
+                    
+                    # If dependency is from another app, check if declared
+                    if provider_app and provider_app != consumer_app:
+                        if provider_app not in app_depends_on.get(consumer_app, []):
+                            raise CrossAppDependencyError(
+                                consumer_app=consumer_app,
+                                provider_app=provider_app,
+                                provider_token=dep_token,
+                            )

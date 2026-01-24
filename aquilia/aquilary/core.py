@@ -497,6 +497,10 @@ class RuntimeRegistry:
     
     def _register_services(self):
         """Register services from manifests with DI containers."""
+        # Skip if already registered
+        if hasattr(self, '_services_registered') and self._services_registered:
+            return
+        
         from aquilia.di import Container
         from aquilia.di.providers import ClassProvider, ValueProvider
         import importlib
@@ -515,7 +519,11 @@ class RuntimeRegistry:
                     token="Config",
                     name=f"{ctx.name}_config",
                 )
-                container.register(config_provider)
+                try:
+                    container.register(config_provider)
+                except ValueError:
+                    # Already registered, skip
+                    pass
             
             # Register services
             for service_path in ctx.services:
@@ -540,9 +548,13 @@ class RuntimeRegistry:
                         tags=(tag,) if tag else (),
                     )
                     container.register(provider, tag=tag)
+                    print(f"✓ Registered service: {service_class.__name__} in app '{ctx.name}'")
                 
                 except Exception as e:
                     print(f"Warning: Failed to register service {service_path}: {e}")
+        
+        # Mark as registered
+        self._services_registered = True
     
     def _register_effects(self):
         """

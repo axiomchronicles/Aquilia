@@ -1,21 +1,19 @@
 """
-Mymod module services (business logic).
+Mymodapp module services (business logic).
 
 Services contain the core business logic and are auto-wired
 via dependency injection.
 """
 
-from aquilia.di import service, ServiceScope
 from typing import Optional, List
 
 
-@service(scope=ServiceScope.SINGLETON)
-class MymodService:
+class MymodappService:
     """
-    Service for mymod business logic.
+    Service for mymodapp business logic.
 
     This service is automatically registered with the DI container
-    and can be injected into flows or other services.
+    from the manifest and can be injected into controllers.
     """
 
     def __init__(self):

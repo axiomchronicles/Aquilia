@@ -68,6 +68,10 @@ class AquiliaServer:
         # Create runtime registry (lazy compilation phase)
         self.runtime = RuntimeRegistry.from_metadata(self.aquilary, self.config)
         
+        # CRITICAL: Register services immediately so DI containers are populated
+        # before controller factory is created
+        self.runtime._register_services()
+        
         # Create lifecycle coordinator for app startup/shutdown hooks
         self.coordinator = LifecycleCoordinator(self.runtime, self.config)
         

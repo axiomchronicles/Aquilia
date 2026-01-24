@@ -81,8 +81,16 @@ class ASGIAdapter:
             await response.send_asgi(send)
             return
         
-        # Get DI container from request state (set by middleware)
-        di_container = request.state.get("di_container")
+        # Get DI container from server runtime registry
+        di_container = None
+        
+        if self.server and hasattr(self.server, 'runtime'):
+            # Get the first app's container (or create request scope from it)
+            if self.server.runtime.di_containers:
+                # Get first app container
+                app_container = next(iter(self.server.runtime.di_containers.values()))
+                # Create request-scoped child container
+                di_container = app_container.create_request_scope()
         
         if not di_container:
             # Fallback: create minimal container

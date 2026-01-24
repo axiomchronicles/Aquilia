@@ -15,12 +15,14 @@ class ModuleGenerator:
         depends_on: List[str],
         fault_domain: str,
         route_prefix: str,
+        with_tests: bool = False,
     ):
         self.name = name
         self.path = path
         self.depends_on = depends_on
         self.fault_domain = fault_domain
         self.route_prefix = route_prefix
+        self.with_tests = with_tests
     
     def generate(self) -> None:
         """Generate module structure."""
@@ -32,6 +34,10 @@ class ModuleGenerator:
         self._create_controllers_file()
         self._create_services_file()
         self._create_faults_file()
+        
+        # Optionally create test routes
+        if self.with_tests:
+            self._create_test_routes_file()
     
     def _create_module_manifest(self) -> None:
         """Create module.aq manifest."""
@@ -73,6 +79,8 @@ class ModuleGenerator:
     
     def _create_init_file(self) -> None:
         """Create __init__.py file."""
+        test_import = "\nfrom .test_routes import *" if self.with_tests else ""
+        
         content = textwrap.dedent(f'''
             """
             {self.name.capitalize()} Module.
@@ -82,7 +90,7 @@ class ModuleGenerator:
             
             from .controllers import *
             from .services import *
-            from .faults import *
+            from .faults import *{test_import}
             
             __module_name__ = "{self.name}"
             __version__ = "0.1.0"
@@ -101,8 +109,7 @@ class ModuleGenerator:
             """
             
             from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
-            from typing import Annotated
-            # from aquilia.di import Inject  # Uncomment for DI
+            # Uncomment for DI:
             # from .services import {self.name.capitalize()}Service
             from .faults import {self.name.capitalize()}NotFoundFault
             
@@ -117,8 +124,8 @@ class ModuleGenerator:
                 prefix = "{self.route_prefix}"
                 tags = ["{self.name}"]
                 
-                # Uncomment for DI injection:
-                # def __init__(self, service: Annotated[{self.name.capitalize()}Service, Inject()]):
+                # Uncomment for DI (services auto-registered from manifest):
+                # def __init__(self, service: {self.name.capitalize()}Service):
                 #     self.service = service
                 
                 @GET("/")
@@ -222,17 +229,15 @@ class ModuleGenerator:
             via dependency injection.
             """
             
-            from aquilia.di import injectable, Scope
             from typing import Optional, List
             
             
-            @injectable(scope=Scope.SINGLETON)
             class {self.name.capitalize()}Service:
                 """
                 Service for {self.name} business logic.
                 
                 This service is automatically registered with the DI container
-                and can be injected into flows or other services.
+                from the manifest and can be injected into controllers.
                 """
                 
                 def __init__(self):
@@ -357,3 +362,68 @@ class ModuleGenerator:
         ''').strip()
         
         (self.path / 'faults.py').write_text(content)
+    
+    def _create_test_routes_file(self) -> None:
+        """Create test_routes.py file with demo endpoints."""
+        content = textwrap.dedent(f'''\
+            """
+            Test routes for {self.name} module - Additional test endpoints.
+            """
+            
+            from aquilia import Controller, GET, POST, RequestCtx, Response
+            
+            
+            class Test{self.name.capitalize()}Controller(Controller):
+                """Test endpoints for {self.name} module verification."""
+                
+                prefix = "/test-{self.name}"
+                tags = ["test", "{self.name}"]
+                
+                @GET("/hello")
+                async def hello(self, ctx: RequestCtx):
+                    """Simple hello world test endpoint."""
+                    return Response.json({{
+                        "message": "Hello from {{self.name}}!",
+                        "status": "success",
+                        "module": "{self.name}",
+                        "controller": "Test{self.name.capitalize()}Controller"
+                    }})
+                
+                @GET("/echo/«message:str»")
+                async def echo(self, ctx: RequestCtx, message: str):
+                    """Echo back a message with path parameter."""
+                    return Response.json({{
+                        "echo": message,
+                        "length": len(message),
+                        "type": "path_param",
+                        "module": "{self.name}"
+                    }})
+                
+                @POST("/data")
+                async def post_data(self, ctx: RequestCtx):
+                    """Test POST with JSON body."""
+                    try:
+                        data = await ctx.json()
+                        return Response.json({{
+                            "received": data,
+                            "keys": list(data.keys()) if isinstance(data, dict) else None,
+                            "status": "processed",
+                            "module": "{self.name}"
+                        }})
+                    except Exception as e:
+                        return Response.json({{
+                            "error": str(e),
+                            "status": "failed"
+                        }}, status=400)
+                
+                @GET("/health")
+                async def health(self, ctx: RequestCtx):
+                    """Health check endpoint for {self.name} module."""
+                    return Response.json({{
+                        "status": "healthy",
+                        "module": "{self.name}",
+                        "controller": "Test{self.name.capitalize()}Controller"
+                    }})
+        ''').strip()
+        
+        (self.path / 'test_routes.py').write_text(content)

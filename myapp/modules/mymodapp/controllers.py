@@ -1,38 +1,37 @@
 """
-Mymod module controllers (request handlers).
+Mymodapp module controllers (request handlers).
 
-This file defines the HTTP endpoints for the mymod module
+This file defines the HTTP endpoints for the mymodapp module
 using the modern Controller architecture with pattern-based routing.
 """
 
 from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
-from typing import Annotated
-# from aquilia.di import Inject  # Uncomment for DI
-# from .services import MymodService
-from .faults import MymodNotFoundFault
+# Uncomment for DI:
+# from .services import MymodappService
+from .faults import MymodappNotFoundFault
 
 
-class MymodController(Controller):
+class MymodappController(Controller):
     """
-    Controller for mymod endpoints.
+    Controller for mymodapp endpoints.
 
-    Provides RESTful CRUD operations for mymod.
+    Provides RESTful CRUD operations for mymodapp.
     """
 
-    prefix = "/mymod"
-    tags = ["mymod"]
+    prefix = "/mymodapp"
+    tags = ["mymodapp"]
 
-    # Uncomment for DI injection:
-    # def __init__(self, service: Annotated[MymodService, Inject()]):
+    # Uncomment for DI (services auto-registered from manifest):
+    # def __init__(self, service: MymodappService):
     #     self.service = service
 
     @GET("/")
-    async def list_mymod(self, ctx: RequestCtx):
+    async def list_mymodapp(self, ctx: RequestCtx):
         """
-        Get list of mymod.
+        Get list of mymodapp.
 
         Example:
-            GET /mymod/ -> {"items": [...], "total": 0}
+            GET /mymodapp/ -> {"items": [...], "total": 0}
         """
         # TODO: Implement list logic
         # items = await self.service.get_all()
@@ -44,12 +43,12 @@ class MymodController(Controller):
         })
 
     @POST("/")
-    async def create_mymod(self, ctx: RequestCtx):
+    async def create_mymodapp(self, ctx: RequestCtx):
         """
-        Create new mymod.
+        Create new mymodapp.
 
         Example:
-            POST /mymod/
+            POST /mymodapp/
             Body: {"name": "Example"}
             -> {"id": 1, "name": "Example"}
         """
@@ -62,29 +61,29 @@ class MymodController(Controller):
         return Response.json(item, status=201)
 
     @GET("/«id:int»")
-    async def get_mymod(self, ctx: RequestCtx, id: int):
+    async def get_mymodapp(self, ctx: RequestCtx, id: int):
         """
-        Get single mymod by ID.
+        Get single mymodapp by ID.
 
         Example:
-            GET /mymod/1 -> {"id": 1, "name": "Example"}
+            GET /mymodapp/1 -> {"id": 1, "name": "Example"}
         """
         # TODO: Fetch by ID
         # item = await self.service.get_by_id(id)
         # if not item:
-        #     raise MymodNotFoundFault(item_id=id)
+        #     raise MymodappNotFoundFault(item_id=id)
 
         item = {"id": id, "name": "Example"}
 
         return Response.json(item)
 
     @PUT("/«id:int»")
-    async def update_mymod(self, ctx: RequestCtx, id: int):
+    async def update_mymodapp(self, ctx: RequestCtx, id: int):
         """
-        Update mymod by ID.
+        Update mymodapp by ID.
 
         Example:
-            PUT /mymod/1
+            PUT /mymodapp/1
             Body: {"name": "Updated"}
             -> {"id": 1, "name": "Updated"}
         """
@@ -100,12 +99,12 @@ class MymodController(Controller):
         return Response.json(item)
 
     @DELETE("/«id:int»")
-    async def delete_mymod(self, ctx: RequestCtx, id: int):
+    async def delete_mymodapp(self, ctx: RequestCtx, id: int):
         """
-        Delete mymod by ID.
+        Delete mymodapp by ID.
 
         Example:
-            DELETE /mymod/1 -> 204 No Content
+            DELETE /mymodapp/1 -> 204 No Content
         """
         # TODO: Delete logic
         # deleted = await self.service.delete(id)

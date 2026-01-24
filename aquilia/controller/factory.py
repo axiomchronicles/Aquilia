@@ -172,7 +172,7 @@ class ControllerFactory:
                     elif param.default != inspect.Parameter.empty:
                         # Use default
                         params[param_name] = param.default
-                except Exception:
+                except Exception as e:
                     # If resolution fails and no default, skip
                     if param.default != inspect.Parameter.empty:
                         params[param_name] = param.default
@@ -222,7 +222,10 @@ class ControllerFactory:
     
     async def _simple_resolve(self, param_type: Type, container: Any) -> Any:
         """Simple resolution from container."""
-        if hasattr(container, 'resolve'):
+        if hasattr(container, 'resolve_async'):
+            # Prefer async resolution
+            return await container.resolve_async(param_type)
+        elif hasattr(container, 'resolve'):
             result = container.resolve(param_type)
             if asyncio.iscoroutine(result):
                 return await result

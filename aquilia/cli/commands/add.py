@@ -13,6 +13,7 @@ def add_module(
     depends_on: List[str],
     fault_domain: Optional[str] = None,
     route_prefix: Optional[str] = None,
+    with_tests: bool = False,
     verbose: bool = False,
 ) -> Path:
     """
@@ -23,6 +24,7 @@ def add_module(
         depends_on: List of module dependencies
         fault_domain: Custom fault domain
         route_prefix: Route prefix for the module
+        with_tests: Generate test routes file
         verbose: Enable verbose output
     
     Returns:
@@ -42,6 +44,8 @@ def add_module(
             info(f"  Fault domain: {fault_domain}")
         if route_prefix:
             info(f"  Route prefix: {route_prefix}")
+        if with_tests:
+            info(f"  With test routes: Yes")
     
     # Load workspace manifest
     manifest = WorkspaceManifest.from_file(manifest_path)
@@ -64,6 +68,7 @@ def add_module(
         depends_on=depends_on,
         fault_domain=fault_domain or name.upper(),
         route_prefix=route_prefix or f"/{name}",
+        with_tests=with_tests,
     )
     
     generator.generate()
@@ -84,6 +89,8 @@ def add_module(
         dim(f"    controllers.py")
         dim(f"    services.py")
         dim(f"    faults.py")
+        if with_tests:
+            dim(f"    test_routes.py")
         dim(f"    __init__.py")
     
     return module_path
