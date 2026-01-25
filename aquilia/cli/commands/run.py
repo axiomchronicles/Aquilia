@@ -591,7 +591,7 @@ from aquilia.config import ConfigLoader
     
     code += f'''
 # Create configuration
-config = ConfigLoader()
+config = ConfigLoader.load(paths=["workspace.py"])
 
 # Merge config data directly
 config.config_data["debug"] = True

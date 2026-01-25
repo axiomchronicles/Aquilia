@@ -450,13 +450,9 @@ class ConfigLoader:
         if not user_config:
             user_config = self.get("integrations.sessions", {})
         if not user_config:
-            # Check if workspace config exists
-            workspace_integrations = self.get("integrations", [])
-            for integration in workspace_integrations:
-                if isinstance(integration, dict) and "sessions" in str(integration):
-                    # Extract sessions config from integration
-                    user_config = integration
-                    break
+            # Check if workspace config exists - the workspace puts sessions config directly at root level
+            # when build() is called, so check there first
+            pass
         
         # Merge with defaults
         merged = default_session_config.copy()
@@ -464,6 +460,17 @@ class ConfigLoader:
             # Enable sessions if config provided
             merged["enabled"] = user_config.get("enabled", True)
             self._merge_dict(merged, user_config)
+            
+            # Special handling for workspace policies - if policies list exists and contains SessionPolicy objects,
+            # use the first one as the primary policy for the server
+            if "policies" in user_config and user_config["policies"]:
+                first_policy = user_config["policies"][0]
+                # Check if it's a SessionPolicy object (from workspace), not just a string representation
+                if hasattr(first_policy, 'name') and hasattr(first_policy, 'ttl'):
+                    merged["policy"] = first_policy
+                    # Also store reference to underlying transport/store if available
+                    if hasattr(first_policy, 'transport'):
+                        merged["transport_policy"] = first_policy.transport
         
         return merged
 

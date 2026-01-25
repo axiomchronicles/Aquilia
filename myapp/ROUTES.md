@@ -1,5 +1,5 @@
 # 📍 Auto-Discovered Routes & Modules
-*Generated: 2026-01-25 18:23:56*
+*Generated: 2026-01-25 18:41:44*
 
 ## Module Routes
 | Module | Route Prefix | Version | Tags | Components |

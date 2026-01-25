@@ -50,6 +50,8 @@ class AquiliaServer:
         """
         self.config = config or ConfigLoader()
         self.logger = logging.getLogger("aquilia.server")
+        self.logger.info("🔍 Initializing AquiliaServer...")
+        self.logger.info(f"📦 Config has sessions: {'sessions' in self.config.to_dict()}")
         self.mode = mode
         
         # Build or use provided Aquilary registry
@@ -177,8 +179,10 @@ class AquiliaServer:
         # Add session middleware if enabled
         session_config = self.config.get_session_config()
         self.logger.debug(f"Session config: {session_config}")
+        self.logger.info(f"🔍 Session middleware check: enabled={session_config.get('enabled', False)}")
         
         if session_config.get("enabled", False):
+            self.logger.info("🔄 Initializing session management...")
             try:
                 # Create session engine
                 session_engine = self._create_session_engine(session_config)
@@ -251,13 +255,39 @@ class AquiliaServer:
             # Workspace format - direct policy objects
             policy = session_config["policy"]
             store = session_config.get("store")
-            transport = session_config.get("transport")
+            transport_config = session_config.get("transport")
             
-            # Create defaults if not provided
+            # Create store from config or default
             if store is None:
                 store = MemoryStore(max_sessions=10000)
-            if transport is None:
+            elif isinstance(store, dict):
+                # Store config is a dictionary - create store object
+                store_type = store.get("type", "memory")
+                if store_type == "memory":
+                    store = MemoryStore(max_sessions=store.get("max_sessions", 10000))
+                elif store_type == "file":
+                    directory = store.get("directory", "/tmp/aquilia_sessions")
+                    store = FileStore(directory=directory)
+                else:
+                    # Default to memory
+                    store = MemoryStore(max_sessions=10000)
+                
+            # Create transport from policy or config
+            if transport_config is None:
                 transport = CookieTransport(policy.transport)
+            elif isinstance(transport_config, dict):
+                # Transport config is a dictionary - create transport object
+                adapter = transport_config.get("adapter", "cookie")
+                if adapter == "cookie":
+                    transport = CookieTransport(policy.transport)
+                elif adapter == "header":
+                    transport = HeaderTransport(policy.transport)
+                else:
+                    # Default to cookie
+                    transport = CookieTransport(policy.transport)
+            else:
+                # Transport config is already a transport object
+                transport = transport_config
                 
             return SessionEngine(policy=policy, store=store, transport=transport)
         

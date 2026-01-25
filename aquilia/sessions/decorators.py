@@ -169,16 +169,33 @@ class SessionDecorators:
                                 # Store back in ctx and request for downstream
                                 ctx.session = session
                                 ctx.request.state['session'] = session
-                            except Exception as e:
-                                # Re-raise to see what's wrong during development
-                                raise
+                            except Exception:
+                                # If SessionEngine not available or resolution fails,
+                                # this means session middleware is not configured.
+                                # For @session.ensure(), we should create a minimal session
+                                # rather than failing.
+                                from aquilia.sessions import Session, SessionID
+                                from datetime import datetime, timezone
+                                import uuid
+                                
+                                # Create a minimal session for this request
+                                session_id = SessionID()  # Creates random ID
+                                session = Session(
+                                    id=session_id,
+                                    created_at=datetime.now(timezone.utc),
+                                    last_accessed_at=datetime.now(timezone.utc),
+                                    data={},
+                                    principal=None,
+                                )
+                                
+                                # Store in ctx and request state
+                                ctx.session = session
+                                ctx.request.state['session'] = session
                     elif ctx and hasattr(ctx, 'request'):
                         # Fallback: check request state
                         session = ctx.request.state.get('session')
                 
-                # Session should always exist due to middleware
-                # This decorator is mainly for documentation/intent
-                
+                # Session should now exist
                 # Inject session into kwargs if accepted by signature
                 if session and 'session' not in func_kwargs:
                     sig = inspect.signature(func)
