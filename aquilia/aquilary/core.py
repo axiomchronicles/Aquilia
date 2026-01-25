@@ -456,8 +456,33 @@ class RuntimeRegistry:
                     predicate=lambda cls: cls.__name__.endswith("Controller"),
                 )
                 
+                # NEW: Scan individual controller files in module directory
+                module_controllers = []
+                try:
+                    import importlib
+                    # Import the module package itself
+                    module_package = importlib.import_module(base_package)
+                    if hasattr(module_package, '__path__'):
+                        # Get all python files in the module directory
+                        from pathlib import Path
+                        module_dir = Path(module_package.__path__[0])
+                        for py_file in module_dir.glob("*.py"):
+                            if py_file.stem in ['__init__', 'manifest']:
+                                continue
+                            
+                            # Try to scan individual file as a module
+                            submodule_name = f"{base_package}.{py_file.stem}"
+                            file_controllers = scanner.scan_package(
+                                submodule_name,
+                                predicate=lambda cls: cls.__name__.endswith("Controller"),
+                            )
+                            module_controllers.extend(file_controllers)
+                except Exception:
+                    # Silent fail for runtime discovery
+                    pass
+                
                 # Add discovered controllers to context
-                for cls in controllers + test_routes:
+                for cls in controllers + test_routes + module_controllers:
                     path = f"{cls.__module__}:{cls.__name__}"
                     if path not in ctx.controllers:
                         ctx.controllers.append(path)

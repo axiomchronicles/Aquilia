@@ -40,20 +40,105 @@ def update_manifest(module_name: str, workspace_root: Path, check: bool = False,
     scanner = PackageScanner()
     base_package = f"modules.{module_name}"
     
-    # Discover Controllers
-    controllers = scanner.scan_package(
-        f"{base_package}.controllers",
-        predicate=lambda cls: cls.__name__.endswith("Controller"),
-    )
-    # Also scan test_routes
-    test_routes = scanner.scan_package(
-        f"{base_package}.test_routes",
-        predicate=lambda cls: cls.__name__.endswith("Controller"),
-    )
+    # Enhanced Controller Discovery with Intelligence
+    all_controllers = []
     
-    found_controllers = sorted(list(set(
-        f"{c.__module__}:{c.__name__}" for c in controllers + test_routes
-    )))
+    # Strategy 1: Standard subpackage scanning  
+    standard_locations = [
+        f"{base_package}.controllers",
+        f"{base_package}.test_routes",
+        f"{base_package}.handlers",
+        f"{base_package}.views", 
+        f"{base_package}.routes",
+    ]
+    
+    for location in standard_locations:
+        try:
+            controllers = scanner.scan_package(
+                location,
+                predicate=lambda cls: (
+                    cls.__name__.endswith("Controller") or
+                    cls.__name__.endswith("Handler") or
+                    cls.__name__.endswith("View") or
+                    hasattr(cls, '__controller_routes__') or
+                    hasattr(cls, 'prefix')
+                ),
+            )
+            all_controllers.extend(controllers)
+        except ImportError:
+            pass
+    
+    # Strategy 2: Enhanced individual file scanning
+    try:
+        import importlib
+        from pathlib import Path
+        module_package = importlib.import_module(base_package)
+        if hasattr(module_package, '__path__'):
+            module_dir = Path(module_package.__path__[0])
+            
+            # Intelligent file pattern matching
+            controller_patterns = [
+                "*controller*.py", "*ctrl*.py", "*handler*.py", 
+                "*view*.py", "*route*.py", "*api*.py",
+                "*endpoint*.py", "*resource*.py"
+            ]
+            
+            candidate_files = set()
+            for pattern in controller_patterns:
+                candidate_files.update(module_dir.glob(pattern))
+            
+            # Also scan all Python files (fallback)
+            all_py_files = set(module_dir.glob("*.py"))
+            other_files = all_py_files - candidate_files - {
+                module_dir / "__init__.py", 
+                module_dir / "manifest.py",
+                module_dir / "config.py",
+                module_dir / "settings.py"
+            }
+            
+            for py_file in sorted(candidate_files) + sorted(other_files):
+                if py_file.stem in ['__init__', 'manifest', 'config', 'settings']:
+                    continue
+                
+                # Quick content analysis for performance
+                try:
+                    content = py_file.read_text(encoding='utf-8', errors='ignore')
+                    if not ('Controller' in content or 'Handler' in content or 
+                           'View' in content or 'class ' in content):
+                        continue
+                except Exception:
+                    continue
+                
+                submodule_name = f"{base_package}.{py_file.stem}"
+                try:
+                    file_controllers = scanner.scan_package(
+                        submodule_name,
+                        predicate=lambda cls: (
+                            cls.__name__.endswith("Controller") or
+                            cls.__name__.endswith("Handler") or
+                            cls.__name__.endswith("View") or
+                            hasattr(cls, '__controller_routes__') or
+                            hasattr(cls, 'prefix') or
+                            # Duck typing for controller-like classes
+                            any(hasattr(cls, method) for method in ['get', 'post', 'put', 'delete'])
+                        ),
+                    )
+                    all_controllers.extend(file_controllers)
+                except Exception:
+                    pass
+                    
+    except Exception as scan_error:
+        if verbose:
+            print(f"  ⚠️  Enhanced individual file scan failed for {module_name}: {scan_error}")
+    
+    # Deduplicate results
+    unique_controllers = {}
+    for controller in all_controllers:
+        key = f"{controller.__module__}:{controller.__name__}"
+        if key not in unique_controllers:
+            unique_controllers[key] = controller
+    
+    found_controllers = sorted(unique_controllers.keys())
     
     # Discover Services
     services = scanner.scan_package(

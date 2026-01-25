@@ -29,28 +29,49 @@ workspace = (
         version="0.1.0",
         description="Aquilia workspace",
     )
-    # Auto-detected modules
 
-    .module(Module("mode", version="0.1.0", description="Mode module")
-        .route_prefix("/mode")
-        .tags("mode", "core")
-        .register_controllers(
-            "modules.mode.controllers:ModeController"
-        )
-        .register_services(
-            "modules.mode.services:ModeService"
-        ))
+    # Add modules here with explicit configuration:
+    #).depends_on("core"))
+    #).depends_on("auth", "core"))
+
     .module(Module("mymodule", version="0.1.0", description="Mymodule module")
         .route_prefix("/mymodule")
         .tags("mymodule", "core")
         .register_controllers(
-            "modules.mymodule.controllers:MymoduleController",
-            "modules.mymodule.simple_session_test:SimpleSessionTestController"
+            "modules.mymodule.controllers:MymoduleController"
         )
         .register_services(
-            "modules.mymodule.services:MymoduleService",
-            "modules.mymodule.services:MymoduleServiceV2",
-            "modules.mymodule.services:MymoduleServiceV3"
+            "modules.mymodule.services:MymoduleService"
+        ))
+
+    .module(Module("mymodule", version="0.1.0", description="Mymodule module")
+        .route_prefix("/mymodule")
+        .tags("mymodule", "core")
+        .register_controllers(
+            "modules.mymodule.controllers:MymoduleController"
+        )
+        .register_services(
+            "modules.mymodule.services:MymoduleService"
+        ))
+
+    .module(Module("mymodule", version="0.1.0", description="Mymodule module")
+        .route_prefix("/mymodule")
+        .tags("mymodule", "core")
+        .register_controllers(
+            "modules.mymodule.controllers:MymoduleController"
+        )
+        .register_services(
+            "modules.mymodule.services:MymoduleService"
+        ))
+
+    .module(Module("mymodule", version="0.1.0", description="Mymodule module")
+        .route_prefix("/mymodule")
+        .tags("mymodule", "core")
+        .register_controllers(
+            "modules.mymodule.controllers:MymoduleController"
+        )
+        .register_services(
+            "modules.mymodule.services:MymoduleService"
         ))
 
     # Integrations - Configure core systems

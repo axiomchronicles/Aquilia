@@ -84,18 +84,23 @@ def add_module(
     
     generator.generate()
     
-    # Regenerate workspace with enhanced auto-discovery
-    # This will automatically detect the new module and regenerate workspace.py
-    # with proper ordering, metadata extraction, and validation
+    # Update workspace with the new module (don't regenerate everything)
+    # This will automatically detect the new module and add it with register_controllers/services
     try:
         workspace_generator = WorkspaceGenerator(
             name=workspace_root.name,
             path=workspace_root
         )
-        workspace_generator.generate()
+        
+        # Discover the new module
+        discovered = workspace_generator._discover_modules()
+        
+        # Update workspace.py with discovered modules (preserves existing config)
+        workspace_path = workspace_root / 'workspace.py'
+        workspace_generator.update_workspace_config(workspace_path, discovered)
         
         if verbose:
-            info(f"✓ Regenerated workspace.py with auto-discovery")
+            info(f"✓ Updated workspace.py with auto-discovery")
     except Exception as e:
         if verbose:
             warning = __import__('aquilia.cli.utils.colors', fromlist=['warning']).warning

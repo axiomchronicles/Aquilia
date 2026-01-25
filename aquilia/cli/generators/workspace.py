@@ -66,13 +66,139 @@ class WorkspaceGenerator:
         items = re.findall(r'"([^"]+)"', list_content)
         return items if items else default
     
+    def generate_workspace_module_config(self, discovered_modules: dict) -> str:
+        """
+        Generate enhanced workspace module configuration from discovered manifests and runtime discovery.
+        
+        Args:
+            discovered_modules: Dictionary of discovered module data with enhanced discovery results
+            
+        Returns:
+            String containing workspace module configuration with all discovered controllers/services
+        """
+        lines = []
+        
+        for mod_name, mod_data in discovered_modules.items():
+            # Generate module configuration
+            version = mod_data.get('version', '0.1.0')
+            description = mod_data.get('description', f'{mod_name.capitalize()} module')
+            route_prefix = mod_data.get('route_prefix', f'/{mod_name}')
+            tags = mod_data.get('tags', [])
+            
+            # Build enhanced module config with discovered resources
+            base_config = f'Module("{mod_name}", version="{version}", description="{description}")'
+            
+            # Add route prefix (8 spaces = .module indent + 1 tab)
+            config_chain = f'{base_config}\n        .route_prefix("{route_prefix}")'
+            
+            # Add tags
+            if tags:
+                tags_str = ', '.join(f'"{tag}"' for tag in tags)
+                config_chain += f'\n        .tags({tags_str})'
+            
+            # Add discovered controllers registration
+            controllers_list = mod_data.get('controllers_list', [])
+            if controllers_list and len(controllers_list) > 0:
+                controllers_str = ',\n            '.join(f'"{ctrl}"' for ctrl in controllers_list)
+                config_chain += f'\n        .register_controllers(\n            {controllers_str}\n        )'
+            
+            # Add discovered services registration  
+            services_list = mod_data.get('services_list', [])
+            if services_list and len(services_list) > 0:
+                services_str = ',\n            '.join(f'"{svc}"' for svc in services_list)
+                config_chain += f'\n        .register_services(\n            {services_str}\n        )'
+            
+            # .module at same level as .integrate (4 spaces)
+            module_line = f'    .module({config_chain})'
+            lines.append(module_line)
+        
+        return '\n'.join(lines)
+    
+    def update_workspace_config(self, workspace_path: Path, discovered_modules: dict) -> None:
+        """
+        Update workspace.py with auto-discovered module configurations.
+        
+        Args:
+            workspace_path: Path to workspace.py file
+            discovered_modules: Dictionary of discovered module data
+        """
+        if not workspace_path.exists():
+            return
+        
+        content = workspace_path.read_text()
+        
+        # Generate new module configuration
+        new_config = self.generate_workspace_module_config(discovered_modules)
+        
+        import re
+        
+        # Strategy: Find the right place to insert modules
+        # 1. Look for existing modules and remove them
+        # 2. Find the comment "# Integrations" and insert before it
+        
+        # Remove existing module blocks by looking for pattern: 
+        # Lines with .module(Module(...)) that might span multiple lines
+        lines = content.split('\n')
+        new_lines = []
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            
+            # Check if this line starts a .module(...) block
+            # Handles both single-line and multi-line formats
+            if '.module(' in line:
+                # Skip lines until we find the closing ) of this module block
+                paren_depth = 0
+                start_i = i
+                while i < len(lines):
+                    paren_depth += lines[i].count('(') - lines[i].count(')')
+                    if paren_depth <= 0 and i > start_i:
+                        i += 1
+                        break
+                    i += 1
+            else:
+                new_lines.append(line)
+                i += 1
+        
+        content = '\n'.join(new_lines)
+        
+        # Now find where to insert modules
+        # Look for "# Integrations - Configure core systems"
+        integrations_comment = "    # Integrations - Configure core systems"
+        
+        if integrations_comment in content:
+            # Insert before this comment
+            content = content.replace(
+                integrations_comment,
+                new_config + '\n\n' + integrations_comment
+            )
+        else:
+            # Fallback: find .integrate( and insert before it
+            integrate_match = re.search(r'(\s*\.integrate\()', content)
+            if integrate_match:
+                insertion_point = integrate_match.start()
+                # Get the indentation
+                indent = len(integrate_match.group(1)) - len(integrate_match.group(1).lstrip())
+                content = content[:insertion_point] + new_config + '\n\n    ' + content[insertion_point:]
+        
+        # Clean up extra newlines
+        content = re.sub(r'\n\s*\n\s*\n', '\n\n', content)
+        
+        # Write back
+        workspace_path.write_text(content)
+        print(f"✅ Updated workspace.py with {len(discovered_modules)} module configurations")
+
     def _discover_modules(self) -> dict:
-        """Enhanced module discovery with dependency resolution and validation."""
+        """Enhanced module discovery with intelligent classification."""
+        from aquilia.cli.discovery_utils import EnhancedDiscovery
+        
         modules_dir = self.path / 'modules'
         discovered_modules = {}
         
         if not modules_dir.exists():
             return discovered_modules
+        
+        discovery = EnhancedDiscovery(verbose=False)
         
         # Find all module directories with manifest.py
         module_dirs = [d for d in modules_dir.iterdir() 
@@ -93,10 +219,30 @@ class WorkspaceGenerator:
                 base_path = self._extract_field(manifest_content, r'base_path="([^"]+)"', f"modules.{mod_name}")
                 depends_on = self._extract_list(manifest_content, r'depends_on=\[(.*?)\]', [])
                 
-                # Check for module structure
-                has_services = (mod_dir / 'services' / '__init__.py').exists() or (mod_dir / 'services.py').exists()
-                has_controllers = (mod_dir / 'controllers' / '__init__.py').exists() or (mod_dir / 'controllers.py').exists()
-                has_middleware = (mod_dir / 'middleware' / '__init__.py').exists() or (mod_dir / 'middleware.py').exists()
+                # Extract current manifest declarations (baseline)
+                manifest_services_list = self._extract_list(manifest_content, r'services=\s*\[(.*?)\]', [])
+                manifest_controllers_list = self._extract_list(manifest_content, r'controllers=\s*\[(.*?)\]', [])
+                manifest_middleware_list = self._extract_list(manifest_content, r'middleware=\s*\[(.*?)\]', [])
+                
+                # ENHANCED: Use intelligent discovery to properly classify items
+                try:
+                    discovered_controllers, discovered_services = discovery.discover_module_controllers_and_services(
+                        base_path, mod_name
+                    )
+                    
+                    # Use discovered classification (more accurate than manifest)
+                    services_list = discovered_services if discovered_services else manifest_services_list
+                    controllers_list = discovered_controllers if discovered_controllers else manifest_controllers_list
+                    
+                except Exception:
+                    # Fallback to manifest declarations if discovery fails
+                    services_list = manifest_services_list
+                    controllers_list = manifest_controllers_list
+                
+                # Check for actual declarations/discoveries
+                has_services = len(services_list) > 0
+                has_controllers = len(controllers_list) > 0
+                has_middleware = len(manifest_middleware_list) > 0
                 
                 discovered_modules[mod_name] = {
                     'name': mod_name,
@@ -111,6 +257,12 @@ class WorkspaceGenerator:
                     'has_services': has_services,
                     'has_controllers': has_controllers,
                     'has_middleware': has_middleware,
+                    'services_list': services_list,
+                    'controllers_list': controllers_list,
+                    'middleware_list': manifest_middleware_list,
+                    'services_count': len(services_list),
+                    'controllers_count': len(controllers_list),
+                    'middleware_count': len(manifest_middleware_list),
                     'manifest_path': mod_dir / 'manifest.py',
                 }
             except Exception:
@@ -197,28 +349,38 @@ class WorkspaceGenerator:
             for mod_name in sorted_names:
                 mod = discovered[mod_name]
                 
-                # Build enhanced module registration with full metadata
-                deps_str = ""
-                if mod.get('depends_on'):
-                    deps_part = ", ".join(f'"{d}"' for d in mod['depends_on'])
-                    deps_str = f".depends_on({deps_part})"
+                # Build enhanced module registration with proper formatting
+                # Format: .module(Module("name", version="...", description="...").route_prefix(...).tags(...).register_controllers(...).register_services(...))
                 
-                tags_str = ""
+                base_config = f'Module("{mod["name"]}", version="{mod["version"]}", description="{mod["description"]}")'
+                
+                # Add route prefix
+                config_chain = f'{base_config}\n        .route_prefix("{mod["route_prefix"]}")'
+                
+                # Add tags
                 if mod.get('tags'):
                     tags_part = ", ".join(f'"{t}"' for t in mod['tags'])
-                    tags_str = f".tags({tags_part})"
+                    config_chain += f'\n        .tags({tags_part})'
                 
-                module_line = (
-                    f'.module(Module("{mod["name"]}", version="{mod["version"]}", '
-                    f'description="{mod["description"]}").route_prefix("{mod["route_prefix"]}")'
-                    f'{tags_str}{deps_str})'
-                )
+                # Add discovered controllers registration
+                controllers_list = mod.get('controllers_list', [])
+                if controllers_list and len(controllers_list) > 0:
+                    controllers_str = ',\n            '.join(f'"{ctrl}"' for ctrl in controllers_list)
+                    config_chain += f'\n        .register_controllers(\n            {controllers_str}\n        )'
                 
+                # Add discovered services registration  
+                services_list = mod.get('services_list', [])
+                if services_list and len(services_list) > 0:
+                    services_str = ',\n            '.join(f'"{svc}"' for svc in services_list)
+                    config_chain += f'\n        .register_services(\n            {services_str}\n        )'
+                
+                # .module(Module(...) on same line, then chain methods indented
+                module_line = f'.module({config_chain}\n    ))'
                 module_lines.append(module_line)
             
             if module_lines:
-                # Indent each module line with 16 spaces
-                module_registrations = "\n" + "\n".join("                " + line for line in module_lines)
+                # Indent each module block with 4 spaces
+                module_registrations = "\n" + "\n".join("    " + line.replace("\n", "\n    ") for line in module_lines)
         
         content = textwrap.dedent(f'''\
             """
@@ -252,7 +414,7 @@ class WorkspaceGenerator:
                     name="{self.name}",
                     version="0.1.0",
                     description="Aquilia workspace",
-                ){"" if not module_registrations else chr(10) + "                # Auto-detected modules" + module_registrations}
+                ){"" if not module_registrations else chr(10) + "    # Auto-detected modules" + module_registrations}
                 # Add modules here with explicit configuration:
                 # .module(Module("auth", version="1.0.0", description="Authentication module").route_prefix("/api/v1/auth").depends_on("core"))
                 # .module(Module("users", version="1.0.0", description="User management").route_prefix("/api/v1/users").depends_on("auth", "core"))

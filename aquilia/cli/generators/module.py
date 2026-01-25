@@ -194,8 +194,10 @@ class ModuleGenerator:
                 prefix = "{self.route_prefix}"
                 tags = ["{self.name}"]
                 
-                def __init__(self, service: {self.name.capitalize()}Service):
-                    self.service = service
+                def __init__(self):
+                    # Instantiate service directly (DI integration pending)
+                    # Once DI is fully integrated, change to: def __init__(self, service: {self.name.capitalize()}Service):
+                    self.service = {self.name.capitalize()}Service()
                 
                 @GET("/")
                 async def list_{self.name}(self, ctx: RequestCtx):

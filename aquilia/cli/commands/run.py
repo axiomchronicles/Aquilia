@@ -8,6 +8,130 @@ from pathlib import Path
 from typing import Optional, Dict, List, Set
 
 
+def _validate_workspace_config(workspace_root: Path, verbose: bool = False) -> List[str]:
+    """
+    Validate that all modules registered in workspace.py/manifest.py actually exist.
+    
+    Checks:
+    1. All registered module directories exist
+    2. All manifest.py files can be found
+    3. All controller/service imports are valid file paths
+    4. No circular or missing dependencies
+    
+    Args:
+        workspace_root: Path to workspace root
+        verbose: Enable verbose output
+        
+    Returns:
+        List of error messages (empty if validation passes)
+    """
+    errors = []
+    
+    try:
+        # Check if workspace.py exists and is valid
+        workspace_py = workspace_root / "workspace.py"
+        if not workspace_py.exists():
+            errors.append("workspace.py not found in workspace root")
+            return errors
+        
+        # Read workspace.py to find registered modules
+        try:
+            workspace_content = workspace_py.read_text()
+        except Exception as e:
+            errors.append(f"Cannot read workspace.py: {str(e)[:60]}")
+            return errors
+        
+        # Extract module names from workspace.py
+        import re
+        module_matches = re.findall(r'Module\("([^"]+)"', workspace_content)
+        module_names = list(set(module_matches))  # Deduplicate
+        
+        if not module_names:
+            # No modules registered - that's OK
+            return errors
+        
+        modules_dir = workspace_root / "modules"
+        if not modules_dir.exists():
+            errors.append(f"modules directory not found at {modules_dir}")
+            return errors
+        
+        # Validate each registered module
+        for module_name in module_names:
+            module_dir = modules_dir / module_name
+            
+            # Check if module directory exists
+            if not module_dir.exists():
+                errors.append(f"Module directory not found: modules/{module_name}")
+                continue
+            
+            # Check if manifest.py exists
+            manifest_path = module_dir / "manifest.py"
+            if not manifest_path.exists():
+                errors.append(f"Module manifest not found: modules/{module_name}/manifest.py")
+                continue
+            
+            # Read manifest and validate imports
+            try:
+                manifest_content = manifest_path.read_text()
+            except Exception as e:
+                errors.append(f"Cannot read manifest for {module_name}: {str(e)[:50]}")
+                continue
+            
+            # Extract controller and service imports (skip commented lines)
+            # Format: "modules.mymodule.services:MymoduleService"
+            imports = []
+            for line in manifest_content.split('\n'):
+                # Skip lines that are comments
+                stripped = line.strip()
+                if stripped.startswith('#'):
+                    continue
+                # Extract quoted strings with ':' pattern from this line
+                line_imports = re.findall(r'"([^"]*:[\w]+)"', line)
+                imports.extend(line_imports)
+            
+            # Validate each import can be resolved
+            for import_path in imports:
+                if ':' not in import_path:
+                    continue
+                
+                module_path, class_name = import_path.split(':')
+                
+                # Convert module path to file path
+                # Example: "modules.mymodule.services" -> "modules/mymodule/services.py"
+                parts = module_path.split('.')
+                
+                # Skip 'modules' prefix and rebuild path starting from module_dir
+                if parts[0] == 'modules' and len(parts) > 1:
+                    parts = parts[1:]  # Remove 'modules' prefix
+                
+                # Skip module name itself (parts[0] is module_name)
+                if parts and parts[0] == module_name:
+                    parts = parts[1:]
+                
+                # Build file path
+                try:
+                    file_path = module_dir
+                    for part in parts:
+                        file_path = file_path / part
+                    
+                    file_path = file_path.with_suffix('.py')
+                    
+                    if not file_path.exists():
+                        errors.append(
+                            f"Import error in {module_name}: {import_path} "
+                            f"(file not found: {file_path.relative_to(workspace_root)})"
+                        )
+                except Exception as e:
+                    errors.append(
+                        f"Cannot validate import {import_path} in {module_name}: {str(e)[:40]}"
+                    )
+    
+    except Exception as e:
+        errors.append(f"Unexpected error during validation: {str(e)[:60]}")
+    
+    return errors
+
+
 def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) -> None:
     """
     Discover controllers and services in all modules and auto-update manifest.py files.
@@ -22,13 +146,27 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
         workspace_root: Path to workspace root
         verbose: Enable verbose output
     """
-    from aquilia.utils.scanner import PackageScanner
+    from aquilia.cli.discovery_utils import EnhancedDiscovery
+    from pathlib import Path
+    import sys
+    
+    workspace_root = Path(workspace_root)
+    
+    # Add workspace root to Python path for imports
+    workspace_abs = workspace_root.resolve()
+    if str(workspace_abs) not in sys.path:
+        sys.path.insert(0, str(workspace_abs))
     
     modules_dir = workspace_root / "modules"
     if not modules_dir.exists():
         return
     
-    scanner = PackageScanner()
+    discovery = EnhancedDiscovery(verbose=verbose)
+    
+    # Track discovery results
+    total_controllers = 0
+    total_services = 0
+    modules_updated = 0
     
     # Discover all modules with manifest.py
     for module_dir in modules_dir.iterdir():
@@ -42,155 +180,83 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
         module_name = module_dir.name
         base_package = f"modules.{module_name}"
         
+        if verbose:
+            print(f"\n  🔍 Discovering module: {module_name}")
+        
         try:
-            # Discover Controllers
-            discovered_controllers = []
+            # Use enhanced discovery to get properly classified controllers and services
+            discovered_controllers, discovered_services = discovery.discover_module_controllers_and_services(
+                base_package, module_name
+            )
+            
+            if verbose:
+                if discovered_controllers:
+                    print(f"    ✅ Found {len(discovered_controllers)} controller(s)")
+                if discovered_services:
+                    print(f"    ✅ Found {len(discovered_services)} service(s)")
+            
+            total_controllers += len(discovered_controllers)
+            total_services += len(discovered_services)
+            
+            # Read manifest content
             try:
-                controllers = scanner.scan_package(
-                    f"{base_package}.controllers",
-                    predicate=lambda cls: cls.__name__.endswith("Controller"),
+                manifest_content = manifest_path.read_text()
+            except (OSError, IOError) as e:
+                if verbose:
+                    print(f"    ⚠️  Cannot read manifest: {str(e)[:60]}")
+                continue
+            
+            # Clean and update manifest with properly classified items
+            try:
+                updated_content, services_added, controllers_added = discovery.clean_manifest_lists(
+                    manifest_content,
+                    discovered_controllers,
+                    discovered_services,
+                    module_dir=module_dir  # Pass module path for validation
                 )
-                test_routes = scanner.scan_package(
-                    f"{base_package}.test_routes",
-                    predicate=lambda cls: cls.__name__.endswith("Controller"),
-                )
-                discovered_controllers = sorted(list(set(
-                    f"{c.__module__}:{c.__name__}" for c in controllers + test_routes
-                )))
             except Exception as e:
                 if verbose:
-                    print(f"  ⚠️  Could not scan controllers for {module_name}: {e}")
+                    print(f"    ⚠️  Error cleaning manifest: {str(e)[:60]}")
+                continue
             
-            # Discover Services
-            discovered_services = []
-            try:
-                services = scanner.scan_package(
-                    f"{base_package}.services",
-                    predicate=lambda cls: cls.__name__.endswith("Service") or hasattr(cls, "__di_scope__"),
-                )
-                discovered_services = sorted(list(set(
-                    f"{s.__module__}:{s.__name__}" for s in services
-                )))
-            except Exception as e:
-                if verbose:
-                    print(f"  ⚠️  Could not scan services for {module_name}: {e}")
-            
-            # Parse existing manifest content
-            manifest_content = manifest_path.read_text()
-            
-            # Extract existing services and controllers from manifest
-            existing_services = _extract_list_from_manifest(manifest_content, "services=")
-            existing_controllers = _extract_list_from_manifest(manifest_content, "controllers=")
-            
-            # Find what's missing
-            new_services = [s for s in discovered_services if s not in existing_services]
-            new_controllers = [c for c in discovered_controllers if c not in existing_controllers]
-            
-            # If there are new items, update the manifest
-            if new_services or new_controllers:
-                updated_content = manifest_content
+            # Write updated manifest if there were changes
+            if updated_content != manifest_content:
+                try:
+                    manifest_path.write_text(updated_content)
+                    modules_updated += 1
+                    if verbose:
+                        total_changes = services_added + controllers_added
+                        print(f"    ✅ Updated manifest: {services_added} service(s), {controllers_added} controller(s) added")
+                except (OSError, IOError) as e:
+                    if verbose:
+                        print(f"    ⚠️  Cannot write manifest: {str(e)[:60]}")
+            elif verbose:
+                print(f"    ✓ Manifest already up-to-date")
                 
-                # Update services
-                if new_services:
-                    all_services = existing_services + new_services
-                    old_services_str = _extract_services_block(manifest_content)
-                    new_services_str = _generate_services_block(all_services)
-                    updated_content = updated_content.replace(old_services_str, new_services_str)
-                
-                # Update controllers
-                if new_controllers:
-                    all_controllers = existing_controllers + new_controllers
-                    old_controllers_str = _extract_controllers_block(manifest_content)
-                    new_controllers_str = _generate_controllers_block(all_controllers)
-                    updated_content = updated_content.replace(old_controllers_str, new_controllers_str)
-                
-                # Write updated manifest
-                manifest_path.write_text(updated_content)
-                
-                if verbose:
-                    print(f"\n  ✅ Updated manifest for '{module_name}':")
-                    if new_services:
-                        print(f"     Added {len(new_services)} service(s)")
-                        for s in new_services:
-                            print(f"       - {s}")
-                    if new_controllers:
-                        print(f"     Added {len(new_controllers)} controller(s)")
-                        for c in new_controllers:
-                            print(f"       - {c}")
-            
         except Exception as e:
             if verbose:
-                print(f"  ⚠️  Error updating manifest for {module_name}: {e}")
-
-
-def _extract_list_from_manifest(content: str, key: str) -> List[str]:
-    """
-    Extract list items from manifest.py.
+                print(f"    ⚠️  Unexpected error processing {module_name}: {str(e)[:80]}")
     
-    Args:
-        content: Manifest file content
-        key: The field to extract (e.g., "services=" or "controllers=")
-    
-    Returns:
-        List of extracted items
-    """
+    # After updating all manifests, update workspace.py with discovered configs
     try:
-        # Find the pattern: key followed by [ ... ]
-        pattern = rf'{re.escape(key)}\s*\[(.*?)\]'
-        match = re.search(pattern, content, re.DOTALL)
-        if not match:
-            return []
+        from ..generators.workspace import WorkspaceGenerator
         
-        list_content = match.group(1)
-        # Extract quoted strings
-        items = re.findall(r'"([^"]*)"', list_content)
-        return items
-    except Exception:
-        return []
-
-
-def _extract_services_block(content: str) -> str:
-    """Extract the services=[ ... ] block from manifest."""
-    pattern = r'#\s*Services with detailed DI configuration\s*\n\s*services=\s*\[(.*?)\],\s*\n'
-    match = re.search(pattern, content, re.DOTALL)
-    if match:
-        return match.group(0)
-    return ""
-
-
-def _extract_controllers_block(content: str) -> str:
-    """Extract the controllers=[ ... ] block from manifest."""
-    pattern = r'#\s*Controllers with routing\s*\n\s*controllers=\s*\[(.*?)\],\s*\n'
-    match = re.search(pattern, content, re.DOTALL)
-    if match:
-        return match.group(0)
-    return ""
-
-
-def _generate_services_block(services: List[str]) -> str:
-    """Generate the services=[ ... ] block for manifest."""
-    if not services:
-        return '    # Services with detailed DI configuration\n    services=[],\n'
+        generator = WorkspaceGenerator(
+            name=workspace_root.name,
+            path=workspace_root
+        )
+        
+        # Re-discover with updated manifests to get all controllers/services
+        discovered = generator._discover_modules()
+        
+        if discovered:
+            workspace_py_path = workspace_root / "workspace.py"
+            if workspace_py_path.exists():
+                generator.update_workspace_config(workspace_py_path, discovered)
     
-    items = ",\n        ".join(f'"{s}"' for s in services)
-    return f'''    # Services with detailed DI configuration
-    services=[
-        {items},
-    ],
-'''
-
-
-def _generate_controllers_block(controllers: List[str]) -> str:
-    """Generate the controllers=[ ... ] block for manifest."""
-    if not controllers:
-        return '    # Controllers with routing\n    controllers=[],\n'
-    
-    items = ",\n        ".join(f'"{c}"' for c in controllers)
-    return f'''    # Controllers with routing
-    controllers=[
-        {items},
-    ],
-'''
+    except Exception as e:
+        if verbose:
+            print(f"⚠️  Failed to update workspace.py: {str(e)[:80]}")
 
 
 def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) -> None:
@@ -201,84 +267,157 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
         workspace_root: Path to workspace root
         verbose: Enable verbose output
     """
-    try:
-        from ..generators.workspace import WorkspaceGenerator
+    from aquilia.cli.discovery_utils import EnhancedDiscovery
+    from pathlib import Path
+    import sys
+    
+    workspace_root = Path(workspace_root)
+    
+    # Add workspace root to path
+    workspace_abs = workspace_root.resolve()
+    if str(workspace_abs) not in sys.path:
+        sys.path.insert(0, str(workspace_abs))
+    
+    modules_dir = workspace_root / "modules"
+    if not modules_dir.exists():
+        return
+    
+    discovery = EnhancedDiscovery(verbose=False)
+    
+    # Collect all discovered modules with their controllers and services
+    discovered_modules = {}
+    
+    # Discover all modules with manifest.py
+    for module_dir in modules_dir.iterdir():
+        if not module_dir.is_dir() or module_dir.name.startswith('_'):
+            continue
+            
+        manifest_path = module_dir / 'manifest.py'
+        if not manifest_path.exists():
+            continue
+            
+        module_name = module_dir.name
+        base_package = f"modules.{module_name}"
         
-        # Initialize generator
+        try:
+            # Use enhanced discovery
+            discovered_controllers, discovered_services = discovery.discover_module_controllers_and_services(
+                base_package, module_name
+            )
+            
+            # Extract metadata from manifest
+            manifest_content = manifest_path.read_text()
+            import re
+            version = re.search(r'version="([^"]+)"', manifest_content)
+            description = re.search(r'description="([^"]+)"', manifest_content)
+            route_prefix = re.search(r'route_prefix="([^"]+)"', manifest_content)
+            tags = re.findall(r'"([^"]+)"', re.search(r'tags=\[(.*?)\]', manifest_content).group(1) if re.search(r'tags=\[(.*?)\]', manifest_content) else '')
+            
+            discovered_modules[module_name] = {
+                'name': module_name,
+                'version': version.group(1) if version else '0.1.0',
+                'description': description.group(1) if description else f'{module_name.capitalize()} module',
+                'route_prefix': route_prefix.group(1) if route_prefix else f'/{module_name}',
+                'tags': tags or [module_name, 'core'],
+                'controllers_list': discovered_controllers,
+                'services_list': discovered_services,
+                'controllers_count': len(discovered_controllers),
+                'services_count': len(discovered_services),
+                'has_controllers': len(discovered_controllers) > 0,
+                'has_services': len(discovered_services) > 0,
+            }
+            
+            if verbose:
+                print(f"\n🔍 Enhanced discovery for module: {module_name}")
+                if discovered_controllers:
+                    print(f"  ✅ Found {len(discovered_controllers)} controller(s)")
+                if discovered_services:
+                    print(f"  ✅ Found {len(discovered_services)} service(s)")
+            
+        except Exception as e:
+            if verbose:
+                print(f"  ⚠️  Error discovering {module_name}: {str(e)[:80]}")
+    
+    if not discovered_modules:
+        return
+    
+    # Now display the results
+    from ..generators.workspace import WorkspaceGenerator
+    
+    try:
         generator = WorkspaceGenerator(
             name=workspace_root.name,
             path=workspace_root
         )
         
-        # Discover modules
-        discovered = generator._discover_modules()
-        
-        if not discovered:
-            return
-        
-        # Sort by dependencies
-        sorted_names = generator._resolve_dependencies(discovered)
-        
-        print("\n📍 Discovered Routes & Modules")
-        print("=" * 70)
-        
-        # Display module table
-        print(f"\n{'Module':<20} {'Route Prefix':<25} {'Version':<12} {'Tags':<15}")
-        print(f"{'-'*20} {'-'*25} {'-'*12} {'-'*15}")
-        
-        for mod_name in sorted_names:
-            mod = discovered[mod_name]
-            tags = ", ".join(mod.get('tags', [])[:2]) if mod.get('tags') else ""
-            route = mod['route_prefix']
-            version = mod['version']
-            print(f"{mod_name:<20} {route:<25} {version:<12} {tags:<15}")
-        
-        # Display dependency graph if any module has dependencies
-        has_deps = any(mod.get('depends_on') for mod in discovered.values())
-        if has_deps:
-            print(f"\n🔗 Dependency Graph:")
-            for mod_name in sorted_names:
-                mod = discovered[mod_name]
-                deps = mod.get('depends_on', [])
-                if deps:
-                    deps_str = " → ".join(deps)
-                    print(f"  {mod_name}: {deps_str}")
-                else:
-                    print(f"  {mod_name}: (no dependencies)")
-        
-        # Summary
-        print(f"\n📊 Summary:")
-        with_services = sum(1 for m in discovered.values() if m['has_services'])
-        with_controllers = sum(1 for m in discovered.values() if m['has_controllers'])
-        with_middleware = sum(1 for m in discovered.values() if m['has_middleware'])
-        
-        print(f"  Total Modules: {len(discovered)}")
-        print(f"  With Services: {with_services}")
-        print(f"  With Controllers: {with_controllers}")
-        print(f"  With Middleware: {with_middleware}")
-        
-        # Validation status
-        validation = generator._validate_modules(discovered)
-        if validation['errors']:
-            print(f"\n⚠️  Validation Errors: {len(validation['errors'])}")
-            for error in validation['errors']:
-                print(f"    - {error}")
-        elif validation['warnings']:
-            print(f"\n⚠️  Validation Warnings: {len(validation['warnings'])}")
-            for warning in validation['warnings'][:3]:
-                print(f"    - {warning}")
-        else:
-            print(f"\n✅ All modules validated!")
-        
-        print(f"{'='*70}\n")
-        
-        # Write discovery report to file
-        _write_discovery_report(workspace_root, discovered, sorted_names, validation)
+        sorted_names = generator._resolve_dependencies(discovered_modules)
+        validation = generator._validate_modules(discovered_modules)
+    except Exception:
+        sorted_names = sorted(discovered_modules.keys())
+        validation = {'valid': True, 'warnings': [], 'errors': []}
     
-    except Exception as e:
-        if verbose:
-            print(f"⚠️  Could not discover routes: {e}\n")
-        # Continue even if discovery fails
+    print("\n📍 Discovered Routes & Modules")
+    print("=" * 70)
+    
+    # Display module table with controller details
+    print(f"\n{'Module':<20} {'Route Prefix':<25} {'Controllers':<12} {'Services':<10}")
+    print(f"{'-'*20} {'-'*25} {'-'*12} {'-'*10}")
+    
+    for mod_name in sorted_names:
+        if mod_name not in discovered_modules:
+            continue
+        mod = discovered_modules[mod_name]
+        route = mod['route_prefix']
+        controllers_count = mod.get('controllers_count', 0)
+        services_count = mod.get('services_count', 0)
+        print(f"{mod_name:<20} {route:<25} {controllers_count:<12} {services_count:<10}")
+    
+    # Show detailed controller information
+    total_controllers = sum(mod.get('controllers_count', 0) for mod in discovered_modules.values())
+    if total_controllers > 0:
+        print(f"\n🎯 Controller Details:")
+        for mod_name in sorted_names:
+            if mod_name not in discovered_modules:
+                continue
+            mod = discovered_modules[mod_name]
+            controllers_list = mod.get('controllers_list', [])
+            if controllers_list:
+                print(f"  {mod_name}:")
+                for controller in controllers_list:
+                    # Extract controller class name
+                    if ':' in controller:
+                        controller_class = controller.split(':')[1]
+                    else:
+                        controller_class = controller.split('.')[-1]
+                    print(f"    • {controller_class}")
+    
+    print()
+    
+    # Summary
+    print(f"\n📊 Summary:")
+    with_services = sum(1 for m in discovered_modules.values() if m['has_services'])
+    with_controllers = sum(1 for m in discovered_modules.values() if m['has_controllers'])
+    
+    total_services = sum(m.get('services_count', 0) for m in discovered_modules.values())
+    total_controllers = sum(m.get('controllers_count', 0) for m in discovered_modules.values())
+    
+    print(f"  Total Modules: {len(discovered_modules)}")
+    print(f"  With Services: {with_services} ({total_services} total)")
+    print(f"  With Controllers: {with_controllers} ({total_controllers} total)")
+    
+    # Validation status
+    if validation['errors']:
+        print(f"\n⚠️  Validation Errors: {len(validation['errors'])}")
+        for error in validation['errors']:
+            print(f"    - {error}")
+    elif validation['warnings']:
+        print(f"\n⚠️  Validation Warnings: {len(validation['warnings'])}")
+        for warning in validation['warnings'][:3]:
+            print(f"    - {warning}")
+    else:
+        print(f"\n✅ All modules validated!")
+    
+    print(f"{'='*70}\n")
 
 
 def _write_discovery_report(workspace_root: Path, discovered: Dict, sorted_names: List[str], validation: Dict) -> None:
@@ -402,6 +541,21 @@ def run_dev_server(
     os.environ['AQUILIA_ENV'] = mode
     os.environ['AQUILIA_WORKSPACE'] = str(workspace_root)
     
+    # ===== AUTO-DISCOVER & UPDATE MANIFESTS FIRST =====
+    # This must happen BEFORE creating the app so that workspace.py is up-to-date
+    print("🔍 Auto-discovering controllers and services...")
+    _discover_and_update_manifests(workspace_root, verbose)
+    
+    # VALIDATE WORKSPACE CONFIGURATION BEFORE PROCEEDING
+    print("🔍 Validating workspace configuration...")
+    validation_errors = _validate_workspace_config(workspace_root, verbose)
+    if validation_errors:
+        print("\n❌ Workspace validation failed! Fix these issues before starting the server:\n")
+        for error in validation_errors:
+            print(f"  ❌ {error}")
+        print()
+        return
+    
     # Strategy 1: Check for workspace configuration (workspace.py) and auto-create app
     workspace_config = workspace_root / "workspace.py"
     if workspace_config.exists():
@@ -446,10 +600,6 @@ def run_dev_server(
         print(f"  Reload: {reload}")
         print(f"  App: {app_module}")
         print()
-    
-    # AUTO-DISCOVER & UPDATE MANIFESTS BEFORE SERVER START
-    print("🔍 Auto-discovering controllers and services...")
-    _discover_and_update_manifests(workspace_root, verbose)
     
     # Discover and display all routes before starting server
     _discover_and_display_routes(workspace_root, verbose)

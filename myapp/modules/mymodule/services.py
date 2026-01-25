@@ -128,3 +128,29 @@ class MymoduleService:
             "is_authenticated": session.principal is not None,
             "principal_id": session.principal.id if session.principal else None,
         }
+    
+@service(scope="app")
+class MymoduleServiceV2:
+    """
+    An example of a second version of the service.
+    """
+
+    def __init__(self):
+        self._info = "Mymodule Service V2"
+
+    def get_info(self) -> str:
+        """Get service info."""
+        return self._info
+    
+@service(scope="app")
+class MymoduleServiceV3:
+    """
+    An example of a second version of the service.
+    """
+
+    def __init__(self):
+        self._info = "Mymodule Service V2"
+
+    def get_info(self) -> str:
+        """Get service info."""
+        return self._info

@@ -52,7 +52,7 @@ class MymoduleController(Controller):
         item = await self.service.create(data)
         return Response.json(item, status=201)
 
-    @GET("/«id:int»")
+    @GET("/<<id:int>>")
     async def get_mymodule(self, ctx: RequestCtx, id: int):
         """
         Get single mymodule by ID.
