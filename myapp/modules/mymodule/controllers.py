@@ -6,7 +6,7 @@ using the modern Controller architecture with pattern-based routing.
 """
 
 from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
-from aquilia.sessions import Session, SessionPrincipal
+from aquilia.sessions import Session, SessionPrincipal, session
 from .faults import MymoduleNotFoundFault
 from .services import MymoduleService
 
@@ -83,6 +83,7 @@ class MymoduleController(Controller):
 
         return Response.json(item)
 
+
     @DELETE("/«id:int»")
     async def delete_mymodule(self, ctx: RequestCtx, id: int):
         """
@@ -99,6 +100,7 @@ class MymoduleController(Controller):
 
     # Session-aware endpoints
     @GET("/session")
+    @session.ensure()
     async def get_session_info(self, ctx: RequestCtx):
         """
         Get current session information.
@@ -117,7 +119,8 @@ class MymoduleController(Controller):
         return Response.json(session_info)
 
     @POST("/session/login")
-    async def login_user(self, ctx: RequestCtx):
+    @session.ensure()
+    async def login_user(self, ctx: RequestCtx, session: Session):
         """
         Login user and create authenticated session.
         
@@ -130,18 +133,10 @@ class MymoduleController(Controller):
         username = data.get("username", "anonymous")
         role = data.get("role", "user")
         
-        # Ensure we have a session
-        if ctx.session is None:
-            # In a real implementation, session middleware should create this
-            # For testing purposes, we'll handle the None case gracefully
-            from datetime import datetime
-            login_time = datetime.now().isoformat()
-            authenticated_at = login_time
-            session_id = "no-session"
-        else:
-            login_time = ctx.session.created_at.isoformat()
-            authenticated_at = ctx.session.last_accessed_at.isoformat()
-            session_id = str(ctx.session.id)
+        # Use injected session directly
+        login_time = session.created_at.isoformat()
+        authenticated_at = session.last_accessed_at.isoformat()
+        session_id = str(session.id)
         
         # Create principal
         principal = SessionPrincipal(
@@ -153,11 +148,10 @@ class MymoduleController(Controller):
             }
         )
         
-        # Bind to session if available
-        if ctx.session is not None:
-            ctx.session.principal = principal
-            ctx.session.data["user_id"] = username
-            ctx.session.data["authenticated_at"] = authenticated_at
+        # Bind to session
+        session.mark_authenticated(principal)
+        session.data["user_id"] = username
+        session.data["authenticated_at"] = authenticated_at
         
         return Response.json({
             "message": "Logged in successfully",
@@ -165,8 +159,8 @@ class MymoduleController(Controller):
             "user_id": username,
             "role": role
         })
-
     @POST("/session/logout")
+    @session.ensure()
     async def logout_user(self, ctx: RequestCtx):
         """
         Logout user and clear session data.
@@ -189,6 +183,7 @@ class MymoduleController(Controller):
         })
 
     @GET("/my-items")
+    @session.ensure()
     async def get_my_items(self, ctx: RequestCtx):
         """
         Get items for the current user session.
@@ -197,14 +192,18 @@ class MymoduleController(Controller):
             GET /mymodule/my-items -> {"items": [...], "total": 0}
         """
         items = await self.service.get_user_items(ctx.session)
+        user_id = ctx.session.data.get("user_id") if ctx.session else None
+        session_id = str(ctx.session.id) if ctx.session else "no-session"
+        
         return Response.json({
             "items": items,
             "total": len(items),
-            "user_id": ctx.session.data.get("user_id"),
-            "session_id": str(ctx.session.id)
+            "user_id": user_id,
+            "session_id": session_id
         })
 
     @POST("/my-items")
+    @session.ensure()
     async def create_my_item(self, ctx: RequestCtx):
         """
         Create item for the current user session.
@@ -217,3 +216,22 @@ class MymoduleController(Controller):
         data = await ctx.json()
         item = await self.service.create_user_item(ctx.session, data)
         return Response.json(item, status=201)
+
+    @PUT("/my-items/«id:int»")
+    @session.ensure()
+    async def update_my_item(self, ctx: RequestCtx, id: int):
+        """Update a specific item for the current user session."""
+        data = await ctx.json()
+        item = await self.service.update_user_item(ctx.session, id, data)
+        if not item:
+            raise MymoduleNotFoundFault(f"Item {id} not found")
+        return Response.json(item)
+
+    @DELETE("/my-items/«id:int»")
+    @session.ensure()
+    async def delete_my_item(self, ctx: RequestCtx, id: int):
+        """Delete a specific item for the current user session."""
+        deleted = await self.service.delete_user_item(ctx.session, id)
+        if not deleted:
+            raise MymoduleNotFoundFault(f"Item {id} not found")
+        return Response(status=204)

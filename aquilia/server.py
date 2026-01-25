@@ -194,7 +194,21 @@ class AquiliaServer:
                 # Store engine reference for later use
                 self._session_engine = session_engine
                 
-                self.logger.info("✅ Session management enabled")
+                # Register engine in DI containers for proactive resolution
+                from aquilia.di.providers import ValueProvider
+                from aquilia.sessions import SessionEngine
+                
+                engine_provider = ValueProvider(
+                    token=SessionEngine,
+                    value=session_engine,
+                    scope="app",
+                    name="session_engine_instance"
+                )
+                
+                for container in self.runtime.di_containers.values():
+                    container.register(engine_provider)
+                
+                self.logger.info("✅ Session management enabled and registered in DI")
                 self.logger.info(f"   Policy: {session_engine.policy.name}")
                 self.logger.info(f"   Store: {type(session_engine.store).__name__}")
                 self.logger.info(f"   Transport: {type(session_engine.transport).__name__}")

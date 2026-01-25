@@ -62,20 +62,33 @@ class MymoduleService:
         return False
 
     # Session-aware methods
-    async def get_user_items(self, session: Session) -> List[dict]:
+    async def get_user_items(self, session: Optional[Session]) -> List[dict]:
         """Get items for the current user session."""
-        user_id = session.data.get("user_id")
+        if not session:
+            return []
+            
+        # Access session data safely
+        data = getattr(session, "data", {})
+        user_id = data.get("user_id")
+        
         if not user_id:
             return []
         return self._user_data.get(user_id, [])
 
-    async def create_user_item(self, session: Session, data: dict) -> dict:
+    async def create_user_item(self, session: Optional[Session], data: dict) -> dict:
         """Create item for the current user."""
-        user_id = session.data.get("user_id")
-        if not user_id:
-            # Auto-assign user ID based on session
-            user_id = f"user_{session.id}"
-            session.data["user_id"] = user_id
+        if not session:
+            # Fallback for sessionless creation
+            user_id = "anonymous"
+        else:
+            # Access session data safely
+            sess_data = getattr(session, "data", {})
+            user_id = sess_data.get("user_id")
+            
+            if not user_id:
+                # Auto-assign user ID based on session
+                user_id = f"user_{session.id}"
+                session.data["user_id"] = user_id
         
         if user_id not in self._user_data:
             self._user_data[user_id] = []
@@ -83,15 +96,25 @@ class MymoduleService:
         item = {
             "id": self._next_id,
             "user_id": user_id,
-            "session_id": str(session.id),
+            "session_id": str(session.id) if session else "no-session",
             **data
         }
         self._user_data[user_id].append(item)
         self._next_id += 1
         return item
 
-    async def get_session_info(self, session: Session) -> dict:
+    async def get_session_info(self, session: Optional[Session]) -> dict:
         """Get session information and user data."""
+        if not session:
+            return {
+                "session_id": "no-session",
+                "user_id": None,
+                "session_data": {},
+                "user_items_count": 0,
+                "is_authenticated": False,
+                "principal_id": None,
+            }
+
         user_id = session.data.get("user_id")
         user_items = await self.get_user_items(session)
         

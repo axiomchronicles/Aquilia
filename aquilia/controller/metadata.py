@@ -345,6 +345,12 @@ def _extract_method_params(
             elif get_origin(param_type) is not None:
                 # Check for Inject annotation
                 source = 'di'
+            elif param_name == "session" or (hasattr(param_type, "__name__") and param_type.__name__ == "Session"):
+                # Always treat Session as DI source
+                source = 'di'
+            elif param_name == "identity" or (hasattr(param_type, "__name__") and param_type.__name__ == "Identity"):
+                # Always treat Identity as DI source
+                source = 'di'
             else:
                 source = 'query'
             

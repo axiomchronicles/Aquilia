@@ -340,14 +340,59 @@ class ControllerEngine:
             # DI injection
             elif param.source == "di":
                 try:
-                    value = await container.resolve_async(param_name, optional=not param.required)
+                    # For Session and Identity, we use optional=True so we can raise our own Faults
+                    from aquilia.sessions import Session as SessionClass
+                    is_session_param = (
+                        param.type is SessionClass or 
+                        param_name == "session" or
+                        (hasattr(param.type, "__name__") and param.type.__name__ == "Session")
+                    )
+                    
+                    is_identity_param = (
+                        param_name == "identity" or 
+                        (hasattr(param.type, "__name__") and param.type.__name__ == "Identity")
+                    )
+
+                    is_optional = not param.required or is_session_param or is_identity_param
+                    value = await container.resolve_async(param_name, optional=is_optional)
+                    
+                    if is_session_param and value is None:
+                        # Try to resolve session proactively
+                        try:
+                            from aquilia.sessions import SessionEngine
+                            engine = await container.resolve_async(SessionEngine)
+                            value = await engine.resolve(request)
+                            # Update context and request for downstream handlers/decorators
+                            ctx.session = value
+                            request.state['session'] = value
+                        except Exception:
+                            pass
+                    
+                    # ENFORCEMENT: If this is a Session, and it's None, but requested as required
+                    # then raise SessionRequiredFault.
+                    if value is None and param.required:
+                        if is_session_param:
+                            from aquilia.sessions.decorators import SessionRequiredFault
+                            raise SessionRequiredFault()
+                        elif is_identity_param:
+                            from aquilia.sessions.decorators import AuthenticationRequiredFault
+                            raise AuthenticationRequiredFault()
+                            
                     if value is not None:
                         kwargs[param_name] = value
                     elif not param.required and param.default is not inspect.Parameter.empty:
                         kwargs[param_name] = param.default
-                except:
+                except Exception as e:
+                    # Reraise session/auth faults
+                    from aquilia.sessions.decorators import SessionRequiredFault, AuthenticationRequiredFault
+                    if isinstance(e, (SessionRequiredFault, AuthenticationRequiredFault)):
+                        raise
+                        
                     if not param.required and param.default is not inspect.Parameter.empty:
                         kwargs[param_name] = param.default
+                    else:
+                        # Re-raise original error if it's not handled
+                        raise
         
         return kwargs
     

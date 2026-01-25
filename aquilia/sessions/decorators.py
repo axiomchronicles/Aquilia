@@ -108,9 +108,11 @@ class SessionDecorators:
                 if authenticated and not session.is_authenticated:
                     raise AuthenticationRequiredFault()
                 
-                # Inject session into kwargs if not already there
+                # Inject session into kwargs if not already there and if accepted by signature
                 if 'session' not in func_kwargs:
-                    func_kwargs['session'] = session
+                    sig = inspect.signature(func)
+                    if 'session' in sig.parameters:
+                        func_kwargs['session'] = session
                 
                 return await func(*args, **func_kwargs)
             
@@ -155,6 +157,21 @@ class SessionDecorators:
                     if ctx:
                         # Use RequestCtx.session directly
                         session = ctx.session
+                        
+                        # If still None, attempt resolution via SessionEngine
+                        if session is None:
+                            try:
+                                from aquilia.sessions import SessionEngine
+                                # Use resolve_async since we're in an async wrapper
+                                engine = await ctx.container.resolve_async(SessionEngine)
+                                session = await engine.resolve(ctx.request)
+                                
+                                # Store back in ctx and request for downstream
+                                ctx.session = session
+                                ctx.request.state['session'] = session
+                            except Exception as e:
+                                # Re-raise to see what's wrong during development
+                                raise
                     elif ctx and hasattr(ctx, 'request'):
                         # Fallback: check request state
                         session = ctx.request.state.get('session')
@@ -162,9 +179,11 @@ class SessionDecorators:
                 # Session should always exist due to middleware
                 # This decorator is mainly for documentation/intent
                 
-                # Inject session into kwargs
+                # Inject session into kwargs if accepted by signature
                 if session and 'session' not in func_kwargs:
-                    func_kwargs['session'] = session
+                    sig = inspect.signature(func)
+                    if 'session' in sig.parameters:
+                        func_kwargs['session'] = session
                 
                 return await func(*args, **func_kwargs)
             
@@ -212,9 +231,11 @@ class SessionDecorators:
                         # Fallback: check request state
                         session = ctx.request.state.get('session')
                 
-                # Inject session (or None) into kwargs
+                # Inject session (or None) into kwargs if accepted by signature
                 if 'session' not in func_kwargs:
-                    func_kwargs['session'] = session
+                    sig = inspect.signature(func)
+                    if 'session' in sig.parameters:
+                        func_kwargs['session'] = session
                 
                 return await func(*args, **func_kwargs)
             
@@ -274,8 +295,9 @@ def authenticated(func: F) -> F:
         elif 'principal' in sig.parameters:
             func_kwargs['principal'] = sess.principal
         else:
-            # Fallback: inject session
-            func_kwargs['session'] = sess
+            # Fallback: inject session if accepted by signature
+            if 'session' in sig.parameters:
+                func_kwargs['session'] = sess
         
         return await func(*args, **func_kwargs)
     
@@ -326,8 +348,9 @@ def stateful(func: F) -> F:
             from aquilia.sessions.state import SessionState
             func_kwargs['state'] = SessionState(sess.data)
         else:
-            # Fallback: inject session
-            func_kwargs['session'] = sess
+            # Fallback: inject session if accepted by signature
+            if 'session' in sig.parameters:
+                func_kwargs['session'] = sess
         
         return await func(*args, **func_kwargs)
     
