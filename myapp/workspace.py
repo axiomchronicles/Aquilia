@@ -35,7 +35,8 @@ workspace = (
         .route_prefix("/mode")
         .tags("mode", "core")
         .register_controllers(
-            "modules.mode.controllers:ModeController"
+            "modules.mode.controllers:ModeController",
+            "modules.mode.sessioncontroller:MySessionController"
         )
         .register_services(
             "modules.mode.services:ModeService"

@@ -36,11 +36,11 @@ manifest = AppManifest(
         "modules.mode.services:ModeService",
     ],
 
-    # Controllers with routing
+        # Controllers with routing
     controllers=[
         "modules.mode.controllers:ModeController",
+        "modules.mode.sessioncontroller:MySessionController",
     ],
-
     # Middleware configuration
     middleware=[
         # Example middleware (uncomment to add):
