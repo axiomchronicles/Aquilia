@@ -18,8 +18,9 @@ def diagnose_workspace(verbose: bool = False) -> List[str]:
     issues = []
     
     # Check for workspace manifest
-    if not (workspace_root / 'aquilia.aq').exists():
-        issues.append("Missing aquilia.aq (not in Aquilia workspace?)")
+    from ..utils.workspace import get_workspace_file
+    if not get_workspace_file(workspace_root):
+        issues.append("Missing workspace.py or aquilia.yaml (not in Aquilia workspace?)")
         return issues
     
     # Check for required directories
@@ -31,7 +32,7 @@ def diagnose_workspace(verbose: bool = False) -> List[str]:
     # Check for config files
     config_dir = workspace_root / 'config'
     if config_dir.exists():
-        required_configs = ['base.aq']
+        required_configs = ['base.yaml']
         for config in required_configs:
             if not (config_dir / config).exists():
                 issues.append(f"Missing required config: config/{config}")

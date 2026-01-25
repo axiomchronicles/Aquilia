@@ -21,10 +21,10 @@ def freeze_artifacts(
         Fingerprint of frozen artifacts
     """
     workspace_root = Path.cwd()
-    manifest_path = workspace_root / 'aquilia.aq'
+    manifest_path = workspace_root / 'aquilia.yaml'
     
     if not manifest_path.exists():
-        raise ValueError("Not in an Aquilia workspace (aquilia.aq not found)")
+        raise ValueError("Not in an Aquilia workspace (aquilia.yaml not found)")
     
     # TODO: Implement artifact freezing
     raise NotImplementedError("Artifact freezing not yet implemented")

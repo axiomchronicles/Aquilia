@@ -1,14 +1,19 @@
 # Base Configuration
-# Shared across all environments
+#
+# Shared configuration across ALL environments.
+# Environment-specific files (dev.yaml, prod.yaml) override these values.
 
-app:
-  name: "Aquilia Application"
-  debug: false
-
-server:
-  timeout: 30
-  max_connections: 1000
+runtime:
+  # Defaults (overridden by environment configs)
+  mode: dev
+  host: 127.0.0.1
+  port: 8000
+  reload: false
+  workers: 1
 
 logging:
   level: INFO
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Application defaults
+debug: false

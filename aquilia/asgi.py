@@ -85,11 +85,17 @@ class ASGIAdapter:
         di_container = None
         
         if self.server and hasattr(self.server, 'runtime'):
-            # Get the first app's container (or create request scope from it)
-            if self.server.runtime.di_containers:
-                # Get first app container
-                app_container = next(iter(self.server.runtime.di_containers.values()))
+            # Get app name from route metadata
+            app_name = getattr(controller_match.route, 'app_name', None)
+            
+            if app_name and self.server.runtime.di_containers.get(app_name):
+                # Get specific app container
+                app_container = self.server.runtime.di_containers[app_name]
                 # Create request-scoped child container
+                di_container = app_container.create_request_scope()
+            elif self.server.runtime.di_containers:
+                 # Fallback: Get first app container (or global if we had one)
+                app_container = next(iter(self.server.runtime.di_containers.values()))
                 di_container = app_container.create_request_scope()
         
         if not di_container:
@@ -97,19 +103,31 @@ class ASGIAdapter:
             from .di import Container
             di_container = Container(scope="request")
         
+        # Create RequestCtx
+        from .di import RequestCtx
+        ctx = RequestCtx(di_container)
+        
         # Store path params in request state
         request.state["path_params"] = controller_match.params
         
-        try:
-            # Execute controller
-            response = await self.controller_engine.execute(
+        # Define final handler that executes the controller
+        async def final_handler(req: Request, context: RequestCtx) -> Response:
+            return await self.controller_engine.execute(
                 controller_match.route,
-                request,
+                req,
                 controller_match.params,
-                di_container,
+                context.container,
             )
+            
+        # Build middleware chain (wraps final_handler with all registered middleware)
+        chain = self.middleware_stack.build_handler(final_handler)
+        
+        try:
+            # Execute the full chain (Middleware -> Controller)
+            response = await chain(request, ctx)
         except Exception as e:
-            self.logger.error(f"Error executing controller: {e}", exc_info=True)
+            # Fallback if middleware itself crashes (e.g. ExceptionMiddleware missing or failed)
+            self.logger.error(f"Critical error in request pipeline: {e}", exc_info=True)
             response = Response.json(
                 {"error": "Internal server error"},
                 status=500,

@@ -241,16 +241,15 @@ class ValueProvider:
         value: Any,
         token: Type | str,
         name: Optional[str] = None,
+        scope: str = "singleton",
         tags: tuple[str, ...] = (),
     ):
-        self._value = value
-        
         token_str = token if isinstance(token, str) else f"{token.__module__}.{token.__qualname__}"
-        
+        self._value = value
         self._meta = ProviderMeta(
             name=name or "value",
             token=token_str,
-            scope="singleton",
+            scope=scope,
             tags=tags,
         )
     

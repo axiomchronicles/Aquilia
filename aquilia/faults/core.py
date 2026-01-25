@@ -65,6 +65,20 @@ class FaultDomain(str, Enum):
     SYSTEM = "system"
 
 
+class RecoveryStrategy(str, Enum):
+    """
+    Fault recovery strategies.
+    
+    Determines how the fault handling system should react effectively.
+    """
+    PROPAGATE = "propagate"   # Default: Bubble up to next handler
+    RETRY = "retry"           # Retry operation (with backoff)
+    FALLBACK = "fallback"     # Return fallback value
+    MASK = "mask"             # Suppress error (log only)
+    CIRCUIT_BREAK = "break"   # Trip circuit breaker
+
+
+
 # Domain defaults
 DOMAIN_DEFAULTS = {
     FaultDomain.CONFIG: {"severity": Severity.FATAL, "retryable": False},

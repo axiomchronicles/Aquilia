@@ -49,12 +49,12 @@ def create_workspace(
     if verbose:
         dim("\nGenerated structure:")
         dim(f"  {name}/")
-        dim(f"    aquilia.aq")
+        dim(f"    workspace.py")
         dim(f"    modules/")
         dim(f"    config/")
-        dim(f"      base.aq")
-        dim(f"      dev.aq")
-        dim(f"      prod.aq")
+        dim(f"      base.yaml")
+        dim(f"      dev.yaml")
+        dim(f"      prod.yaml")
         if not minimal:
             dim(f"    artifacts/")
             dim(f"    runtime/")

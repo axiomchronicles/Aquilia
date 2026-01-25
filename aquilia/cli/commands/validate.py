@@ -3,8 +3,10 @@
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
+import importlib.util
+import sys
 
-from ..parsers import WorkspaceManifest, ModuleManifest
+from ..parsers import WorkspaceManifest
 
 
 @dataclass
@@ -35,10 +37,10 @@ def validate_workspace(
         ValidationResult with validation status and statistics
     """
     workspace_root = Path.cwd()
-    manifest_path = workspace_root / 'aquilia.aq'
+    manifest_path = workspace_root / 'aquilia.yaml'
     
     if not manifest_path.exists():
-        raise ValueError("Not in an Aquilia workspace (aquilia.aq not found)")
+        raise ValueError("Not in an Aquilia workspace (aquilia.yaml not found)")
     
     faults = []
     module_count = 0
@@ -63,20 +65,43 @@ def validate_workspace(
     
     for module_name in modules_to_validate:
         module_path = workspace_root / 'modules' / module_name
-        module_manifest_path = module_path / 'module.aq'
+        module_manifest_path = module_path / 'manifest.py'
         
         if not module_manifest_path.exists():
-            faults.append(f"Module '{module_name}' missing module.aq")
+            faults.append(f"Module '{module_name}' missing manifest.py")
             continue
         
         try:
-            module_manifest = ModuleManifest.from_file(module_manifest_path)
+
+            # Import manifest.py dynamically
+            spec = importlib.util.spec_from_file_location(f"{module_name}_manifest", module_manifest_path)
+            if not spec or not spec.loader:
+                raise ImportError(f"Could not load manifest from {module_manifest_path}")
+            
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+            
+            # Find Manifest class
+            manifest_class = getattr(module, f"{module_name.capitalize()}Manifest", None)
+            if not manifest_class:
+                # Try finding any subclass of AppManifest
+                from aquilia.manifest import AppManifest
+                for name, obj in vars(module).items():
+                    if isinstance(obj, type) and issubclass(obj, AppManifest) and obj is not AppManifest:
+                        manifest_class = obj
+                        break
+            
+            if not manifest_class:
+                raise ValueError(f"No AppManifest subclass found in {module_manifest_path}")
+                
             module_count += 1
-            route_count += len(module_manifest.routes)
-            provider_count += len(module_manifest.providers)
+            # Routes/Providers logic would need to inspect the class attributes
+            route_count += len(getattr(manifest_class, 'routes', []) or getattr(manifest_class, 'controllers', []))
+            provider_count += len(getattr(manifest_class, 'providers', []) or getattr(manifest_class, 'services', []))
             
             # Validate module dependencies
-            for dep in module_manifest.depends_on:
+            for dep in getattr(manifest_class, 'depends_on', []):
                 if dep not in workspace_manifest.modules:
                     faults.append(f"Module '{module_name}' depends on non-existent module '{dep}'")
             

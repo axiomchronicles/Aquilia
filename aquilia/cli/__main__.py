@@ -97,48 +97,6 @@ def init_workspace(ctx, name: str, minimal: bool, template: Optional[str]):
         sys.exit(1)
 
 
-@cli.command('add')
-@click.argument('type', type=click.Choice(['module']))
-@click.argument('name')
-@click.option('--depends-on', multiple=True, help='Module dependencies')
-@click.option('--fault-domain', type=str, help='Custom fault domain')
-@click.option('--route-prefix', type=str, help='Route prefix')
-@click.option('--with-tests', is_flag=True, help='Generate test routes file')
-@click.pass_context
-def add(ctx, type: str, name: str, depends_on: tuple, fault_domain: Optional[str], route_prefix: Optional[str], with_tests: bool):
-    """
-    Add module to workspace.
-    
-    Examples:
-      aq add module users
-      aq add module auth --depends-on=users
-      aq add module admin --fault-domain=ADMIN --route-prefix=/admin
-      aq add module products --with-tests
-    """
-    from .commands.add import add_module
-    
-    try:
-        module_path = add_module(
-            name=name,
-            depends_on=list(depends_on),
-            fault_domain=fault_domain,
-            route_prefix=route_prefix,
-            with_tests=with_tests,
-            verbose=ctx.obj['verbose'],
-        )
-        
-        if not ctx.obj['quiet']:
-            success(f"✓ Created module '{name}'")
-            info(f"  Location: {module_path}")
-            if depends_on:
-                info(f"  Dependencies: {', '.join(depends_on)}")
-            if with_tests:
-                info(f"  Includes: Test routes")
-            info(f"  Architecture: Controllers")
-    
-    except Exception as e:
-        error(f"✗ Failed to add module: {e}")
-        sys.exit(1)
 
 
 @cli.group()
@@ -363,6 +321,9 @@ def freeze(ctx, output: Optional[str], sign: bool):
     except Exception as e:
         error(f"✗ Freeze failed: {e}")
         sys.exit(1)
+
+
+# Import and register add command group
 
 
 @cli.group()

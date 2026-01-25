@@ -12,6 +12,7 @@ import logging
 from .request import Request
 from .response import Response, InternalError
 from .di import RequestCtx
+from .faults import Fault, FaultDomain
 
 
 # Type alias for middleware
@@ -141,10 +142,42 @@ class ExceptionMiddleware:
         
         except KeyError as e:
             # Not found
-            self.logger.warning(f"KeyError: {e}")
             return Response.json(
                 {"error": "Not found"},
                 status=404,
+            )
+
+        except Fault as e:
+            # Typed Fault
+            status_map = {
+                FaultDomain.ROUTING: 404,
+                FaultDomain.SECURITY: 403,
+                FaultDomain.IO: 502,
+                FaultDomain.EFFECT: 503,
+                FaultDomain.CONFIG: 500,
+                FaultDomain.REGISTRY: 500,
+                FaultDomain.DI: 500,
+                FaultDomain.FLOW: 500,
+                FaultDomain.SYSTEM: 500,
+            }
+            status = status_map.get(e.domain, 500)
+            
+            message = e.message if (e.public or self.debug) else "Internal server error"
+            
+            if status >= 500:
+                self.logger.error(f"Fault {e.code}: {e.message}")
+            else:
+                self.logger.warning(f"Fault {e.code}: {e.message}")
+                
+            return Response.json(
+                {
+                    "error": {
+                        "code": e.code,
+                        "message": message,
+                        "domain": e.domain.value,
+                    }
+                },
+                status=status,
             )
         
         except Exception as e:

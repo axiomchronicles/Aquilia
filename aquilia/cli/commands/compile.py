@@ -23,10 +23,10 @@ def compile_workspace(
         List of generated artifact paths
     """
     workspace_root = Path.cwd()
-    manifest_path = workspace_root / 'aquilia.aq'
+    manifest_path = workspace_root / 'aquilia.yaml'
     
     if not manifest_path.exists():
-        raise ValueError("Not in an Aquilia workspace (aquilia.aq not found)")
+        raise ValueError("Not in an Aquilia workspace (aquilia.yaml not found)")
     
     output = Path(output_dir) if output_dir else workspace_root / 'artifacts'
     output.mkdir(parents=True, exist_ok=True)

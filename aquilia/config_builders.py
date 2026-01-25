@@ -1,0 +1,266 @@
+"""
+Fluent Configuration Builders for Aquilia.
+
+Provides a unique, type-safe, fluent API for configuring Aquilia workspaces.
+Replaces YAML configuration with Python for better IDE support and validation.
+
+Example:
+    >>> workspace = (
+    ...     Workspace("myapp", version="0.1.0")
+    ...     .runtime(mode="dev", port=8000)
+    ...     .module(Module("users").route_prefix("/users"))
+    ...     .integrate(Integration.sessions(...))
+    ... )
+"""
+
+from typing import Optional, List, Any, Dict
+from dataclasses import dataclass, field
+from datetime import timedelta
+
+
+@dataclass
+class RuntimeConfig:
+    """Runtime configuration."""
+    mode: str = "dev"
+    host: str = "127.0.0.1"
+    port: int = 8000
+    reload: bool = True
+    workers: int = 1
+
+
+@dataclass
+class ModuleConfig:
+    """Module configuration."""
+    name: str
+    fault_domain: Optional[str] = None
+    route_prefix: Optional[str] = None
+    depends_on: List[str] = field(default_factory=list)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary format."""
+        return {
+            "name": self.name,
+            "fault_domain": self.fault_domain or self.name.upper(),
+            "route_prefix": self.route_prefix or f"/{self.name}",
+            "depends_on": self.depends_on,
+        }
+
+
+class Module:
+    """Fluent module builder."""
+    
+    def __init__(self, name: str):
+        self._config = ModuleConfig(name=name)
+    
+    def fault_domain(self, domain: str) -> "Module":
+        """Set fault domain."""
+        self._config.fault_domain = domain
+        return self
+    
+    def route_prefix(self, prefix: str) -> "Module":
+        """Set route prefix."""
+        self._config.route_prefix = prefix
+        return self
+    
+    def depends_on(self, *modules: str) -> "Module":
+        """Set module dependencies."""
+        self._config.depends_on = list(modules)
+        return self
+    
+    def build(self) -> ModuleConfig:
+        """Build module configuration."""
+        return self._config
+
+
+class Integration:
+    """Integration configuration builders."""
+    
+    @staticmethod
+    def sessions(
+        policy: Optional[Any] = None,
+        store: Optional[Any] = None,
+        transport: Optional[Any] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Configure session integration.
+        
+        Args:
+            policy: SessionPolicy instance
+            store: Store instance (MemoryStore, FileStore, etc.)
+            transport: Transport instance (CookieTransport, HeaderTransport)
+            **kwargs: Additional session configuration
+            
+        Returns:
+            Session configuration dictionary
+        """
+        from aquilia.sessions import SessionPolicy, MemoryStore, CookieTransport, TransportPolicy
+        
+        # Use defaults if not provided
+        if policy is None:
+            policy = SessionPolicy(
+                name="default",
+                ttl=timedelta(days=7),
+                idle_timeout=timedelta(minutes=30),
+                transport=TransportPolicy(
+                    adapter="cookie",
+                    cookie_name="aquilia_session",
+                ),
+            )
+        
+        if store is None:
+            store = MemoryStore(max_sessions=10000)
+        
+        # If transport not provided, create from policy
+        if transport is None:
+            if hasattr(policy, 'transport') and policy.transport:
+                transport = CookieTransport(policy=policy.transport)
+            else:
+                # Fallback to default
+                transport = CookieTransport(policy=TransportPolicy(
+                    adapter="cookie",
+                    cookie_name="aquilia_session",
+                ))
+        
+        return {
+            "enabled": True,
+            "policy": policy,
+            "store": store,
+            "transport": transport,
+            **kwargs
+        }
+    
+    @staticmethod
+    def di(auto_wire: bool = True, **kwargs) -> Dict[str, Any]:
+        """Configure dependency injection."""
+        return {
+            "enabled": True,
+            "auto_wire": auto_wire,
+            **kwargs
+        }
+    
+    @staticmethod
+    def registry(**kwargs) -> Dict[str, Any]:
+        """Configure registry."""
+        return {
+            "enabled": True,
+            **kwargs
+        }
+    
+    @staticmethod
+    def routing(strict_matching: bool = True, **kwargs) -> Dict[str, Any]:
+        """Configure routing."""
+        return {
+            "enabled": True,
+            "strict_matching": strict_matching,
+            **kwargs
+        }
+    
+    @staticmethod
+    def fault_handling(default_strategy: str = "propagate", **kwargs) -> Dict[str, Any]:
+        """Configure fault handling."""
+        return {
+            "enabled": True,
+            "default_strategy": default_strategy,
+            **kwargs
+        }
+    
+    @staticmethod
+    def patterns(**kwargs) -> Dict[str, Any]:
+        """Configure patterns."""
+        return {
+            "enabled": True,
+            **kwargs
+        }
+
+
+class Workspace:
+    """Fluent workspace builder."""
+    
+    def __init__(self, name: str, version: str = "0.1.0", description: str = ""):
+        self._name = name
+        self._version = version
+        self._description = description
+        self._runtime = RuntimeConfig()
+        self._modules: List[ModuleConfig] = []
+        self._integrations: Dict[str, Dict[str, Any]] = {}
+    
+    def runtime(
+        self,
+        mode: str = "dev",
+        host: str = "127.0.0.1",
+        port: int = 8000,
+        reload: bool = True,
+        workers: int = 1,
+    ) -> "Workspace":
+        """Configure runtime settings."""
+        self._runtime = RuntimeConfig(
+            mode=mode,
+            host=host,
+            port=port,
+            reload=reload,
+            workers=workers,
+        )
+        return self
+    
+    def module(self, module: Module) -> "Workspace":
+        """Add a module to the workspace."""
+        self._modules.append(module.build())
+        return self
+    
+    def integrate(self, integration: Dict[str, Any]) -> "Workspace":
+        """Add an integration."""
+        # Determine integration type from keys
+        if "policy" in integration or "store" in integration:
+            self._integrations["sessions"] = integration
+        elif "auto_wire" in integration:
+            self._integrations["dependency_injection"] = integration
+        elif "strict_matching" in integration:
+            self._integrations["routing"] = integration
+        elif "default_strategy" in integration:
+            self._integrations["fault_handling"] = integration
+        else:
+            # Generic integration
+            for key, value in integration.items():
+                if key != "enabled":
+                    self._integrations[key] = integration
+                    break
+        return self
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert workspace to dictionary format compatible with ConfigLoader.
+        
+        Returns:
+            Configuration dictionary
+        """
+        config = {
+            "workspace": {
+                "name": self._name,
+                "version": self._version,
+                "description": self._description,
+            },
+            "runtime": {
+                "mode": self._runtime.mode,
+                "host": self._runtime.host,
+                "port": self._runtime.port,
+                "reload": self._runtime.reload,
+                "workers": self._runtime.workers,
+            },
+            "modules": [m.to_dict() for m in self._modules],
+            "integrations": self._integrations,
+        }
+        
+        return config
+    
+    def __repr__(self) -> str:
+        return f"Workspace(name='{self._name}', version='{self._version}', modules={len(self._modules)})"
+
+
+__all__ = [
+    "Workspace",
+    "Module",
+    "Integration",
+    "RuntimeConfig",
+    "ModuleConfig",
+]

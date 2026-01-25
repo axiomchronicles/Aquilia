@@ -54,6 +54,30 @@ from .faults import (
     SessionPolicyViolationFault,
 )
 
+# Unique Aquilia session syntax (NEW)
+from .decorators import (
+    session,
+    authenticated,
+    stateful,
+    SessionRequiredFault,
+    AuthenticationRequiredFault,
+)
+
+from .state import (
+    SessionState,
+    Field,
+    CartState,
+    UserPreferencesState,
+)
+
+from .enhanced import (
+    SessionContext,
+    SessionGuard,
+    requires,
+    AdminGuard,
+    VerifiedEmailGuard,
+)
+
 __all__ = [
     # Core types
     "Session",
@@ -84,6 +108,23 @@ __all__ = [
     "SessionStoreUnavailableFault",
     "SessionRotationFailedFault",
     "SessionPolicyViolationFault",
+    # Decorators (NEW - Unique syntax)
+    "session",
+    "authenticated",
+    "stateful",
+    "SessionRequiredFault",
+    "AuthenticationRequiredFault",
+    # State (NEW - Typed state)
+    "SessionState",
+    "Field",
+    "CartState",
+    "UserPreferencesState",
+    # Enhanced features (NEW - Advanced patterns)
+    "SessionContext",
+    "SessionGuard",
+    "requires",
+    "AdminGuard",
+    "VerifiedEmailGuard",
 ]
 
 __version__ = "0.1.0"

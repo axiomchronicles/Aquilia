@@ -142,14 +142,14 @@ class Container:
         scope: str = "app",
         parent: Optional["Container"] = None,
     ):
-        self._providers: Dict[str, Dict[Optional[str], Provider]] = {}  # {token: {tag: provider}}
+        self._providers: Dict[str, Provider] = {}  # {cache_key: provider}
         self._cache: Dict[str, Any] = {}  # {cache_key: instance}
         self._scope = scope
         self._parent = parent
         self._finalizers: List[Callable[[], Coroutine]] = []  # LIFO cleanup
         self._resolve_plans: Dict[str, List[str]] = {}  # Precomputed dependency lists
     
-    def register(self, provider: Provider, tag: Optional[str] = None) -> None:
+    def register(self, provider: Provider, tag: Optional[str] = None):
         """
         Register a provider.
         
@@ -157,18 +157,54 @@ class Container:
             provider: Provider instance
             tag: Optional tag for disambiguation
         """
-        token = provider.meta.token
+        meta = provider.meta
+        token = meta.token
+        key = self._make_cache_key(token, tag)
         
-        if token not in self._providers:
-            self._providers[token] = {}
-        
-        if tag in self._providers[token]:
+        # Check for duplicates
+        if key in self._providers:
+            existing = self._providers[key]
             raise ValueError(
-                f"Provider for token={token} with tag={tag} already registered"
+                f"Provider for {token} (tag={tag}) already registered: {existing.meta.name}"
             )
         
-        self._providers[token] = self._providers.get(token, {})
-        self._providers[token][tag] = provider
+        self._providers[key] = provider
+    
+    async def register_instance(
+        self,
+        token: Type[T] | str,
+        instance: T,
+        scope: str = "request",
+        tag: Optional[str] = None,
+    ):
+        """
+        Register a pre-instantiated object as a provider.
+        
+        This is useful for registering request-scoped instances like Session
+        that are created outside the DI system.
+        
+        Args:
+            token: Type or string key
+            instance: Pre-instantiated object
+            scope: Scope for the instance (default: "request")
+            tag: Optional tag for disambiguation
+            
+        Example:
+            >>> session = await engine.resolve(request)
+            >>> await container.register_instance(Session, session, scope="request")
+        """
+        from .providers import ValueProvider
+        
+        # Create a ValueProvider for the instance
+        provider = ValueProvider(
+            token=token,
+            value=instance,
+            scope=scope,
+            name=f"{token.__name__ if hasattr(token, '__name__') else token}_instance",
+        )
+        
+        # Register the provider
+        self.register(provider, tag=tag)
     
     def resolve(
         self,

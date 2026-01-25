@@ -1,10 +1,12 @@
 """Workspace compiler - converts manifests to artifacts."""
 
 from pathlib import Path
-from typing import List
+from typing import List, Any
 import json
+import importlib.util
+import sys
 
-from ..parsers import WorkspaceManifest, ModuleManifest
+from ..parsers import WorkspaceManifest
 
 
 class WorkspaceCompiler:
@@ -20,6 +22,38 @@ class WorkspaceCompiler:
         self.output_dir = output_dir
         self.verbose = verbose
     
+    def _load_module_manifest(self, module_name: str) -> Any:
+        """Load manifest.py from module."""
+        module_path = self.workspace_root / 'modules' / module_name
+        manifest_path = module_path / 'manifest.py'
+        
+        if not manifest_path.exists():
+            return None
+        
+        try:
+            # Import manifest.py dynamically
+            spec = importlib.util.spec_from_file_location(f"{module_name}_manifest", manifest_path)
+            if not spec or not spec.loader:
+                return None
+            
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+            
+            # Find Manifest class
+            manifest_class = getattr(module, f"{module_name.capitalize()}Manifest", None)
+            if not manifest_class:
+                # Try finding any subclass of AppManifest
+                from aquilia.manifest import AppManifest
+                for name, obj in vars(module).items():
+                    if isinstance(obj, type) and issubclass(obj, AppManifest) and obj is not AppManifest:
+                        manifest_class = obj
+                        break
+            
+            return manifest_class
+        except Exception:
+            return None
+
     def compile(self) -> List[Path]:
         """
         Compile workspace to artifacts.
@@ -31,7 +65,7 @@ class WorkspaceCompiler:
         
         # Load workspace manifest
         workspace_manifest = WorkspaceManifest.from_file(
-            self.workspace_root / 'aquilia.aq'
+            self.workspace_root / 'aquilia.yaml'
         )
         
         # Compile workspace metadata
@@ -74,17 +108,15 @@ class WorkspaceCompiler:
         modules = []
         
         for module_name in manifest.modules:
-            module_path = self.workspace_root / 'modules' / module_name
-            module_manifest_path = module_path / 'module.aq'
+            module_manifest = self._load_module_manifest(module_name)
             
-            if module_manifest_path.exists():
-                module_manifest = ModuleManifest.from_file(module_manifest_path)
+            if module_manifest:
                 modules.append({
                     'name': module_name,
-                    'version': module_manifest.version,
-                    'description': module_manifest.description,
-                    'fault_domain': module_manifest.fault_domain,
-                    'depends_on': module_manifest.depends_on,
+                    'version': getattr(module_manifest, 'version', '0.1.0'),
+                    'description': getattr(module_manifest, 'description', ''),
+                    'fault_domain': getattr(module_manifest, 'default_fault_domain', 'GENERIC'),
+                    'depends_on': getattr(module_manifest, 'depends_on', []),
                 })
         
         artifact = {
@@ -98,25 +130,22 @@ class WorkspaceCompiler:
     
     def _compile_module(self, module_name: str) -> List[Path]:
         """Compile module to module-specific artifacts."""
-        module_path = self.workspace_root / 'modules' / module_name
-        module_manifest_path = module_path / 'module.aq'
+        module_manifest = self._load_module_manifest(module_name)
         
-        if not module_manifest_path.exists():
+        if not module_manifest:
             return []
-        
-        module_manifest = ModuleManifest.from_file(module_manifest_path)
         
         # Compile module metadata
         artifact = {
             'type': 'module',
             'name': module_name,
-            'version': module_manifest.version,
-            'description': module_manifest.description,
-            'route_prefix': module_manifest.route_prefix,
-            'fault_domain': module_manifest.fault_domain,
-            'depends_on': module_manifest.depends_on,
-            'providers': module_manifest.providers,
-            'routes': module_manifest.routes,
+            'version': getattr(module_manifest, 'version', '0.1.0'),
+            'description': getattr(module_manifest, 'description', ''),
+            'route_prefix': getattr(module_manifest, 'route_prefix', '/'),
+            'fault_domain': getattr(module_manifest, 'default_fault_domain', 'GENERIC'),
+            'depends_on': getattr(module_manifest, 'depends_on', []),
+            'providers': getattr(module_manifest, 'providers', []) or getattr(module_manifest, 'services', []),
+            'routes': getattr(module_manifest, 'routes', []) or getattr(module_manifest, 'controllers', []),
         }
         
         output_path = self.output_dir / f'{module_name}.crous'
@@ -129,13 +158,18 @@ class WorkspaceCompiler:
         routes = []
         
         for module_name in manifest.modules:
-            module_path = self.workspace_root / 'modules' / module_name
-            module_manifest_path = module_path / 'module.aq'
+            module_manifest = self._load_module_manifest(module_name)
             
-            if module_manifest_path.exists():
-                module_manifest = ModuleManifest.from_file(module_manifest_path)
+            if module_manifest:
+                # Need to inspect routes from compiled code or manifest list
+                # Inspecting metadata only
+                routes_list = getattr(module_manifest, 'routes', [])
+                if not routes_list:
+                    # If controllers are listed, we can't easily extract routes without compiling controllers
+                    # This is a static compiler limitation
+                    pass
                 
-                for route in module_manifest.routes:
+                for route in routes_list:
                     routes.append({
                         'module': module_name,
                         'path': route.get('path', '/'),
@@ -157,13 +191,13 @@ class WorkspaceCompiler:
         providers = []
         
         for module_name in manifest.modules:
-            module_path = self.workspace_root / 'modules' / module_name
-            module_manifest_path = module_path / 'module.aq'
+            module_manifest = self._load_module_manifest(module_name)
             
-            if module_manifest_path.exists():
-                module_manifest = ModuleManifest.from_file(module_manifest_path)
+            if module_manifest:
+                providers_list = getattr(module_manifest, 'providers', []) 
+                # Also handle 'services' list which are strings
                 
-                for provider in module_manifest.providers:
+                for provider in providers_list:
                     providers.append({
                         'module': module_name,
                         'class': provider.get('class'),

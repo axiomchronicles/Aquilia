@@ -73,7 +73,17 @@ class ConfigLoader:
         overrides: Optional[Dict[str, Any]] = None,
     ) -> "ConfigLoader":
         """
-        Load configuration from multiple sources.
+        Load configuration from multiple sources with proper merge strategy.
+        
+        Merge order (later overrides earlier):
+        1. Workspace structure from aquilia.py (modules, integrations)
+        2. Base config from config/base.yaml (shared defaults)
+        3. Environment config from config/{mode}.yaml (dev, prod, etc.)
+        4. Environment variables (AQ_* prefix)
+        5. Manual overrides
+        
+        Supports both Python (aquilia.py) and YAML (aquilia.yaml) config files.
+        Python files take precedence over YAML if both exist.
         
         Args:
             paths: List of config file paths (glob patterns supported)
@@ -86,19 +96,40 @@ class ConfigLoader:
         """
         loader = cls(env_prefix=env_prefix)
         
-        # Load from files
+        # Step 1: Load workspace structure from aquilia.py or aquilia.yaml
+        if not paths:
+            # Auto-detect workspace config file
+            if Path("aquilia.py").exists():
+                paths = ["aquilia.py"]
+            elif Path("aquilia.yaml").exists():
+                paths = ["aquilia.yaml"]
+        
         if paths:
             for pattern in paths:
-                loader._load_from_files(pattern)
+                if pattern.endswith('.py'):
+                    loader._load_python_config(pattern)
+                else:
+                    loader._load_from_files(pattern)
         
-        # Load from .env file
+        # Step 2: Load base config (shared defaults)
+        if Path("config/base.yaml").exists():
+            loader._load_yaml_file(Path("config/base.yaml"))
+        
+        # Step 3: Load environment-specific config
+        # Determine environment from workspace config or default to 'dev'
+        mode = loader.config_data.get('runtime', {}).get('mode', 'dev')
+        env_config_path = Path(f"config/{mode}.yaml")
+        if env_config_path.exists():
+            loader._load_yaml_file(env_config_path)
+        
+        # Step 4: Load from .env file
         if env_file:
             loader._load_env_file(env_file)
         
-        # Load from environment
+        # Step 5: Load from environment variables
         loader._load_from_env()
         
-        # Apply overrides
+        # Step 6: Apply manual overrides
         if overrides:
             loader._merge_dict(loader.config_data, overrides)
         
@@ -107,17 +138,45 @@ class ConfigLoader:
         
         return loader
     
+    def _load_python_config(self, path: str):
+        """
+        Load config from Python file (aquilia.py).
+        
+        Expects a 'workspace' variable that is a Workspace instance.
+        """
+        import importlib.util
+        from pathlib import Path
+        
+        config_path = Path(path)
+        if not config_path.exists():
+            return
+        
+        # Load Python module
+        spec = importlib.util.spec_from_file_location("aquilia_config", config_path)
+        if spec and spec.loader:
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            
+            # Get workspace object
+            if hasattr(module, 'workspace'):
+                workspace = module.workspace
+                # Convert workspace to dict and merge
+                config_dict = workspace.to_dict()
+                self._merge_dict(self.config_data, config_dict)
+    
     def _load_from_files(self, pattern: str):
-        """Load config from Python or JSON files."""
+        """Load config from Python, JSON, or YAML files."""
         from glob import glob
         
         for path_str in glob(pattern):
             path = Path(path_str)
             
             if path.suffix == ".py":
-                self._load_python_file(path)
+                self._load_python_config(path)
             elif path.suffix == ".json":
                 self._load_json_file(path)
+            elif path.suffix in (".yaml", ".yml"):
+                self._load_yaml_file(path)
     
     def _load_python_file(self, path: Path):
         """Load config from Python module."""
@@ -141,6 +200,14 @@ class ConfigLoader:
         with open(path) as f:
             data = json.load(f)
             self._merge_dict(self.config_data, data)
+
+    def _load_yaml_file(self, path: Path):
+        """Load config from YAML file."""
+        import yaml
+        with open(path) as f:
+            data = yaml.safe_load(f)
+            if data:
+                self._merge_dict(self.config_data, data)
     
     def _load_env_file(self, path: str):
         """Load config from .env file."""
@@ -341,3 +408,53 @@ class ConfigLoader:
     def to_dict(self) -> dict:
         """Export all config as dictionary."""
         return self.config_data.copy()
+    
+    def get_session_config(self) -> dict:
+        """
+        Get session configuration with defaults.
+        
+        Returns:
+            Session configuration dictionary
+        """
+        default_session_config = {
+            "enabled": False,  # Opt-in
+            "policy": {
+                "name": "user_default",
+                "ttl_days": 7,
+                "idle_timeout_minutes": 30,
+                "rotate_on_privilege_change": True,
+                "max_sessions_per_principal": 5,
+            },
+            "store": {
+                "type": "memory",  # "memory", "file", "redis"
+                "max_sessions": 10000,
+                # File store options
+                "directory": None,
+                # Redis options (future)
+                "redis_url": None,
+                "key_prefix": "aquilia:session:",
+            },
+            "transport": {
+                "adapter": "cookie",  # "cookie", "header"
+                "cookie_name": "aquilia_session",
+                "cookie_httponly": True,
+                "cookie_secure": True,
+                "cookie_samesite": "lax",
+                "header_name": "X-Session-ID",
+            },
+        }
+        
+        # Get user-provided session config
+        # Check both sessions and integrations.sessions paths
+        user_config = self.get("sessions", {})
+        if not user_config:
+            user_config = self.get("integrations.sessions", {})
+        
+        # Merge with defaults
+        merged = default_session_config.copy()
+        if user_config:
+            self._merge_dict(merged, user_config)
+        
+        return merged
+
+

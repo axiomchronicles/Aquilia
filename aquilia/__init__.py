@@ -22,6 +22,7 @@ __version__ = "2.0.0"
 
 from .manifest import AppManifest
 from .config import Config, ConfigLoader
+from .config_builders import Workspace, Module, Integration
 from .request import Request
 from .response import Response
 from .server import AquiliaServer
@@ -94,10 +95,36 @@ from .sessions import (
     SessionID,
     SessionPolicy,
     SessionEngine,
+    SessionPrincipal,
     MemoryStore as SessionMemoryStore,
     CookieTransport,
     SessionFault,
     SessionExpiredFault,
+)
+
+# Session decorators and state (NEW - Unique Aquilia syntax)
+from .sessions.decorators import (
+    session,
+    authenticated,
+    stateful,
+    SessionRequiredFault,
+    AuthenticationRequiredFault,
+)
+
+from .sessions.state import (
+    SessionState,
+    Field,
+    CartState,
+    UserPreferencesState,
+)
+
+# Enhanced session features (NEW - Advanced patterns)
+from .sessions.enhanced import (
+    SessionContext,
+    SessionGuard,
+    requires,
+    AdminGuard,
+    VerifiedEmailGuard,
 )
 
 # ============================================================================
@@ -151,6 +178,7 @@ from .faults import (
     FaultContext,
     FaultEngine,
     FaultHandler,
+    RecoveryStrategy,
 )
 
 # ============================================================================
@@ -240,8 +268,30 @@ __all__ = [
     "SessionID",
     "SessionPolicy",
     "SessionEngine",
+    "SessionPrincipal",
     "SessionMemoryStore",
     "CookieTransport",
+    
+    # Session decorators (NEW - Unique syntax)
+    "session",
+    "authenticated",
+    "stateful",
+    "SessionState",
+    "Field",
+    "CartState",
+    "UserPreferencesState",
+    
+    # Enhanced session features (NEW - Advanced patterns)
+    "SessionContext",
+    "SessionGuard",
+    "requires",
+    "AdminGuard",
+    "VerifiedEmailGuard",
+    
+    # Config builders (NEW - Python config)
+    "Workspace",
+    "Module",
+    "Integration",
     
     # Auth - Core
     "Identity",
@@ -270,6 +320,8 @@ __all__ = [
     "Fault",
     "FaultContext",
     "FaultEngine",
+    "FaultHandler",
+    "RecoveryStrategy",
     
     # Middleware
     "Middleware",

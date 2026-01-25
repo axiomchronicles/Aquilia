@@ -35,6 +35,7 @@ from .core import (
     Resolved,
     Transformed,
     Escalate,
+    RecoveryStrategy,
 )
 
 from .engine import (
@@ -65,6 +66,7 @@ __all__ = [
     "Resolved",
     "Transformed",
     "Escalate",
+    "RecoveryStrategy",
     
     # Runtime
     "FaultEngine",

@@ -27,6 +27,10 @@ class AppManifest:
     controllers: List[str] = field(default_factory=list)
     services: List[str] = field(default_factory=list)
     
+    # Routing and Faults
+    route_prefix: str = "/"
+    default_fault_domain: Optional[str] = None
+    
     # Dependencies on other apps
     depends_on: List[str] = field(default_factory=list)
     

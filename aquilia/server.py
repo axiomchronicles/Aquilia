@@ -14,6 +14,7 @@ from .asgi import ASGIAdapter
 from .controller.router import ControllerRouter
 from .aquilary import Aquilary, RuntimeRegistry, RegistryMode, AquilaryRegistry
 from .lifecycle import LifecycleCoordinator, LifecycleManager, LifecycleError
+from .middleware_ext.session_middleware import SessionMiddleware
 
 
 class AquiliaServer:
@@ -172,10 +173,127 @@ class AquiliaServer:
             priority=20,
             name="logging",
         )
+        
+        # Add session middleware if enabled
+        session_config = self.config.get_session_config()
+        if session_config.get("enabled", False):
+            try:
+                # Create session engine
+                session_engine = self._create_session_engine(session_config)
+                
+                # Add session middleware
+                self.middleware_stack.add(
+                    SessionMiddleware(session_engine),
+                    scope="global",
+                    priority=15,
+                    name="session",
+                )
+                
+                # Store engine reference for later use
+                self._session_engine = session_engine
+                
+                self.logger.info("✅ Session management enabled")
+            except Exception as e:
+                self.logger.error(f"Failed to initialize session management: {e}", exc_info=True)
+                self._session_engine = None
+        else:
+            self._session_engine = None
     
     def _is_debug(self) -> bool:
         """Check if debug mode is enabled."""
         return self.config.get("debug", False)
+    
+    def _create_session_engine(self, session_config: dict):
+        """
+        Create SessionEngine from configuration.
+        
+        Args:
+            session_config: Session configuration dictionary
+            
+        Returns:
+            Configured SessionEngine
+        """
+        from datetime import timedelta
+        from aquilia.sessions import (
+            SessionEngine,
+            SessionPolicy,
+            PersistencePolicy,
+            ConcurrencyPolicy,
+            TransportPolicy,
+            MemoryStore,
+            FileStore,
+            CookieTransport,
+            HeaderTransport,
+        )
+        
+        # Build session policy from config
+        policy_config = session_config.get("policy", {})
+        policy = SessionPolicy(
+            name=policy_config.get("name", "user_default"),
+            ttl=timedelta(days=policy_config.get("ttl_days", 7)),
+            idle_timeout=timedelta(minutes=policy_config.get("idle_timeout_minutes", 30)),
+            rotate_on_use=False,
+            rotate_on_privilege_change=policy_config.get("rotate_on_privilege_change", True),
+            persistence=PersistencePolicy(
+                enabled=True,
+                store_name="default",
+                write_through=True,
+            ),
+            concurrency=ConcurrencyPolicy(
+                max_sessions_per_principal=policy_config.get("max_sessions_per_principal", 5),
+                behavior_on_limit="evict_oldest",
+            ),
+            transport=TransportPolicy(
+                adapter=session_config.get("transport", {}).get("adapter", "cookie"),
+                cookie_name=session_config.get("transport", {}).get("cookie_name", "aquilia_session"),
+                cookie_httponly=session_config.get("transport", {}).get("cookie_httponly", True),
+                cookie_secure=session_config.get("transport", {}).get("cookie_secure", True),
+                cookie_samesite=session_config.get("transport", {}).get("cookie_samesite", "lax"),
+                header_name=session_config.get("transport", {}).get("header_name", "X-Session-ID"),
+            ),
+            scope="user",
+        )
+        
+        # Create store
+        store_config = session_config.get("store", {})
+        store_type = store_config.get("type", "memory")
+        
+        if store_type == "memory":
+            store = MemoryStore(max_sessions=store_config.get("max_sessions", 10000))
+        elif store_type == "file":
+            directory = store_config.get("directory", "/tmp/aquilia_sessions")
+            store = FileStore(directory=directory)
+        else:
+            # Default to memory
+            self.logger.warning(f"Unknown store type '{store_type}', using memory store")
+            store = MemoryStore(max_sessions=10000)
+        
+        # Create transport
+        transport_config = session_config.get("transport", {})
+        adapter = transport_config.get("adapter", "cookie")
+        
+        if adapter == "cookie":
+            transport = CookieTransport(policy.transport)
+        elif adapter == "header":
+            transport = HeaderTransport(policy.transport)
+        else:
+            # Default to cookie
+            self.logger.warning(f"Unknown transport adapter '{adapter}', using cookie transport")
+            transport = CookieTransport(policy.transport)
+        
+        # Create engine
+        engine = SessionEngine(
+            policy=policy,
+            store=store,
+            transport=transport,
+        )
+        
+        self.logger.info(
+            f"SessionEngine initialized: policy={policy.name}, "
+            f"store={store_type}, transport={adapter}"
+        )
+        
+        return engine
     
     def _load_controllers(self):
         """Load and compile controllers from all apps."""
@@ -190,6 +308,10 @@ class AquiliaServer:
                     
                     # Compile controller
                     compiled = self.controller_compiler.compile_controller(controller_class)
+                    
+                    # Inject app context info for DI resolution
+                    for route in compiled.routes:
+                        route.app_name = app_ctx.name
                     
                     # Register with controller router
                     self.controller_router.add_controller(compiled)
