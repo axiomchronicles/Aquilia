@@ -1,1 +1,0 @@
-"""AquilaPatterns test suite."""
