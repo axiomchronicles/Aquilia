@@ -22,6 +22,7 @@ workspace = (
     # This keeps workspace definition clean and environment-agnostic
 
     # Add modules here:
+    .module(Module("modeboom").route_prefix("/modeboom"))
     # .module(Module("users").route_prefix("/users"))
 
     # Integrations
