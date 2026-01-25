@@ -50,10 +50,10 @@ def validate_workspace(
     
     # Load workspace modules
     try:
-        workspace_content = workspace_config.read_text()
         import re
-        # (?m) enables multiline mode, ^ matches start of line, \s* matches indentation
-        modules = re.findall(r'(?m)^\s*\.module\(Module\("([^"]+)"\)', workspace_content)
+        workspace_content = workspace_config.read_text()
+        # Flexible regex to handle Module("name", ...) or Module("name")
+        modules = re.findall(r'(?m)^\s*\.module\(Module\("([^"]+)"', workspace_content)
     except Exception as e:
         faults.append(f"Invalid workspace configuration: {e}")
         return ValidationResult(
@@ -86,26 +86,30 @@ def validate_workspace(
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
             
-            # Find Manifest class
-            manifest_class = getattr(module, f"{module_name.capitalize()}Manifest", None)
-            if not manifest_class:
-                # Try finding any subclass of AppManifest
-                from aquilia.manifest import AppManifest
+            # Find Manifest class or instance
+            from aquilia.manifest import AppManifest
+            manifest_obj = getattr(module, "manifest", None)
+            
+            if not manifest_obj:
+                # Try finding any instance or subclass of AppManifest
                 for name, obj in vars(module).items():
+                    if isinstance(obj, AppManifest):
+                        manifest_obj = obj
+                        break
                     if isinstance(obj, type) and issubclass(obj, AppManifest) and obj is not AppManifest:
-                        manifest_class = obj
+                        manifest_obj = obj # This would be a class, we might need to instantiate it or just check its attributes
                         break
             
-            if not manifest_class:
-                raise ValueError(f"No AppManifest subclass found in {module_manifest_path}")
+            if not manifest_obj:
+                raise ValueError(f"No AppManifest found in {module_manifest_path}")
                 
             module_count += 1
-            # Routes/Providers logic would need to inspect the class attributes
-            route_count += len(getattr(manifest_class, 'routes', []) or getattr(manifest_class, 'controllers', []))
-            provider_count += len(getattr(manifest_class, 'providers', []) or getattr(manifest_class, 'services', []))
+            # Routes/Providers logic handles both class and instance
+            route_count += len(getattr(manifest_obj, 'routes', []) or getattr(manifest_obj, 'controllers', []))
+            provider_count += len(getattr(manifest_obj, 'providers', []) or getattr(manifest_obj, 'services', []))
             
             # Validate module dependencies
-            for dep in getattr(manifest_class, 'depends_on', []):
+            for dep in getattr(manifest_obj, 'depends_on', []):
                 if dep not in modules:
                     faults.append(f"Module '{module_name}' depends on non-existent module '{dep}'")
             

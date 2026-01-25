@@ -26,3 +26,9 @@ Philosophy:
 
 __version__ = "2.0.0"
 __cli_name__ = "aq"
+
+
+def main():
+    """Wrapper to avoid eager import of __main__ which causes warnings with -m."""
+    from .__main__ import main as _main
+    return _main()

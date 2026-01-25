@@ -174,10 +174,6 @@ class ControllerFactory:
                 try:
                     # Get type annotation from hints if available, else raw annotation
                     param_type = type_hints.get(param_name, param.annotation)
-                    print(f"DEBUG: Resolving param '{param_name}' type: {param_type}")
-
-                    if param_type is None:
-                         print(f"DEBUG: Param '{param_name}' type is None!")
                     
                     # INTELLIGENT INFERENCE:
                     # If no type hint is provided, but the default value is a class (type),
@@ -209,7 +205,6 @@ class ControllerFactory:
             return controller_class(**params)
         
         except Exception as e:
-            print(f"DEBUG: DI Resolution failed for {controller_class.__name__}: {e}")
             # Fallback to simple instantiation
             return controller_class()
     
@@ -228,20 +223,15 @@ class ControllerFactory:
             
             origin = get_origin(param_type)
             if origin is not None:
-                print(f"DEBUG: Origin: {origin}")
                 # Handle Annotated[T, Inject(...)]
                 args = get_args(param_type)
-                print(f"DEBUG: Args: {args}")
                 if args:
                     actual_type = args[0]
                     # Look for Inject metadata using duck typing
                     for arg in args[1:]:
-                        print(f"DEBUG: Checking arg: {arg} (type {type(arg)})")
-                        print(f"DEBUG: Has _inject_tag: {hasattr(arg, '_inject_tag')}")
-                        print(f"DEBUG: Has _inject_token: {hasattr(arg, '_inject_token')}")
                         
                         if hasattr(arg, '_inject_tag') or hasattr(arg, '_inject_token'):
-                            print(f"DEBUG: Found Inject-like metadata: {arg}")
+                            # print(f"DEBUG: Found Inject-like metadata: {arg}")
                             # Extract tag if any
                             tag = getattr(arg, 'tag', None)
                             # Extract token if any

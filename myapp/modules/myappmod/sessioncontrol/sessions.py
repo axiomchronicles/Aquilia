@@ -5,10 +5,10 @@ class SessionController(Controller):
 
     prefix = "/sessions"
     
-    @GET("/session")
-    async def get_session(self):
+    @GET("/")
+    async def get_session(self, ctx):
         return {"message": "Hello World"}
 
-    @POST("/session")
-    async def create_session(self):
+    @POST("/")
+    async def create_session(self, ctx):
         return {"message": "Hello World"}

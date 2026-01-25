@@ -99,13 +99,17 @@ class WorkspaceGenerator:
             # Add discovered controllers registration
             controllers_list = mod_data.get('controllers_list', [])
             if controllers_list and len(controllers_list) > 0:
-                controllers_str = ',\n            '.join(f'"{ctrl}"' for ctrl in controllers_list)
+                # Handle Discovery v2 metadata objects
+                normalized_controllers = [c["path"] if isinstance(c, dict) else c for c in controllers_list]
+                controllers_str = ',\n            '.join(f'"{ctrl}"' for ctrl in normalized_controllers)
                 config_chain += f'\n        .register_controllers(\n            {controllers_str}\n        )'
             
             # Add discovered services registration  
             services_list = mod_data.get('services_list', [])
             if services_list and len(services_list) > 0:
-                services_str = ',\n            '.join(f'"{svc}"' for svc in services_list)
+                # Handle Discovery v2 metadata objects
+                normalized_services = [s["path"] if isinstance(s, dict) else s for s in services_list]
+                services_str = ',\n            '.join(f'"{svc}"' for svc in normalized_services)
                 config_chain += f'\n        .register_services(\n            {services_str}\n        )'
             
             # .module at same level as .integrate (4 spaces)
@@ -365,13 +369,15 @@ class WorkspaceGenerator:
                 # Add discovered controllers registration
                 controllers_list = mod.get('controllers_list', [])
                 if controllers_list and len(controllers_list) > 0:
-                    controllers_str = ',\n            '.join(f'"{ctrl}"' for ctrl in controllers_list)
+                    normalized_controllers = [c["path"] if isinstance(c, dict) else c for c in controllers_list]
+                    controllers_str = ',\n            '.join(f'"{ctrl}"' for ctrl in normalized_controllers)
                     config_chain += f'\n        .register_controllers(\n            {controllers_str}\n        )'
                 
                 # Add discovered services registration  
                 services_list = mod.get('services_list', [])
                 if services_list and len(services_list) > 0:
-                    services_str = ',\n            '.join(f'"{svc}"' for svc in services_list)
+                    normalized_services = [s["path"] if isinstance(s, dict) else s for s in services_list]
+                    services_str = ',\n            '.join(f'"{svc}"' for svc in normalized_services)
                     config_chain += f'\n        .register_services(\n            {services_str}\n        )'
                 
                 # .module(Module(...) on same line, then chain methods indented

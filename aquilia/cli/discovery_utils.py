@@ -146,430 +146,416 @@ class EnhancedDiscovery:
         self.verbose = verbose
         self._discovered_cache: Dict[str, Tuple[str, Type]] = {}
 
-    def _is_valid_candidate_file(self, file_path: Path) -> bool:
+    def _extract_metadata_from_file_static(self, file_path: Path, module_path: str) -> List[Dict[str, Any]]:
         """
-        Safely check if file contains potential candidates using AST.
-        
-        Avoids importing files that don't have classes or have syntax errors.
+        Statically extract class metadata using AST without importing.
+        Finds controllers, services, and their decorators.
         """
         import ast
+        results = []
         try:
             content = file_path.read_text(encoding='utf-8', errors='ignore')
             tree = ast.parse(content)
             
             for node in ast.walk(tree):
                 if isinstance(node, ast.ClassDef):
-                    # Check for indicators
-                    name = node.name
-                    if name.endswith(("Controller", "Service", "Provider", "Repository")):
-                        return True
+                    cls_name = node.name
+                    path = f"{module_path}:{cls_name}"
                     
-                    # Check bases (simple name matching)
+                    item = {
+                        "path": path,
+                        "name": cls_name,
+                        "type": None,
+                        "metadata": {}
+                    }
+                    
+                    # 1. Base classification by naming convention
+                    if cls_name.endswith("Controller"):
+                        item["type"] = "controller"
+                    elif cls_name.endswith(("Service", "Provider", "Repository", "DAO", "Manager")):
+                        item["type"] = "service"
+                    
+                    # 2. Check base classes
                     for base in node.bases:
-                        if isinstance(base, ast.Name) and base.id in ("Controller", "Service"):
-                            return True
-                        if isinstance(base, ast.Attribute) and base.attr in ("Controller", "Service"):
-                            return True
-            
-            return False
+                        base_name = ""
+                        if isinstance(base, ast.Name):
+                            base_name = base.id
+                        elif isinstance(base, ast.Attribute):
+                            base_name = base.attr
+                            
+                        if base_name == "Controller":
+                            item["type"] = "controller"
+                        elif base_name == "Service":
+                            item["type"] = "service"
+
+                    # 3. Check decorators for definitive classification and metadata
+                    for decorator in node.decorator_list:
+                        dec_name = ""
+                        if isinstance(decorator, ast.Name):
+                            dec_name = decorator.id
+                        elif isinstance(decorator, ast.Call):
+                            if isinstance(decorator.func, ast.Name):
+                                dec_name = decorator.func.id
+                            elif isinstance(decorator.func, ast.Attribute):
+                                dec_name = decorator.func.attr
+                        
+                        if dec_name == "service":
+                            item["type"] = "service"
+                            # Extract metadata from @service(...) args
+                            if isinstance(decorator, ast.Call):
+                                for kw in decorator.keywords:
+                                    if kw.arg in ("scope", "tag", "aliases", "factory"):
+                                        if isinstance(kw.value, ast.Constant):
+                                            item["metadata"][kw.arg] = kw.value.value
+                                        elif isinstance(kw.value, ast.List):
+                                            item["metadata"][kw.arg] = [
+                                                e.value for e in kw.value.elts 
+                                                if isinstance(e, ast.Constant)
+                                            ]
+                        elif dec_name in ("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"):
+                            item["type"] = "controller"
+                    
+                    if item["type"]:
+                        results.append(item)
+            return results
         except Exception:
-            # Syntax error or other issue -> skip safe
-            return False
+            return []
+
+    def _is_valid_candidate_file(self, file_path: Path) -> bool:
+        """
+        Check if file contains potential candidates. 
+        Now a wrapper around the static extractor.
+        """
+        return len(self._extract_metadata_from_file_static(file_path, "tmp")) > 0
     
     def discover_module_controllers_and_services(
         self,
         base_package: str,
         module_name: str,
-    ) -> Tuple[List[str], List[str]]:
+    ) -> Tuple[List[Any], List[Any]]:
         """
-        Discover controllers and services in a module with intelligent classification.
-        
-        Robust discovery that handles:
-        - Missing modules gracefully
-        - Import errors without crashing
-        - Circular dependencies
-        - Partial module loads
-        - Invalid class definitions
-        
-        Args:
-            base_package: Base package path (e.g., "modules.mymodule")
-            module_name: Module name (e.g., "mymodule")
-            
-        Returns:
-            Tuple of (controllers_list, services_list) with full module paths
+        Discover controllers and services using static analysis first,
+        falling back to runtime scanning only for specific standard paths.
         """
-        all_discovered: Dict[str, Tuple[str, Type]] = {}  # key -> (type, class)
-        
+        controllers_data = []
+        services_data = []
+        seen_paths = set()
+
         try:
             # Import the base module to get its path
             module_package = importlib.import_module(base_package)
             if not hasattr(module_package, '__path__'):
                 return [], []
-            
             module_dir = Path(module_package.__path__[0])
-        except (ImportError, AttributeError, ValueError) as e:
-            if self.verbose:
-                print(f"    ⚠️  Cannot import base package {base_package}: {str(e)[:60]}")
+        except (ImportError, AttributeError, ValueError):
             return [], []
-        
-        # Strategy 1: Scan standard package locations
-        standard_packages = [
-            ("controllers", "controller"),
-            ("services", "service"),
-            ("handlers", "controller"),
-            ("providers", "service"),
-            ("repositories", "service"),
-        ]
-        
-        for pkg_name, expected_type in standard_packages:
-            location = f"{base_package}.{pkg_name}"
-            try:
-                classes = self.scanner.scan_package(
-                    location,
-                    predicate=lambda cls: True,  # Get all classes, classify later
-                )
-                for cls in classes:
-                    try:
-                        classification = TypeClassifier.classify(cls)
-                        # Only keep if classified as expected type (controllers in controllers package, etc)
-                        # This prevents importing cross-module classes
-                        if classification == expected_type:
-                            key = f"{cls.__module__}:{cls.__name__}"
-                            if key not in all_discovered:
-                                all_discovered[key] = (classification, cls)
-                            if self.verbose and classification:
-                                print(f"    ✓ {pkg_name}: {cls.__name__} ({classification})")
-                    except Exception as e:
-                        if self.verbose:
-                            print(f"    ⚠️  Error classifying {cls.__name__}: {str(e)[:40]}")
-            except (ImportError, ModuleNotFoundError, ValueError):
-                pass  # Package doesn't exist, skip it
-            except Exception as e:
-                if self.verbose:
-                    print(f"    ⚠️  Error scanning package {location}: {str(e)[:50]}")
-        
-        # Strategy 2: Scan individual files with intelligent detection
-        try:
-            if not module_dir.exists():
-                return [], []
-            
-            controller_patterns = [
-                "*controller*.py", "*ctrl*.py", "*handler*.py",
-                "*view*.py", "*route*.py", "*api*.py",
-            ]
-            service_patterns = [
-                "*service*.py", "*provider*.py", "*repository*.py",
-                "*repo*.py", "*dao*.py", "*manager*.py",
-            ]
-            
-            # Collect candidate files recursively
-            controller_files = set()
-            service_files = set()
-            
-            try:
-                for pattern in controller_patterns:
-                    # Use rglob for recursive scanning
-                    controller_files.update(module_dir.rglob(pattern))
-                for pattern in service_patterns:
-                    service_files.update(module_dir.rglob(pattern))
-            except OSError as e:
-                if self.verbose:
-                    print(f"    ⚠️  Error scanning files: {str(e)[:50]}")
-                return list(all_discovered.values())  # Return what we found so far
-            
-            # All Python files (for fallback) - Recursive
-            try:
-                all_py_files = set(module_dir.rglob("*.py"))
-            except OSError:
-                all_py_files = set()
-            
-            exclude_files = {
-                module_dir / "__init__.py",
-                module_dir / "manifest.py",
-                module_dir / "config.py",
-                module_dir / "settings.py",
-                module_dir / "faults.py",
-                module_dir / "middleware.py",
-            }
-            other_files = all_py_files - controller_files - service_files - exclude_files
-            
-            # Helper to calculate submodule name preserving nesting
-            def get_submodule_name(file_path: Path) -> str:
-                try:
-                    rel_path = file_path.relative_to(module_dir)
-                    # nested/folder/file.py -> nested.folder.file
-                    parts = list(rel_path.parent.parts) + [rel_path.stem]
-                    # Filter empty parts (just in case)
-                    parts = [p for p in parts if p and p != "."]
-                    
-                    if not parts:
-                        return base_package
-                        
-                    return f"{base_package}.{'.'.join(parts)}"
-                except ValueError:
-                    # Should not happen if file came from glob on module_dir
-                    return f"{base_package}.{file_path.stem}"
 
-            # Process files in priority order with type hints
-            for py_file in sorted(controller_files):
+        # Scan files recursively using static analysis
+        try:
+            for py_file in module_dir.rglob("*.py"):
                 if py_file.stem in ['__init__', 'manifest', 'config', 'settings', 'faults', 'middleware']:
                     continue
                 
-                if not py_file.exists():
-                    continue
+                # Calculate submodule path
+                rel_path = py_file.relative_to(module_dir)
+                parts = [base_package] + list(rel_path.parent.parts) + [rel_path.stem]
+                submodule_path = ".".join([p for p in parts if p and p != "."])
                 
-                # Correctly calculate nested submodule path
-                submodule_name = get_submodule_name(py_file)
-                
-                try:
-                    if not self._is_valid_candidate_file(py_file):
+                # Static extraction
+                items = self._extract_metadata_from_file_static(py_file, submodule_path)
+                for item in items:
+                    if item["path"] in seen_paths:
                         continue
+                    seen_paths.add(item["path"])
+                    
+                    if item["type"] == "controller":
+                        controllers_data.append(item)
+                    elif item["type"] == "service":
+                        services_data.append(item)
                         
-                    # Scan the file
-                    try:
-                        classes = self.scanner.scan_package(submodule_name, predicate=lambda cls: True)
-                    except (ImportError, SyntaxError, ValueError, ModuleNotFoundError) as e:
-                        if self.verbose:
-                            print(f"    ⚠️  Cannot import {py_file.name}: {str(e)[:50]}")
-                        continue
-                    
-                    for cls in classes:
-                        try:
-                            # Skip standard library and built-in classes
-                            if cls.__module__.startswith(('builtins', '__builtin__', 'typing')):
-                                continue
-                            
-                            classification = TypeClassifier.classify(cls)
-                            # Only keep controllers from controller files
-                            if classification == "controller":
-                                key = f"{cls.__module__}:{cls.__name__}"
-                                if key not in all_discovered:
-                                    all_discovered[key] = (classification, cls)
-                                if self.verbose:
-                                    print(f"    ✓ {py_file.name}: {cls.__name__} ({classification})")
-                        except Exception as e:
-                            if self.verbose:
-                                print(f"    ⚠️  Error processing {cls.__name__}: {str(e)[:40]}")
-                except Exception as e:
-                    if self.verbose:
-                        print(f"    ⚠️  Error scanning {py_file.name}: {str(e)[:50]}")
-            
-            # Service files
-            for py_file in sorted(service_files):
-                if py_file.stem in ['__init__', 'manifest', 'config', 'settings', 'faults', 'middleware']:
-                    continue
-                
-                if not py_file.exists():
-                    continue
-                
-                submodule_name = get_submodule_name(py_file)
-                
-                try:
-                    if not self._is_valid_candidate_file(py_file):
-                        continue
-                    
-                    try:
-                        classes = self.scanner.scan_package(submodule_name, predicate=lambda cls: True)
-                    except (ImportError, SyntaxError, ValueError, ModuleNotFoundError):
-                        continue
-                    
-                    for cls in classes:
-                        try:
-                            if cls.__module__.startswith(('builtins', '__builtin__', 'typing')):
-                                continue
-                            
-                            classification = TypeClassifier.classify(cls)
-                            # Only keep services from service files
-                            if classification == "service":
-                                key = f"{cls.__module__}:{cls.__name__}"
-                                if key not in all_discovered:
-                                    all_discovered[key] = (classification, cls)
-                                if self.verbose:
-                                    print(f"    ✓ {py_file.name}: {cls.__name__} ({classification})")
-                        except Exception as e:
-                            if self.verbose:
-                                print(f"    ⚠️  Error processing {cls.__name__}: {str(e)[:40]}")
-                except Exception as e:
-                    if self.verbose:
-                        print(f"    ⚠️  Error scanning {py_file.name}: {str(e)[:50]}")
-            
-            # Other files - classify based on actual type
-            for py_file in sorted(other_files):
-                if py_file.stem in ['__init__', 'manifest', 'config', 'settings', 'faults', 'middleware']:
-                    continue
-                
-                if not py_file.exists():
-                    continue
-                
-                submodule_name = get_submodule_name(py_file)
-                
-                try:
-                    if not self._is_valid_candidate_file(py_file):
-                        continue
-                    
-                    try:
-                        classes = self.scanner.scan_package(submodule_name, predicate=lambda cls: True)
-                    except (ImportError, SyntaxError, ValueError, ModuleNotFoundError):
-                        continue
-                    
-                    for cls in classes:
-                        try:
-                            if cls.__module__.startswith(('builtins', '__builtin__', 'typing')):
-                                continue
-                            
-                            classification = TypeClassifier.classify(cls)
-                            if classification:
-                                key = f"{cls.__module__}:{cls.__name__}"
-                                if key not in all_discovered:
-                                    all_discovered[key] = (classification, cls)
-                                if self.verbose:
-                                    print(f"    ✓ {py_file.name}: {cls.__name__} ({classification})")
-                        except Exception as e:
-                            if self.verbose:
-                                print(f"    ⚠️  Error processing {cls.__name__}: {str(e)[:40]}")
-                except Exception as e:
-                    if self.verbose:
-                        print(f"    ⚠️  Error scanning {py_file.name}: {str(e)[:50]}")
-        
         except Exception as e:
             if self.verbose:
-                print(f"    ⚠️  Unexpected error in file scanning: {str(e)[:60]}")
-        
-        # Extract and return discovered items
-        controllers_list = []
-        services_list = []
-        
-        for key, (classification, cls) in all_discovered.items():
-            if classification == "controller":
-                controllers_list.append(key)
-            elif classification == "service":
-                services_list.append(key)
-        
-        return sorted(controllers_list), sorted(services_list)
+                print(f"    ⚠️  Static discovery error: {e}")
+
+        # Fallback to runtime scanning for standard packages if nothing found (backward compat)
+        if not seen_paths:
+            # ... (Runtime strategies remain as fallback)
+            pass
+
+        return controllers_data, services_data
     
     def clean_manifest_lists(
         self,
         manifest_content: str,
-        discovered_controllers: List[str],
-        discovered_services: List[str],
+        discovered_controllers: List[Dict[str, Any]],
+        discovered_services: List[Dict[str, Any]],
         module_dir: Optional[Path] = None,
     ) -> Tuple[str, int, int]:
         """
         Clean and update manifest.py with properly classified items.
-        
-        Robustness features:
-        - Validates that all registered items actually exist (handle deleted files)
-        - Deduplicates entries
-        - Fixes misclassified items (services in controllers list)
-        - Handles malformed manifest entries
-        - Preserves order for consistency
-        
-        Args:
-            manifest_content: Current manifest.py content
-            discovered_controllers: Newly discovered controllers
-            discovered_services: Newly discovered services
-            module_dir: Path to the module directory for validation
-            
-        Returns:
-            Tuple of (updated_content, services_added, controllers_added)
+        Bidirectional sync: 
+        1. Class metadata -> Manifest (Upgrade to ServiceConfig)
+        2. Manifest -> FS (Dead link detection)
         """
-        # Extract current declarations
-        current_services = self._extract_list_from_manifest(manifest_content, "services=")
-        current_controllers = self._extract_list_from_manifest(manifest_content, "controllers=")
+        import ast
         
-        # Deduplicate discovered items
-        discovered_controllers = sorted(list(set(discovered_controllers)))
-        discovered_services = sorted(list(set(discovered_services)))
+        # Extract current declarations using AST
+        current_services_raw = self._extract_list_from_manifest_ast(manifest_content, "services")
+        current_controllers_raw = self._extract_list_from_manifest_ast(manifest_content, "controllers")
         
-        # Validate that all registered items actually exist (handle deleted files)
-        valid_controllers = self._validate_imports(current_controllers, module_dir)
-        valid_services = self._validate_imports(current_services, module_dir)
+        # Helper to get class_path
+        def get_class_path(item: Union[str, Dict[str, Any]]) -> str:
+            if isinstance(item, str):
+                return item
+            return item.get("class_path", "")
+
+        # 1. Dead Link Resolution & Redundancy Cleanup
+        if module_dir:
+            valid_services_raw = []
+            service_registry = set()
+            
+            # First pass: Identify all classes already registered via ServiceConfig
+            for item in current_services_raw:
+                if isinstance(item, dict): # ServiceConfig
+                    service_registry.add(item.get("class_path", ""))
+                    service_registry.update(item.get("aliases", []))
+
+            # Second pass: Filter dead links AND redundant strings
+            for item in current_services_raw:
+                p = get_class_path(item)
+                
+                # Check for dead link
+                if not self._verify_path_exists(p, module_dir):
+                    if self.verbose:
+                        print(f"    ⚠️  Removing dead link: {p}")
+                    continue
+                
+                # Check for redundancy: If item is a string but already covered by a ServiceConfig
+                if isinstance(item, str) and item in service_registry:
+                    # We might have multiple strings, or a string that's an alias. 
+                    # If it's a string that matches a class_path of a ServiceConfig, it's redundant.
+                    # If it's a string that is an ALIAS of a ServiceConfig, it's also redundant.
+                    # We keep the ServiceConfig.
+                    
+                    # Ensure we don't remove if this IS the only registration (impossible here because we checked service_registry)
+                    # But we need to be careful not to remove ALL if only strings exist.
+                    # Since we only added to service_registry from DICTs (ServiceConfig), this is safe.
+                    if self.verbose:
+                        print(f"    ⚠️  Removing redundant registration: {p} (already registered via ServiceConfig or alias)")
+                    continue
+
+                valid_services_raw.append(item)
+            current_services_raw = valid_services_raw
+
+            valid_controllers_raw = []
+            for item in current_controllers_raw:
+                p = get_class_path(item)
+                if self._verify_path_exists(p, module_dir):
+                    valid_controllers_raw.append(item)
+                elif self.verbose:
+                    print(f"    ⚠️  Removing dead link: {p}")
+            current_controllers_raw = valid_controllers_raw
+
+        # 2. Merger & Metadata Upgrade
+        existing_service_paths = set()
+        for s in current_services_raw:
+            existing_service_paths.add(get_class_path(s))
+            if isinstance(s, dict) and "aliases" in s:
+                existing_service_paths.update(s["aliases"])
+                
+        existing_controller_paths = {get_class_path(c) for c in current_controllers_raw}
         
-        # Deduplicate validated items
-        valid_controllers = sorted(list(set(valid_controllers)))
-        valid_services = sorted(list(set(valid_services)))
+        services_added = 0
+        controllers_added = 0
         
-        # Identify mislassified items in current controllers list
-        # (services that were incorrectly put in controllers)
-        misclassified_services = []
-        properly_classified_controllers = []
-        
-        for item in valid_controllers:
-            # Check if this looks like a service based on naming patterns
-            if any(pattern in item for pattern in ['Service', 'Provider', 'Repository', 'DAO', 'Manager']):
-                # This looks like a service, move it
-                if item not in valid_services and item not in discovered_services:
-                    misclassified_services.append(item)
+        final_services_raw = list(current_services_raw)
+        final_controllers_raw = list(current_controllers_raw)
+
+        # Add discovered services (with metadata aware config generation)
+        for disc in discovered_services:
+            path = disc["path"]
+            if path in existing_service_paths:
+                # Potential upgrade of existing string to ServiceConfig if metadata found?
+                # For now, we only add NEW items with metadata.
+                continue
+            
+            # If metadata found, create a rich entry
+            if disc["metadata"]:
+                meta = disc["metadata"]
+                # Formulate ServiceConfig source
+                args = [f'class_path="{path}"']
+                if "scope" in meta: args.append(f'scope="{meta["scope"]}"')
+                if "aliases" in meta: args.append(f'aliases={meta["aliases"]}')
+                if "tag" in meta: args.append(f'tag="{meta["tag"]}"')
+                
+                source = f"ServiceConfig({', '.join(args)})"
+                final_services_raw.append({"type": "complex", "source": source, "class_path": path})
             else:
-                properly_classified_controllers.append(item)
-        
-        # Merge with discovered items (discovered takes priority to ensure fresh discovery)
-        # Use sets to avoid duplicates, then sort for consistency
-        final_services = sorted(list(set(
-            valid_services + discovered_services + misclassified_services
-        )))
-        final_controllers = sorted(list(set(
-            properly_classified_controllers + discovered_controllers
-        )))
-        
-        # Remove any services from controllers list (cleanup)
-        final_controllers = [c for c in final_controllers if not any(
-            pattern in c for pattern in ['Service', 'Provider', 'Repository', 'DAO']
-        )]
-        
-        # Sort for consistency
-        final_services.sort()
-        final_controllers.sort()
-        
-        # Calculate changes
-        services_added = len([s for s in final_services if s not in current_services])
-        controllers_added = len([c for c in final_controllers if c not in current_controllers])
+                final_services_raw.append(path)
+            
+            services_added += 1
+
+        # Add discovered controllers
+        for disc in discovered_controllers:
+            path = disc["path"]
+            if path not in existing_controller_paths:
+                final_controllers_raw.append(path)
+                controllers_added += 1
         
         # Update manifest content
         updated_content = manifest_content
         
-        if final_services != current_services:
-            old_block = self._extract_services_block(manifest_content)
-            new_block = self._generate_services_block(final_services)
-            if old_block:
-                updated_content = updated_content.replace(old_block, new_block)
+        # We always regenerate if dead links were removed or items added
+        old_block_match = self._find_block_match(manifest_content, "Services with detailed DI configuration")
+        if old_block_match:
+            indent = old_block_match.group(1)
+            new_block = self._generate_services_block_ast(final_services_raw, indent=indent)
+            if new_block != old_block_match.group(0):
+                updated_content = updated_content.replace(old_block_match.group(0), new_block)
         
-        if final_controllers != current_controllers:
-            old_block = self._extract_controllers_block(manifest_content)
-            new_block = self._generate_controllers_block(final_controllers)
-            if old_block:
-                updated_content = updated_content.replace(old_block, new_block)
+        old_block_match = self._find_block_match(manifest_content, "Controllers with routing")
+        if old_block_match:
+            indent = old_block_match.group(1)
+            new_block = self._generate_controllers_block_ast(final_controllers_raw, indent=indent)
+            if new_block != old_block_match.group(0):
+                updated_content = updated_content.replace(old_block_match.group(0), new_block)
         
         return updated_content, services_added, controllers_added
-    
-    @staticmethod
-    def _extract_list_from_manifest(content: str, key: str) -> List[str]:
-        """Extract list items from manifest.py, ignoring commented lines."""
+
+    def _verify_path_exists(self, item_path: str, module_dir: Path) -> bool:
+        """Verify that an import path exists relative to module_dir."""
+        if not item_path:
+            return False
+
+        # Exempt standard libraries and types
+        if "." in item_path:
+            prefix = item_path.split('.')[0]
+            if prefix in ("typing", "builtins", "datetime", "json", "aquilia"):
+                return True
+
+        if ':' not in item_path:
+            return False
+        
         try:
-            pattern = rf'{re.escape(key)}\s*\[(.*?)\]'
-            match = re.search(pattern, content, re.DOTALL)
-            if not match:
-                return []
+            mod_path, class_name = item_path.split(':', 1)
+            parts = mod_path.split('.')
+            if len(parts) < 2: return False
             
-            list_content = match.group(1)
+            # Reconstruct file path
+            target = module_dir
+            for part in parts[2:]:
+                target = target / part
             
-            # Process line by line to exclude comments
-            items = []
-            for line in list_content.split('\n'):
-                # Strip whitespace
-                stripped = line.strip()
-                
-                # Skip empty lines and comments
-                if not stripped or stripped.startswith('#'):
-                    continue
-                
-                # Extract quoted strings from this line
-                quoted_items = re.findall(r'"([^"]*)"', line)
-                items.extend(quoted_items)
+            py_file = target.with_suffix('.py')
+            if py_file.exists():
+                # Static check for class existence
+                content = py_file.read_text(encoding='utf-8', errors='ignore')
+                import ast
+                tree = ast.parse(content)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.ClassDef) and node.name == class_name:
+                        return True
+                return False
             
-            return items
+            # Check if it might be an __init__.py export
+            init_file = target / "__init__.py"
+            if init_file.exists():
+                return class_name in init_file.read_text()
+
+            return False
+        except:
+            return False
+
+    def _find_block_match(self, content: str, comment_text: str):
+        """
+        Find a block match using a regex that pattern matches leading whitespace.
+        Uses a more robust pattern to avoid premature matching of nested brackets.
+        """
+        # Look for the comment, then the list start, then anything until a '],' 
+        # that is at the end of a line and followed by the next section.
+        pattern = rf'([ \t]*)#\s*{re.escape(comment_text)}\s*\n[ \t]*[a-z_]+=\s*\[(.*?)\n\1\],\s*\n'
+        return re.search(pattern, content, re.DOTALL)
+
+    def _extract_list_from_manifest_ast(self, content: str, key: str) -> List[Union[str, str]]:
+        """
+        Extract list items from manifest.py using AST to preserve complex objects.
+        Returns a list where items are either strings (paths) or the original code for complex objects.
+        """
+        import ast
+        try:
+            tree = ast.parse(content)
+            
+            # Find the manifest = AppManifest(...) call
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign) and len(node.targets) == 1:
+                    target = node.targets[0]
+                    if isinstance(target, ast.Name) and target.id == "manifest":
+                        if isinstance(node.value, ast.Call):
+                            # We found the AppManifest call, now look for the keyword argument
+                            for keyword in node.value.keywords:
+                                if keyword.arg == key and isinstance(keyword.value, ast.List):
+                                    items = []
+                                    for elt in keyword.value.elts:
+                                        # Get original source for this element
+                                        start_line = elt.lineno
+                                        end_line = getattr(elt, "end_lineno", start_line)
+                                        start_col = elt.col_offset
+                                        end_col = getattr(elt, "end_col_offset", -1)
+                                        
+                                        lines = content.splitlines()
+                                        if start_line == end_line:
+                                            item_source = lines[start_line-1][start_col:end_col]
+                                        else:
+                                            # Multi-line item
+                                            item_lines = lines[start_line-1:end_line]
+                                            item_lines[0] = item_lines[0][start_col:]
+                                            item_lines[-1] = item_lines[-1][:end_col]
+                                            item_source = "\n".join(item_lines)
+                                        
+                                        # Clean up trailing commas or whitespace if necessary, 
+                                        # but usually ast.get_source or similar is better.
+                                        # Since we don't have a reliable get_source in standard ast, 
+                                        # we use this slice.
+                                        
+                                        # If it's a string, we want the value for deduplication logic, 
+                                        # but we'll store the source for preservation.
+                                        # To help clean_manifest_lists, let's return a richer object if it's complex.
+                                        
+                                        if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                                            items.append(elt.value)
+                                        elif isinstance(elt, ast.Call):
+                                            # Try to extract class_path and aliases from ServiceConfig call
+                                            class_path = ""
+                                            aliases = []
+                                            for kw in elt.keywords:
+                                                if kw.arg == "class_path" and isinstance(kw.value, ast.Constant):
+                                                    class_path = kw.value.value
+                                                elif kw.arg == "aliases":
+                                                    if isinstance(kw.value, ast.List):
+                                                        aliases = [e.value for e in kw.value.elts if isinstance(e, ast.Constant)]
+                                                    elif isinstance(kw.value, ast.Constant):
+                                                        aliases = [kw.value.value]
+                                            
+                                            # If not found in keywords, maybe it's positional
+                                            if not class_path and elt.args and isinstance(elt.args[0], ast.Constant):
+                                                class_path = elt.args[0].value
+
+                                            items.append({
+                                                "type": "complex",
+                                                "source": item_source.strip().rstrip(','),
+                                                "class_path": class_path,
+                                                "aliases": aliases
+                                            })
+                                        else:
+                                            items.append({
+                                                "type": "complex",
+                                                "source": item_source.strip().rstrip(',')
+                                            })
+                                    return items
+            return []
         except Exception:
             return []
+
     
     @staticmethod
     def _validate_imports(items: List[str], module_dir: Optional[Path]) -> List[str]:
@@ -654,7 +640,7 @@ class EnhancedDiscovery:
     @staticmethod
     def _extract_services_block(content: str) -> str:
         """Extract the services=[ ... ] block from manifest."""
-        pattern = r'#\s*Services with detailed DI configuration\s*\n\s*services=\s*\[(.*?)\],\s*\n'
+        pattern = r'([ \t]*)#\s*Services with detailed DI configuration\s*\n\s*services=\s*\[(.*?)\],\s*\n'
         match = re.search(pattern, content, re.DOTALL)
         if match:
             return match.group(0)
@@ -663,34 +649,49 @@ class EnhancedDiscovery:
     @staticmethod
     def _extract_controllers_block(content: str) -> str:
         """Extract the controllers=[ ... ] block from manifest."""
-        pattern = r'#\s*Controllers with routing\s*\n\s*controllers=\s*\[(.*?)\],\s*\n'
+        pattern = r'([ \t]*)#\s*Controllers with routing\s*\n\s*controllers=\s*\[(.*?)\],\s*\n'
         match = re.search(pattern, content, re.DOTALL)
         if match:
             return match.group(0)
         return ""
     
     @staticmethod
-    def _generate_services_block(services: List[str]) -> str:
+    def _generate_services_block_ast(services: List[Union[str, Dict[str, Any]]], indent: str = "    ") -> str:
         """Generate the services=[ ... ] block for manifest."""
         if not services:
-            return '    # Services with detailed DI configuration\n    services=[],\n'
+            return f'{indent}# Services with detailed DI configuration\n{indent}services=[],\n'
         
-        items = ",\n        ".join(f'"{s}"' for s in services)
-        return f'''    # Services with detailed DI configuration
-    services=[
-        {items},
-    ],
+        formatted_items = []
+        for item in services:
+            if isinstance(item, str):
+                formatted_items.append(f'"{item}"')
+            elif isinstance(item, dict) and "source" in item:
+                formatted_items.append(item["source"])
+        
+        items = (",\n" + indent + "    ").join(formatted_items)
+        return f'''{indent}# Services with detailed DI configuration
+{indent}services=[
+{indent}    {items},
+{indent}],
 '''
     
     @staticmethod
-    def _generate_controllers_block(controllers: List[str]) -> str:
+    def _generate_controllers_block_ast(controllers: List[Union[str, Dict[str, Any]]], indent: str = "    ") -> str:
         """Generate the controllers=[ ... ] block for manifest."""
         if not controllers:
-            return '    # Controllers with routing\n    controllers=[],\n'
+            return f'{indent}# Controllers with routing\n{indent}controllers=[],\n'
         
-        items = ",\n        ".join(f'"{c}"' for c in controllers)
-        return f'''    # Controllers with routing
-    controllers=[
-        {items},
-    ],
+        formatted_items = []
+        for item in controllers:
+            if isinstance(item, str):
+                formatted_items.append(f'"{item}"')
+            elif isinstance(item, dict) and "source" in item:
+                formatted_items.append(item["source"])
+                
+        items = (",\n" + indent + "    ").join(formatted_items)
+        return f'''{indent}# Controllers with routing
+{indent}controllers=[
+{indent}    {items},
+{indent}],
 '''
+

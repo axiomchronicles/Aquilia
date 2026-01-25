@@ -18,17 +18,15 @@ class AuthSimulationMiddleware(Middleware):
         
         # 3. Bind it to the DI container for this request
         if ctx.container:
-            print(f"DEBUG: AuthSimulationMiddleware registering UserIdentity in container {id(ctx.container)}")
             try:
                 await ctx.container.register_instance(
                     UserIdentity, 
                     identity, 
                     scope="request"
                 )
-                print("DEBUG: Registration successful")
             except Exception as e:
-                print(f"DEBUG: Registration failed: {e}")
+                print(f"Registration failed: {e}")
         else:
-            print("DEBUG: AuthSimulationMiddleware - No container found!")
+            print("AuthSimulationMiddleware - No container found!")
             
         return await next_handler(request, ctx)

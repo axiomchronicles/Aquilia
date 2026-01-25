@@ -34,19 +34,17 @@ manifest = AppManifest(
 
     # Services with detailed DI configuration
     services=[
-        # Bind IUserRepository interface to MemoryUserRepository implementation
         ServiceConfig(
             class_path="modules.myappmod.advanced_di:MemoryUserRepository",
             aliases=["modules.myappmod.advanced_di:IUserRepository"],
             scope="singleton",
         ),
-        "modules.myappmod.advanced_di:SqlUserRepository",
-        # Factory for DB Config
         ServiceConfig(
             class_path="typing.Dict", # Token is determined by factory name "db_config"
             factory="modules.myappmod.advanced_di:create_db_config",
             scope="singleton",
         ),
+        "modules.myappmod.advanced_di:SqlUserRepository",
         "modules.myappmod.services:MyappmodService",
         "modules.myappmod.services_ext:AuditLogger",
         "modules.myappmod.services_ext:ExpensiveService",
@@ -77,36 +75,14 @@ manifest = AppManifest(
     faults=FaultHandlingConfig(
         default_domain="MYAPPMOD",
         strategy="propagate",
-        handlers=[
-            # Example fault handler (uncomment to add):
-            # FaultHandlerConfig(
-            #     domain="MYAPPMOD:NOT_FOUND",
-            #     handler_path="modules.myappmod.handlers:handle_not_found",
-            # ),
-        ],
+        handlers=[],
     ),
 
     # Session management
-    sessions=[
-        # Example session (uncomment to add):
-        # SessionConfig(
-        #     name="myappmod_session",
-        #     enabled=True,
-        #     ttl=timedelta(days=7),
-        #     idle_timeout=timedelta(hours=1),
-        #     transport="cookie",
-        #     store="memory",
-        # ),
-    ],
+    sessions=[],
 
     # Feature flags
-    features=[
-        # Example feature (uncomment to add):
-        # FeatureConfig(
-        #     name="advanced_search",
-        #     enabled=False,
-        # ),
-    ],
+    features=[],
 
     # Dependencies on other modules
     depends_on=[],

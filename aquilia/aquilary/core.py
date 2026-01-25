@@ -597,10 +597,10 @@ class RuntimeRegistry:
             # Register services
             # Register services
             import sys
-            print(f"DEBUG: Processing {len(ctx.services)} services for app {ctx.name}", file=sys.stderr)
+            # print(f"DEBUG: Processing {len(ctx.services)} services for app {ctx.name}", file=sys.stderr)
             for service_item in ctx.services:
                 try:
-                    print(f"DEBUG: Processing item: {service_item}", file=sys.stderr)
+                    # print(f"DEBUG: Processing item: {service_item}", file=sys.stderr)
                     # Extract config
                     if hasattr(service_item, "class_path"):
                         # ServiceConfig object
@@ -680,7 +680,7 @@ class RuntimeRegistry:
                         container.register(alias_provider)
                         if tag:
                             container.register(alias_provider, tag=tag)
-                        print(f"DEBUG: Registered Alias {alias_token} -> {service_class}")
+                        # print(f"DEBUG: Registered Alias {alias_token} -> {service_class}")
                         
                     print(f"✓ Registered service: {service_class.__name__} in app '{ctx.name}'")
                 
