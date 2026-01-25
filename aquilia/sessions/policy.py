@@ -364,6 +364,167 @@ class SessionPolicy:
             transport=transport,
             scope=scope_str,
         )
+    
+    # ========================================================================
+    # Unique Aquilia Fluent Builders
+    # ========================================================================
+    
+    @classmethod
+    def for_web_users(cls) -> "SessionPolicyBuilder":
+        """Create policy optimized for web users."""
+        return SessionPolicyBuilder().web_defaults()
+    
+    @classmethod
+    def for_api_tokens(cls) -> "SessionPolicyBuilder":
+        """Create policy optimized for API tokens."""
+        return SessionPolicyBuilder().api_defaults()
+    
+    @classmethod
+    def for_mobile_users(cls) -> "SessionPolicyBuilder":
+        """Create policy optimized for mobile users."""
+        return SessionPolicyBuilder().mobile_defaults()
+    
+    @classmethod
+    def for_admin_users(cls) -> "SessionPolicyBuilder":
+        """Create policy with enhanced security for admin users."""
+        return SessionPolicyBuilder().admin_defaults()
+
+
+# ============================================================================
+# Unique Aquilia Session Policy Builder
+# ============================================================================
+
+class SessionPolicyBuilder:
+    """Fluent builder for SessionPolicy with unique Aquilia syntax."""
+    
+    def __init__(self):
+        self._name = "aquilia_session"
+        self._ttl = timedelta(days=7)
+        self._idle_timeout = timedelta(hours=1)
+        self._rotate_on_use = False
+        self._rotate_on_privilege_change = True
+        self._scope = "user"
+        self._transport = TransportPolicy(
+            adapter="cookie",
+            cookie_name="aquilia_session",
+            cookie_secure=True,
+            cookie_httponly=True,
+            cookie_samesite="lax"
+        )
+        self._persistence = PersistencePolicy(enabled=True, store_name="default")
+        self._concurrency = ConcurrencyPolicy(max_sessions_per_principal=5)
+    
+    def named(self, name: str) -> "SessionPolicyBuilder":
+        """Set policy name."""
+        self._name = name
+        return self
+    
+    def lasting(self, days: int = None, hours: int = None, minutes: int = None) -> "SessionPolicyBuilder":
+        """Set session duration with natural syntax."""
+        if days: self._ttl = timedelta(days=days)
+        elif hours: self._ttl = timedelta(hours=hours) 
+        elif minutes: self._ttl = timedelta(minutes=minutes)
+        return self
+    
+    def idle_timeout(self, hours: int = None, minutes: int = None, days: int = None) -> "SessionPolicyBuilder":
+        """Set idle timeout with natural syntax."""
+        if days: self._idle_timeout = timedelta(days=days)
+        elif hours: self._idle_timeout = timedelta(hours=hours)
+        elif minutes: self._idle_timeout = timedelta(minutes=minutes)
+        return self
+    
+    def no_idle_timeout(self) -> "SessionPolicyBuilder":
+        """Disable idle timeout."""
+        self._idle_timeout = None
+        return self
+    
+    def rotating_on_auth(self) -> "SessionPolicyBuilder":
+        """Enable session rotation on privilege changes."""
+        self._rotate_on_privilege_change = True
+        return self
+    
+    def rotating_on_use(self) -> "SessionPolicyBuilder":
+        """Enable session rotation on each use."""
+        self._rotate_on_use = True
+        return self
+    
+    def scoped_to(self, scope: str) -> "SessionPolicyBuilder":
+        """Set session scope (user, tenant, global)."""
+        self._scope = scope
+        return self
+    
+    def max_concurrent(self, limit: int) -> "SessionPolicyBuilder":
+        """Set maximum concurrent sessions per principal."""
+        self._concurrency = ConcurrencyPolicy(
+            max_sessions_per_principal=limit,
+            behavior_on_limit="evict_oldest"
+        )
+        return self
+    
+    def unlimited_concurrent(self) -> "SessionPolicyBuilder":
+        """Allow unlimited concurrent sessions."""
+        self._concurrency = ConcurrencyPolicy(
+            max_sessions_per_principal=None,
+            behavior_on_limit="allow"
+        )
+        return self
+    
+    def with_smart_defaults(self) -> "SessionPolicyBuilder":
+        """Apply smart defaults based on environment."""
+        # Auto-detect environment and apply appropriate settings
+        import os
+        if os.getenv("AQUILIA_ENV") == "production":
+            return self.lasting(days=1).idle_timeout(minutes=30)
+        else:
+            return self.lasting(days=7).idle_timeout(hours=2)
+    
+    def web_defaults(self) -> "SessionPolicyBuilder":
+        """Apply defaults optimized for web applications."""
+        return (self.named("web_session")
+                   .lasting(days=7)
+                   .idle_timeout(hours=2)
+                   .rotating_on_auth()
+                   .max_concurrent(5))
+    
+    def api_defaults(self) -> "SessionPolicyBuilder":
+        """Apply defaults optimized for API services."""
+        return (self.named("api_session")
+                   .lasting(hours=1)
+                   .no_idle_timeout()
+                   .unlimited_concurrent())
+    
+    def mobile_defaults(self) -> "SessionPolicyBuilder":
+        """Apply defaults optimized for mobile applications."""
+        return (self.named("mobile_session")
+                   .lasting(days=90)
+                   .idle_timeout(days=30)
+                   .max_concurrent(3))
+    
+    def admin_defaults(self) -> "SessionPolicyBuilder":
+        """Apply enhanced security defaults for admin users."""
+        return (self.named("admin_session")
+                   .lasting(hours=8)
+                   .idle_timeout(minutes=15)
+                   .rotating_on_use()
+                   .max_concurrent(1))
+    
+    def build(self) -> SessionPolicy:
+        """Build the final SessionPolicy."""
+        return SessionPolicy(
+            name=self._name,
+            ttl=self._ttl,
+            idle_timeout=self._idle_timeout,
+            rotate_on_use=self._rotate_on_use,
+            rotate_on_privilege_change=self._rotate_on_privilege_change,
+            persistence=self._persistence,
+            concurrency=self._concurrency,
+            transport=self._transport,
+            scope=self._scope,
+        )
+    
+    def __call__(self) -> SessionPolicy:
+        """Allow direct calling to build policy."""
+        return self.build()
 
 
 # ============================================================================

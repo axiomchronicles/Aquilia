@@ -214,22 +214,24 @@ class ControllerEngine:
         Build RequestCtx with auth, session, and state.
         
         Looks for:
-        - Identity from request.state["identity"]
-        - Session from request.state["session"]
+        - Identity from request.state["identity"] or DI container
+        - Session from request.state["session"] or DI container
         """
-        # Try to get identity from container or request state
-        identity = None
-        try:
-            identity = await container.resolve_async("identity", optional=True)
-        except:
-            identity = request.state.get("identity")
+        # Try to get identity - prefer request state (set by middleware)
+        identity = request.state.get("identity")
+        if identity is None:
+            try:
+                identity = await container.resolve_async("identity", optional=True)
+            except:
+                pass
         
-        # Try to get session
-        session = None
-        try:
-            session = await container.resolve_async("session", optional=True)
-        except:
-            session = request.state.get("session")
+        # Try to get session - prefer request state (set by session middleware)
+        session = request.state.get("session")
+        if session is None:
+            try:
+                session = await container.resolve_async("session", optional=True)
+            except:
+                pass
         
         return RequestCtx(
             request=request,

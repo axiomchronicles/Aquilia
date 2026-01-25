@@ -84,16 +84,20 @@ class SessionDecorators:
                 # Extract session from kwargs
                 session = func_kwargs.get('session')
                 
-                # If session not in kwargs, try to get from request state
+                # If session not in kwargs, try to get from RequestCtx first, then request state
                 if session is None:
                     # Find RequestCtx in args
                     ctx = None
                     for arg in args:
-                        if hasattr(arg, 'request'):
+                        if hasattr(arg, 'session') and hasattr(arg, 'request'):
                             ctx = arg
                             break
                     
-                    if ctx and hasattr(ctx, 'request'):
+                    if ctx:
+                        # Use RequestCtx.session directly (preferred)
+                        session = ctx.session
+                    elif ctx and hasattr(ctx, 'request'):
+                        # Fallback: check request state
                         session = ctx.request.state.get('session')
                 
                 # Check if session exists
@@ -141,14 +145,18 @@ class SessionDecorators:
                 session = func_kwargs.get('session')
                 
                 if session is None:
-                    # Find RequestCtx in args
+                    # Find RequestCtx in args (preferred)
                     ctx = None
                     for arg in args:
-                        if hasattr(arg, 'request'):
+                        if hasattr(arg, 'session') and hasattr(arg, 'request'):
                             ctx = arg
                             break
                     
-                    if ctx and hasattr(ctx, 'request'):
+                    if ctx:
+                        # Use RequestCtx.session directly
+                        session = ctx.session
+                    elif ctx and hasattr(ctx, 'request'):
+                        # Fallback: check request state
                         session = ctx.request.state.get('session')
                 
                 # Session should always exist due to middleware
@@ -190,14 +198,18 @@ class SessionDecorators:
                 session = func_kwargs.get('session')
                 
                 if session is None:
-                    # Find RequestCtx in args
+                    # Find RequestCtx in args (preferred)
                     ctx = None
                     for arg in args:
-                        if hasattr(arg, 'request'):
+                        if hasattr(arg, 'session') and hasattr(arg, 'request'):
                             ctx = arg
                             break
                     
-                    if ctx and hasattr(ctx, 'request'):
+                    if ctx:
+                        # Use RequestCtx.session directly
+                        session = ctx.session
+                    elif ctx and hasattr(ctx, 'request'):
+                        # Fallback: check request state
                         session = ctx.request.state.get('session')
                 
                 # Inject session (or None) into kwargs
@@ -234,14 +246,18 @@ def authenticated(func: F) -> F:
         sess = func_kwargs.get('session')
         
         if sess is None:
-            # Find RequestCtx in args
+            # Find RequestCtx in args (preferred)
             ctx = None
             for arg in args:
-                if hasattr(arg, 'request'):
+                if hasattr(arg, 'session') and hasattr(arg, 'request'):
                     ctx = arg
                     break
             
-            if ctx and hasattr(ctx, 'request'):
+            if ctx:
+                # Use RequestCtx.session directly
+                sess = ctx.session
+            elif ctx and hasattr(ctx, 'request'):
+                # Fallback: check request state
                 sess = ctx.request.state.get('session')
         
         # Check session exists and is authenticated
@@ -285,14 +301,18 @@ def stateful(func: F) -> F:
         sess = func_kwargs.get('session')
         
         if sess is None:
-            # Find RequestCtx in args
+            # Find RequestCtx in args (preferred)
             ctx = None
             for arg in args:
-                if hasattr(arg, 'request'):
+                if hasattr(arg, 'session') and hasattr(arg, 'request'):
                     ctx = arg
                     break
             
-            if ctx and hasattr(ctx, 'request'):
+            if ctx:
+                # Use RequestCtx.session directly
+                sess = ctx.session
+            elif ctx and hasattr(ctx, 'request'):
+                # Fallback: check request state
                 sess = ctx.request.state.get('session')
         
         # Session should exist (created by middleware)

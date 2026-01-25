@@ -298,6 +298,80 @@ class MemoryStore:
             "total_principals": len(self._principal_index),
             "utilization": len(self._sessions) / self.max_sessions if self.max_sessions > 0 else 0,
         }
+    
+    # ============================================================================
+    # Unique Aquilia Factory Methods
+    # ============================================================================
+    
+    @classmethod
+    def web_optimized(cls) -> 'MemoryStore':
+        """
+        Create MemoryStore optimized for web applications.
+        
+        Configuration:
+        - High session capacity for concurrent web users
+        - Optimized for frequent access patterns
+        
+        Returns:
+            Configured MemoryStore instance
+        """
+        return cls(max_sessions=25000)
+    
+    @classmethod
+    def api_optimized(cls) -> 'MemoryStore':
+        """
+        Create MemoryStore optimized for API services.
+        
+        Configuration:
+        - Medium capacity for API sessions
+        - Balanced for service-to-service communication
+        
+        Returns:
+            Configured MemoryStore instance
+        """
+        return cls(max_sessions=15000)
+    
+    @classmethod
+    def mobile_optimized(cls) -> 'MemoryStore':
+        """
+        Create MemoryStore optimized for mobile applications.
+        
+        Configuration:
+        - Lower capacity optimized for mobile session patterns
+        - Efficient for longer-lived mobile sessions
+        
+        Returns:
+            Configured MemoryStore instance
+        """
+        return cls(max_sessions=8000)
+    
+    @classmethod
+    def development_focused(cls) -> 'MemoryStore':
+        """
+        Create MemoryStore for development and testing.
+        
+        Configuration:
+        - Small capacity for local development
+        - Quick cleanup for testing scenarios
+        
+        Returns:
+            Configured MemoryStore instance
+        """
+        return cls(max_sessions=1000)
+    
+    @classmethod
+    def high_throughput(cls) -> 'MemoryStore':
+        """
+        Create MemoryStore for high-throughput scenarios.
+        
+        Configuration:
+        - Maximum capacity for heavy load
+        - Optimized for enterprise applications
+        
+        Returns:
+            Configured MemoryStore instance
+        """
+        return cls(max_sessions=50000)
 
 
 # ============================================================================

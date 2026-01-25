@@ -97,6 +97,11 @@ class SessionMiddleware:
         # Store in request state for direct access
         request.state["session"] = session
         
+        # CRITICAL: Also store in RequestCtx if it exists
+        # This ensures controllers can access sessions via ctx.session
+        if hasattr(ctx, 'session'):
+            ctx.session = session
+        
         # Register session in DI container (request-scoped)
         if container:
             try:

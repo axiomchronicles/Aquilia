@@ -220,6 +220,106 @@ class CookieTransport:
                 cookies[name.strip()] = value.strip()
         
         return cookies
+    
+    # ============================================================================
+    # Unique Aquilia Factory Methods  
+    # ============================================================================
+    
+    @classmethod
+    def for_web_browsers(cls) -> 'CookieTransport':
+        """
+        Create CookieTransport optimized for web browser sessions.
+        
+        Configuration:
+        - Maximum security flags for web applications
+        - Strict SameSite for enhanced CSRF protection
+        - HttpOnly and Secure flags enabled
+        
+        Returns:
+            Configured CookieTransport instance
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="cookie",
+            cookie_name="aquilia_web_session",
+            cookie_httponly=True,
+            cookie_secure=True,
+            cookie_samesite="strict",
+            cookie_path="/",
+        )
+        return cls(policy)
+    
+    @classmethod  
+    def for_spa_applications(cls) -> 'CookieTransport':
+        """
+        Create CookieTransport optimized for Single Page Applications.
+        
+        Configuration:
+        - Balanced security for SPA architecture
+        - Lax SameSite for better UX with redirects
+        - Cross-origin friendly settings
+        
+        Returns:
+            Configured CookieTransport instance
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="cookie",
+            cookie_name="aquilia_spa_session", 
+            cookie_httponly=True,
+            cookie_secure=True,
+            cookie_samesite="lax",
+            cookie_path="/",
+        )
+        return cls(policy)
+    
+    @classmethod
+    def for_mobile_webviews(cls) -> 'CookieTransport':
+        """
+        Create CookieTransport optimized for mobile webview sessions.
+        
+        Configuration:
+        - Mobile-optimized cookie settings
+        - Relaxed SameSite for webview compatibility
+        - Enhanced path flexibility
+        
+        Returns:
+            Configured CookieTransport instance
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="cookie",
+            cookie_name="aquilia_mobile_session",
+            cookie_httponly=True,
+            cookie_secure=True,
+            cookie_samesite="none", 
+            cookie_path="/",
+        )
+        return cls(policy)
+    
+    @classmethod
+    def with_aquilia_defaults(cls) -> 'CookieTransport':
+        """
+        Create CookieTransport with Aquilia's recommended defaults.
+        
+        Configuration:
+        - Standard Aquilia session configuration
+        - Balanced security and compatibility
+        - Production-ready settings
+        
+        Returns:
+            Configured CookieTransport instance  
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="cookie",
+            cookie_name="aquilia_session",
+            cookie_httponly=True,
+            cookie_secure=True,
+            cookie_samesite="lax",
+            cookie_path="/",
+        )
+        return cls(policy)
 
 
 # ============================================================================
@@ -273,6 +373,110 @@ class HeaderTransport:
         # Remove header if present
         if self.header_name in response.headers:
             del response.headers[self.header_name]
+    
+    # ============================================================================
+    # Unique Aquilia Factory Methods
+    # ============================================================================
+    
+    @classmethod
+    def for_rest_apis(cls) -> 'HeaderTransport':
+        """
+        Create HeaderTransport optimized for REST API sessions.
+        
+        Configuration:
+        - Standard X-Session-ID header for REST APIs
+        - Simple and widely compatible format
+        - Ideal for service-to-service communication
+        
+        Returns:
+            Configured HeaderTransport instance
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="header",
+            header_name="X-Session-ID",
+        )
+        return cls(policy)
+    
+    @classmethod
+    def for_graphql_apis(cls) -> 'HeaderTransport':
+        """
+        Create HeaderTransport optimized for GraphQL API sessions.
+        
+        Configuration:
+        - GraphQL-friendly session header naming
+        - Compatible with Apollo Client and other GraphQL clients
+        - Designed for subscription persistence
+        
+        Returns:
+            Configured HeaderTransport instance
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="header",
+            header_name="X-GraphQL-Session",
+        )
+        return cls(policy)
+    
+    @classmethod
+    def for_mobile_apis(cls) -> 'HeaderTransport':
+        """
+        Create HeaderTransport optimized for mobile application APIs.
+        
+        Configuration:
+        - Mobile-friendly session header
+        - Optimized for native mobile app integration
+        - Cross-platform compatible naming
+        
+        Returns:
+            Configured HeaderTransport instance
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="header", 
+            header_name="X-Mobile-Session",
+        )
+        return cls(policy)
+    
+    @classmethod
+    def for_microservices(cls) -> 'HeaderTransport':
+        """
+        Create HeaderTransport optimized for microservice architectures.
+        
+        Configuration:
+        - Service mesh compatible header naming
+        - Designed for distributed session propagation
+        - Kubernetes and Docker friendly
+        
+        Returns:
+            Configured HeaderTransport instance
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="header",
+            header_name="X-Service-Session",
+        )
+        return cls(policy)
+    
+    @classmethod
+    def with_aquilia_defaults(cls) -> 'HeaderTransport':
+        """
+        Create HeaderTransport with Aquilia's recommended defaults.
+        
+        Configuration:
+        - Standard Aquilia header configuration
+        - Production-ready settings
+        - Framework-consistent naming
+        
+        Returns:
+            Configured HeaderTransport instance
+        """
+        from .policy import TransportPolicy
+        policy = TransportPolicy(
+            adapter="header",
+            header_name="X-Aquilia-Session",
+        )
+        return cls(policy)
 
 
 # ============================================================================

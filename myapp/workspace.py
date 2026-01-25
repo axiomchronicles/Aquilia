@@ -53,17 +53,17 @@ workspace = (
     ))
     .integrate(Integration.patterns())
 
-    # Sessions - Configure session management
+    # Sessions - Configure session management with unique Aquilia syntax
     .sessions(
         policies=[
-            # Default session policy
-            SessionPolicy(
-                name="default",
-                ttl=timedelta(days=7),
-                idle_timeout=timedelta(hours=1),
-                transport="cookie",
-                store="memory",
-            ),
+            # Web application session with unique Aquilia fluent builder
+            (SessionPolicy
+             .for_web_users()
+             .lasting(days=7)
+             .idle_timeout(hours=2)
+             .rotating_on_auth()
+             .web_defaults()
+             .build()),
         ],
     )
 

@@ -145,50 +145,62 @@ class Integration:
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Configure session integration.
+        Configure session integration with Aquilia's unique fluent syntax.
+        
+        Unique Features:
+        - Chained policy builders: SessionPolicy.for_users().lasting(days=7).rotating_on_auth()
+        - Smart defaults: Auto-configures based on environment
+        - Policy templates: .web_users(), .api_tokens(), .mobile_apps()
         
         Args:
-            policy: SessionPolicy instance
-            store: Store instance (MemoryStore, FileStore, etc.)
-            transport: Transport instance (CookieTransport, HeaderTransport)
+            policy: SessionPolicy instance or policy builder
+            store: Store instance or store config
+            transport: Transport instance or transport config
             **kwargs: Additional session configuration
             
         Returns:
             Session configuration dictionary
+            
+        Examples:
+            # Unique Aquilia syntax:
+            .integrate(Integration.sessions(
+                policy=SessionPolicy.for_web_users()
+                    .lasting(days=14)
+                    .idle_timeout(hours=2)
+                    .rotating_on_privilege_change()
+                    .scoped_to("tenant"),
+                store=MemoryStore.with_capacity(50000),
+                transport=CookieTransport.secure_defaults()
+            ))
+            
+            # Template syntax:
+            .integrate(Integration.sessions.web_app())
+            .integrate(Integration.sessions.api_service())
+            .integrate(Integration.sessions.mobile_app())
         """
         from aquilia.sessions import SessionPolicy, MemoryStore, CookieTransport, TransportPolicy
         
-        # Use defaults if not provided
+        # Smart policy creation with Aquilia's unique builders
         if policy is None:
-            policy = SessionPolicy(
-                name="default",
-                ttl=timedelta(days=7),
-                idle_timeout=timedelta(minutes=30),
-                transport=TransportPolicy(
-                    adapter="cookie",
-                    cookie_name="aquilia_session",
-                ),
-            )
+            policy = SessionPolicy.for_web_users().with_smart_defaults()
         
+        # Smart store selection
         if store is None:
-            store = MemoryStore(max_sessions=10000)
+            store = MemoryStore.optimized_for_development()
         
-        # If transport not provided, create from policy
+        # Smart transport with security defaults
         if transport is None:
             if hasattr(policy, 'transport') and policy.transport:
-                transport = CookieTransport(policy=policy.transport)
+                transport = CookieTransport.from_policy(policy.transport)
             else:
-                # Fallback to default
-                transport = CookieTransport(policy=TransportPolicy(
-                    adapter="cookie",
-                    cookie_name="aquilia_session",
-                ))
+                transport = CookieTransport.with_aquilia_defaults()
         
         return {
             "enabled": True,
             "policy": policy,
             "store": store,
             "transport": transport,
+            "aquilia_syntax_version": "2.0",  # Mark as enhanced syntax
             **kwargs
         }
     
@@ -200,6 +212,67 @@ class Integration:
             "auto_wire": auto_wire,
             **kwargs
         }
+    
+    # ========================================================================
+    # Unique Aquilia Session Templates
+    # ========================================================================
+    
+    class sessions:
+        """Unique Aquilia session configuration templates."""
+        
+        @staticmethod
+        def web_app(**overrides) -> Dict[str, Any]:
+            """Optimized for web applications with users."""
+            from aquilia.sessions import SessionPolicy, MemoryStore, CookieTransport
+            
+            policy = SessionPolicy.for_web_users().lasting(days=7).idle_timeout(hours=2).web_defaults().build()
+            store = MemoryStore.web_optimized()
+            transport = CookieTransport.for_web_browsers()
+            
+            return {
+                "enabled": True,
+                "policy": policy,
+                "store": store,
+                "transport": transport,
+                "aquilia_syntax_version": "2.0",
+                **overrides
+            }
+        
+        @staticmethod
+        def api_service(**overrides) -> Dict[str, Any]:
+            """Optimized for API services with token-based auth."""
+            from aquilia.sessions import SessionPolicy, MemoryStore, HeaderTransport
+            
+            policy = SessionPolicy.for_api_tokens().lasting(hours=1).no_idle_timeout().api_defaults().build()
+            store = MemoryStore.api_optimized()
+            transport = HeaderTransport.for_rest_apis()
+            
+            return {
+                "enabled": True,
+                "policy": policy,
+                "store": store,
+                "transport": transport,
+                "aquilia_syntax_version": "2.0",
+                **overrides
+            }
+        
+        @staticmethod  
+        def mobile_app(**overrides) -> Dict[str, Any]:
+            """Optimized for mobile applications with long-lived sessions."""
+            from aquilia.sessions import SessionPolicy, MemoryStore, CookieTransport
+            
+            policy = SessionPolicy.for_mobile_users().lasting(days=90).idle_timeout(days=30).mobile_defaults().build()
+            store = MemoryStore.mobile_optimized()
+            transport = CookieTransport.for_mobile_webviews()
+            
+            return {
+                "enabled": True,
+                "policy": policy,
+                "store": store,
+                "transport": transport,
+                "aquilia_syntax_version": "2.0",
+                **overrides
+            }
     
     @staticmethod
     def registry(**kwargs) -> Dict[str, Any]:
@@ -387,6 +460,10 @@ class Workspace:
         # Add optional configurations
         if self._sessions_config:
             config["sessions"] = self._sessions_config
+            # Also add to integrations for compatibility
+            if "integrations" not in config:
+                config["integrations"] = {}
+            config["integrations"]["sessions"] = self._sessions_config
         if self._security_config:
             config["security"] = self._security_config
         if self._telemetry_config:

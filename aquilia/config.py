@@ -445,14 +445,24 @@ class ConfigLoader:
         }
         
         # Get user-provided session config
-        # Check both sessions and integrations.sessions paths
+        # Check multiple possible config paths for flexibility
         user_config = self.get("sessions", {})
         if not user_config:
             user_config = self.get("integrations.sessions", {})
+        if not user_config:
+            # Check if workspace config exists
+            workspace_integrations = self.get("integrations", [])
+            for integration in workspace_integrations:
+                if isinstance(integration, dict) and "sessions" in str(integration):
+                    # Extract sessions config from integration
+                    user_config = integration
+                    break
         
         # Merge with defaults
         merged = default_session_config.copy()
         if user_config:
+            # Enable sessions if config provided
+            merged["enabled"] = user_config.get("enabled", True)
             self._merge_dict(merged, user_config)
         
         return merged

@@ -31,16 +31,14 @@ manifest = AppManifest(
     author="team@company.com",
     tags=["mymodule", "core"],
 
-        # Services with detailed DI configuration
+                # Services with detailed DI configuration
     services=[
         "modules.mymodule.services:MymoduleService",
-        "modules.mymodule.services:MymoduleServiceV2",
     ],
-    # Controllers with routing
+                # Controllers with routing
     controllers=[
         "modules.mymodule.controllers:MymoduleController",
     ],
-
     # Middleware configuration
     middleware=[
         # Example middleware (uncomment to add):

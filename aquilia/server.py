@@ -176,6 +176,8 @@ class AquiliaServer:
         
         # Add session middleware if enabled
         session_config = self.config.get_session_config()
+        self.logger.debug(f"Session config: {session_config}")
+        
         if session_config.get("enabled", False):
             try:
                 # Create session engine
@@ -193,10 +195,14 @@ class AquiliaServer:
                 self._session_engine = session_engine
                 
                 self.logger.info("✅ Session management enabled")
+                self.logger.info(f"   Policy: {session_engine.policy.name}")
+                self.logger.info(f"   Store: {type(session_engine.store).__name__}")
+                self.logger.info(f"   Transport: {type(session_engine.transport).__name__}")
             except Exception as e:
                 self.logger.error(f"Failed to initialize session management: {e}", exc_info=True)
                 self._session_engine = None
         else:
+            self.logger.info("Session management disabled")
             self._session_engine = None
     
     def _is_debug(self) -> bool:
@@ -226,7 +232,22 @@ class AquiliaServer:
             HeaderTransport,
         )
         
-        # Build session policy from config
+        # Handle different config formats - workspace vs traditional config
+        if "policy" in session_config and hasattr(session_config["policy"], "__class__"):
+            # Workspace format - direct policy objects
+            policy = session_config["policy"]
+            store = session_config.get("store")
+            transport = session_config.get("transport")
+            
+            # Create defaults if not provided
+            if store is None:
+                store = MemoryStore(max_sessions=10000)
+            if transport is None:
+                transport = CookieTransport(policy.transport)
+                
+            return SessionEngine(policy=policy, store=store, transport=transport)
+        
+        # Traditional config format - build from dictionaries
         policy_config = session_config.get("policy", {})
         policy = SessionPolicy(
             name=policy_config.get("name", "user_default"),
