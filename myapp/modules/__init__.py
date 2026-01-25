@@ -1,3 +1,0 @@
-"""
-MyApp modules package.
-"""

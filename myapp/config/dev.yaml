@@ -1,24 +1,13 @@
-# Development Environment Configuration
-# 
-# This file contains RUNTIME SETTINGS for development.
-# Workspace structure (modules, integrations) is defined in aquilia.py.
-#
-# Merge strategy:
-#   1. Load workspace structure from aquilia.py
-#   2. Load base config from config/base.yaml
-#   3. Merge environment config (this file)
-#   4. Apply environment variables (AQ_* prefix)
+# Development Environment - Server Configuration
+# Overrides base.yaml for development
 
-runtime:
+server:
   mode: dev
   host: 127.0.0.1
   port: 8000
-  reload: true
-  workers: 1
-
-logging:
-  level: DEBUG
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-
-# Development-specific settings
-debug: true
+  reload: true                # Hot-reload on file changes
+  workers: 1                  # Single worker for debugging
+  backlog: 2048
+  timeout_keep_alive: 10
+  timeout_notify: 30
+  access_log: true

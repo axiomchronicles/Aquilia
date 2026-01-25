@@ -20,7 +20,7 @@ Separation of concerns:
 
 from aquilia import Workspace, Module, Integration
 from datetime import timedelta
-from aquilia.sessions import SessionPolicy
+from aquilia.sessions import SessionPolicy, PersistencePolicy, ConcurrencyPolicy, TransportPolicy
 
 # Define workspace structure
 workspace = (
@@ -29,7 +29,7 @@ workspace = (
         version="0.1.0",
         description="Aquilia workspace",
     )
-    # Auto-detected modules
+    # Add modules here with explicit configuration:
 
     .module(Module("mode", version="0.1.0", description="Mode module")
         .route_prefix("/mode")
@@ -39,18 +39,6 @@ workspace = (
         )
         .register_services(
             "modules.mode.services:ModeService"
-        ))
-    .module(Module("mymodule", version="0.1.0", description="Mymodule module")
-        .route_prefix("/mymodule")
-        .tags("mymodule", "core")
-        .register_controllers(
-            "modules.mymodule.controllers:MymoduleController",
-            "modules.mymodule.simple_session_test:SimpleSessionTestController"
-        )
-        .register_services(
-            "modules.mymodule.services:MymoduleService",
-            "modules.mymodule.services:MymoduleServiceV2",
-            "modules.mymodule.services:MymoduleServiceV3"
         ))
 
     # Integrations - Configure core systems
@@ -70,17 +58,32 @@ workspace = (
     ))
     .integrate(Integration.patterns())
 
-    # Sessions - Configure session management with unique Aquilia syntax
+    # Sessions - Configure session management
     .sessions(
         policies=[
-            # Web application session with unique Aquilia fluent builder
-            (SessionPolicy
-             .for_web_users()
-             .lasting(days=7)
-             .idle_timeout(hours=2)
-             .rotating_on_auth()
-             .web_defaults()
-             .build()),
+            # Default session policy for web users
+            SessionPolicy(
+                name="default",
+                ttl=timedelta(days=7),
+                idle_timeout=timedelta(hours=1),
+                rotate_on_privilege_change=True,
+                persistence=PersistencePolicy(
+                    enabled=True,
+                    store_name="memory",
+                    write_through=True,
+                ),
+                concurrency=ConcurrencyPolicy(
+                    max_sessions_per_principal=5,
+                    behavior_on_limit="evict_oldest",
+                ),
+                transport=TransportPolicy(
+                    adapter="cookie",
+                    cookie_httponly=True,
+                    cookie_secure=False,  # Set to True in production
+                    cookie_samesite="lax",
+                ),
+                scope="user",
+            ),
         ],
     )
 
@@ -90,7 +93,7 @@ workspace = (
         csrf_protection=False,
         helmet_enabled=True,
         rate_limiting=True,
-    )
+    ) 
 
     # Telemetry - Enable observability
     .telemetry(

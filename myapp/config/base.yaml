@@ -1,19 +1,13 @@
-# Base Configuration
-#
-# Shared configuration across ALL environments.
-# Environment-specific files (dev.yaml, prod.yaml) override these values.
+# Base Server Configuration - Shared Across All Environments
+# Environment-specific files (dev.yaml, prod.yaml) override these values
 
-runtime:
-  # Defaults (overridden by environment configs)
+server:
   mode: dev
   host: 127.0.0.1
   port: 8000
-  reload: false
+  reload: true
   workers: 1
-
-logging:
-  level: INFO
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-
-# Application defaults
-debug: false
+  backlog: 2048
+  timeout_keep_alive: 5
+  timeout_notify: 30
+  access_log: true

@@ -3,6 +3,8 @@ Mode module controllers (request handlers).
 
 This file defines the HTTP endpoints for the mode module
 using the modern Controller architecture with pattern-based routing.
+
+Test hot-reload at: 2024-01-25
 """
 
 from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
@@ -20,8 +22,8 @@ class ModeController(Controller):
     tags = ["mode"]
 
     def __init__(self):
-        # Instantiate service directly instead of relying on DI
-        # TODO: Remove this workaround once DI system is fully integrated
+        # Instantiate service directly (DI integration pending)
+        # Once DI is fully integrated, change to: def __init__(self, service: ModeService):
         self.service = ModeService()
 
     @GET("/")
