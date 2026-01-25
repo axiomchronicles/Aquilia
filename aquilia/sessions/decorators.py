@@ -363,7 +363,17 @@ def stateful(func: F) -> F:
         if 'state' in sig.parameters:
             # Wrap session.data in SessionState
             from aquilia.sessions.state import SessionState
-            func_kwargs['state'] = SessionState(sess.data)
+            
+            # Detect proper SessionState subclass from type hints
+            import typing
+            type_hints = typing.get_type_hints(func)
+            state_cls = type_hints.get('state', SessionState)
+            
+            # Ensure it's a SessionState subclass
+            if not isinstance(state_cls, type) or not issubclass(state_cls, SessionState):
+                state_cls = SessionState
+                
+            func_kwargs['state'] = state_cls(sess.data)
         else:
             # Fallback: inject session if accepted by signature
             if 'session' in sig.parameters:

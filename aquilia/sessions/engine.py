@@ -282,6 +282,10 @@ class SessionEngine:
                     cause=str(e),
                 )
         
+        # Check concurrency if privilege changed and session is authenticated
+        if privilege_changed and session.is_authenticated:
+            await self.check_concurrency(session)
+        
         # Persist if needed
         if self.policy.should_persist(session) and session.is_dirty:
             try:

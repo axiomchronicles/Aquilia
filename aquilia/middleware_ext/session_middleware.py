@@ -113,11 +113,9 @@ class SessionMiddleware:
         
         # Check concurrency limits (if authenticated)
         if session.is_authenticated:
-            try:
-                await self.engine.check_concurrency(session)
-            except Exception as e:
-                # Log but don't fail request - concurrency check is advisory
-                self.logger.warning(f"Session concurrency check failed: {e}")
+            # Concurrency check is enforced based on policy behavior (reject/evict)
+            # We allow specific session faults to propagate to the ExceptionMiddleware
+            await self.engine.check_concurrency(session)
         
         # Track privilege state before handler
         privilege_before = session.is_authenticated

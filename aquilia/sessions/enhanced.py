@@ -180,6 +180,10 @@ class SessionGuard:
                     if isinstance(arg, Session):
                         session = arg
                         break
+                    # Unique: Check for RequestCtx and extract session
+                    elif hasattr(arg, 'session') and isinstance(arg.session, Session):
+                        session = arg.session
+                        break
             
             if session is None:
                 from aquilia.sessions.decorators import SessionRequiredFault
@@ -187,10 +191,11 @@ class SessionGuard:
             
             # Check guard
             if not await self.check(session):
-                raise Fault(
-                    code="GUARD_FAILED",
-                    message=f"Session guard {self.__class__.__name__} failed",
-                    status=403,
+                from aquilia.faults.domains import AuthorizationFault
+                raise AuthorizationFault(
+                    resource=self.__class__.__name__,
+                    action="access",
+                    metadata={"guard": self.__class__.__name__}
                 )
             
             return await func(*args, **kwargs)
@@ -223,6 +228,10 @@ def requires(*guards: SessionGuard):
                     if isinstance(arg, Session):
                         session = arg
                         break
+                    # Unique: Check for RequestCtx and extract session
+                    elif hasattr(arg, 'session') and isinstance(arg.session, Session):
+                        session = arg.session
+                        break
             
             if session is None:
                 from aquilia.sessions.decorators import SessionRequiredFault
@@ -231,10 +240,11 @@ def requires(*guards: SessionGuard):
             # Check all guards
             for guard in guards:
                 if not await guard.check(session):
-                    raise Fault(
-                        code="GUARD_FAILED",
-                        message=f"Session guard {guard.__class__.__name__} failed",
-                        status=403,
+                    from aquilia.faults.domains import AuthorizationFault
+                    raise AuthorizationFault(
+                        resource=guard.__class__.__name__,
+                        action="access",
+                        metadata={"guard": guard.__class__.__name__}
                     )
             
             return await func(*args, **kwargs)
@@ -252,7 +262,10 @@ class AdminGuard(SessionGuard):
     async def check(self, session: Session) -> bool:
         if not session.is_authenticated:
             return False
-        return hasattr(session.principal, 'role') and session.principal.role == 'admin'
+        # Check direct attribute or attributes dict
+        if hasattr(session.principal, 'role'):
+            return session.principal.role == 'admin'
+        return session.principal.get_attribute('role') == 'admin'
 
 
 class VerifiedEmailGuard(SessionGuard):
@@ -261,7 +274,10 @@ class VerifiedEmailGuard(SessionGuard):
     async def check(self, session: Session) -> bool:
         if not session.is_authenticated:
             return False
-        return hasattr(session.principal, 'email_verified') and session.principal.email_verified
+        # Check direct attribute or attributes dict
+        if hasattr(session.principal, 'email_verified'):
+            return session.principal.email_verified
+        return session.principal.get_attribute('email_verified', False)
 
 
 __all__ = [

@@ -75,6 +75,7 @@ workspace = (
                 name="default",
                 ttl=timedelta(days=7),
                 idle_timeout=timedelta(hours=1),
+                rotate_on_use=False,
                 rotate_on_privilege_change=True,
                 persistence=PersistencePolicy(
                     enabled=True,

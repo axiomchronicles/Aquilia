@@ -124,7 +124,7 @@ class SessionState:
         
         # Check if it's a field
         try:
-            cls_attr = super().__getattribute__('__class__').__dict__.get(name)
+            cls_attr = getattr(self.__class__, name, None)
             if isinstance(cls_attr, Field):
                 return super().__getattribute__(f'_{name}')
         except:
