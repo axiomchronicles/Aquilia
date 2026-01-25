@@ -1,5 +1,5 @@
 """
-Modeboom module faults (error handling).
+Mymodule module faults (error handling).
 
 Faults define domain-specific errors and their recovery strategies.
 They are automatically registered with the fault handling system.
@@ -9,43 +9,43 @@ from aquilia.faults import Fault, FaultDomain, Severity, RecoveryStrategy
 
 
 # Define fault domain for this module
-MODEBOOM = FaultDomain(
-    name="MODEBOOM",
-    description="Modeboom module faults",
+MYMODULE = FaultDomain(
+    name="MYMODULE",
+    description="Mymodule module faults",
 )
 
 
-class ModeboomNotFoundFault(Fault):
+class MymoduleNotFoundFault(Fault):
     """
-    Raised when modeboom item is not found.
+    Raised when mymodule item is not found.
 
     Recovery: Return 404 response
     """
 
-    domain = MODEBOOM
+    domain = MYMODULE
     severity = Severity.INFO
-    code = "MODEBOOM_NOT_FOUND"
+    code = "MYMODULE_NOT_FOUND"
 
     def __init__(self, item_id: int):
         super().__init__(
             code=self.code,
             domain=self.domain,
-            message=f"Modeboom with id {item_id} not found",
+            message=f"Mymodule with id {item_id} not found",
             metadata={"item_id": item_id},
             retryable=False,
         )
 
 
-class ModeboomValidationFault(Fault):
+class MymoduleValidationFault(Fault):
     """
-    Raised when modeboom data validation fails.
+    Raised when mymodule data validation fails.
 
     Recovery: Return 400 response with validation errors
     """
 
-    domain = MODEBOOM
+    domain = MYMODULE
     severity = Severity.INFO
-    code = "MODEBOOM_VALIDATION_ERROR"
+    code = "MYMODULE_VALIDATION_ERROR"
 
     def __init__(self, errors: dict):
         super().__init__(
@@ -57,16 +57,16 @@ class ModeboomValidationFault(Fault):
         )
 
 
-class ModeboomOperationFault(Fault):
+class MymoduleOperationFault(Fault):
     """
-    Raised when modeboom operation fails.
+    Raised when mymodule operation fails.
 
     Recovery: Retry with exponential backoff
     """
 
-    domain = MODEBOOM
+    domain = MYMODULE
     severity = Severity.WARN
-    code = "MODEBOOM_OPERATION_FAILED"
+    code = "MYMODULE_OPERATION_FAILED"
 
     def __init__(self, operation: str, reason: str):
         super().__init__(

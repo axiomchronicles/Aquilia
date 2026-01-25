@@ -280,7 +280,12 @@ class RegistryValidator:
         service_owners: Dict[str, str] = {}
         
         for manifest in manifests:
-            for service_path in getattr(manifest, "services", []):
+            for service in getattr(manifest, "services", []):
+                # Handle both ServiceConfig objects and string paths
+                if hasattr(service, 'class_path'):
+                    service_path = service.class_path
+                else:
+                    service_path = service
                 service_owners[service_path] = manifest.name
         
         # Check each app's imports (placeholder - needs AST analysis)

@@ -5,6 +5,7 @@ from typing import Optional, List
 
 from ..utils.colors import info, dim
 from ..generators import ModuleGenerator
+from ..generators.workspace import WorkspaceGenerator
 
 
 def add_module(
@@ -83,35 +84,24 @@ def add_module(
     
     generator.generate()
     
-    # Update workspace.py to include the new module
-    # Find the line with "# Add modules here:" and add the module after it
-    lines = workspace_content.split('\n')
-    insert_index = None
-    
-    for i, line in enumerate(lines):
-        if '# Add modules here:' in line:
-            insert_index = i + 1
-            break
-    
-    if insert_index is not None:
-        # Build the module line
-        module_line = f'    .module(Module("{name}").route_prefix("{route_prefix or "/" + name}"))'
-        
-        # Check if there are already modules (look for existing .module() calls after the comment)
-        # Insert after the comment line
-        lines.insert(insert_index, module_line)
-        
-        # Write back to file
-        workspace_file.write_text('\n'.join(lines))
+    # Regenerate workspace with enhanced auto-discovery
+    # This will automatically detect the new module and regenerate workspace.py
+    # with proper ordering, metadata extraction, and validation
+    try:
+        workspace_generator = WorkspaceGenerator(
+            name=workspace_root.name,
+            path=workspace_root
+        )
+        workspace_generator.generate()
         
         if verbose:
-            info(f"\n✓ Updated workspace.py with module '{name}'")
-    else:
+            info(f"✓ Regenerated workspace.py with auto-discovery")
+    except Exception as e:
         if verbose:
             warning = __import__('aquilia.cli.utils.colors', fromlist=['warning']).warning
-            warning("\n⚠ Could not auto-update workspace.py")
-            info(f"  Please manually add to workspace.py:")
-            info(f'    .module(Module("{name}").route_prefix("{route_prefix or "/" + name}"))')
+            warning(f"⚠ Could not regenerate workspace.py: {e}")
+            info(f"  Module was created, but workspace.py may need manual update")
+    
     
     if verbose:
         dim("\nGenerated structure:")

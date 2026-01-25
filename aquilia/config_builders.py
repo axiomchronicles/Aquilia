@@ -41,6 +41,7 @@ class ModuleConfig:
     routes: List[Dict[str, Any]] = field(default_factory=list)
     services: List[str] = field(default_factory=list)
     providers: List[Dict[str, Any]] = field(default_factory=list)
+    tags: List[str] = field(default_factory=list)
     
     # Discovery configuration
     auto_discover: bool = True  # Default to True for convenience
@@ -58,6 +59,7 @@ class ModuleConfig:
             "routes": self.routes,
             "services": self.services,
             "providers": self.providers,
+            "tags": self.tags,
             "auto_discover": self.auto_discover,
         }
 
@@ -100,6 +102,11 @@ class Module:
     def depends_on(self, *modules: str) -> "Module":
         """Set module dependencies."""
         self._config.depends_on = list(modules)
+        return self
+    
+    def tags(self, *module_tags: str) -> "Module":
+        """Set module tags for organization and filtering."""
+        self._config.tags = list(module_tags)
         return self
 
     def register_controllers(self, *controllers: str) -> "Module":
@@ -239,6 +246,9 @@ class Workspace:
         self._runtime = RuntimeConfig()
         self._modules: List[ModuleConfig] = []
         self._integrations: Dict[str, Dict[str, Any]] = {}
+        self._sessions_config: Optional[Dict[str, Any]] = None
+        self._security_config: Optional[Dict[str, Any]] = None
+        self._telemetry_config: Optional[Dict[str, Any]] = None
     
     def runtime(
         self,
@@ -282,6 +292,74 @@ class Workspace:
                     break
         return self
     
+    def sessions(self, policies: Optional[List[Any]] = None, **kwargs) -> "Workspace":
+        """
+        Configure session management.
+        
+        Args:
+            policies: List of SessionPolicy instances
+            **kwargs: Additional session configuration
+        """
+        self._sessions_config = {
+            "enabled": True,
+            "policies": policies or [],
+            **kwargs
+        }
+        return self
+    
+    def security(
+        self,
+        cors_enabled: bool = False,
+        csrf_protection: bool = False,
+        helmet_enabled: bool = True,
+        rate_limiting: bool = False,
+        **kwargs
+    ) -> "Workspace":
+        """
+        Configure security features.
+        
+        Args:
+            cors_enabled: Enable CORS
+            csrf_protection: Enable CSRF protection
+            helmet_enabled: Enable Helmet.js security headers
+            rate_limiting: Enable rate limiting
+            **kwargs: Additional security configuration
+        """
+        self._security_config = {
+            "enabled": True,
+            "cors_enabled": cors_enabled,
+            "csrf_protection": csrf_protection,
+            "helmet_enabled": helmet_enabled,
+            "rate_limiting": rate_limiting,
+            **kwargs
+        }
+        return self
+    
+    def telemetry(
+        self,
+        tracing_enabled: bool = False,
+        metrics_enabled: bool = True,
+        logging_enabled: bool = True,
+        **kwargs
+    ) -> "Workspace":
+        """
+        Configure telemetry and observability.
+        
+        Args:
+            tracing_enabled: Enable distributed tracing
+            metrics_enabled: Enable metrics collection
+            logging_enabled: Enable structured logging
+            **kwargs: Additional telemetry configuration
+        """
+        self._telemetry_config = {
+            "enabled": True,
+            "tracing_enabled": tracing_enabled,
+            "metrics_enabled": metrics_enabled,
+            "logging_enabled": logging_enabled,
+            **kwargs
+        }
+        return self
+    
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert workspace to dictionary format compatible with ConfigLoader.
@@ -305,6 +383,14 @@ class Workspace:
             "modules": [m.to_dict() for m in self._modules],
             "integrations": self._integrations,
         }
+        
+        # Add optional configurations
+        if self._sessions_config:
+            config["sessions"] = self._sessions_config
+        if self._security_config:
+            config["security"] = self._security_config
+        if self._telemetry_config:
+            config["telemetry"] = self._telemetry_config
         
         return config
     

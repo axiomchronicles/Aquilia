@@ -46,64 +46,269 @@ class WorkspaceGenerator:
         for dir_name in dirs:
             (self.path / dir_name).mkdir(exist_ok=True)
     
+    def _extract_field(self, content: str, pattern: str, default: str) -> str:
+        """Extract a single field from manifest content."""
+        import re
+        match = re.search(pattern, content)
+        return match.group(1) if match else default
+    
+    def _extract_list(self, content: str, pattern: str, default: list = None) -> list:
+        """Extract a list field from manifest content."""
+        import re
+        if default is None:
+            default = []
+        match = re.search(pattern, content, re.DOTALL)
+        if not match:
+            return default
+        
+        list_content = match.group(1)
+        # Extract quoted strings from the list
+        items = re.findall(r'"([^"]+)"', list_content)
+        return items if items else default
+    
+    def _discover_modules(self) -> dict:
+        """Enhanced module discovery with dependency resolution and validation."""
+        modules_dir = self.path / 'modules'
+        discovered_modules = {}
+        
+        if not modules_dir.exists():
+            return discovered_modules
+        
+        # Find all module directories with manifest.py
+        module_dirs = [d for d in modules_dir.iterdir() 
+                      if d.is_dir() and (d / 'manifest.py').exists()]
+        
+        # Parse all manifests
+        for mod_dir in module_dirs:
+            mod_name = mod_dir.name
+            try:
+                manifest_content = (mod_dir / 'manifest.py').read_text()
+                
+                # Extract all module metadata
+                version = self._extract_field(manifest_content, r'version="([^"]+)"', "0.1.0")
+                description = self._extract_field(manifest_content, r'description="([^"]+)"', mod_name.capitalize())
+                route_prefix = self._extract_field(manifest_content, r'route_prefix="([^"]+)"', f"/{mod_name}")
+                author = self._extract_field(manifest_content, r'author="([^"]+)"', "")
+                tags = self._extract_list(manifest_content, r'tags=\[(.*?)\]', [])
+                base_path = self._extract_field(manifest_content, r'base_path="([^"]+)"', f"modules.{mod_name}")
+                depends_on = self._extract_list(manifest_content, r'depends_on=\[(.*?)\]', [])
+                
+                # Check for module structure
+                has_services = (mod_dir / 'services' / '__init__.py').exists() or (mod_dir / 'services.py').exists()
+                has_controllers = (mod_dir / 'controllers' / '__init__.py').exists() or (mod_dir / 'controllers.py').exists()
+                has_middleware = (mod_dir / 'middleware' / '__init__.py').exists() or (mod_dir / 'middleware.py').exists()
+                
+                discovered_modules[mod_name] = {
+                    'name': mod_name,
+                    'path': mod_dir,
+                    'version': version,
+                    'description': description,
+                    'route_prefix': route_prefix,
+                    'author': author,
+                    'tags': tags,
+                    'base_path': base_path,
+                    'depends_on': depends_on,
+                    'has_services': has_services,
+                    'has_controllers': has_controllers,
+                    'has_middleware': has_middleware,
+                    'manifest_path': mod_dir / 'manifest.py',
+                }
+            except Exception:
+                # Silently skip modules with parsing errors
+                pass
+        
+        return discovered_modules
+    
+    def _resolve_dependencies(self, modules: dict) -> list:
+        """Topologically sort modules based on dependencies (Kahn's algorithm)."""
+        if not modules:
+            return []
+        
+        # Build dependency graph
+        graph = {name: mod.get('depends_on', []) for name, mod in modules.items()}
+        in_degree = {name: 0 for name in modules}
+        
+        # Calculate in-degrees
+        for name in modules:
+            for dep in graph.get(name, []):
+                if dep in in_degree:
+                    in_degree[name] += 1
+        
+        # Process nodes with no dependencies
+        sorted_modules = []
+        queue = [name for name, degree in in_degree.items() if degree == 0]
+        
+        while queue:
+            node = queue.pop(0)
+            sorted_modules.append(node)
+            
+            # Reduce in-degree for dependent modules
+            for name in modules:
+                if node in graph.get(name, []):
+                    in_degree[name] -= 1
+                    if in_degree[name] == 0:
+                        queue.append(name)
+        
+        # Return sorted modules, fall back to alphabetical if cycles detected
+        return sorted_modules if len(sorted_modules) == len(modules) else sorted(modules.keys())
+    
+    def _validate_modules(self, modules: dict) -> dict:
+        """Validate modules and detect conflicts."""
+        validation = {
+            'valid': True,
+            'warnings': [],
+            'errors': [],
+        }
+        
+        route_prefixes = {}
+        for name, mod in modules.items():
+            route = mod['route_prefix']
+            if route in route_prefixes:
+                validation['warnings'].append(
+                    f"Route prefix conflict: '{route}' used by both '{name}' and '{route_prefixes[route]}'"
+                )
+            else:
+                route_prefixes[route] = name
+            
+            # Check for missing dependencies
+            for dep in mod.get('depends_on', []):
+                if dep not in modules:
+                    validation['errors'].append(
+                        f"Module '{name}' depends on '{dep}' which is not installed"
+                    )
+                    validation['valid'] = False
+        
+        return validation
+    
     def _create_workspace_manifest(self) -> None:
-        """Create aquilia.py configuration (Python-based)."""
+        """Create aquilia.py configuration (Python-based, production-grade)."""
+        # Discover all modules with enhanced detection
+        discovered = self._discover_modules()
+        module_registrations = ""
+        
+        if discovered:
+            # Validate modules
+            validation = self._validate_modules(discovered)
+            
+            # Resolve dependencies and get sorted order
+            sorted_names = self._resolve_dependencies(discovered)
+            
+            module_lines = []
+            for mod_name in sorted_names:
+                mod = discovered[mod_name]
+                
+                # Build enhanced module registration with full metadata
+                deps_str = ""
+                if mod.get('depends_on'):
+                    deps_part = ", ".join(f'"{d}"' for d in mod['depends_on'])
+                    deps_str = f".depends_on({deps_part})"
+                
+                tags_str = ""
+                if mod.get('tags'):
+                    tags_part = ", ".join(f'"{t}"' for t in mod['tags'])
+                    tags_str = f".tags({tags_part})"
+                
+                module_line = (
+                    f'.module(Module("{mod["name"]}", version="{mod["version"]}", '
+                    f'description="{mod["description"]}").route_prefix("{mod["route_prefix"]}")'
+                    f'{tags_str}{deps_str})'
+                )
+                
+                module_lines.append(module_line)
+            
+            if module_lines:
+                # Indent each module line with 16 spaces
+                module_registrations = "\n" + "\n".join("                " + line for line in module_lines)
+        
         content = textwrap.dedent(f'''\
             """
-            Aquilia Workspace Configuration
+            Aquilia Workspace Configuration - Production Grade
             Generated by: aq init workspace {self.name}
-            
+
             This file defines the WORKSPACE STRUCTURE (modules, integrations).
+            It is:
+            - Environment-agnostic
+            - Version-controlled and shared across team
+            - Type-safe with full IDE support
+            - Observable via introspection
+
             Runtime settings (host, port, workers) come from config/dev.yaml or config/prod.yaml.
-            
+
             Separation of concerns:
-            - aquilia.py = Workspace structure (version-controlled, shared)
-            - config/*.yaml = Runtime settings (environment-specific, potentially secret)
+            - aquilia.py (THIS FILE) = Workspace structure (modules, integrations)
+            - config/base.yaml = Shared configuration defaults
+            - config/{{mode}}.yaml = Environment-specific runtime settings (dev, prod)
+            - Environment variables = Override mechanism for secrets and env-specific values
             """
-            
+
             from aquilia import Workspace, Module, Integration
-            from aquilia.sessions import SessionPolicy, MemoryStore, TransportPolicy
             from datetime import timedelta
-            
-            
-            # Define workspace structure (NOT runtime config)
+            from aquilia.sessions import SessionPolicy
+
+
+            # Define workspace structure
             workspace = (
-                Workspace("{self.name}", version="0.1.0", description="Aquilia workspace")
-                # Runtime config (host, port, mode, workers) comes from config/*.yaml
-                # This keeps workspace definition clean and environment-agnostic
-                
-                # Add modules here:
-                # .module(Module("users").route_prefix("/users"))
-                
-                # Integrations
-                .integrate(Integration.di(auto_wire=True))
-                .integrate(Integration.registry())
-                .integrate(Integration.routing(strict_matching=True))
-                .integrate(Integration.fault_handling(default_strategy="propagate"))
+                Workspace(
+                    name="{self.name}",
+                    version="0.1.0",
+                    description="Aquilia workspace",
+                ){"" if not module_registrations else chr(10) + "                # Auto-detected modules" + module_registrations}
+                # Add modules here with explicit configuration:
+                # .module(Module("auth", version="1.0.0", description="Authentication module").route_prefix("/api/v1/auth").depends_on("core"))
+                # .module(Module("users", version="1.0.0", description="User management").route_prefix("/api/v1/users").depends_on("auth", "core"))
+
+                # Integrations - Configure core systems
+                .integrate(Integration.di(auto_wire=True, manifest_validation=True))
+                .integrate(Integration.registry(
+                    mode="auto",  # "dev", "prod", "auto" (env-based)
+                    fingerprint_verification=True,
+                ))
+                .integrate(Integration.routing(
+                    strict_matching=True,
+                    version_support=True,
+                    compression=True,
+                ))
+                .integrate(Integration.fault_handling(
+                    default_strategy="propagate",
+                    metrics_enabled=True,
+                ))
                 .integrate(Integration.patterns())
-                
-                # Optional: Enable sessions
-                # .integrate(Integration.sessions(
-                #     policy=SessionPolicy(
-                #         name="user_default",
-                #         ttl=timedelta(days=7),
-                #         idle_timeout=timedelta(minutes=30),
-                #         transport=TransportPolicy(
-                #             adapter="cookie",
-                #             cookie_name="{self.name}_session",
-                #             cookie_httponly=True,
-                #             cookie_secure=True,
-                #         ),
-                #     ),
-                #     store=MemoryStore(max_sessions=1000),
-                # ))
+
+                # Sessions - Configure session management
+                .sessions(
+                    policies=[
+                        # Default session policy
+                        SessionPolicy(
+                            name="default",
+                            ttl=timedelta(days=7),
+                            idle_timeout=timedelta(hours=1),
+                            transport="cookie",
+                            store="memory",
+                        ),
+                    ],
+                )
+
+                # Security - Enable/disable security features
+                .security(
+                    cors_enabled=False,
+                    csrf_protection=False,
+                    helmet_enabled=True,
+                    rate_limiting=True,
+                )
+
+                # Telemetry - Enable observability
+                .telemetry(
+                    tracing_enabled=False,
+                    metrics_enabled=True,
+                    logging_enabled=True,
+                )
             )
-            
-            
+
+
             # Export for CLI/server
             __all__ = ["workspace"]
         ''').strip()
-        
+
         (self.path / 'workspace.py').write_text(content)
     
     def _create_config_files(self) -> None:

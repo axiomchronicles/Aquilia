@@ -82,7 +82,8 @@ class WorkspaceCompiler:
         description = desc_match.group(1) if desc_match else ""
         
         # Extract modules
-        modules = re.findall(r'(?m)^\s*\.module\(Module\("([^"]+)"\)', workspace_content)
+        # Updated regex to handle Module with parameters: Module("name", version=..., ...)
+        modules = re.findall(r'(?m)^\s*\.module\(Module\("([^"]+)"[^)]*\)', workspace_content)
         
         # Create a simple manifest object
         class SimpleManifest:
