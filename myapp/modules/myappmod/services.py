@@ -1,5 +1,5 @@
 """
-Mode module services (business logic).
+Myappmod module services (business logic).
 
 Services contain the core business logic and are auto-wired
 via dependency injection.
@@ -10,9 +10,9 @@ from aquilia.di import service
 
 
 @service(scope="app")
-class ModeService:
+class MyappmodService:
     """
-    Service for mode business logic.
+    Service for myappmod business logic.
 
     This service is automatically registered with the DI container
     and can be injected into controllers.

@@ -31,15 +31,14 @@ workspace = (
     )
     # Add modules here with explicit configuration:
 
-    .module(Module("mode", version="0.1.0", description="Mode module")
-        .route_prefix("/mode")
-        .tags("mode", "core")
+    .module(Module("myappmod", version="0.1.0", description="Myappmod module")
+        .route_prefix("/myappmod")
+        .tags("myappmod", "core")
         .register_controllers(
-            "modules.mode.controllers:ModeController",
-            "modules.mode.sessioncontroller:MySessionController"
+            "modules.myappmod.controllers:MyappmodController"
         )
         .register_services(
-            "modules.mode.services:ModeService"
+            "modules.myappmod.services:MyappmodService"
         ))
 
     # Integrations - Configure core systems
@@ -94,7 +93,7 @@ workspace = (
         csrf_protection=False,
         helmet_enabled=True,
         rate_limiting=True,
-    ) 
+    )
 
     # Telemetry - Enable observability
     .telemetry(

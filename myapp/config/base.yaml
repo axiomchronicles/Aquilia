@@ -5,7 +5,7 @@ server:
   mode: dev
   host: 127.0.0.1
   port: 8000
-  reload: true
+  reload: false
   workers: 1
   backlog: 2048
   timeout_keep_alive: 5

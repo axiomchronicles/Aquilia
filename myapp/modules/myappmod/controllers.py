@@ -1,38 +1,36 @@
 """
-Mode module controllers (request handlers).
+Myappmod module controllers (request handlers).
 
-This file defines the HTTP endpoints for the mode module
+This file defines the HTTP endpoints for the myappmod module
 using the modern Controller architecture with pattern-based routing.
-
-Test hot-reload at: 2024-01-25
 """
 
 from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
-from .faults import ModeNotFoundFault
-from .services import ModeService
+from .faults import MyappmodNotFoundFault
+from .services import MyappmodService
 
 
-class ModeController(Controller):
+class MyappmodController(Controller):
     """
-    Controller for mode endpoints.
+    Controller for myappmod endpoints.
 
-    Provides RESTful CRUD operations for mode.
+    Provides RESTful CRUD operations for myappmod.
     """
-    prefix = "/mode"
-    tags = ["mode"]
+    prefix = "/"
+    tags = ["myappmod"]
 
     def __init__(self):
         # Instantiate service directly (DI integration pending)
-        # Once DI is fully integrated, change to: def __init__(self, service: ModeService):
-        self.service = ModeService()
+        # Once DI is fully integrated, change to: def __init__(self, service: MyappmodService):
+        self.service = MyappmodService()
 
     @GET("/")
-    async def list_mode(self, ctx: RequestCtx):
+    async def list_myappmod(self, ctx: RequestCtx):
         """
-        Get list of mode.
+        Get list of myappmod.
 
         Example:
-            GET /mode/ -> {"items": [...], "total": 0}
+            GET /myappmod/ -> {"items": [...], "total": 0}
         """
         items = await self.service.get_all()
 
@@ -42,12 +40,12 @@ class ModeController(Controller):
         })
 
     @POST("/")
-    async def create_mode(self, ctx: RequestCtx):
+    async def create_myappmod(self, ctx: RequestCtx):
         """
-        Create new mode.
+        Create new myappmod.
 
         Example:
-            POST /mode/
+            POST /myappmod/
             Body: {"name": "Example"}
             -> {"id": 1, "name": "Example"}
         """
@@ -56,46 +54,46 @@ class ModeController(Controller):
         return Response.json(item, status=201)
 
     @GET("/«id:int»")
-    async def get_mode(self, ctx: RequestCtx, id: int):
+    async def get_myappmod(self, ctx: RequestCtx, id: int):
         """
-        Get single mode by ID.
+        Get single myappmod by ID.
 
         Example:
-            GET /mode/1 -> {"id": 1, "name": "Example"}
+            GET /myappmod/1 -> {"id": 1, "name": "Example"}
         """
         item = await self.service.get_by_id(id)
         if not item:
-            raise ModeNotFoundFault(item_id=id)
+            raise MyappmodNotFoundFault(item_id=id)
 
         return Response.json(item)
 
     @PUT("/«id:int»")
-    async def update_mode(self, ctx: RequestCtx, id: int):
+    async def update_myappmod(self, ctx: RequestCtx, id: int):
         """
-        Update mode by ID.
+        Update myappmod by ID.
 
         Example:
-            PUT /mode/1
+            PUT /myappmod/1
             Body: {"name": "Updated"}
             -> {"id": 1, "name": "Updated"}
         """
         data = await ctx.json()
         item = await self.service.update(id, data)
         if not item:
-            raise ModeNotFoundFault(item_id=id)
+            raise MyappmodNotFoundFault(item_id=id)
 
         return Response.json(item)
 
     @DELETE("/«id:int»")
-    async def delete_mode(self, ctx: RequestCtx, id: int):
+    async def delete_myappmod(self, ctx: RequestCtx, id: int):
         """
-        Delete mode by ID.
+        Delete myappmod by ID.
 
         Example:
-            DELETE /mode/1 -> 204 No Content
+            DELETE /myappmod/1 -> 204 No Content
         """
         deleted = await self.service.delete(id)
         if not deleted:
-            raise ModeNotFoundFault(item_id=id)
+            raise MyappmodNotFoundFault(item_id=id)
 
         return Response(status=204)
