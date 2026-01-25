@@ -408,6 +408,10 @@ class AquiliaServer:
             self.logger.info(f"Mode: {self.mode.value}")
             self.logger.info(f"Apps loaded: {len(self.runtime.meta.app_contexts)}")
             
+            # Step 0: Perform runtime auto-discovery
+            self.logger.info("Performing runtime auto-discovery...")
+            self.runtime.perform_autodiscovery()
+            
             # Step 1: Load and compile controllers
             self.logger.info("Loading controllers from manifests...")
             self._load_controllers()

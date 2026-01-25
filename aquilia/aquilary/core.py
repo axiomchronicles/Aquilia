@@ -411,6 +411,74 @@ class RuntimeRegistry:
     ) -> "RuntimeRegistry":
         """Create runtime registry from metadata."""
         return cls(registry_meta, config)
+        
+    def perform_autodiscovery(self) -> None:
+        """
+        Perform runtime auto-discovery of controllers and services.
+        
+        Uses PackageScanner to find classes in standard locations if
+        auto-discovery is enabled for the app.
+        """
+        from aquilia.utils.scanner import PackageScanner
+        # from aquilia.di import Service  <-- Component doesn't exist, using heuristics instead
+        # We can't import Controller from here easily without circular dep?
+        # Use string check or property check in scanner predicate
+        
+        scanner = PackageScanner()
+        
+        for ctx in self.meta.app_contexts:
+            # Check if auto_discover is enabled in manifest config
+            manifest_config = ctx.manifest
+            if hasattr(manifest_config, "auto_discover") and not manifest_config.auto_discover:
+                continue
+                
+            # Default to enabled if not specified (backward compat for builders)
+            # or if it's a raw class manifest (legacy) we might check attribute
+            
+            # Base package for module
+            # ctx.name is module name e.g. "mymod"
+            # Assuming standard structure modules.<name> or just <name> if valid package
+            
+            # Start scan
+            base_package = f"modules.{ctx.name}"
+            
+            # 1. Discover Controllers
+            try:
+                # Scan .controllers submodule
+                controllers = scanner.scan_package(
+                    f"{base_package}.controllers",
+                    predicate=lambda cls: cls.__name__.endswith("Controller"),
+                )
+                
+                # Scan .test_routes submodule (dev convention)
+                test_routes = scanner.scan_package(
+                    f"{base_package}.test_routes",
+                    predicate=lambda cls: cls.__name__.endswith("Controller"),
+                )
+                
+                # Add discovered controllers to context
+                for cls in controllers + test_routes:
+                    path = f"{cls.__module__}:{cls.__name__}"
+                    if path not in ctx.controllers:
+                        ctx.controllers.append(path)
+                        
+            except Exception as e:
+                print(f"Discovery warning for {ctx.name}: {e}")
+
+            # 2. Discover Services
+            try:
+                services = scanner.scan_package(
+                    f"{base_package}.services",
+                    predicate=lambda cls: cls.__name__.endswith("Service") or hasattr(cls, "__di_scope__"),
+                )
+                
+                for cls in services:
+                    path = f"{cls.__module__}:{cls.__name__}"
+                    if path not in ctx.services:
+                        ctx.services.append(path)
+                        
+            except Exception as e:
+                pass
     
     def compile_routes(self) -> None:
         """

@@ -97,6 +97,54 @@ def init_workspace(ctx, name: str, minimal: bool, template: Optional[str]):
         sys.exit(1)
 
 
+@cli.group()
+def add():
+    """Add module to workspace."""
+    pass
+
+
+@add.command('module')
+@click.argument('name')
+@click.option('--depends-on', multiple=True, help='Module dependencies')
+@click.option('--fault-domain', type=str, help='Custom fault domain')
+@click.option('--route-prefix', type=str, help='Route prefix (default: /name)')
+@click.option('--with-tests', is_flag=True, help='Generate test routes')
+@click.pass_context
+def add_module(ctx, name: str, depends_on: tuple, fault_domain: Optional[str], route_prefix: Optional[str], with_tests: bool):
+    """
+    Add a new module to the workspace.
+    
+    Examples:
+      aq add module users
+      aq add module products --depends-on=users
+      aq add module admin --fault-domain=ADMIN --route-prefix=/api/admin
+      aq add module test --with-tests
+    """
+    from .commands.add import add_module as _add_module
+    
+    try:
+        module_path = _add_module(
+            name=name,
+            depends_on=list(depends_on),
+            fault_domain=fault_domain,
+            route_prefix=route_prefix,
+            with_tests=with_tests,
+            verbose=ctx.obj['verbose'],
+        )
+        
+        if not ctx.obj['quiet']:
+            success(f"✓ Added module '{name}'")
+            info(f"  Location: {module_path}")
+            if depends_on:
+                info(f"  Dependencies: {', '.join(depends_on)}")
+            info(f"\nNext steps:")
+            info(f"  1. Implement controllers in modules/{name}/controllers.py")
+            info(f"  2. Implement services in modules/{name}/services.py")
+            info(f"  3. Run: aq run")
+    
+    except Exception as e:
+        error(f"✗ Failed to add module: {e}")
+        sys.exit(1)
 
 
 @cli.group()
@@ -320,6 +368,48 @@ def freeze(ctx, output: Optional[str], sign: bool):
     
     except Exception as e:
         error(f"✗ Freeze failed: {e}")
+        sys.exit(1)
+
+
+@cli.group()
+def manifest():
+    """Manage module manifests."""
+    pass
+
+
+@manifest.command('update')
+@click.argument('module')
+@click.option('--check', is_flag=True, help='Fail if manifest is out of sync (CI mode)')
+@click.option('--freeze', is_flag=True, help='Disable auto-discovery after Sync (Strict mode)')
+@click.pass_context
+def manifest_update(ctx, module: str, check: bool, freeze: bool):
+    """
+    Update manifest with auto-discovered resources.
+    
+    Scans the module for controllers and services, then explicitly
+    writes them into manifest.py.
+    
+    Examples:
+      aq manifest update mymod
+      aq manifest update mymod --check   # For CI
+      aq manifest update mymod --freeze  # For Prod
+    """
+    from .commands.manifest import update_manifest
+    
+    try:
+        # Resolve workspace root (assume cwd)
+        workspace_root = Path.cwd()
+        
+        update_manifest(
+            module_name=module,
+            workspace_root=workspace_root,
+            check=check,
+            freeze=freeze,
+            verbose=ctx.obj['verbose'],
+        )
+        
+    except Exception as e:
+        error(f"✗ Manifest update failed: {e}")
         sys.exit(1)
 
 

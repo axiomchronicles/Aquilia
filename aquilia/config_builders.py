@@ -32,25 +32,60 @@ class RuntimeConfig:
 class ModuleConfig:
     """Module configuration."""
     name: str
+    version: str = "0.1.0"
+    description: str = ""
     fault_domain: Optional[str] = None
     route_prefix: Optional[str] = None
     depends_on: List[str] = field(default_factory=list)
+    controllers: List[str] = field(default_factory=list)
+    routes: List[Dict[str, Any]] = field(default_factory=list)
+    services: List[str] = field(default_factory=list)
+    providers: List[Dict[str, Any]] = field(default_factory=list)
+    
+    # Discovery configuration
+    auto_discover: bool = True  # Default to True for convenience
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format."""
         return {
             "name": self.name,
+            "version": self.version,
+            "description": self.description,
             "fault_domain": self.fault_domain or self.name.upper(),
             "route_prefix": self.route_prefix or f"/{self.name}",
             "depends_on": self.depends_on,
+            "controllers": self.controllers,
+            "routes": self.routes,
+            "services": self.services,
+            "providers": self.providers,
+            "auto_discover": self.auto_discover,
         }
 
 
 class Module:
     """Fluent module builder."""
     
-    def __init__(self, name: str):
-        self._config = ModuleConfig(name=name)
+    def __init__(self, name: str, version: str = "0.1.0", description: str = ""):
+        self._config = ModuleConfig(
+            name=name,
+            version=version,
+            description=description,
+            auto_discover=True,
+        )
+    
+    def auto_discover(self, enabled: bool = True) -> "Module":
+        """
+        Configure auto-discovery behavior.
+        
+        If enabled (default), the runtime will automatically scan:
+        - .controllers for Controller subclasses
+        - .services for Service classes
+        
+        Args:
+            enabled: Whether to enable auto-discovery
+        """
+        self._config.auto_discover = enabled
+        return self
     
     def fault_domain(self, domain: str) -> "Module":
         """Set fault domain."""
@@ -65,6 +100,26 @@ class Module:
     def depends_on(self, *modules: str) -> "Module":
         """Set module dependencies."""
         self._config.depends_on = list(modules)
+        return self
+
+    def register_controllers(self, *controllers: str) -> "Module":
+        """Register explicit controllers."""
+        self._config.controllers.extend(controllers)
+        return self
+
+    def register_services(self, *services: str) -> "Module":
+        """Register explicit services."""
+        self._config.services.extend(services)
+        return self
+        
+    def register_providers(self, *providers: Dict[str, Any]) -> "Module":
+        """Register explicit DI providers."""
+        self._config.providers.extend(providers)
+        return self
+        
+    def register_routes(self, *routes: Dict[str, Any]) -> "Module":
+        """Register explicit routes."""
+        self._config.routes.extend(routes)
         return self
     
     def build(self) -> ModuleConfig:

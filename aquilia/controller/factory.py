@@ -173,13 +173,19 @@ class ControllerFactory:
                         # Use default
                         params[param_name] = param.default
                 except Exception as e:
-                    # If resolution fails and no default, skip
+                    # If resolution fails and no default, fail hard
                     if param.default != inspect.Parameter.empty:
                         params[param_name] = param.default
+                    else:
+                        raise RuntimeError(
+                            f"Failed to resolve required parameter '{param_name}' "
+                            f"for {controller_class.__name__}: {e}"
+                        ) from e
             
             return controller_class(**params)
         
-        except Exception:
+        except Exception as e:
+            print(f"DEBUG: DI Resolution failed for {controller_class.__name__}: {e}")
             # Fallback to simple instantiation
             return controller_class()
     

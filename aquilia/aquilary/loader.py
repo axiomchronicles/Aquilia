@@ -111,6 +111,7 @@ class ManifestLoader:
         resolved: List[ManifestSource] = []
         
         for source in sources:
+
             if isinstance(source, type):
                 # Already imported class
                 resolved.append(
@@ -146,6 +147,28 @@ class ManifestLoader:
                     resolved.extend(self._discover_in_directory(path))
                 else:
                     raise ValueError(f"Unknown manifest source type: {source}")
+            else:
+                # Check for instance-based manifest (e.g. Module builder)
+                if hasattr(source, "build"):
+                    # It's likely a builder
+                    resolved.append(
+                        ManifestSource(
+                            type="builder",
+                            value=source,
+                            origin=str(source),
+                        )
+                    )
+                elif hasattr(source, "name") and hasattr(source, "version"):
+                    # It's a config object/dataclass
+                    resolved.append(
+                        ManifestSource(
+                            type="instance",
+                            value=source,
+                            origin=str(source),
+                        )
+                    )
+                else:
+                    raise ValueError(f"Unknown manifest source type: {source}")
         
         # Filesystem autodiscovery
         if allow_fs_autodiscovery:
@@ -169,6 +192,10 @@ class ManifestLoader:
             return self._load_from_python_file(source.value)
         elif source.type == "dsl":
             return self._load_from_dsl_file(source.value)
+        elif source.type == "builder":
+            return source.value.build()
+        elif source.type == "instance":
+            return source.value
         else:
             raise ValueError(f"Unknown source type: {source.type}")
     

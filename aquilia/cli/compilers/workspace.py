@@ -6,7 +6,7 @@ import json
 import importlib.util
 import sys
 
-from ..parsers import WorkspaceManifest
+
 
 
 class WorkspaceCompiler:
@@ -63,10 +63,39 @@ class WorkspaceCompiler:
         """
         artifacts = []
         
-        # Load workspace manifest
-        workspace_manifest = WorkspaceManifest.from_file(
-            self.workspace_root / 'aquilia.yaml'
-        )
+        # Load workspace configuration
+        workspace_file = self.workspace_root / 'workspace.py'
+        if not workspace_file.exists():
+             raise ValueError("workspace.py not found")
+             
+        workspace_content = workspace_file.read_text()
+        import re
+        
+        # Extract workspace info
+        name_match = re.search(r'Workspace\("([^"]+)"', workspace_content)
+        name = name_match.group(1) if name_match else "aquilia-workspace"
+        
+        version_match = re.search(r'version="([^"]+)"', workspace_content)
+        version = version_match.group(1) if version_match else "0.1.0"
+        
+        desc_match = re.search(r'description="([^"]+)"', workspace_content)
+        description = desc_match.group(1) if desc_match else ""
+        
+        # Extract modules
+        modules = re.findall(r'(?m)^\s*\.module\(Module\("([^"]+)"\)', workspace_content)
+        
+        # Create a simple manifest object
+        class SimpleManifest:
+            pass
+            
+        workspace_manifest = SimpleManifest()
+        workspace_manifest.name = name
+        workspace_manifest.version = version
+        workspace_manifest.description = description
+        workspace_manifest.modules = modules
+        workspace_manifest.runtime = {} # Loaded from config files usually, but compiler might skip runtime specifics
+        workspace_manifest.integrations = {}
+
         
         # Compile workspace metadata
         artifacts.append(self._compile_workspace_metadata(workspace_manifest))

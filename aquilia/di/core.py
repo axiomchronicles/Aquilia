@@ -290,6 +290,12 @@ class Container:
                 return None
             self._raise_not_found(token_key, tag)
         
+        # Scope Delegation: If scope is singleton/app and we have a parent,
+        # delegate to parent to ensure we use the shared instance.
+        # Request scope must always be resolved in the current (child) container.
+        if self._parent and provider.meta.scope in ("singleton", "app"):
+            return await self._parent.resolve_async(token, tag=tag, optional=optional)
+        
         # Create resolution context
         ctx = ResolveCtx(container=self)
         ctx.push(cache_key)
@@ -367,12 +373,9 @@ class Container:
             Provider or None if not found
         """
         # Check current container
-        if token in self._providers:
-            providers = self._providers[token]
-            if tag in providers:
-                return providers[tag]
-            if None in providers and tag is None:
-                return providers[None]
+        key = self._make_cache_key(token, tag)
+        if key in self._providers:
+            return self._providers[key]
         
         # Check parent
         if self._parent:

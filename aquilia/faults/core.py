@@ -35,34 +35,52 @@ class Severity(str, Enum):
     WARN = "warn"       # Warning, should be reviewed
     ERROR = "error"     # Error, immediate attention
     FATAL = "fatal"     # Fatal, unrecoverable, abort
+    
+    # Aliases
+    LOW = INFO
+    MEDIUM = WARN
+    HIGH = ERROR
+    CRITICAL = FATAL
 
 
-class FaultDomain(str, Enum):
+class FaultDomain:
     """
-    Explicit fault domains.
+    Fault domains (taxonomy).
     
-    Each domain has default severity, logging behavior, and retry semantics.
-    
-    Domains:
-    - CONFIG: Configuration errors (missing env, schema mismatch)
-    - REGISTRY: Aquilary errors (cycles, conflicts, validation)
-    - DI: Dependency injection (provider not found, scope violations)
-    - ROUTING: Route matching (pattern mismatch, ambiguity)
-    - FLOW: Handler execution (middleware, controller errors)
-    - EFFECT: Side effects (DB, cache, queue failures)
-    - IO: Network, filesystem operations
-    - SECURITY: Authentication, authorization, signatures
-    - SYSTEM: Fatal unrecoverable faults (OOM, panic)
+    Identifies the functional area where a fault occurred.
+    Can be one of the standard domains or a custom module-specific domain.
     """
-    CONFIG = "config"
-    REGISTRY = "registry"
-    DI = "di"
-    ROUTING = "routing"
-    FLOW = "flow"
-    EFFECT = "effect"
-    IO = "io"
-    SECURITY = "security"
-    SYSTEM = "system"
+    
+    def __init__(self, name: str, description: str = ""):
+        self.name = name
+        self.value = name  # For compatibility with Enum consumers
+        self.description = description
+    
+    def __str__(self) -> str:
+        return self.name
+    
+    def __repr__(self) -> str:
+        return f"FaultDomain(name='{self.name}')"
+    
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, FaultDomain):
+            return self.name == other.name
+        return str(self) == str(other)
+    
+    def __hash__(self) -> int:
+        return hash(self.name)
+
+
+# Standard Domains
+FaultDomain.CONFIG = FaultDomain("config", "Configuration errors")
+FaultDomain.REGISTRY = FaultDomain("registry", "Aquilary registry errors")
+FaultDomain.DI = FaultDomain("di", "Dependency injection errors")
+FaultDomain.ROUTING = FaultDomain("routing", "Route matching errors")
+FaultDomain.FLOW = FaultDomain("flow", "Handler execution errors")
+FaultDomain.EFFECT = FaultDomain("effect", "Side effect failures")
+FaultDomain.IO = FaultDomain("io", "I/O operations")
+FaultDomain.SECURITY = FaultDomain("security", "Security and auth")
+FaultDomain.SYSTEM = FaultDomain("system", "System level faults")
 
 
 class RecoveryStrategy(str, Enum):
@@ -163,7 +181,8 @@ class Fault(Exception):
         self.domain = domain
         
         # Apply domain defaults if not specified
-        defaults = DOMAIN_DEFAULTS[domain]
+        # Default to ERROR/non-retryable for custom domains
+        defaults = DOMAIN_DEFAULTS.get(domain, {"severity": Severity.ERROR, "retryable": False})
         self.severity = severity or defaults["severity"]
         self.retryable = retryable if retryable is not None else defaults["retryable"]
         

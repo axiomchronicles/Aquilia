@@ -5,7 +5,6 @@ from typing import Optional, List
 
 from ..utils.colors import info, dim
 from ..generators import ModuleGenerator
-from ..parsers import WorkspaceManifest
 
 
 def add_module(
@@ -31,10 +30,10 @@ def add_module(
         Path to created module
     """
     workspace_root = Path.cwd()
-    manifest_path = workspace_root / 'aquilia.aq'
+    workspace_file = workspace_root / 'workspace.py'
     
-    if not manifest_path.exists():
-        raise ValueError("Not in an Aquilia workspace (aquilia.aq not found)")
+    if not workspace_file.exists():
+        raise ValueError("Not in an Aquilia workspace (workspace.py not found)")
     
     if verbose:
         info(f"Adding module '{name}'...")
@@ -47,21 +46,32 @@ def add_module(
         if with_tests:
             info(f"  With test routes: Yes")
     
-    # Load workspace manifest
-    manifest = WorkspaceManifest.from_file(manifest_path)
+    # Check if modules directory exists
+    modules_dir = workspace_root / 'modules'
+    if not modules_dir.exists():
+        modules_dir.mkdir(parents=True, exist_ok=True)
     
     # Check if module already exists
-    if name in manifest.modules:
+    module_path = modules_dir / name
+    if module_path.exists():
         raise ValueError(f"Module '{name}' already exists")
+    
+    # Parse existing workspace.py to find existing modules
+    workspace_content = workspace_file.read_text()
+    existing_modules = []
+    
+    # Simple regex to find .module() calls
+    import re
+    # (?m) enables multiline mode, ^ matches start of line, \s* matches indentation
+    module_pattern = r'(?m)^\s*\.module\(Module\("([^"]+)"\)'
+    existing_modules = re.findall(module_pattern, workspace_content)
     
     # Validate dependencies
     for dep in depends_on:
-        if dep not in manifest.modules:
-            raise ValueError(f"Dependency '{dep}' not found")
+        if dep not in existing_modules:
+            raise ValueError(f"Dependency '{dep}' not found in workspace")
     
-    # Generate module (always with controllers now)
-    module_path = workspace_root / 'modules' / name
-    
+    # Generate module structure
     generator = ModuleGenerator(
         name=name,
         path=module_path,
@@ -73,19 +83,40 @@ def add_module(
     
     generator.generate()
     
-    # Update workspace manifest
-    manifest.add_module(name, {
-        'fault_domain': fault_domain or name.upper(),
-        'route_prefix': route_prefix or f"/{name}",
-        'depends_on': depends_on,
-    })
+    # Update workspace.py to include the new module
+    # Find the line with "# Add modules here:" and add the module after it
+    lines = workspace_content.split('\n')
+    insert_index = None
     
-    manifest.save(manifest_path)
+    for i, line in enumerate(lines):
+        if '# Add modules here:' in line:
+            insert_index = i + 1
+            break
+    
+    if insert_index is not None:
+        # Build the module line
+        module_line = f'    .module(Module("{name}").route_prefix("{route_prefix or "/" + name}"))'
+        
+        # Check if there are already modules (look for existing .module() calls after the comment)
+        # Insert after the comment line
+        lines.insert(insert_index, module_line)
+        
+        # Write back to file
+        workspace_file.write_text('\n'.join(lines))
+        
+        if verbose:
+            info(f"\n✓ Updated workspace.py with module '{name}'")
+    else:
+        if verbose:
+            warning = __import__('aquilia.cli.utils.colors', fromlist=['warning']).warning
+            warning("\n⚠ Could not auto-update workspace.py")
+            info(f"  Please manually add to workspace.py:")
+            info(f'    .module(Module("{name}").route_prefix("{route_prefix or "/" + name}"))')
     
     if verbose:
         dim("\nGenerated structure:")
         dim(f"  modules/{name}/")
-        dim(f"    module.aq")
+        dim(f"    manifest.py")
         dim(f"    controllers.py")
         dim(f"    services.py")
         dim(f"    faults.py")
@@ -94,3 +125,4 @@ def add_module(
         dim(f"    __init__.py")
     
     return module_path
+

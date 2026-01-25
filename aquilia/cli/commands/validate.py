@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import importlib.util
 import sys
 
-from ..parsers import WorkspaceManifest
+
 
 
 @dataclass
@@ -37,21 +37,25 @@ def validate_workspace(
         ValidationResult with validation status and statistics
     """
     workspace_root = Path.cwd()
-    manifest_path = workspace_root / 'aquilia.yaml'
+    workspace_root = Path.cwd()
+    workspace_config = workspace_root / 'workspace.py'
     
-    if not manifest_path.exists():
-        raise ValueError("Not in an Aquilia workspace (aquilia.yaml not found)")
+    if not workspace_config.exists():
+        raise ValueError("Not in an Aquilia workspace (workspace.py not found)")
     
     faults = []
     module_count = 0
     route_count = 0
     provider_count = 0
     
-    # Load workspace manifest
+    # Load workspace modules
     try:
-        workspace_manifest = WorkspaceManifest.from_file(manifest_path)
+        workspace_content = workspace_config.read_text()
+        import re
+        # (?m) enables multiline mode, ^ matches start of line, \s* matches indentation
+        modules = re.findall(r'(?m)^\s*\.module\(Module\("([^"]+)"\)', workspace_content)
     except Exception as e:
-        faults.append(f"Invalid workspace manifest: {e}")
+        faults.append(f"Invalid workspace configuration: {e}")
         return ValidationResult(
             is_valid=False,
             module_count=0,
@@ -61,7 +65,7 @@ def validate_workspace(
         )
     
     # Validate modules
-    modules_to_validate = [module_filter] if module_filter else workspace_manifest.modules
+    modules_to_validate = [module_filter] if module_filter else modules
     
     for module_name in modules_to_validate:
         module_path = workspace_root / 'modules' / module_name
@@ -102,7 +106,7 @@ def validate_workspace(
             
             # Validate module dependencies
             for dep in getattr(manifest_class, 'depends_on', []):
-                if dep not in workspace_manifest.modules:
+                if dep not in modules:
                     faults.append(f"Module '{module_name}' depends on non-existent module '{dep}'")
             
             # Strict validation
