@@ -405,7 +405,7 @@ class WorkspaceGenerator:
 
             from aquilia import Workspace, Module, Integration
             from datetime import timedelta
-            from aquilia.sessions import SessionPolicy
+            from aquilia.sessions import SessionPolicy, PersistencePolicy, ConcurrencyPolicy, TransportPolicy
 
 
             # Define workspace structure
@@ -439,13 +439,28 @@ class WorkspaceGenerator:
                 # Sessions - Configure session management
                 .sessions(
                     policies=[
-                        # Default session policy
+                        # Default session policy for web users
                         SessionPolicy(
                             name="default",
                             ttl=timedelta(days=7),
                             idle_timeout=timedelta(hours=1),
-                            transport="cookie",
-                            store="memory",
+                            rotate_on_privilege_change=True,
+                            persistence=PersistencePolicy(
+                                enabled=True,
+                                store_name="memory",
+                                write_through=True,
+                            ),
+                            concurrency=ConcurrencyPolicy(
+                                max_sessions_per_principal=5,
+                                behavior_on_limit="evict_oldest",
+                            ),
+                            transport=TransportPolicy(
+                                adapter="cookie",
+                                cookie_httponly=True,
+                                cookie_secure=False,  # Set to True in production
+                                cookie_samesite="lax",
+                            ),
+                            scope="user",
                         ),
                     ],
                 )
@@ -477,79 +492,57 @@ class WorkspaceGenerator:
         """Create environment configuration files."""
         # base.yaml - Shared defaults
         base_config = textwrap.dedent("""
-            # Base Configuration
-            #
-            # Shared configuration across ALL environments.
-            # Environment-specific files (dev.yaml, prod.yaml) override these values.
+            # Base Server Configuration - Shared Across All Environments
+            # Environment-specific files (dev.yaml, prod.yaml) override these values
             
-            runtime:
-              # Defaults (overridden by environment configs)
+            server:
               mode: dev
               host: 127.0.0.1
               port: 8000
               reload: false
               workers: 1
-            
-            logging:
-              level: INFO
-              format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            
-            # Application defaults
-            debug: false
+              backlog: 2048
+              timeout_keep_alive: 5
+              timeout_notify: 30
+              access_log: true
         """).strip()
         
         (self.path / 'config' / 'base.yaml').write_text(base_config)
         
         # dev.yaml - Development environment
         dev_config = textwrap.dedent("""
-            # Development Environment Configuration
-            # 
-            # This file contains RUNTIME SETTINGS for development.
-            # Workspace structure (modules, integrations) is defined in aquilia.py.
-            #
-            # Merge strategy:
-            #   1. Load workspace structure from aquilia.py
-            #   2. Load base config from config/base.yaml
-            #   3. Merge environment config (this file)
-            #   4. Apply environment variables (AQ_* prefix)
+            # Development Environment - Server Configuration
+            # Overrides base.yaml for development
             
-            runtime:
+            server:
               mode: dev
               host: 127.0.0.1
               port: 8000
-              reload: true
-              workers: 1
-            
-            logging:
-              level: DEBUG
-              format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            
-            # Development-specific settings
-            debug: true
+              reload: true                # Hot-reload on file changes
+              workers: 1                  # Single worker for debugging
+              backlog: 2048
+              timeout_keep_alive: 10
+              timeout_notify: 30
+              access_log: true
         """).strip()
         
         (self.path / 'config' / 'dev.yaml').write_text(dev_config)
         
         # prod.yaml - Production environment
         prod_config = textwrap.dedent("""
-            # Production Environment Configuration
-            #
-            # This file contains RUNTIME SETTINGS for production.
-            # Workspace structure (modules, integrations) is defined in aquilia.py.
+            # Production Environment - Server Configuration
+            # Overrides base.yaml for production
             
-            runtime:
+            server:
               mode: prod
-              host: 0.0.0.0
+              host: 0.0.0.0               # Bind to all interfaces (behind reverse proxy)
               port: 8000
-              reload: false
-              workers: 4
-            
-            logging:
-              level: WARNING
-              format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            
-            # Production-specific settings
-            debug: false
+              reload: false               # No hot-reload in production
+              workers: 4                  # Multi-worker for concurrency
+              backlog: 2048
+              timeout_keep_alive: 5
+              timeout_notify: 60          # Graceful shutdown timeout
+              access_log: false           # Disable in production (use reverse proxy logging)
         """).strip()
         
         (self.path / 'config' / 'prod.yaml').write_text(prod_config)

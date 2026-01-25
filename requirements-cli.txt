@@ -11,3 +11,6 @@ rich>=13.0.0
 
 # Optional: Code generation
 jinja2>=3.1.0
+
+# File system watcher for hot-reload
+watchdog>=3.0.0

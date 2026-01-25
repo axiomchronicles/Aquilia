@@ -605,7 +605,7 @@ def run_dev_server(
     _discover_and_display_routes(workspace_root, verbose)
     
     # Configure uvicorn
-    config = uvicorn.Config(
+    uvicorn.run(
         app=app_module,
         host=host,
         port=port,
@@ -616,8 +616,8 @@ def run_dev_server(
         use_colors=True,
     )
     
-    server = uvicorn.Server(config)
-    server.run()
+    # server = uvicorn.Server(config)
+    # server.run()
 
 
 def _create_workspace_app(workspace_root: Path, mode: str, verbose: bool = False) -> str:
