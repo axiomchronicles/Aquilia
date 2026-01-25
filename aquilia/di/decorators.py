@@ -20,14 +20,17 @@ class Inject:
             ...
     """
     
+    token: Optional[Type | str] = None
     tag: Optional[str] = None
     optional: bool = False
     
     # Internal marker for provider introspection
+    _inject_token: Optional[Type | str] = None
     _inject_tag: Optional[str] = None
     _inject_optional: bool = False
     
     def __post_init__(self):
+        self._inject_token = self.token
         self._inject_tag = self.tag
         self._inject_optional = self.optional
 
@@ -56,7 +59,7 @@ def inject(
         ):
             ...
     """
-    return Inject(tag=tag, optional=optional)
+    return Inject(token=token, tag=tag, optional=optional)
 
 
 def service(

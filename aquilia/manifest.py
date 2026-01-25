@@ -78,7 +78,7 @@ class ServiceConfig:
         """Serialize to dictionary."""
         return {
             "class_path": self.class_path,
-            "scope": self.scope.value,
+            "scope": getattr(self.scope, "value", str(self.scope)),
             "auto_discover": self.auto_discover,
             "aliases": self.aliases,
             "factory": self.factory,

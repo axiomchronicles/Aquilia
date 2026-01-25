@@ -75,7 +75,11 @@ class ControllerEngine:
         route_metadata = route.route_metadata
         
         # Initialize controller lifecycle hooks if needed
-        if self.enable_lifecycle and controller_class not in self._lifecycle_initialized:
+        # Only for Singleton controllers or if we want to support startup hooks generally?
+        # Docs say on_startup is singleton only.
+        is_singleton = getattr(controller_class, "instantiation_mode", "per_request") == "singleton"
+        
+        if self.enable_lifecycle and is_singleton and controller_class not in self._lifecycle_initialized:
             await self._init_controller_lifecycle(controller_class, container)
             self._lifecycle_initialized.add(controller_class)
         

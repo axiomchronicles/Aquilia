@@ -112,11 +112,16 @@ class RegistryValidator:
                 errors.append("Field 'services' must be a list")
             else:
                 for i, svc in enumerate(manifest.services):
-                    if not isinstance(svc, str):
-                        errors.append(f"services[{i}] must be string import path")
-                    elif not self._validate_import_path(svc):
+                    svc_path = svc
+                    if hasattr(svc, "class_path"):
+                        svc_path = svc.class_path
+                    elif not isinstance(svc, str):
+                        errors.append(f"services[{i}] must be string path or ServiceConfig")
+                        continue
+                        
+                    if not self._validate_import_path(svc_path):
                         errors.append(
-                            f"services[{i}] has invalid import path: {svc}"
+                            f"services[{i}] has invalid import path: {svc_path}"
                         )
         
         # Dependencies type

@@ -98,21 +98,51 @@ class ClassProvider:
             Dict mapping parameter names to dependency info
         """
         deps = {}
-        sig = inspect.signature(cls.__init__)
         
+        # Check if using default object.__init__
+        if cls.__init__ is object.__init__:
+            return deps
+            
+        try:
+            sig = inspect.signature(cls.__init__)
+        except ValueError:
+            # Handle classes like builtins that might not support signature inspection
+            return deps
+        
+        try:
+            type_hints = inspect.get_annotations(cls.__init__, eval_str=True)
+        except Exception:
+            # Fallback for older python or failure
+            try:
+                from typing import get_type_hints
+                type_hints = get_type_hints(cls.__init__)
+            except Exception:
+                type_hints = {}
+
         for param_name, param in sig.parameters.items():
             if param_name in ("self", "cls"):
                 continue
             
+            # Skip varargs and kwargs
+            if param.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+                continue
+            
             # Extract type hint
-            if param.annotation == inspect.Parameter.empty:
+            # Prefer resolved hint, fallback to raw annotation
+            annotation = type_hints.get(param_name, param.annotation)
+            
+            if annotation == inspect.Parameter.empty:
+                # If default value exists, it's optional and we skip dependency injection
+                if param.default != inspect.Parameter.empty:
+                    continue
+                    
                 raise DIError(
                     f"Missing type annotation for parameter '{param_name}' "
                     f"in {cls.__qualname__}.__init__"
                 )
             
             # Check for Inject metadata
-            dep_info = self._parse_annotation(param.annotation)
+            dep_info = self._parse_annotation(annotation)
             dep_info["optional"] = param.default != inspect.Parameter.empty
             
             deps[param_name] = dep_info
@@ -133,14 +163,15 @@ class ClassProvider:
                 metadata = args[1:] if len(args) > 1 else ()
                 
                 # Look for Inject marker
+                result = {"token": base_type}
                 for meta in metadata:
+                    if hasattr(meta, "_inject_token") and meta._inject_token is not None:
+                        result["token"] = meta._inject_token
                     if hasattr(meta, "_inject_tag"):
-                        return {
-                            "token": base_type,
-                            "tag": meta._inject_tag,
-                        }
-                
-                return {"token": base_type}
+                        result["tag"] = meta._inject_tag
+                    if hasattr(meta, "_inject_optional"):
+                        result["optional"] = meta._inject_optional
+                return result
         
         # Plain type annotation
         return {"token": annotation}
@@ -169,6 +200,12 @@ class FactoryProvider:
         # Build metadata
         module = factory.__module__
         qualname = factory.__qualname__
+        
+        # Check for explicit name in metadata if name arg is None
+        if name is None:
+            if hasattr(factory, "__di_name__") and factory.__di_name__ != factory.__name__:
+                name = factory.__di_name__
+        
         token = name or f"{module}.{qualname}"
         
         try:

@@ -41,6 +41,7 @@ class ModuleConfig:
     routes: List[Dict[str, Any]] = field(default_factory=list)
     services: List[str] = field(default_factory=list)
     providers: List[Dict[str, Any]] = field(default_factory=list)
+    middlewares: List[str] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
     
     # Discovery configuration
@@ -59,6 +60,7 @@ class ModuleConfig:
             "routes": self.routes,
             "services": self.services,
             "providers": self.providers,
+            "middlewares": self.middlewares,
             "tags": self.tags,
             "auto_discover": self.auto_discover,
         }
@@ -127,6 +129,11 @@ class Module:
     def register_routes(self, *routes: Dict[str, Any]) -> "Module":
         """Register explicit routes."""
         self._config.routes.extend(routes)
+        return self
+
+    def register_middlewares(self, *middlewares: str) -> "Module":
+        """Register explicit middlewares."""
+        self._config.middlewares.extend(middlewares)
         return self
     
     def build(self) -> ModuleConfig:

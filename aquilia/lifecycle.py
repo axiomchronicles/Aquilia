@@ -149,6 +149,10 @@ class LifecycleCoordinator:
             # Get DI container for this app
             di_container = self.runtime.di_containers.get(app_name)
             
+            # Start DI container (runs provider startup hooks)
+            if di_container and hasattr(di_container, "startup"):
+                await di_container.startup()
+            
             # Call startup hook
             hook = ctx.on_startup
             if asyncio.iscoroutinefunction(hook):

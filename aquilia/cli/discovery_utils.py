@@ -26,8 +26,20 @@ class TypeClassifier:
         Returns:
             True if class is a controller
         """
-        # MUST NOT be a service
-        if cls.__name__.endswith(("Service", "Provider", "Repository", "DAO", "Manager")):
+        # MUST NOT be a service, mixin, or test
+        if cls.__name__.endswith(("Service", "Provider", "Repository", "DAO", "Manager", "Mixin")):
+            return False
+            
+        if cls.__name__.startswith(("Test", "Mock", "Fake")):
+            return False
+            
+        # Ignore Abstract Base Classes
+        import inspect
+        if inspect.isabstract(cls):
+            return False
+            
+        # Ignore Base classes (convention)
+        if cls.__name__.startswith("Base") and cls.__name__.endswith("Controller"):
             return False
         
         # Check if it inherits from Controller base class
@@ -81,6 +93,16 @@ class TypeClassifier:
         
         # Check class name patterns ONLY if not a controller
         if cls.__name__.endswith(("Service", "Provider", "Repository", "DAO", "Manager")):
+            # Ignore Tests/Mocks/Mixins
+            if cls.__name__.startswith(("Test", "Mock", "Fake", "Base")):
+                return False
+            if cls.__name__.endswith("Mixin"):
+                return False
+                
+            import inspect
+            if inspect.isabstract(cls):
+                return False
+        
             # But verify it's not actually a controller (Controller subclass)
             try:
                 from aquilia import Controller
@@ -123,6 +145,36 @@ class EnhancedDiscovery:
         self.scanner = PackageScanner()
         self.verbose = verbose
         self._discovered_cache: Dict[str, Tuple[str, Type]] = {}
+
+    def _is_valid_candidate_file(self, file_path: Path) -> bool:
+        """
+        Safely check if file contains potential candidates using AST.
+        
+        Avoids importing files that don't have classes or have syntax errors.
+        """
+        import ast
+        try:
+            content = file_path.read_text(encoding='utf-8', errors='ignore')
+            tree = ast.parse(content)
+            
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef):
+                    # Check for indicators
+                    name = node.name
+                    if name.endswith(("Controller", "Service", "Provider", "Repository")):
+                        return True
+                    
+                    # Check bases (simple name matching)
+                    for base in node.bases:
+                        if isinstance(base, ast.Name) and base.id in ("Controller", "Service"):
+                            return True
+                        if isinstance(base, ast.Attribute) and base.attr in ("Controller", "Service"):
+                            return True
+            
+            return False
+        except Exception:
+            # Syntax error or other issue -> skip safe
+            return False
     
     def discover_module_controllers_and_services(
         self,
@@ -210,23 +262,24 @@ class EnhancedDiscovery:
                 "*repo*.py", "*dao*.py", "*manager*.py",
             ]
             
-            # Collect candidate files
+            # Collect candidate files recursively
             controller_files = set()
             service_files = set()
             
             try:
                 for pattern in controller_patterns:
-                    controller_files.update(module_dir.glob(pattern))
+                    # Use rglob for recursive scanning
+                    controller_files.update(module_dir.rglob(pattern))
                 for pattern in service_patterns:
-                    service_files.update(module_dir.glob(pattern))
+                    service_files.update(module_dir.rglob(pattern))
             except OSError as e:
                 if self.verbose:
                     print(f"    ⚠️  Error scanning files: {str(e)[:50]}")
                 return list(all_discovered.values())  # Return what we found so far
             
-            # All Python files (for fallback)
+            # All Python files (for fallback) - Recursive
             try:
-                all_py_files = set(module_dir.glob("*.py"))
+                all_py_files = set(module_dir.rglob("*.py"))
             except OSError:
                 all_py_files = set()
             
@@ -240,6 +293,23 @@ class EnhancedDiscovery:
             }
             other_files = all_py_files - controller_files - service_files - exclude_files
             
+            # Helper to calculate submodule name preserving nesting
+            def get_submodule_name(file_path: Path) -> str:
+                try:
+                    rel_path = file_path.relative_to(module_dir)
+                    # nested/folder/file.py -> nested.folder.file
+                    parts = list(rel_path.parent.parts) + [rel_path.stem]
+                    # Filter empty parts (just in case)
+                    parts = [p for p in parts if p and p != "."]
+                    
+                    if not parts:
+                        return base_package
+                        
+                    return f"{base_package}.{'.'.join(parts)}"
+                except ValueError:
+                    # Should not happen if file came from glob on module_dir
+                    return f"{base_package}.{file_path.stem}"
+
             # Process files in priority order with type hints
             for py_file in sorted(controller_files):
                 if py_file.stem in ['__init__', 'manifest', 'config', 'settings', 'faults', 'middleware']:
@@ -248,20 +318,13 @@ class EnhancedDiscovery:
                 if not py_file.exists():
                     continue
                 
-                submodule_name = f"{base_package}.{py_file.stem}"
+                # Correctly calculate nested submodule path
+                submodule_name = get_submodule_name(py_file)
                 
                 try:
-                    # Quick content check for performance
-                    try:
-                        content = py_file.read_text(encoding='utf-8', errors='ignore')
-                    except (OSError, IOError) as e:
-                        if self.verbose:
-                            print(f"    ⚠️  Cannot read {py_file.name}: {str(e)[:40]}")
+                    if not self._is_valid_candidate_file(py_file):
                         continue
-                    
-                    if not ('class ' in content):
-                        continue
-                    
+                        
                     # Scan the file
                     try:
                         classes = self.scanner.scan_package(submodule_name, predicate=lambda cls: True)
@@ -299,15 +362,10 @@ class EnhancedDiscovery:
                 if not py_file.exists():
                     continue
                 
-                submodule_name = f"{base_package}.{py_file.stem}"
+                submodule_name = get_submodule_name(py_file)
                 
                 try:
-                    try:
-                        content = py_file.read_text(encoding='utf-8', errors='ignore')
-                    except (OSError, IOError):
-                        continue
-                    
-                    if not ('class ' in content):
+                    if not self._is_valid_candidate_file(py_file):
                         continue
                     
                     try:
@@ -343,15 +401,10 @@ class EnhancedDiscovery:
                 if not py_file.exists():
                     continue
                 
-                submodule_name = f"{base_package}.{py_file.stem}"
+                submodule_name = get_submodule_name(py_file)
                 
                 try:
-                    try:
-                        content = py_file.read_text(encoding='utf-8', errors='ignore')
-                    except (OSError, IOError):
-                        continue
-                    
-                    if not ('class ' in content):
+                    if not self._is_valid_candidate_file(py_file):
                         continue
                     
                     try:

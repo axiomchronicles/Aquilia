@@ -152,6 +152,13 @@ class ControllerRouter:
                 })
         
         return routes
+
+    def get_routes_full(self) -> List[CompiledRoute]:
+        """Get all CompiledRoute objects."""
+        routes = []
+        for controller in self.compiled_controllers:
+            routes.extend(controller.routes)
+        return routes
     
     def get_controller(self, name: str) -> Optional[CompiledController]:
         """

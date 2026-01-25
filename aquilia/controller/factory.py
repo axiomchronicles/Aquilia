@@ -85,6 +85,9 @@ class ControllerFactory:
         """Create or return singleton instance."""
         if controller_class in self._singletons:
             return self._singletons[controller_class]
+            
+        # Validate scope safety before instantiation
+        self.validate_scope(controller_class, InstantiationMode.SINGLETON)
         
         # Resolve constructor dependencies from app container
         instance = await self._resolve_and_instantiate(
@@ -152,6 +155,15 @@ class ControllerFactory:
         import inspect
         try:
             sig = inspect.signature(controller_class.__init__)
+            
+            # Resolve type hints (handles string forward references)
+            from typing import get_type_hints
+            try:
+                type_hints = get_type_hints(controller_class.__init__, include_extras=True)
+            except Exception:
+                # Fallback if get_type_hints fails (e.g. missing imports)
+                type_hints = {}
+                
             params = {}
             
             for param_name, param in sig.parameters.items():
@@ -160,8 +172,20 @@ class ControllerFactory:
                 
                 # Try to resolve from container
                 try:
-                    # Get type annotation
-                    param_type = param.annotation
+                    # Get type annotation from hints if available, else raw annotation
+                    param_type = type_hints.get(param_name, param.annotation)
+                    print(f"DEBUG: Resolving param '{param_name}' type: {param_type}")
+
+                    if param_type is None:
+                         print(f"DEBUG: Param '{param_name}' type is None!")
+                    
+                    # INTELLIGENT INFERENCE:
+                    # If no type hint is provided, but the default value is a class (type),
+                    # assume the user wants an instance of that class injected.
+                    if param_type == inspect.Parameter.empty and param.default != inspect.Parameter.empty:
+                        if isinstance(param.default, type):
+                            param_type = param.default
+                    
                     if param_type != inspect.Parameter.empty:
                         # Resolve from container
                         resolved = await self._resolve_parameter(
@@ -199,25 +223,41 @@ class ControllerFactory:
         
         Handles Annotated[T, Inject(...)] syntax.
         """
-        # Check if it's Annotated type
         try:
             from typing import get_origin, get_args
             
             origin = get_origin(param_type)
             if origin is not None:
+                print(f"DEBUG: Origin: {origin}")
                 # Handle Annotated[T, Inject(...)]
                 args = get_args(param_type)
+                print(f"DEBUG: Args: {args}")
                 if args:
                     actual_type = args[0]
-                    # Look for Inject metadata
+                    # Look for Inject metadata using duck typing
                     for arg in args[1:]:
-                        if hasattr(arg, '__class__') and arg.__class__.__name__ == 'Inject':
+                        print(f"DEBUG: Checking arg: {arg} (type {type(arg)})")
+                        print(f"DEBUG: Has _inject_tag: {hasattr(arg, '_inject_tag')}")
+                        print(f"DEBUG: Has _inject_token: {hasattr(arg, '_inject_token')}")
+                        
+                        if hasattr(arg, '_inject_tag') or hasattr(arg, '_inject_token'):
+                            print(f"DEBUG: Found Inject-like metadata: {arg}")
                             # Extract tag if any
                             tag = getattr(arg, 'tag', None)
+                            # Extract token if any
+                            token = getattr(arg, 'token', None)
+                            
+                            resolve_key = token if token else actual_type
+                            
                             # Resolve from container with tag
-                            if hasattr(container, 'resolve'):
-                                return await container.resolve(actual_type, tag=tag)
-                            return await self._simple_resolve(actual_type, container)
+                            if hasattr(container, 'resolve_async'):
+                                return await container.resolve_async(resolve_key, tag=tag)
+                            elif hasattr(container, 'resolve'):
+                                result = container.resolve(resolve_key, tag=tag)
+                                if asyncio.iscoroutine(result):
+                                    return await result
+                                return result
+                            return await self._simple_resolve(resolve_key, container)
             
             # Simple type resolution
             return await self._simple_resolve(param_type, container)
@@ -270,9 +310,50 @@ class ControllerFactory:
         if mode != InstantiationMode.SINGLETON:
             return
         
-        # TODO: Implement compile-time scope validation
-        # Check constructor params don't inject request-scoped providers
-        pass
+        # Validate scopes of all dependencies
+        import inspect
+        try:
+            sig = inspect.signature(controller_class.__init__)
+            type_hints = self._get_type_hints(controller_class)
+            
+            for param_name, param in sig.parameters.items():
+                if param_name == 'self':
+                    continue
+                
+                # Get param type
+                param_type = type_hints.get(param_name, param.annotation)
+                
+                # If inferred from default value
+                if param_type == inspect.Parameter.empty and isinstance(param.default, type):
+                    param_type = param.default
+                
+                if param_type == inspect.Parameter.empty:
+                    continue
+                    
+                # Check provider scope
+                provider = self.app_container._lookup_provider(
+                    self.app_container._token_to_key(param_type), None
+                )
+                
+                if provider:
+                    # Singleton/App controllers CANNOT depend on Request/Ephemeral scopes
+                    # because the dependency would be cached forever (stale/leak)
+                    if provider.meta.scope in ("request", "ephemeral", "transient"):
+                        raise ScopeViolationError(controller_class, param_type)
+                        
+        except ScopeViolationError:
+            raise
+        except Exception:
+            # If validation fails due to inspection issues, log warning but allow proceed
+            # (runtime might fail later, but we shouldn't block startup on static analysis bugs)
+            pass
+
+    def _get_type_hints(self, cls):
+        try:
+            from typing import get_type_hints
+            return get_type_hints(cls.__init__)
+        except Exception:
+            return {}
 
 
 class ScopeViolationError(Exception):

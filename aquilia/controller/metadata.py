@@ -188,6 +188,19 @@ def extract_controller_metadata(
     """
     # Get class-level attributes
     prefix = getattr(controller_class, 'prefix', '')
+    
+    # Robustness: Handle incorrect prefix types
+    if isinstance(prefix, list):
+        if prefix:
+            prefix = str(prefix[0])
+        else:
+            prefix = ""
+    elif not isinstance(prefix, str) and prefix is not None:
+        prefix = str(prefix)
+    
+    # Ensure it's not None
+    if prefix is None:
+        prefix = ""
     pipeline = getattr(controller_class, 'pipeline', [])
     tags = getattr(controller_class, 'tags', [])
     instantiation_mode = getattr(controller_class, 'instantiation_mode', 'per_request')

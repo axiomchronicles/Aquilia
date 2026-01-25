@@ -290,7 +290,8 @@ class Aquilary:
                 config_namespace=config_ns,
                 controllers=getattr(manifest, "controllers", []),
                 services=getattr(manifest, "services", []),
-                middlewares=getattr(manifest, "middlewares", []),
+                # Prefer 'middleware' (new format) over 'middlewares' (legacy)
+                middlewares=getattr(manifest, "middleware", None) or getattr(manifest, "middlewares", []),
                 depends_on=getattr(manifest, "depends_on", []),
                 on_startup=getattr(manifest, "on_startup", None),
                 on_shutdown=getattr(manifest, "on_shutdown", None),
@@ -442,47 +443,19 @@ class RuntimeRegistry:
             # Start scan
             base_package = f"modules.{ctx.name}"
             
-            # 1. Discover Controllers
+            # 1. Discover Controllers (Recursive)
             try:
-                # Scan .controllers submodule
+                # Scan entire module recursively for controllers
+                # This covers .controllers, .test_routes, root files, and any nested subdirectories
                 controllers = scanner.scan_package(
-                    f"{base_package}.controllers",
+                    base_package,
                     predicate=lambda cls: cls.__name__.endswith("Controller"),
+                    recursive=True,
+                    max_depth=5, # Deep nesting support
                 )
-                
-                # Scan .test_routes submodule (dev convention)
-                test_routes = scanner.scan_package(
-                    f"{base_package}.test_routes",
-                    predicate=lambda cls: cls.__name__.endswith("Controller"),
-                )
-                
-                # NEW: Scan individual controller files in module directory
-                module_controllers = []
-                try:
-                    import importlib
-                    # Import the module package itself
-                    module_package = importlib.import_module(base_package)
-                    if hasattr(module_package, '__path__'):
-                        # Get all python files in the module directory
-                        from pathlib import Path
-                        module_dir = Path(module_package.__path__[0])
-                        for py_file in module_dir.glob("*.py"):
-                            if py_file.stem in ['__init__', 'manifest']:
-                                continue
-                            
-                            # Try to scan individual file as a module
-                            submodule_name = f"{base_package}.{py_file.stem}"
-                            file_controllers = scanner.scan_package(
-                                submodule_name,
-                                predicate=lambda cls: cls.__name__.endswith("Controller"),
-                            )
-                            module_controllers.extend(file_controllers)
-                except Exception:
-                    # Silent fail for runtime discovery
-                    pass
                 
                 # Add discovered controllers to context
-                for cls in controllers + test_routes + module_controllers:
+                for cls in controllers:
                     path = f"{cls.__module__}:{cls.__name__}"
                     if path not in ctx.controllers:
                         ctx.controllers.append(path)
@@ -490,11 +463,14 @@ class RuntimeRegistry:
             except Exception as e:
                 print(f"Discovery warning for {ctx.name}: {e}")
 
-            # 2. Discover Services
+            # 2. Discover Services (Recursive)
             try:
+                # Scan entire module recursively for services
                 services = scanner.scan_package(
-                    f"{base_package}.services",
+                    base_package,
                     predicate=lambda cls: cls.__name__.endswith("Service") or hasattr(cls, "__di_scope__"),
+                    recursive=True,
+                    max_depth=5,
                 )
                 
                 for cls in services:
@@ -619,32 +595,97 @@ class RuntimeRegistry:
                     pass
             
             # Register services
-            for service_path in ctx.services:
+            # Register services
+            import sys
+            print(f"DEBUG: Processing {len(ctx.services)} services for app {ctx.name}", file=sys.stderr)
+            for service_item in ctx.services:
                 try:
-                    # Import service class
-                    if ":" in service_path:
-                        module_path, class_name = service_path.split(":", 1)
+                    print(f"DEBUG: Processing item: {service_item}", file=sys.stderr)
+                    # Extract config
+                    if hasattr(service_item, "class_path"):
+                        # ServiceConfig object
+                        service_path = service_item.class_path
+                        scope = getattr(service_item, "scope", "app")
+                        aliases = getattr(service_item, "aliases", [])
                     else:
-                        module_path, class_name = service_path.rsplit(".", 1)
+                        # String path
+                        service_path = service_item
+                        scope = "app"
+                        aliases = []
+
+                    if hasattr(service_item, "factory") and service_item.factory:
+                        # Factory Provider
+                        factory_path = service_item.factory
+                        if ":" in factory_path:
+                            fmod, fname = factory_path.split(":", 1)
+                        else:
+                            fmod, fname = factory_path.rsplit(".", 1)
+                        
+                        factory_func = getattr(importlib.import_module(fmod), fname)
+                        
+                        scope = getattr(service_item, "scope", None) or getattr(factory_func, '__di_scope__', 'app')
+                        tag = getattr(service_item, "tag", None) or getattr(factory_func, '__di_tag__', None)
+                        
+                        from aquilia.di.providers import FactoryProvider
+                        provider = FactoryProvider(
+                            factory=factory_func,
+                            scope=scope,
+                            tags=(tag,) if tag else (),
+                        )
+                        # Register using provider's determined token (from @factory name or return annotation)
+                        container.register(provider, tag=tag)
+                        service_class = factory_func # for logging/alias reference
+                        
+                    else:
+                        # Class Provider
+                        if ":" in service_path:
+                            module_path, class_name = service_path.split(":", 1)
+                        else:
+                            module_path, class_name = service_path.rsplit(".", 1)
+                        
+                        module = importlib.import_module(module_path)
+                        service_class = getattr(module, class_name)
+                        
+                        # Override scope if not explicit in config
+                        if scope == "app":
+                             scope = getattr(service_class, '__di_scope__', 'app')
+                        tag = getattr(service_class, '__di_tag__', None)
+                        
+                        # Create ClassProvider and register
+                        provider = ClassProvider(
+                            cls=service_class,
+                            scope=scope,
+                            tags=(tag,) if tag else (),
+                        )
+                        container.register(provider, tag=tag)
                     
-                    module = importlib.import_module(module_path)
-                    service_class = getattr(module, class_name)
-                    
-                    # Check for DI decorators
-                    scope = getattr(service_class, '__di_scope__', 'app')
-                    tag = getattr(service_class, '__di_tag__', None)
-                    
-                    # Create ClassProvider and register
-                    provider = ClassProvider(
-                        cls=service_class,
-                        scope=scope,
-                        tags=(tag,) if tag else (),
-                    )
-                    container.register(provider, tag=tag)
+                    # Register aliases
+                    from aquilia.di.providers import AliasProvider
+                    for alias in aliases:
+                        # Resolve alias token (class or string)
+                        alias_token = alias
+                        if isinstance(alias, str) and ":" in alias:
+                             # Try to import alias class
+                             try:
+                                 amod, acls = alias.split(":", 1)
+                                 alias_token = getattr(importlib.import_module(amod), acls)
+                             except:
+                                 pass # Use string token
+                                 
+                        alias_provider = AliasProvider(
+                            token=alias_token,
+                            target_token=service_class,
+                            target_tag=tag,
+                        )
+                        container.register(alias_provider)
+                        if tag:
+                            container.register(alias_provider, tag=tag)
+                        print(f"DEBUG: Registered Alias {alias_token} -> {service_class}")
+                        
                     print(f"✓ Registered service: {service_class.__name__} in app '{ctx.name}'")
                 
                 except Exception as e:
-                    print(f"Warning: Failed to register service {service_path}: {e}")
+                    print(f"Warning: Failed to register service {service_item}: {e}")
         
         # Mark as registered
         self._services_registered = True

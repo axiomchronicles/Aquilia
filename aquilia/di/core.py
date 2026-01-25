@@ -135,19 +135,27 @@ class Container:
         "_parent",
         "_finalizers",
         "_resolve_plans",
+        "_diagnostics",
+        "_lifecycle",
     )
     
     def __init__(
         self,
         scope: str = "app",
         parent: Optional["Container"] = None,
+        diagnostics: Optional[Any] = None,
     ):
+        from .diagnostics import DIDiagnostics
+        from .lifecycle import Lifecycle
+
         self._providers: Dict[str, Provider] = {}  # {cache_key: provider}
         self._cache: Dict[str, Any] = {}  # {cache_key: instance}
         self._scope = scope
         self._parent = parent
         self._finalizers: List[Callable[[], Coroutine]] = []  # LIFO cleanup
         self._resolve_plans: Dict[str, List[str]] = {}  # Precomputed dependency lists
+        self._diagnostics = diagnostics or DIDiagnostics()
+        self._lifecycle = Lifecycle()
     
     def register(self, provider: Provider, tag: Optional[str] = None):
         """
@@ -164,12 +172,60 @@ class Container:
         # Check for duplicates
         if key in self._providers:
             existing = self._providers[key]
+            # Idempotency: if same provider, ignore. If different, error.
+            if existing == provider:
+                return
             raise ValueError(
                 f"Provider for {token} (tag={tag}) already registered: {existing.meta.name}"
             )
         
         self._providers[key] = provider
-    
+
+        # Emit diagnostic event
+        from .diagnostics import DIEventType
+        self._diagnostics.emit(
+            DIEventType.REGISTRATION,
+            token=token,
+            tag=tag,
+            provider_name=meta.name
+        )
+
+    def bind(self, interface: Type, implementation: Type, scope: str = "app", tag: Optional[str] = None):
+        """
+        Bind an interface to an implementation class.
+        
+        Example:
+            container.bind(UserRepository, SqlUserRepository)
+        
+        Args:
+            interface: Abstract base class or protocol
+            implementation: Concrete class
+            scope: Lifecycle scope
+            tag: Optional tag
+        """
+        from .providers import ClassProvider
+        provider = ClassProvider(implementation, scope=scope)
+        
+        # Register under the INTERFACE token
+        meta = provider.meta
+        # Hack: mutate the token to match the interface, but keep the implementation logic
+        # A cleaner way would be to wrap or use AliasProvider, but ClassProvider is flexible.
+        token = self._token_to_key(interface)
+        
+        # We manually register it under the interface key
+        key = self._make_cache_key(token, tag)
+        self._providers[key] = provider
+
+        # Emit diagnostic event
+        from .diagnostics import DIEventType
+        self._diagnostics.emit(
+            DIEventType.REGISTRATION,
+            token=token,
+            tag=tag,
+            provider_name=provider.meta.name,
+            metadata={"binding": "interface"}
+        )
+        
     async def register_instance(
         self,
         token: Type[T] | str,
@@ -296,25 +352,64 @@ class Container:
         if self._parent and provider.meta.scope in ("singleton", "app"):
             return await self._parent.resolve_async(token, tag=tag, optional=optional)
         
+        # Emit diagnostic event
+        from .diagnostics import DIEventType
+        self._diagnostics.emit(DIEventType.RESOLUTION_START, token=token, tag=tag)
+
         # Create resolution context
         ctx = ResolveCtx(container=self)
         ctx.push(cache_key)
         
         try:
-            # Instantiate
-            instance = await provider.instantiate(ctx)
+            # Measure instantiation
+            with self._diagnostics.measure(
+                DIEventType.RESOLUTION_SUCCESS, 
+                token=token, 
+                tag=tag,
+                provider_name=provider.meta.name
+            ):
+                # Instantiate
+                instance = await provider.instantiate(ctx)
             
             # Cache if appropriate for scope
             if self._should_cache(provider.meta.scope):
                 self._cache[cache_key] = instance
                 
-                # Register finalizer for cleanup
+                # Check for lifecycle hooks
+                await self._check_lifecycle_hooks(instance, provider.meta.name)
+
+                # Register finalizer for cleanup (compatibility with existing)
                 if hasattr(instance, "__aexit__") or hasattr(instance, "shutdown"):
                     self._register_finalizer(instance)
             
             return instance
         finally:
             ctx.pop()
+
+    async def _check_lifecycle_hooks(self, instance: Any, name: str) -> None:
+        """Check and register lifecycle hooks for an instance."""
+        if hasattr(instance, "on_startup"):
+            hook = instance.on_startup
+            self._lifecycle.on_startup(
+                hook if asyncio.iscoroutinefunction(hook) else lambda: asyncio.to_thread(hook),
+                name=f"{name}.on_startup"
+            )
+        
+        if hasattr(instance, "on_shutdown"):
+            hook = instance.on_shutdown
+            self._lifecycle.on_shutdown(
+                hook if asyncio.iscoroutinefunction(hook) else lambda: asyncio.to_thread(hook),
+                name=f"{name}.on_shutdown"
+            )
+
+    async def startup(self) -> None:
+        """
+        Run startup hooks for all registered providers.
+        """
+        from .diagnostics import DIEventType
+        self._diagnostics.emit(DIEventType.LIFECYCLE_STARTUP, metadata={"scope": self._scope})
+        await self._lifecycle.run_startup_hooks()
+
     
     def create_request_scope(self) -> "Container":
         """
@@ -331,9 +426,16 @@ class Container:
     
     async def shutdown(self) -> None:
         """
-        Shutdown container - run finalizers in LIFO order.
+        Shutdown container - run lifecycle hooks and finalizers in LIFO order.
         """
-        # Run finalizers in reverse order
+        from .diagnostics import DIEventType
+        self._diagnostics.emit(DIEventType.LIFECYCLE_SHUTDOWN, metadata={"scope": self._scope})
+
+        # Run lifecycle shutdown hooks
+        await self._lifecycle.run_shutdown_hooks()
+        await self._lifecycle.run_finalizers()
+
+        # Compatibility with existing finalizers
         for finalizer in reversed(self._finalizers):
             try:
                 await finalizer()
@@ -343,6 +445,7 @@ class Container:
         
         self._finalizers.clear()
         self._cache.clear()
+        self._lifecycle.clear()
     
     def _token_to_key(self, token: Type | str) -> str:
         """Convert type or string to cache key."""
@@ -402,11 +505,9 @@ class Container:
         
         # Find similar providers
         candidates = []
-        for t, providers in self._providers.items():
-            for p_tag, provider in providers.items():
-                if token in t or t in token:
-                    tag_str = f" (tag={p_tag})" if p_tag else ""
-                    candidates.append(f"{t}{tag_str}")
+        for key, provider in self._providers.items():
+            if token in key:
+                 candidates.append(key)
         
         raise ProviderNotFoundError(
             token=token,

@@ -104,17 +104,60 @@ class FingerprintGenerator:
             "version": ctx.version,
             "depends_on": sorted(ctx.depends_on),
             "controllers": sorted(ctx.controllers),
-            "services": sorted(ctx.services),
+            "services": sorted(
+                self._canonicalize_services(ctx.services),
+                key=lambda s: s["class_path"],
+            ),
             "middlewares": sorted(
-                [
-                    {"path": path, "kwargs": self._canonicalize_dict(kwargs)}
-                    for path, kwargs in ctx.middlewares
-                ],
+                self._canonicalize_middlewares(ctx.middlewares),
                 key=lambda m: m["path"],
             ),
-            "has_startup_hook": ctx.on_startup is not None,
             "has_shutdown_hook": ctx.on_shutdown is not None,
         }
+    
+    def _canonicalize_services(self, services: List[Any]) -> List[Dict[str, Any]]:
+        """Canonicalize service list."""
+        result = []
+        for svc in services:
+            if isinstance(svc, str):
+                result.append({
+                    "class_path": svc,
+                    "scope": "app",
+                })
+            elif hasattr(svc, "to_dict"):
+                 d = svc.to_dict()
+                 result.append({
+                     "class_path": d.get("class_path"),
+                     "scope": d.get("scope", "app"),
+                     "aliases": sorted(d.get("aliases", [])),
+                     "config": self._canonicalize_dict(d.get("config", {})),
+                 })
+        return result
+
+    def _canonicalize_middlewares(self, middlewares: List[Any]) -> List[Dict[str, Any]]:
+        """Canonicalize middleware list handling various formats."""
+        result = []
+        for mw in middlewares:
+            path = None
+            kwargs = {}
+            
+            if isinstance(mw, (tuple, list)) and len(mw) >= 2:
+                path, kwargs = mw[0], mw[1]
+            elif hasattr(mw, "to_dict"):
+                # MiddlewareConfig object
+                d = mw.to_dict()
+                path = d.get("class_path")
+                kwargs = d.get("config", {})
+            elif isinstance(mw, dict):
+                path = mw.get("class_path") or mw.get("path")
+                kwargs = mw.get("config", {})
+            
+            if path:
+                result.append({
+                    "path": path,
+                    "kwargs": self._canonicalize_dict(kwargs)
+                })
+        return result
     
     def _extract_config_schema(self, config: Any) -> Dict[str, Any]:
         """

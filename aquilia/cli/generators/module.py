@@ -191,13 +191,12 @@ class ModuleGenerator:
                 
                 Provides RESTful CRUD operations for {self.name}.
                 """
-                prefix = "{self.route_prefix}"
+                prefix = "/"
                 tags = ["{self.name}"]
                 
-                def __init__(self):
-                    # Instantiate service directly (DI integration pending)
-                    # Once DI is fully integrated, change to: def __init__(self, service: {self.name.capitalize()}Service):
-                    self.service = {self.name.capitalize()}Service()
+                def __init__(self, service: "{self.name.capitalize()}Service" = None):
+                    # Instantiate service directly if not injected
+                    self.service = service or {self.name.capitalize()}Service()
                 
                 @GET("/")
                 async def list_{self.name}(self, ctx: RequestCtx):

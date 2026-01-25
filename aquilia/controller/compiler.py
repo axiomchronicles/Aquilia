@@ -83,12 +83,17 @@ class ControllerCompiler:
         self.compiled_controllers: Dict[str, CompiledController] = {}
         self.route_conflicts: List[tuple[str, str]] = []
     
-    def compile_controller(self, controller_class: type) -> CompiledController:
+    def compile_controller(
+        self, 
+        controller_class: type,
+        base_prefix: Optional[str] = None,
+    ) -> CompiledController:
         """
         Compile a controller class into routes.
         
         Args:
             controller_class: Controller class to compile
+            base_prefix: Optional base prefix from module/app
             
         Returns:
             CompiledController with all routes
@@ -109,6 +114,7 @@ class ControllerCompiler:
                     controller_class,
                     metadata,
                     route_meta,
+                    base_prefix=base_prefix,
                 )
                 compiled_routes.append(compiled_route)
             except Exception as e:
@@ -137,23 +143,18 @@ class ControllerCompiler:
         controller_class: type,
         controller_metadata: ControllerMetadata,
         route_metadata: RouteMetadata,
+        base_prefix: Optional[str] = None,
     ) -> CompiledRoute:
         """Compile a single route."""
-        # Build full path: prefix + route path
-        prefix = controller_metadata.prefix.rstrip("/")
-        route_path = route_metadata.path_template.lstrip("/") if route_metadata.path_template != "/" else ""
+        from aquilia.utils.urls import join_paths
         
-        # Handle edge cases
-        if prefix and route_path:
-            full_path = f"{prefix}/{route_path}"
-        elif prefix:
-            full_path = prefix or "/"
-        else:
-            full_path = f"/{route_path}" if route_path else "/"
+        # Build components
+        base = base_prefix or ""
+        ctrl_prefix = controller_metadata.prefix or ""
+        route_path = route_metadata.path_template or ""
         
-        # Normalize path
-        if full_path != "/" and full_path.endswith("/"):
-            full_path = full_path.rstrip("/")
+        # Robust join
+        full_path = join_paths(base, ctrl_prefix, route_path)
         
         # Convert to pattern format (« » style)
         pattern_path = self._convert_to_pattern_syntax(full_path, route_metadata)
@@ -238,28 +239,24 @@ class ControllerCompiler:
             # Default to string
             return "str"
     
-    def check_conflicts(self, controllers: List[type]) -> List[Dict[str, Any]]:
+    def validate_route_tree(self, compiled_controllers: List[CompiledController]) -> List[Dict[str, Any]]:
         """
-        Check for route conflicts across controllers.
+        Validate the entire compiled route tree for conflicts.
+        
+        This is the preferred validation method as it accounts for 
+        applied prefixes and mounted locations.
         
         Args:
-            controllers: List of controller classes
+            compiled_controllers: List of already compiled controllers
             
         Returns:
             List of conflict descriptions
         """
         conflicts = []
-        compiled_list = []
-        
-        # Compile all controllers
-        for ctrl in controllers:
-            compiled = self.compile_controller(ctrl)
-            compiled_list.append(compiled)
-        
-        # Check for conflicts (same method + overlapping patterns)
         routes_by_method: Dict[str, List[CompiledRoute]] = {}
         
-        for compiled in compiled_list:
+        # Group by method
+        for compiled in compiled_controllers:
             for route in compiled.routes:
                 key = route.http_method
                 if key not in routes_by_method:
@@ -277,16 +274,34 @@ class ControllerCompiler:
                                 "controller": route1.controller_class.__name__,
                                 "path": route1.full_path,
                                 "handler": route1.route_metadata.handler_name,
+                                "module": route1.controller_class.__module__,
                             },
                             "route2": {
                                 "controller": route2.controller_class.__name__,
                                 "path": route2.full_path,
                                 "handler": route2.route_metadata.handler_name,
+                                "module": route2.controller_class.__module__,
                             },
                             "reason": "Ambiguous patterns could match same request",
                         })
-        
         return conflicts
+
+    def check_conflicts(self, controllers: List[type]) -> List[Dict[str, Any]]:
+        """
+        Check for route conflicts across controllers (Legacy).
+        
+        WARNING: This assumes NO module prefixes. For robust checking,
+        use validate_route_tree() with compiled controllers.
+        
+        Args:
+            controllers: List of controller classes
+            
+        Returns:
+            List of conflict descriptions
+        """
+        # Compile all controllers (without prefixes)
+        compiled_list = [self.compile_controller(ctrl) for ctrl in controllers]
+        return self.validate_route_tree(compiled_list)
     
     def _routes_conflict(self, route1: CompiledRoute, route2: CompiledRoute) -> bool:
         """Check if two routes conflict (ambiguous matching)."""
@@ -295,37 +310,64 @@ class ControllerCompiler:
             return True
         
         # Check if patterns could overlap
-        # This is a simplified check - real implementation would be more sophisticated
-        parts1 = route1.full_path.split("/")
-        parts2 = route2.full_path.split("/")
+        parts1 = list(filter(None, route1.full_path.split("/")))
+        parts2 = list(filter(None, route2.full_path.split("/")))
         
         if len(parts1) != len(parts2):
             return False
         
+        # Helper to extract type from "«name:type»" or return None if static
+        def get_segment_info(segment):
+            if segment.startswith("«") and segment.endswith("»"):
+                content = segment[1:-1]
+                if ":" in content:
+                    _, type_str = content.split(":", 1)
+                    return "dynamic", type_str
+                return "dynamic", "str"
+            return "static", segment
+
         # Check each segment
         for p1, p2 in zip(parts1, parts2):
-            # Both static and different
-            if "{" not in p1 and "{" not in p2 and p1 != p2:
-                return False
-            # Continue checking
-        
-        # Could potentially conflict
+            kind1, info1 = get_segment_info(p1)
+            kind2, info2 = get_segment_info(p2)
+            
+            # Both static
+            if kind1 == "static" and kind2 == "static":
+                if info1 != info2:
+                    return False # Distinct static paths
+            
+            # One static, one dynamic
+            elif kind1 == "static" and kind2 == "dynamic":
+                if info2 == "int" and not info1.isdigit():
+                    return False # Static is not int
+                # If dynamic is string, it overlaps with any static string
+                
+            elif kind1 == "dynamic" and kind2 == "static":
+                if info1 == "int" and not info2.isdigit():
+                    return False # Static is not int
+            
+            # Both dynamic
+            else:
+                # If different types (e.g. int vs bool), might not conflict?
+                # But widely overlapping types (str vs int) do conflict for numbers.
+                # Assuming conflict for safety if both are dynamic at same pos.
+                pass
+                
+        # If we got here, all segments potentially overlap
         return True
     
-    def export_routes(self, controllers: List[type]) -> Dict[str, Any]:
+    def export_routes(self, controllers: List[CompiledController]) -> Dict[str, Any]:
         """
         Export all compiled routes for inspection/debugging.
         
         Args:
-            controllers: List of controller classes
+            controllers: List of CompiledController
             
         Returns:
             Dict with controllers and routes
         """
-        compiled = [self.compile_controller(ctrl) for ctrl in controllers]
-        
         return {
-            "controllers": [c.to_dict() for c in compiled],
-            "total_routes": sum(len(c.routes) for c in compiled),
-            "conflicts": self.check_conflicts(controllers),
+            "controllers": [c.to_dict() for c in controllers],
+            "total_routes": sum(len(c.routes) for c in controllers),
+            "conflicts": self.validate_route_tree(controllers),
         }

@@ -15,6 +15,8 @@ from .controller.router import ControllerRouter
 from .aquilary import Aquilary, RuntimeRegistry, RegistryMode, AquilaryRegistry
 from .lifecycle import LifecycleCoordinator, LifecycleManager, LifecycleError
 from .middleware_ext.session_middleware import SessionMiddleware
+from .controller.openapi import OpenAPIGenerator
+from .response import Response
 
 
 class AquiliaServer:
@@ -222,6 +224,67 @@ class AquiliaServer:
         else:
             self.logger.info("Session management disabled")
             self._session_engine = None
+            
+        # Register app-specific middlewares from Aquilary manifest
+        if hasattr(self, "aquilary"):
+            for ctx in self.aquilary.app_contexts:
+                for mw_config in ctx.middlewares:
+                    try:
+                        self._register_app_middleware(mw_config)
+                    except Exception as e:
+                        self.logger.error(f"Failed to register middleware from app {ctx.name}: {e}")
+
+    def _register_app_middleware(self, mw_config: Any):
+        """Register application middleware from config."""
+        import importlib
+        
+        # Extract config details
+        # Handle both dict and object (MiddlewareConfig)
+        if isinstance(mw_config, dict):
+            class_path = mw_config.get("class_path") or mw_config.get("path")
+            scope = mw_config.get("scope", "global")
+            priority = mw_config.get("priority", 50)
+            config = mw_config.get("config", {})
+            name = mw_config.get("name")
+        else:
+            class_path = getattr(mw_config, "class_path", None)
+            scope = getattr(mw_config, "scope", "global")
+            priority = getattr(mw_config, "priority", 50)
+            config = getattr(mw_config, "config", {})
+            name = getattr(mw_config, "name", None)
+            
+        if not class_path:
+            return
+
+        # Import class
+        if ":" in class_path:
+            module_path, class_name = class_path.split(":", 1)
+        else:
+            module_path, class_name = class_path.rsplit(".", 1)
+            
+        module = importlib.import_module(module_path)
+        mw_class = getattr(module, class_name)
+        
+        # Instantiate
+        # Some middlewares take config in __init__, others don't.
+        # We try to pass kwargs if config exists
+        try:
+            if config:
+                instance = mw_class(**config)
+            else:
+                instance = mw_class()
+        except TypeError:
+            # Fallback for no-arg init
+            instance = mw_class()
+            
+        # Register
+        self.middleware_stack.add(
+            instance,
+            scope=scope,
+            priority=priority,
+            name=name or class_name,
+        )
+        self.logger.info(f"✓ Registered app middleware: {class_name} (priority={priority})")
     
     def _is_debug(self) -> bool:
         """Check if debug mode is enabled."""
@@ -365,14 +428,27 @@ class AquiliaServer:
         if not self.controller_compiler:
             return
         
+        # Keep track of all compiled controllers for validation
+        compiled_controllers = []
+
         for app_ctx in self.runtime.meta.app_contexts:
             # Import and compile controllers
             for controller_path in app_ctx.controllers:
                 try:
                     controller_class = self._import_controller_class(controller_path)
                     
+                    # Get route prefix from manifest if available
+                    route_prefix = getattr(app_ctx.manifest, "route_prefix", None)
+                    
+                    # VERSIONING: If version support is enabled, prepend version?
+                    # This is better done if route_prefix was smart, but let's check config
+                    # Currently basic implementation: just use route_prefix
+                    
                     # Compile controller
-                    compiled = self.controller_compiler.compile_controller(controller_class)
+                    compiled = self.controller_compiler.compile_controller(
+                        controller_class,
+                        base_prefix=route_prefix,
+                    )
                     
                     # Inject app context info for DI resolution
                     for route in compiled.routes:
@@ -380,10 +456,12 @@ class AquiliaServer:
                     
                     # Register with controller router
                     self.controller_router.add_controller(compiled)
+                    compiled_controllers.append(compiled)
                     
                     self.logger.info(
                         f"Loaded controller {controller_class.__name__} "
-                        f"from {app_ctx.name} with {len(compiled.routes)} routes"
+                        f"from {app_ctx.name} with {len(compiled.routes)} routes "
+                        f"(mount: {route_prefix or '/'})"
                     )
                 
                 except Exception as e:
@@ -392,8 +470,108 @@ class AquiliaServer:
                         exc_info=True
                     )
         
+        # VALIDATION: Check for conflicts in the fully assembled tree
+        conflicts = self.controller_compiler.validate_route_tree(compiled_controllers)
+        if conflicts:
+            self.logger.critical("❌ ROUTE CONFLICTS DETECTED:")
+            for c in conflicts:
+                self.logger.critical(
+                    f"  {c['method']} {c['route1']['path']}: "
+                    f"{c['route1']['controller']} vs {c['route2']['controller']}"
+                )
+            raise RuntimeError(f"Found {len(conflicts)} route conflicts. check logs.")
+
         # Initialize controller router
         self.controller_router.initialize()
+
+        # Step 2: Register OpenAPI/Docs routes if enabled
+        if self.config.get("docs_enabled", True):
+            self._register_docs_routes()
+    
+    def _register_docs_routes(self):
+        """Register OpenAPI and Swagger UI routes."""
+        generator = OpenAPIGenerator(
+            title=self.config.get("api_title", "Aquilia API"),
+            version=self.config.get("api_version", "1.0.0")
+        )
+        
+        async def openapi_handler(request, ctx):
+            spec = generator.generate(self.controller_router)
+            return Response.json(spec)
+            
+        async def docs_handler(request, ctx):
+            html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+                <title>Aquilia API Docs</title>
+            </head>
+            <body>
+                <div id="swagger-ui"></div>
+                <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+                <script>
+                    window.onload = () => {
+                        window.ui = SwaggerUIBundle({
+                            url: '/openapi.json',
+                            dom_id: '#swagger-ui',
+                        });
+                    };
+                </script>
+            </body>
+            </html>
+            """
+            return Response.html(html)
+            
+        # We need a way to manually add routes to the router that bypass controller compilation
+        # For now, let's just add them to the routes_by_method directly
+        # or use a pseudo-controller. 
+        # A better way is to move this to the compiler or have a 'manual_route' helper.
+        
+        from .controller.metadata import RouteMetadata
+        from .controller.compiler import CompiledRoute
+        from .patterns import parse_pattern, PatternCompiler
+        
+        pc = PatternCompiler()
+        
+        # OpenAPI JSON
+        route_json = CompiledRoute(
+            controller_class=self.__class__,
+            controller_metadata=None,
+            route_metadata=RouteMetadata(
+                http_method="GET",
+                path_template="/openapi.json",
+                full_path="/openapi.json",
+                handler_name="openapi_handler"
+            ),
+            compiled_pattern=pc.compile(parse_pattern("/openapi.json")),
+            full_path="/openapi.json",
+            http_method="GET",
+            specificity=1000
+        )
+        route_json.handler = openapi_handler # Monkeypatch for engine
+        
+        # Swagger UI
+        route_docs = CompiledRoute(
+            controller_class=self.__class__,
+            controller_metadata=None,
+            route_metadata=RouteMetadata(
+                http_method="GET",
+                path_template="/docs",
+                full_path="/docs",
+                handler_name="docs_handler"
+            ),
+            compiled_pattern=pc.compile(parse_pattern("/docs")),
+            full_path="/docs",
+            http_method="GET",
+            specificity=1000
+        )
+        route_docs.handler = docs_handler
+        
+        self.controller_router.routes_by_method.setdefault("GET", []).append(route_json)
+        self.controller_router.routes_by_method.setdefault("GET", []).append(route_docs)
+        self.logger.info("📡 Registered documentation routes at /docs and /openapi.json")
+
     
     def _import_controller_class(self, controller_path: str) -> type:
         """
