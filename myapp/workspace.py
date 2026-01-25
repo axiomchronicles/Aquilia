@@ -35,10 +35,19 @@ workspace = (
         .route_prefix("/myappmod")
         .tags("myappmod", "core")
         .register_controllers(
-            "modules.myappmod.controllers:MyappmodController"
+            "modules.myappmod.advanced_di:AdvancedUserController",
+            "modules.myappmod.controllers:AdvancedFeaturesController",
+            "modules.myappmod.controllers:MyappmodController",
+            "modules.myappmod.sessioncontrol.sessions:SessionController"
         )
         .register_services(
-            "modules.myappmod.services:MyappmodService"
+            "modules.myappmod.advanced_di:IUserRepository",
+            "modules.myappmod.advanced_di:MemoryUserRepository",
+            "modules.myappmod.advanced_di:SqlUserRepository",
+            "modules.myappmod.services:MyappmodService",
+            "modules.myappmod.services_ext:AuditLogger",
+            "modules.myappmod.services_ext:ExpensiveService",
+            "modules.myappmod.services_ext:LazyProcessor"
         ))
 
     # Integrations - Configure core systems

@@ -19,10 +19,9 @@ class MyappmodController(Controller):
     prefix = "/"
     tags = ["myappmod"]
 
-    def __init__(self):
-        # Instantiate service directly (DI integration pending)
-        # Once DI is fully integrated, change to: def __init__(self, service: MyappmodService):
-        self.service = MyappmodService()
+    def __init__(self, service: MyappmodService):
+        # Instantiate service directly if not injected
+        self.service = service
 
     @GET("/")
     async def list_myappmod(self, ctx: RequestCtx):
@@ -97,3 +96,36 @@ class MyappmodController(Controller):
             raise MyappmodNotFoundFault(item_id=id)
 
         return Response(status=204)
+from .services_ext import AuditLogger, LazyProcessor
+
+class AdvancedFeaturesController(Controller):
+    """
+    Demonstrates advanced DI features like Request Scoping and Lazy Proxies.
+    """
+    prefix = "/advanced"
+    tags = ["advanced"]
+    
+    def __init__(self, auditor: AuditLogger, processor: LazyProcessor):
+        # AuditLogger is request-scoped (depends on UserIdentity)
+        # LazyProcessor simulates lazy loading
+        self.auditor = auditor
+        self.processor = processor
+        
+    @GET("/audit")
+    async def audit_check(self, ctx):
+        """
+        Demonstrates request-scoped injection.
+        The UserIdentity was injected into AuditLogger by the middleware.
+        """
+        # Log an action
+        log = self.auditor.log_action("Accessed Audit Endpoint")
+        return {"log_entry": log}
+        
+    @GET("/lazy/«data:str»")
+    async def lazy_check(self, ctx, data: str):
+        """
+        Demonstrates lazy injection.
+        ExpensiveService is only created now, when self.processor.process() calls it.
+        """
+        result = await self.processor.process(data)
+        return {"result": result}

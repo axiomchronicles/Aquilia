@@ -16,6 +16,7 @@ from aquilia import AppManifest
 from aquilia.manifest import (
     FaultHandlingConfig, FaultHandlerConfig,
     MiddlewareConfig,
+    ServiceConfig,
     SessionConfig,
     LifecycleConfig,
     FeatureConfig,
@@ -33,23 +34,39 @@ manifest = AppManifest(
 
     # Services with detailed DI configuration
     services=[
+        # Bind IUserRepository interface to MemoryUserRepository implementation
+        ServiceConfig(
+            class_path="modules.myappmod.advanced_di:MemoryUserRepository",
+            aliases=["modules.myappmod.advanced_di:IUserRepository"],
+            scope="singleton",
+        ),
+        "modules.myappmod.advanced_di:SqlUserRepository",
+        # Factory for DB Config
+        ServiceConfig(
+            class_path="typing.Dict", # Token is determined by factory name "db_config"
+            factory="modules.myappmod.advanced_di:create_db_config",
+            scope="singleton",
+        ),
         "modules.myappmod.services:MyappmodService",
+        "modules.myappmod.services_ext:AuditLogger",
+        "modules.myappmod.services_ext:ExpensiveService",
+        "modules.myappmod.services_ext:LazyProcessor",
     ],
-
     # Controllers with routing
     controllers=[
+        "modules.myappmod.advanced_di:AdvancedUserController",
+        "modules.myappmod.controllers:AdvancedFeaturesController",
         "modules.myappmod.controllers:MyappmodController",
+        "modules.myappmod.sessioncontrol.sessions:SessionController",
     ],
-
     # Middleware configuration
     middleware=[
-        # Example middleware (uncomment to add):
-        # MiddlewareConfig(
-        #     class_path="modules.myappmod.middleware:AuthMiddleware",
-        #     scope="app",
-        #     priority=10,
-        #     config={},
-        # ),
+        MiddlewareConfig(
+            class_path="modules.myappmod.middleware:AuthSimulationMiddleware",
+            scope="app",
+            priority=10,
+            config={},
+        ),
     ],
 
     # Routing configuration
