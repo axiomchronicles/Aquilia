@@ -78,6 +78,58 @@ class Response:
             media_type=media_type,
         )
     
+    @classmethod
+    def render(
+        cls,
+        template_name: str,
+        context: Optional[Dict[str, Any]] = None,
+        *,
+        status: int = 200,
+        headers: Optional[Dict[str, str]] = None,
+        content_type: str = "text/html; charset=utf-8",
+        engine: Optional[Any] = None,
+        request_ctx: Optional[Any] = None
+    ) -> "Response":
+        """
+        Render template and return Response.
+        
+        Args:
+            template_name: Template name
+            context: Template variables
+            status: HTTP status code
+            headers: Additional headers
+            content_type: Content-Type header
+            engine: TemplateEngine instance (if not using DI)
+            request_ctx: Request context
+        
+        Returns:
+            Response with rendered template
+        
+        Example:
+            return Response.render("profile.html", {"user": user})
+        """
+        # Lazy import to avoid circular dependency
+        from aquilia.templates import TemplateEngine
+        
+        if engine is None:
+            # Try to get engine from DI (if available)
+            # For now, raise error - engine must be provided
+            raise ValueError(
+                "TemplateEngine not provided. "
+                "Pass engine parameter or use controller.render() helper."
+            )
+        
+        # Create async render function
+        async def _render():
+            return await engine.render(template_name, context, request_ctx)
+        
+        return cls(
+            content=_render(),
+            status=status,
+            headers=headers,
+            media_type=content_type
+        )
+    
     def set_cookie(
         self,
         key: str,
@@ -157,6 +209,24 @@ class Response:
                 "body": b"",
                 "more_body": False,
             })
+        elif callable(self._content):
+            # Async callable (e.g., template render)
+            try:
+                rendered = await self._content()
+                body = self._encode_body(rendered)
+                await send({
+                    "type": "http.response.body",
+                    "body": body,
+                    "more_body": False,
+                })
+            except Exception as e:
+                # Handle render errors
+                error_body = f"Template render error: {str(e)}".encode()
+                await send({
+                    "type": "http.response.body",
+                    "body": error_body,
+                    "more_body": False,
+                })
         else:
             # Regular response
             body = self._encode_body(self._content)

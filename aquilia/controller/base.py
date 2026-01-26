@@ -78,6 +78,7 @@ class Controller:
     - Method-level route definitions
     - Class-level and method-level pipelines
     - Lifecycle hooks
+    - Template rendering support
     
     Class Attributes:
         prefix: URL prefix for all routes (e.g., "/users")
@@ -96,12 +97,14 @@ class Controller:
             prefix = "/users"
             pipeline = [Auth.guard()]
             
-            def __init__(self, repo: UserRepo):
+            def __init__(self, repo: UserRepo, templates: TemplateEngine):
                 self.repo = repo
+                self.templates = templates
             
             @GET("/")
             async def list(self, ctx):
-                return self.repo.list_all()
+                users = self.repo.list_all()
+                return self.render("users/list.html", {"users": users}, ctx)
     """
     
     # Class-level configuration
@@ -109,6 +112,60 @@ class Controller:
     pipeline: List[Any] = []
     tags: List[str] = []
     instantiation_mode: str = "per_request"  # or "singleton"
+    
+    # Template engine (injected via DI)
+    _template_engine: Optional[Any] = None
+    
+    def render(
+        self,
+        template_name: str,
+        context: Optional[Dict[str, Any]] = None,
+        request_ctx: Optional[RequestCtx] = None,
+        *,
+        status: int = 200,
+        headers: Optional[Dict[str, str]] = None
+    ) -> "Response":
+        """
+        Render template and return Response.
+        
+        Convenience method for template rendering in controllers.
+        Automatically injects request context if available.
+        
+        Args:
+            template_name: Template name
+            context: Template variables
+            request_ctx: Request context (auto-injects request/session/identity)
+            status: HTTP status code
+            headers: Additional headers
+        
+        Returns:
+            Response with rendered template
+        
+        Example:
+            @GET("/profile")
+            async def profile(self, ctx):
+                user = await self.repo.get(ctx.identity.id)
+                return self.render("profile.html", {"user": user}, ctx)
+        """
+        from aquilia.response import Response
+        
+        # Get template engine
+        engine = getattr(self, "_template_engine", None) or getattr(self, "templates", None)
+        
+        if engine is None:
+            raise RuntimeError(
+                "Template engine not available. "
+                "Inject TemplateEngine in constructor: def __init__(self, templates: TemplateEngine)"
+            )
+        
+        return Response.render(
+            template_name,
+            context,
+            status=status,
+            headers=headers,
+            engine=engine,
+            request_ctx=request_ctx
+        )
     
     # Lifecycle hooks (optional)
     

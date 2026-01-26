@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="color: #2c3e50; margin-bottom: 2rem;">Create New Post</h2>
+    
+    <form method="POST" action="/blog/create" 
+          style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label for="title" style="display: block; margin-bottom: 0.5rem; color: #2c3e50; font-weight: 500;">
+                Title
+            </label>
+            <input type="text" 
+                   id="title" 
+                   name="title" 
+                   required
+                   placeholder="Enter post title..."
+                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label for="content" style="display: block; margin-bottom: 0.5rem; color: #2c3e50; font-weight: 500;">
+                Content
+            </label>
+            <textarea id="content" 
+                      name="content" 
+                      required
+                      placeholder="Write your post content..."
+                      style="width: 100%; min-height: 300px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; resize: vertical; font-size: 1rem;"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label for="tags" style="display: block; margin-bottom: 0.5rem; color: #2c3e50; font-weight: 500;">
+                Tags
+            </label>
+            <input type="text" 
+                   id="tags" 
+                   name="tags"
+                   placeholder="e.g., python, web-development, tutorials"
+                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+            <small style="color: #7f8c8d; display: block; margin-top: 0.25rem;">
+                Separate tags with commas
+            </small>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" 
+                    style="flex: 1; padding: 0.75rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: 500;">
+                Publish Post
+            </button>
+            
+            <a href="/blog" 
+               style="flex: 1; padding: 0.75rem; background: #ecf0f1; color: #2c3e50; text-align: center; text-decoration: none; border-radius: 4px; font-size: 1rem; font-weight: 500;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
