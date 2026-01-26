@@ -125,16 +125,16 @@ def bind_identity(session: Session, identity: Identity) -> None:
         session: Aquilia session
         identity: Auth identity
     """
-    # Set principal
-    session.principal = AuthPrincipal.from_identity(identity)
+    # Set principal and mark as authenticated
+    session.mark_authenticated(AuthPrincipal.from_identity(identity))
     
-    # Store identity data in session state
-    session.state["identity_id"] = identity.identity_id
-    session.state["tenant_id"] = identity.tenant_id
-    session.state["roles"] = identity.roles
-    session.state["scopes"] = identity.scopes
-    session.state["status"] = identity.status.value
-    session.state["attributes"] = identity.attributes
+    # Store identity data in session
+    session["identity_id"] = identity.id
+    session["tenant_id"] = identity.tenant_id
+    session["roles"] = identity.get_attribute("roles", [])
+    session["scopes"] = identity.get_attribute("scopes", [])
+    session["status"] = identity.status.value
+    session["attributes"] = identity.attributes
 
 
 def bind_token_claims(session: Session, claims: TokenClaims) -> None:
@@ -145,11 +145,11 @@ def bind_token_claims(session: Session, claims: TokenClaims) -> None:
         session: Aquilia session
         claims: Token claims
     """
-    session.state["token_claims"] = {
+    session["token_claims"] = {
         "sub": claims.sub,
         "iss": claims.iss,
-        "iat": claims.iat.isoformat() if claims.iat else None,
-        "exp": claims.exp.isoformat() if claims.exp else None,
+        "iat": claims.iat,  # Store as int timestamp
+        "exp": claims.exp,  # Store as int timestamp
         "scopes": claims.scopes,
         "tenant_id": claims.tenant_id,
     }
@@ -157,22 +157,22 @@ def bind_token_claims(session: Session, claims: TokenClaims) -> None:
 
 def get_identity_id(session: Session) -> str | None:
     """Get identity ID from session."""
-    return session.state.get("identity_id")
+    return session.data.get("identity_id")
 
 
 def get_tenant_id(session: Session) -> str | None:
     """Get tenant ID from session."""
-    return session.state.get("tenant_id")
+    return session.data.get("tenant_id")
 
 
 def get_roles(session: Session) -> list[str]:
     """Get roles from session."""
-    return session.state.get("roles", [])
+    return session.data.get("roles", [])
 
 
 def get_scopes(session: Session) -> list[str]:
     """Get scopes from session."""
-    return session.state.get("scopes", [])
+    return session.data.get("scopes", [])
 
 
 def is_mfa_verified(session: Session) -> bool:
@@ -186,7 +186,7 @@ def set_mfa_verified(session: Session) -> None:
     """Mark session as MFA verified."""
     if session.principal and isinstance(session.principal, AuthPrincipal):
         session.principal.mfa_verified = True
-    session.state["mfa_verified"] = True
+    session["mfa_verified"] = True
 
 
 # ============================================================================

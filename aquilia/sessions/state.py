@@ -119,7 +119,7 @@ class SessionState:
     
     def __getattribute__(self, name: str):
         """Override getattribute for field access."""
-        if name.startswith('_') or name in ('_sync_from_data', '_sync_to_data'):
+        if name.startswith('_') or name in ('_sync_from_data', '_sync_to_data', 'get', 'to_dict', '__getitem__', '__setitem__'):
             return super().__getattribute__(name)
         
         # Check if it's a field
@@ -132,6 +132,19 @@ class SessionState:
         
         return super().__getattribute__(name)
     
+    def __getitem__(self, key: str) -> Any:
+        return self._data.get(key)
+        
+    def __setitem__(self, key: str, value: Any):
+        self._data[key] = value
+        # Also sync to instance attr for consistency if it exists
+        if hasattr(self, f'_{key}'):
+            super().__setattr__(f'_{key}', value)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get state value with default."""
+        return self._data.get(key, default)
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert state to dictionary."""
         self._sync_to_data()

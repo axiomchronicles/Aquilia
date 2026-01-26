@@ -71,26 +71,35 @@ class KeyRingProvider:
     
     def provide(self) -> KeyRing:
         """Provide KeyRing with default keys."""
-        keyring = KeyRing()
+        from ..tokens import KeyDescriptor, KeyAlgorithm
+        
         # Generate default key on startup
-        keyring.generate_key(
-            key_id="default",
-            algorithm="RS256",
-            make_primary=True,
+        default_key = KeyDescriptor.generate(
+            kid="default",
+            algorithm=KeyAlgorithm.RS256,
         )
-        return keyring
+        
+        return KeyRing(keys=[default_key])
 
 
 @service(scope="app")
 class TokenManagerProvider:
     """Provider for TokenManager."""
     
-    def __init__(self, keyring: KeyRing):
+    def __init__(
+        self, 
+        keyring: KeyRing,
+        token_store: MemoryTokenStore,
+    ):
         self.keyring = keyring
+        self.token_store = token_store
     
     def provide(self) -> TokenManager:
         """Provide TokenManager instance."""
-        return TokenManager(keyring=self.keyring)
+        return TokenManager(
+            key_ring=self.keyring,
+            token_store=self.token_store,
+        )
 
 
 @service(scope="app")
@@ -200,7 +209,6 @@ class AuthManagerProvider:
         return AuthManager(
             identity_store=self.identity_store,
             credential_store=self.credential_store,
-            token_store=self.token_store,
             token_manager=self.token_manager,
             password_hasher=self.password_hasher,
             rate_limiter=self.rate_limiter,
@@ -305,6 +313,48 @@ class SessionAuthBridgeProvider:
 # ============================================================================
 
 
+
+def _register_provider_class(container: Container, provider_cls: Any) -> None:
+    """Helper to register a class-based provider."""
+    from aquilia.di.providers import ClassProvider, FactoryProvider
+    from aquilia.di.decorators import provides
+    import inspect
+    from typing import get_type_hints
+    
+    # 1. Register the provider class itself
+    # We need to give it a unique token so it doesn't conflict
+    provider_token = provider_cls
+    container.register(ClassProvider(provider_cls))
+    
+    # 2. Extract return type
+    if not hasattr(provider_cls, "provide"):
+        raise ValueError(f"Provider {provider_cls.__name__} missing 'provide' method")
+        
+    provide_method = provider_cls.provide
+    hints = get_type_hints(provide_method)
+    return_type = hints.get("return")
+    
+    if not return_type:
+        return
+
+    # Update factory metadata to match provider class (scope etc)
+    scope = getattr(provider_cls, "__di_scope__", "app")
+
+    @provides(return_type, scope=scope)
+    async def factory(p): 
+        if inspect.iscoroutinefunction(p.provide):
+            return await p.provide()
+        return p.provide()
+    
+    # Manually set annotation to avoid stringification issues with closure variable
+    factory.__annotations__["p"] = provider_cls
+    
+    # 4. Register factory
+    # Use the return type's FQDN as the name/token
+    token_name = f"{return_type.__module__}.{return_type.__qualname__}"
+    container.register(FactoryProvider(factory, scope=scope, name=token_name))
+
+
 def register_auth_providers(
     container: Container,
     config: dict[str, Any] | None = None,
@@ -319,28 +369,28 @@ def register_auth_providers(
     config = config or {}
     
     # Core components
-    container.register_provider(PasswordHasherProvider)
-    container.register_provider(KeyRingProvider)
-    container.register_provider(TokenManagerProvider)
-    container.register_provider(RateLimiterProvider)
+    _register_provider_class(container, PasswordHasherProvider)
+    _register_provider_class(container, KeyRingProvider)
+    _register_provider_class(container, TokenManagerProvider)
+    _register_provider_class(container, RateLimiterProvider)
     
     # Stores
-    container.register_provider(IdentityStoreProvider)
-    container.register_provider(CredentialStoreProvider)
-    container.register_provider(TokenStoreProvider)
-    container.register_provider(OAuthClientStoreProvider)
-    container.register_provider(AuthorizationCodeStoreProvider)
-    container.register_provider(DeviceCodeStoreProvider)
+    _register_provider_class(container, IdentityStoreProvider)
+    _register_provider_class(container, CredentialStoreProvider)
+    _register_provider_class(container, TokenStoreProvider)
+    _register_provider_class(container, OAuthClientStoreProvider)
+    _register_provider_class(container, AuthorizationCodeStoreProvider)
+    _register_provider_class(container, DeviceCodeStoreProvider)
     
     # Managers
-    container.register_provider(AuthManagerProvider)
-    container.register_provider(MFAManagerProvider)
-    container.register_provider(OAuth2ManagerProvider)
-    container.register_provider(AuthzEngineProvider)
+    _register_provider_class(container, AuthManagerProvider)
+    _register_provider_class(container, MFAManagerProvider)
+    _register_provider_class(container, OAuth2ManagerProvider)
+    _register_provider_class(container, AuthzEngineProvider)
     
     # Sessions
-    container.register_provider(SessionEngineProvider)
-    container.register_provider(SessionAuthBridgeProvider)
+    _register_provider_class(container, SessionEngineProvider)
+    _register_provider_class(container, SessionAuthBridgeProvider)
 
 
 def create_auth_container(

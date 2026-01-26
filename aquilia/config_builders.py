@@ -141,8 +141,94 @@ class Module:
         return self._config
 
 
+@dataclass
+class AuthConfig:
+    """Authentication configuration."""
+    enabled: bool = True
+    store_type: str = "memory"
+    secret_key: str = "aquilia_insecure_dev_secret"
+    algorithm: str = "HS256"
+    issuer: str = "aquilia"
+    audience: str = "aquilia-app"
+    access_token_ttl_minutes: int = 60
+    refresh_token_ttl_days: int = 30
+    require_auth_by_default: bool = False
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary format."""
+        return {
+            "enabled": self.enabled,
+            "store": {
+                "type": self.store_type,
+            },
+            "tokens": {
+                "secret_key": self.secret_key,
+                "algorithm": self.algorithm,
+                "issuer": self.issuer,
+                "audience": self.audience,
+                "access_token_ttl_minutes": self.access_token_ttl_minutes,
+                "refresh_token_ttl_days": self.refresh_token_ttl_days,
+            },
+            "security": {
+                "require_auth_by_default": self.require_auth_by_default,
+            }
+        }
+
+
 class Integration:
     """Integration configuration builders."""
+    
+    @staticmethod
+    def auth(
+        config: Optional[AuthConfig] = None,
+        enabled: bool = True,
+        store_type: str = "memory",
+        secret_key: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Configure authentication.
+        
+        Args:
+            config: AuthConfig object (optional)
+            enabled: Enable authentication
+            store_type: Store type (memory, etc.)
+            secret_key: Secret key for tokens
+            **kwargs: Overrides
+            
+        Returns:
+            Auth configuration dictionary
+        """
+        if config:
+            # Use provided config object
+            conf_dict = config.to_dict()
+        else:
+            # Build from arguments using defaults from AuthConfig
+            defaults = AuthConfig()
+            conf_dict = {
+                "enabled": enabled,
+                "store": {
+                    "type": store_type,
+                },
+                "tokens": {
+                    "secret_key": secret_key or defaults.secret_key,
+                    "algorithm": defaults.algorithm,
+                    "issuer": defaults.issuer,
+                    "audience": defaults.audience,
+                    "access_token_ttl_minutes": defaults.access_token_ttl_minutes,
+                    "refresh_token_ttl_days": defaults.refresh_token_ttl_days,
+                },
+                "security": {
+                    "require_auth_by_default": defaults.require_auth_by_default,
+                }
+            }
+            
+        # Apply kwargs overrides (deep merge logic simplified for common top-level overrides)
+        # Note: A real deep merge might be better but for now we trust the structure
+        conf_dict.update(kwargs)
+        
+        return conf_dict
+
     
     @staticmethod
     def sessions(
@@ -356,7 +442,9 @@ class Workspace:
     def integrate(self, integration: Dict[str, Any]) -> "Workspace":
         """Add an integration."""
         # Determine integration type from keys
-        if "policy" in integration or "store" in integration:
+        if "tokens" in integration and "security" in integration:
+            self._integrations["auth"] = integration
+        elif "policy" in integration or "store" in integration:
             self._integrations["sessions"] = integration
         elif "auto_wire" in integration:
             self._integrations["dependency_injection"] = integration

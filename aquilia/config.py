@@ -22,6 +22,9 @@ class NestedNamespace:
         if name.startswith("_"):
             return object.__getattribute__(self, name)
         
+        if name not in self._data:
+            raise AttributeError(f"'NestedNamespace' object has no attribute '{name}'")
+            
         value = self._data.get(name)
         if isinstance(value, dict):
             return NestedNamespace(value)
@@ -471,6 +474,47 @@ class ConfigLoader:
                     # Also store reference to underlying transport/store if available
                     if hasattr(first_policy, 'transport'):
                         merged["transport_policy"] = first_policy.transport
+        
+        return merged
+    
+    def get_auth_config(self) -> dict:
+        """
+        Get auth configuration with defaults.
+        
+        Returns:
+            Auth configuration dictionary
+        """
+        default_auth_config = {
+            "enabled": False,  # Opt-in
+            "store": {
+                "type": "memory",  # "memory", "sql" (future)
+                # SQL options
+                "db_url": None,
+            },
+            "tokens": {
+                "secret_key": "aquilia_insecure_dev_secret",  # Should be overridden in prod
+                "algorithm": "HS256",
+                "issuer": "aquilia",
+                "audience": "aquilia-app",
+                "access_token_ttl_minutes": 60,
+                "refresh_token_ttl_days": 30,
+            },
+            "security": {
+                "require_auth_by_default": False, # If true, all routes require auth unless public
+                "hash_rounds": 12,
+            }
+        }
+        
+        # Get user-provided auth config
+        user_config = self.get("auth", {})
+        if not user_config:
+            user_config = self.get("integrations.auth", {})
+        
+        # Merge with defaults
+        merged = default_auth_config.copy()
+        if user_config:
+            merged["enabled"] = user_config.get("enabled", True)
+            self._merge_dict(merged, user_config)
         
         return merged
 

@@ -35,12 +35,16 @@ workspace = (
         .route_prefix("/myappmod")
         .tags("myappmod", "core")
         .register_controllers(
+            "modules.myappmod.auth:AuthController",
             "modules.myappmod.advanced_di:AdvancedUserController",
             "modules.myappmod.controllers:MyappmodController",
             "modules.myappmod.controllers:AdvancedFeaturesController",
+            "modules.myappmod.jwt_bearer:JwtBearerController",
+            "modules.myappmod.dashboard:DashboardController",
             "modules.myappmod.sessioncontrol.sessions:SessionController"
         )
         .register_services(
+            "modules.myappmod.auth:UserService",
             "modules.myappmod.services:MyappmodService",
             "modules.myappmod.advanced_di:IUserRepository",
             "modules.myappmod.advanced_di:MemoryUserRepository",
@@ -66,6 +70,7 @@ workspace = (
         metrics_enabled=True,
     ))
     .integrate(Integration.patterns())
+    .integrate(Integration.auth(enabled=True))
 
     # Sessions - Configure session management
     .sessions(

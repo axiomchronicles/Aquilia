@@ -358,7 +358,10 @@ class ControllerEngine:
                     )
 
                     is_optional = not param.required or is_session_param or is_identity_param
-                    value = await container.resolve_async(param_name, optional=is_optional)
+                    
+                    # Resolve by type if available, otherwise by name
+                    resolve_token = param.type if param.type is not inspect.Parameter.empty else param_name
+                    value = await container.resolve_async(resolve_token, optional=is_optional)
                     
                     if is_session_param and value is None:
                         # Try to resolve session proactively
@@ -416,7 +419,10 @@ class ControllerEngine:
         if inspect.iscoroutinefunction(func):
             return await func(*args, **kwargs)
         else:
-            return func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            if inspect.isawaitable(result):
+                return await result
+            return result
     
     def _to_response(self, result: Any) -> Response:
         """Convert handler result to Response."""

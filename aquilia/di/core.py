@@ -411,6 +411,11 @@ class Container:
         await self._lifecycle.run_startup_hooks()
 
     
+    def is_registered(self, token: Type[T] | str, tag: Optional[str] = None) -> bool:
+        """Check if a provider is registered for the token."""
+        token_key = self._token_to_key(token)
+        return self._lookup_provider(token_key, tag) is not None
+
     def create_request_scope(self) -> "Container":
         """
         Create a request-scoped child container (very cheap).
@@ -419,9 +424,9 @@ class Container:
             New container with request scope
         """
         child = Container(scope="request", parent=self)
-        # Share provider registry but not cache
-        child._providers = self._providers
-        child._resolve_plans = self._resolve_plans
+        # Inherit providers but allow local overrides
+        child._providers = self._providers.copy()
+        child._resolve_plans = self._resolve_plans.copy()
         return child
     
     async def shutdown(self) -> None:

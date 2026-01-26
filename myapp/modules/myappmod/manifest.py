@@ -49,6 +49,7 @@ manifest = AppManifest(
         "modules.myappmod.services_ext:AuditLogger",
         "modules.myappmod.services_ext:ExpensiveService",
         "modules.myappmod.services_ext:LazyProcessor",
+        ServiceConfig(class_path="modules.myappmod.auth:UserService", scope="app"),
     ],
     # Controllers with routing
     controllers=[
@@ -56,6 +57,9 @@ manifest = AppManifest(
         "modules.myappmod.controllers:AdvancedFeaturesController",
         "modules.myappmod.controllers:MyappmodController",
         "modules.myappmod.sessioncontrol.sessions:SessionController",
+        "modules.myappmod.auth:AuthController",
+        "modules.myappmod.dashboard:DashboardController",
+        "modules.myappmod.jwt_bearer:JwtBearerController",
     ],
     # Middleware configuration
     middleware=[

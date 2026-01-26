@@ -111,35 +111,35 @@ class AquilAuthMiddleware:
         # Store session in request state
         request.state["session"] = session
         
-        # Phase 2: Extract identity from session or authenticate
+        # Phase 2: Resolve identity (Bearer token overrides session)
         identity = None
-        identity_id = get_identity_id(session)
         
-        if identity_id:
-            # Session already has identity - load it
+        # 1. Try Authorization header
+        auth_header = request.header("authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header[7:]
             try:
-                identity = await self.auth_manager.identity_store.get_identity(identity_id)
+                identity = await self.auth_manager.get_identity_from_token(token)
+                if identity:
+                    # Sync identity to session
+                    bind_identity(session, identity)
+                    
+                    # Sync token claims to session
+                    claims = await self.auth_manager.verify_token(token)
+                    if claims:
+                        bind_token_claims(session, claims)
             except Exception as e:
-                self.logger.warning(f"Failed to load identity from session: {e}")
-                # Continue without identity
+                self.logger.warning(f"Token authentication failed: {e}")
+                # Continue and try session
         
-        # If no identity from session, try Authorization header
+        # 2. If no token, use identity from session
         if not identity:
-            auth_header = request.header("authorization")
-            if auth_header and auth_header.startswith("Bearer "):
-                token = auth_header[7:]
+            identity_id = get_identity_id(session)
+            if identity_id:
                 try:
-                    identity = await self.auth_manager.get_identity_from_token(token)
-                    if identity:
-                        # Bind identity to session
-                        bind_identity(session, identity)
-                        
-                        # Get token claims
-                        claims = await self.auth_manager.verify_token(token)
-                        if claims:
-                            bind_token_claims(session, claims)
+                    identity = await self.auth_manager.identity_store.get(identity_id)
                 except Exception as e:
-                    self.logger.warning(f"Token authentication failed: {e}")
+                    self.logger.warning(f"Failed to load identity from session: {e}")
                     # Continue without identity
         
         # Phase 3: Check authentication requirement
@@ -155,13 +155,12 @@ class AquilAuthMiddleware:
         
         if container and identity:
             # Register identity in DI container for injection
-            from aquilia.di.providers import InstanceProvider
-            container.register(
-                InstanceProvider(
-                    instance=identity,
-                    meta={"token": Identity, "scope": "request"},
+            if not container.is_registered(Identity):
+                await container.register_instance(
+                    Identity,
+                    identity,
+                    scope="request",
                 )
-            )
         
         # Phase 5: Execute handler
         try:
@@ -284,12 +283,13 @@ class SessionMiddleware:
         
         # Register in DI if available
         if container:
-            from aquilia.di.providers import InstanceProvider
+            from aquilia.di.providers import ValueProvider
             from aquilia.sessions import Session
             container.register(
-                InstanceProvider(
-                    instance=session,
-                    meta={"token": Session, "scope": "request"},
+                ValueProvider(
+                    value=session,
+                    token=Session,
+                    scope="request",
                 )
             )
         
@@ -412,19 +412,20 @@ class EnhancedRequestScopeMiddleware:
     ) -> Response:
         """Process request with request-scoped DI."""
         # Create request-scoped container
-        # TODO: When Container supports child containers, create one here
-        request_container = self.app_container
+        request_container = self.app_container.create_request_scope()
         
         # Store in context
         ctx.container = request_container
         request.state["di_container"] = request_container
         
         # Register request in DI
-        from aquilia.di.providers import InstanceProvider
+        # Register request in DI
+        from aquilia.di.providers import ValueProvider
         request_container.register(
-            InstanceProvider(
-                instance=request,
-                meta={"token": Request, "scope": "request"},
+            ValueProvider(
+                value=request,
+                token=Request,
+                scope="request",
             )
         )
         

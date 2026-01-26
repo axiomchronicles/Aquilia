@@ -17,6 +17,10 @@ from .lifecycle import LifecycleCoordinator, LifecycleManager, LifecycleError
 from .middleware_ext.session_middleware import SessionMiddleware
 from .controller.openapi import OpenAPIGenerator
 from .response import Response
+# Auth Integration
+from .auth.manager import AuthManager
+from .auth.integration.middleware import AquilAuthMiddleware, create_auth_middleware_stack
+from .auth.tokens import TokenConfig
 
 
 class AquiliaServer:
@@ -178,29 +182,84 @@ class AquiliaServer:
             name="logging",
         )
         
-        # Add session middleware if enabled
+        # Add session/auth middleware if enabled
         session_config = self.config.get_session_config()
-        self.logger.debug(f"Session config: {session_config}")
-        self.logger.info(f"🔍 Session middleware check: enabled={session_config.get('enabled', False)}")
+        auth_config = self.config.get_auth_config()
         
-        if session_config.get("enabled", False):
+        self.logger.debug(f"Session config: {session_config}")
+        self.logger.debug(f"Auth config: {auth_config}")
+        
+        # Initialize SessionEngine if either Sessions or Auth is enabled
+        # Auth REQUIRES sessions
+        use_sessions = session_config.get("enabled", False)
+        use_auth = auth_config.get("enabled", False)
+        
+        if use_auth:
+            # Force enable sessions config if auth is enabled
+            use_sessions = True
+            
+        self._session_engine = None
+        self._auth_manager = None
+        
+        if use_sessions:
             self.logger.info("🔄 Initializing session management...")
             try:
                 # Create session engine
                 session_engine = self._create_session_engine(session_config)
-                
-                # Add session middleware
-                self.middleware_stack.add(
-                    SessionMiddleware(session_engine),
-                    scope="global",
-                    priority=15,
-                    name="session",
-                )
-                
-                # Store engine reference for later use
                 self._session_engine = session_engine
                 
-                # Register engine in DI containers for proactive resolution
+                # Check for Auth
+                if use_auth:
+                    self.logger.info("🔐 Initializing authentication system...")
+                    
+                    # Create AuthManager
+                    auth_manager = self._create_auth_manager(auth_config)
+                    self._auth_manager = auth_manager
+                    
+                    # Add Unified Auth Middleware (handles both sessions and auth)
+                    self.middleware_stack.add(
+                        AquilAuthMiddleware(
+                            session_engine=session_engine,
+                            auth_manager=auth_manager,
+                            require_auth=auth_config.get("security", {}).get("require_auth_by_default", False),
+                            fault_engine=None, # TODO: integrate fault engine from server
+                        ),
+                        scope="global",
+                        priority=15, # Replaces session middleware
+                        name="auth",
+                    )
+                    
+                    from .di.providers import ValueProvider
+                    for container in self.runtime.di_containers.values():
+                        # Core manager
+                        container.register(
+                            ValueProvider(
+                                token=AuthManager,
+                                value=auth_manager,
+                                scope="app",
+                                name="auth_manager_instance"
+                            )
+                        )
+                        # Register sub-components so Services can use them
+                        # We use string tokens to ensure consistent resolution with type hints
+                        container.register(ValueProvider(value=auth_manager.identity_store, token="aquilia.auth.stores.MemoryIdentityStore", scope="app"))
+                        container.register(ValueProvider(value=auth_manager.credential_store, token="aquilia.auth.stores.MemoryCredentialStore", scope="app"))
+                        container.register(ValueProvider(value=auth_manager.token_manager, token="aquilia.auth.tokens.TokenManager", scope="app"))
+                        container.register(ValueProvider(value=auth_manager.password_hasher, token="aquilia.auth.hashing.PasswordHasher", scope="app"))
+                        
+                    self.logger.info("✅ Auth system components registered in DI")
+                    
+                else:
+                    # Sessions only
+                    self.middleware_stack.add(
+                        SessionMiddleware(session_engine),
+                        scope="global",
+                        priority=15,
+                        name="session",
+                    )
+                    self.logger.info("✅ Session management enabled (Auth disabled)")
+                
+                # Register SessionEngine in DI (common for both)
                 from aquilia.di.providers import ValueProvider
                 from aquilia.sessions import SessionEngine
                 
@@ -214,16 +273,12 @@ class AquiliaServer:
                 for container in self.runtime.di_containers.values():
                     container.register(engine_provider)
                 
-                self.logger.info("✅ Session management enabled and registered in DI")
-                self.logger.info(f"   Policy: {session_engine.policy.name}")
-                self.logger.info(f"   Store: {type(session_engine.store).__name__}")
-                self.logger.info(f"   Transport: {type(session_engine.transport).__name__}")
             except Exception as e:
-                self.logger.error(f"Failed to initialize session management: {e}", exc_info=True)
+                self.logger.error(f"Failed to initialize session/auth system: {e}", exc_info=True)
                 self._session_engine = None
+                self._auth_manager = None
         else:
-            self.logger.info("Session management disabled")
-            self._session_engine = None
+            self.logger.info("Session/Auth management disabled")
             
         # Register app-specific middlewares from Aquilary manifest
         if hasattr(self, "aquilary"):
@@ -314,7 +369,7 @@ class AquiliaServer:
         )
         
         # Handle different config formats - workspace vs traditional config
-        if "policy" in session_config and hasattr(session_config["policy"], "__class__"):
+        if "policy" in session_config and not isinstance(session_config["policy"], dict):
             # Workspace format - direct policy objects
             policy = session_config["policy"]
             store = session_config.get("store")
@@ -422,6 +477,66 @@ class AquiliaServer:
         )
         
         return engine
+    
+    def _create_auth_manager(self, auth_config: dict) -> AuthManager:
+        """
+        Create AuthManager from configuration.
+        
+        Args:
+            auth_config: Auth configuration dictionary
+            
+        Returns:
+            Configured AuthManager
+        """
+        from .auth.stores import MemoryIdentityStore, MemoryTokenStore, MemoryCredentialStore
+        from .auth.tokens import TokenManager, TokenConfig, KeyRing, KeyDescriptor
+        from datetime import timedelta
+        
+        # 1. Identity Store
+        store_config = auth_config.get("store", {})
+        store_type = store_config.get("type", "memory")
+        
+        if store_type == "memory":
+            identity_store = MemoryIdentityStore()
+            credential_store = MemoryCredentialStore()
+            # TODO: Load initial users if configured?
+        else:
+            self.logger.warning(f"Unknown auth store type '{store_type}', using memory store")
+            identity_store = MemoryIdentityStore()
+            credential_store = MemoryCredentialStore()
+            
+        # 2. Token Manager
+        token_config = auth_config.get("tokens", {})
+        secret = token_config.get("secret_key", "dev_secret")
+        
+        if secret == "aquilia_insecure_dev_secret" and self.mode != RegistryMode.DEV:
+            self.logger.warning("⚠️  USING INSECURE DEFAULT SECRET KEY IN NON-DEV MODE")
+            
+        # Generate KeyRing (simple for now, just one RS256 key)
+        # In prod, this should load from file/KMS
+        key = KeyDescriptor.generate(kid="active", algorithm="RS256")
+        key_ring = KeyRing([key])
+        
+        token_store = MemoryTokenStore()
+        
+        token_manager = TokenManager(
+            key_ring=key_ring,
+            token_store=token_store,
+            config=TokenConfig(
+                # secret_key no longer needed for JWT with RS256, but maybe for HS256 if supported
+                issuer=token_config.get("issuer", "aquilia"),
+                audience=[token_config.get("audience", "aquilia-app")], # Audience is list in new config
+                access_token_ttl=token_config.get("access_token_ttl_minutes", 60) * 60,
+                refresh_token_ttl=token_config.get("refresh_token_ttl_days", 30) * 86400,
+            )
+        )
+        
+        return AuthManager(
+            identity_store=identity_store,
+            credential_store=credential_store,
+            token_manager=token_manager,
+            password_hasher=None, # Uses default (Argon2 via Passlib)
+        )
     
     def _load_controllers(self):
         """Load and compile controllers from all apps."""

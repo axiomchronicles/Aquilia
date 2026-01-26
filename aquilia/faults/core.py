@@ -152,10 +152,10 @@ class Fault(Exception):
     
     def __init__(
         self,
-        code: str,
-        message: str,
+        code: str | None = None,
+        message: str | None = None,
         *,
-        domain: FaultDomain,
+        domain: FaultDomain | None = None,
         severity: Optional[Severity] = None,
         retryable: Optional[bool] = None,
         public: bool = False,
@@ -163,22 +163,18 @@ class Fault(Exception):
     ):
         """
         Initialize fault.
-        
-        Args:
-            code: Stable machine-readable identifier
-            message: Human-readable summary
-            domain: Fault domain
-            severity: Override default severity for domain
-            retryable: Override default retry behavior for domain
-            public: Whether safe to expose to client
-            metadata: Additional context data
         """
-        super().__init__(message)
+        # Fallback to class attributes if not provided
+        self.code = code if code is not None else getattr(self, "code", None)
+        self.message = message if message is not None else getattr(self, "message", None)
+        self.domain = domain if domain is not None else getattr(self, "domain", None)
+
+        if self.code is None or self.message is None or self.domain is None:
+            raise TypeError(f"{self.__class__.__name__} missing required code, message, or domain")
+
+        super().__init__(self.message)
         
-        # Immutable core properties
-        self.code = code
-        self.message = message
-        self.domain = domain
+        # Immutable core properties are already set
         
         # Apply domain defaults if not specified
         # Default to ERROR/non-retryable for custom domains

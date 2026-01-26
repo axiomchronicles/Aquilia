@@ -41,28 +41,37 @@ if TYPE_CHECKING:
 # ============================================================================
 
 
-def get_session(context: dict[str, Any]) -> Session | None:
+def _get_request(context: Any) -> Request | None:
+    if isinstance(context, dict):
+        return context.get("request")
+    return getattr(context, "request", None)
+
+def get_session(context: Any) -> Session | None:
     """Extract session from flow context."""
-    request = context.get("request")
+    request = _get_request(context)
     if request and hasattr(request, "state"):
         return request.state.get("session")
     return None
 
 
-def get_identity(context: dict[str, Any]) -> Identity | None:
+def get_identity(context: Any) -> Identity | None:
     """Extract identity from flow context."""
-    request = context.get("request")
+    request = _get_request(context)
     if request and hasattr(request, "state"):
         return request.state.get("identity")
     return None
 
 
-def set_identity(context: dict[str, Any], identity: Identity | None) -> None:
+def set_identity(context: Any, identity: Identity | None) -> None:
     """Set identity in flow context."""
-    request = context.get("request")
+    request = _get_request(context)
     if request and hasattr(request, "state"):
         request.state["identity"] = identity
         request.state["authenticated"] = identity is not None
+    
+    # Also update context directly if it's a dict
+    if isinstance(context, dict):
+        context["authenticated"] = identity is not None
 
 
 # ============================================================================
@@ -122,6 +131,19 @@ class FlowGuard:
 # ============================================================================
 
 
+def _set_authenticated(context: Any, value: bool) -> None:
+    request = _get_request(context)
+    if request and hasattr(request, "state"):
+        request.state["authenticated"] = value
+    
+    if isinstance(context, dict):
+        context["authenticated"] = value
+    elif hasattr(context, "state") and isinstance(context.state, dict):
+        # RequestCtx has state dict
+        context.state["authenticated"] = value
+
+# ... existing code ...
+
 class RequireAuthGuard(FlowGuard):
     """
     Require valid authentication.
@@ -147,9 +169,17 @@ class RequireAuthGuard(FlowGuard):
             raise AUTH_REQUIRED()
         
         # Add authenticated flag to context
-        context["authenticated"] = identity is not None
+        _set_authenticated(context, identity is not None)
         
         return context
+
+
+
+def _set_item(context: Any, key: str, value: Any) -> None:
+    if isinstance(context, dict):
+        context[key] = value
+    elif hasattr(context, "state") and isinstance(context.state, dict):
+        context.state[key] = value
 
 
 class RequireSessionAuthGuard(FlowGuard):
@@ -187,7 +217,7 @@ class RequireSessionAuthGuard(FlowGuard):
         
         # Inject into context
         set_identity(context, identity)
-        context["authenticated"] = True
+        _set_authenticated(context, True)
         
         return context
 
@@ -228,8 +258,8 @@ class RequireTokenAuthGuard(FlowGuard):
         
         # Inject into context
         set_identity(context, identity)
-        context["authenticated"] = True
-        context["token_claims"] = await self.auth_manager.verify_token(token)
+        _set_authenticated(context, True)
+        _set_item(context, "token_claims", await self.auth_manager.verify_token(token))
         
         return context
 
@@ -275,7 +305,7 @@ class RequireApiKeyGuard(FlowGuard):
         
         # Inject into context
         set_identity(context, auth_result.identity)
-        context["authenticated"] = True
+        _set_authenticated(context, True)
         
         return context
 
@@ -360,7 +390,7 @@ class RequireRolesGuard(FlowGuard):
             raise AUTH_REQUIRED()
         
         # Check roles
-        user_roles = set(identity.roles)
+        user_roles = set(identity.get_attribute("roles", []))
         required_roles = set(self.roles)
         
         if self.require_all:
