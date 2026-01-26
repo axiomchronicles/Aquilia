@@ -59,9 +59,10 @@ manifest = AppManifest(
         "modules.myappmod.controllers:MyappmodController",
         "modules.myappmod.sessioncontrol.sessions:SessionController",
         "modules.myappmod.auth:AuthController",
-        "modules.myappmod.auth:DashboardController",
+        "modules.myappmod.auth:MyappmodUIController",
         "modules.myappmod.auth:SessionsController",
         "modules.myappmod.jwt_bearer:JwtBearerController",
+        "modules.myappmod.dashboard:DashboardController",
     ],
     # Middleware configuration
     middleware=[

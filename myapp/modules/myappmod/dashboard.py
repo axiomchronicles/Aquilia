@@ -11,7 +11,7 @@ class DashboardController(Controller):
     """
     Controller to test authentication, authorization, and sessions across multiple routes.
     """
-    prefix = "/dashboard"
+    prefix = "/api/dashboard"
 
     @GET("/home")
     @authenticated

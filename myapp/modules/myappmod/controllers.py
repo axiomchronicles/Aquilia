@@ -16,7 +16,7 @@ class MyappmodController(Controller):
 
     Provides RESTful CRUD operations for myappmod.
     """
-    prefix = "/"
+    prefix = "/items"
     tags = ["myappmod"]
 
     def __init__(self, service: MyappmodService):

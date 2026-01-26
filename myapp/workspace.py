@@ -36,17 +36,18 @@ workspace = (
         .tags("myappmod", "core")
         .register_controllers(
             "modules.myappmod.auth:AuthController",
-            "modules.myappmod.auth:DashboardController",
+            "modules.myappmod.auth:MyappmodUIController",
             "modules.myappmod.auth:SessionsController",
             "modules.myappmod.advanced_di:AdvancedUserController",
             "modules.myappmod.controllers:MyappmodController",
             "modules.myappmod.controllers:AdvancedFeaturesController",
             "modules.myappmod.jwt_bearer:JwtBearerController",
+            "modules.myappmod.dashboard:DashboardController",
             "modules.myappmod.sessioncontrol.sessions:SessionController"
         )
         .register_services(
-            "modules.myappmod.auth:UserService",
             "modules.myappmod.auth:DemoAuthService",
+            "modules.myappmod.auth:UserService",
             "modules.myappmod.services:MyappmodService",
             "modules.myappmod.advanced_di:IUserRepository",
             "modules.myappmod.advanced_di:MemoryUserRepository",
@@ -73,6 +74,12 @@ workspace = (
     ))
     .integrate(Integration.patterns())
     .integrate(Integration.auth(enabled=True))
+    .integrate(
+        Integration.templates
+        .source("modules/myappmod/templates")
+        .cached("memory")
+        .secure()
+    )
 
     # Sessions - Configure session management
     .sessions(

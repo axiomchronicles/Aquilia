@@ -20,7 +20,7 @@ class SessionController(Controller):
     - @stateful decorator for typed state management
     - Concurrency and expiration handling
     """
-    prefix = "/sessions"
+    prefix = "/api/sessions"
     
     @GET("/")
     async def get_session_info(self, ctx: RequestCtx):

@@ -189,11 +189,11 @@ class AuthController(Controller):
         from aquilia.templates import TemplateEngine
         from aquilia.templates.loader import TemplateLoader
         
-        search_paths = [Path("myapp/modules/myappmod/templates")]
+        search_paths = [Path("modules/myappmod/templates")]
         loader = TemplateLoader(search_paths=search_paths)
         engine = TemplateEngine(loader=loader)
         
-        return self.render("login.html", {}, ctx, engine=engine)
+        return await self.render("login.html", {}, ctx, engine=engine)
     
     @POST("/login")
     async def login_submit(self, ctx: RequestCtx):
@@ -202,23 +202,16 @@ class AuthController(Controller):
         from aquilia.templates.loader import TemplateLoader
         
         # Parse form data
-        body = await ctx.request.get_body()
-        params = {}
-        if body:
-            for pair in body.split("&"):
-                if "=" in pair:
-                    k, v = pair.split("=", 1)
-                    params[k] = v
-        
-        username = params.get("username", "")
-        password = params.get("password", "")
+        form_data = await ctx.request.form()
+        username = form_data.get("username", "")
+        password = form_data.get("password", "")
         
         # Verify credentials
         identity = await self.demo_service.verify_credentials(username, password)
         
         if not identity:
             # Re-render login with error
-            search_paths = [Path("myapp/modules/myappmod/templates")]
+            search_paths = [Path("modules/myappmod/templates")]
             loader = TemplateLoader(search_paths=search_paths)
             engine = TemplateEngine(loader=loader)
             
@@ -228,12 +221,13 @@ class AuthController(Controller):
                     {"text": "Invalid username or password", "level": "danger"}
                 ]
             
-            return self.render("login.html", {}, ctx, engine=engine, status=401)
+            return await self.render("login.html", {}, ctx, engine=engine, status=401)
         
-        # Set identity on session and context
+        # Set identity on session
         if ctx.session:
-            ctx.session.principal = identity
-            ctx.session.data["user_id"] = identity.id
+            from aquilia.auth.integration.aquila_sessions import bind_identity
+            bind_identity(ctx.session, identity)
+        
         ctx.identity = identity
         
         # Add success flash message
@@ -325,7 +319,7 @@ class AuthController(Controller):
             return Response.json({"error": str(e)}, status=400)
 
 
-class DashboardController(Controller):
+class MyappmodUIController(Controller):
     """Dashboard and main pages."""
     
     prefix = ""
@@ -336,11 +330,11 @@ class DashboardController(Controller):
         from aquilia.templates import TemplateEngine
         from aquilia.templates.loader import TemplateLoader
         
-        search_paths = [Path("myapp/modules/myappmod/templates")]
+        search_paths = [Path("modules/myappmod/templates")]
         loader = TemplateLoader(search_paths=search_paths)
         engine = TemplateEngine(loader=loader)
         
-        return self.render("dashboard.html", {}, ctx, engine=engine)
+        return await self.render("dashboard.html", {}, ctx, engine=engine)
     
     @GET("/profile")
     async def profile(self, ctx: RequestCtx):
@@ -348,11 +342,11 @@ class DashboardController(Controller):
         from aquilia.templates import TemplateEngine
         from aquilia.templates.loader import TemplateLoader
         
-        search_paths = [Path("myapp/modules/myappmod/templates")]
+        search_paths = [Path("modules/myappmod/templates")]
         loader = TemplateLoader(search_paths=search_paths)
         engine = TemplateEngine(loader=loader)
         
-        return self.render("profile.html", {}, ctx, engine=engine)
+        return await self.render("profile.html", {}, ctx, engine=engine)
     
     @GET("/")
     async def home(self, ctx: RequestCtx):
@@ -382,11 +376,11 @@ class SessionsController(Controller):
                 "data_size": len(str(ctx.session.data).encode()),
             })
         
-        search_paths = [Path("myapp/modules/myappmod/templates")]
+        search_paths = [Path("modules/myappmod/templates")]
         loader = TemplateLoader(search_paths=search_paths)
         engine = TemplateEngine(loader=loader)
         
-        return self.render(
+        return await self.render(
             "sessions.html",
             {"sessions": sessions_data},
             ctx,
@@ -394,4 +388,4 @@ class SessionsController(Controller):
         )
 
 
-__all__ = ["AuthController", "DashboardController", "SessionsController", "DemoAuthService", "UserService"]
+__all__ = ["AuthController", "MyappmodUIController", "SessionsController", "DemoAuthService", "UserService"]
