@@ -122,6 +122,7 @@ class Controller:
         context: Optional[Dict[str, Any]] = None,
         request_ctx: Optional[RequestCtx] = None,
         *,
+        engine: Optional[Any] = None,
         status: int = 200,
         headers: Optional[Dict[str, str]] = None
     ) -> "Response":
@@ -135,6 +136,7 @@ class Controller:
             template_name: Template name
             context: Template variables
             request_ctx: Request context (auto-injects request/session/identity)
+            engine: Template engine (optional, can be injected or passed)
             status: HTTP status code
             headers: Additional headers
         
@@ -149,14 +151,9 @@ class Controller:
         """
         from aquilia.response import Response
         
-        # Get template engine
-        engine = getattr(self, "_template_engine", None) or getattr(self, "templates", None)
-        
+        # Get template engine (if not provided as parameter)
         if engine is None:
-            raise RuntimeError(
-                "Template engine not available. "
-                "Inject TemplateEngine in constructor: def __init__(self, templates: TemplateEngine)"
-            )
+            engine = getattr(self, "_template_engine", None) or getattr(self, "templates", None)
         
         return Response.render(
             template_name,

@@ -380,12 +380,18 @@ class PatternParser:
             raise self.error("Pattern must start with /")
         self.advance()
 
-        # Parse segments
-        segments = self.parse_segment_list()
-
-        # Optional trailing slash
-        if self.match(TokenType.SLASH):
-            self.advance()
+        # Parse path components separated by slashes
+        while not self.match(TokenType.EOF, TokenType.QUESTION):
+            # Parse one path component (segments between slashes)
+            component_segments = self.parse_segment_list()
+            segments.extend(component_segments)
+            
+            # Check for slash (path separator)
+            if self.match(TokenType.SLASH):
+                self.advance()
+            else:
+                # No more slashes, should be EOF or QUESTION
+                break
 
         # Optional query string
         if self.match(TokenType.QUESTION):
@@ -406,18 +412,21 @@ class PatternParser:
         )
 
     def parse_segment_list(self) -> List[BaseSegment]:
-        """Parse segment list."""
+        """Parse segments within a single path component (until a slash or end)."""
         segments = []
 
+        # Parse segments until we hit a slash, EOF, question mark, or bracket
         while not self.match(TokenType.EOF, TokenType.SLASH, TokenType.QUESTION, TokenType.RBRACKET):
             segment = self.parse_segment()
-            segments.append(segment)
-
-            # Optional slash between segments
-            if self.match(TokenType.SLASH):
-                # Check if this is the end or just a separator
-                if not self.match(TokenType.EOF, TokenType.QUESTION):
-                    self.advance()
+            
+            # Combine adjacent static segments
+            if segments and isinstance(segments[-1], StaticSegment) and isinstance(segment, StaticSegment):
+                segments[-1].value += segment.value
+                # Update span
+                if segments[-1].span and segment.span:
+                    segments[-1].span.end = segment.span.end
+            else:
+                segments.append(segment)
 
         return segments
 
@@ -435,11 +444,21 @@ class PatternParser:
             raise self.error(f"Expected segment, got {self.current().type}")
 
     def parse_static(self) -> StaticSegment:
-        """Parse static text segment."""
-        token = self.current()
-        value = token.value
-        self.advance()
-        return StaticSegment(value=value, span=token.span)
+        """Parse static text segment, combining IDENT and STATIC tokens."""
+        start_token = self.current()
+        parts = []
+        start_span = start_token.span
+        end_span = start_token.span
+        
+        # Consume IDENT and STATIC tokens together (for hyphenated names like "test-templates")
+        while self.match(TokenType.IDENT, TokenType.STATIC):
+            token = self.current()
+            parts.append(token.value)
+            end_span = token.span
+            self.advance()
+        
+        value = "".join(parts)
+        return StaticSegment(value=value, span=start_span)
 
     def parse_token(self) -> TokenSegment:
         """Parse token segment «name:type|constraints=default@transform»."""

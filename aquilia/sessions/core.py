@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import secrets
 import base64
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Any, Literal
@@ -264,8 +264,8 @@ class Session:
         >>> session = Session(
         ...     id=SessionID(),
         ...     scope=SessionScope.USER,
-        ...     created_at=datetime.utcnow(),
-        ...     last_accessed_at=datetime.utcnow()
+        ...     created_at=datetime.now(timezone.utc),
+        ...     last_accessed_at=datetime.now(timezone.utc)
         ... )
         >>> session.data["cart_items"] = 3
         >>> session.is_dirty
@@ -278,8 +278,8 @@ class Session:
     id: SessionID
     principal: SessionPrincipal | None = None
     data: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    last_accessed_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_accessed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: datetime | None = None
     scope: SessionScope = SessionScope.USER
     flags: set[SessionFlag] = field(default_factory=set)
@@ -348,7 +348,7 @@ class Session:
             return False
         
         if now is None:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
         
         return now >= self.expires_at
     
@@ -363,7 +363,7 @@ class Session:
             Timedelta since last access
         """
         if now is None:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
         
         return now - self.last_accessed_at
     
@@ -375,7 +375,7 @@ class Session:
             now: Current time (defaults to utcnow)
         """
         if now is None:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
         
         self.last_accessed_at = now
         self._dirty = True

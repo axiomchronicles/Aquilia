@@ -15,6 +15,8 @@ from typing import Any, Callable, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from aquilia.request import Request
     from aquilia.response import Response
+    from aquilia.di import RequestCtx
+    from aquilia.middleware import Handler
 
 
 class TemplateMiddleware:
@@ -58,14 +60,16 @@ class TemplateMiddleware:
     async def __call__(
         self,
         request: "Request",
-        call_next: Callable
+        ctx: "RequestCtx",
+        next_handler: "Handler"
     ) -> "Response":
         """
         Process request and inject template context.
         
         Args:
             request: HTTP request
-            call_next: Next middleware/handler
+            ctx: Request context (DI container)
+            next_handler: Next middleware/handler
         
         Returns:
             Response from handler
@@ -82,7 +86,7 @@ class TemplateMiddleware:
             request.state["template_csrf_token"] = self.csrf_token_func(request)
         
         # Call next middleware/handler
-        response = await call_next(request)
+        response = await next_handler(request, ctx)
         
         return response
     

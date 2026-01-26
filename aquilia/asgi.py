@@ -103,11 +103,19 @@ class ASGIAdapter:
             from .di import Container
             di_container = Container(scope="request")
         
-        # Create RequestCtx
-        from .di import RequestCtx
-        ctx = RequestCtx(di_container)
+        # Create RequestCtx with proper initialization
+        from .controller.base import RequestCtx
+        ctx = RequestCtx(
+            request=request,
+            identity=None,  # Will be set by auth middleware if needed
+            session=None,   # Will be set by session middleware if needed
+            container=di_container,
+        )
         
-        # Store path params in request state
+        # Store metadata in request state for middleware access
+        app_name = getattr(controller_match.route, 'app_name', None)
+        request.state["app_name"] = app_name
+        request.state["route_pattern"] = getattr(controller_match.route, 'full_path', None)
         request.state["path_params"] = controller_match.params
         
         # Define final handler that executes the controller

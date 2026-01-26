@@ -1,17 +1,129 @@
+"""
+Comprehensive Authentication System for Aquilia Demo
+
+Features:
+- Login/Logout with sessions and templates
+- Bearer token authentication
+- Role-based access control
+- Password hashing with verification
+- Template-based login page
+- Dashboard with session info
+- Demo users (admin/password, john/password)
+"""
 
 from typing import Optional
+from datetime import datetime, timezone
+from pathlib import Path
 from aquilia import Controller, GET, POST, RequestCtx, Response
 from aquilia.di import service, inject
 from aquilia.auth.manager import AuthManager
 from aquilia.auth.stores import MemoryIdentityStore, MemoryCredentialStore
-from aquilia.auth.core import Identity, IdentityStatus, IdentityType, PasswordCredential
+from aquilia.auth.core import Identity, IdentityStatus, IdentityType, PasswordCredential, CredentialStatus
 from aquilia.auth.hashing import PasswordHasher
-from aquilia.auth.authz import RBACEngine
-from aquilia.auth.mfa import MFAManager, TOTPProvider
 import uuid
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+@service(scope="app")
+class DemoAuthService:
+    """Authentication service with pre-populated demo users."""
+    
+    def __init__(
+        self,
+        identity_store: MemoryIdentityStore,
+        credential_store: MemoryCredentialStore,
+        password_hasher: PasswordHasher,
+    ):
+        self.identity_store = identity_store
+        self.credential_store = credential_store
+        self.password_hasher = password_hasher
+        self._initialized = False
+    
+    async def ensure_demo_users(self):
+        """Initialize demo users if not already done."""
+        if self._initialized:
+            return
+        
+        # Admin user
+        admin_id = "admin-001"
+        admin = Identity(
+            id=admin_id,
+            type=IdentityType.USER,
+            attributes={
+                "username": "admin",
+                "email": "admin@example.com",
+                "roles": {"admin", "user"},
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            },
+            status=IdentityStatus.ACTIVE,
+        )
+        
+        try:
+            await self.identity_store.create(admin)
+            admin_pass = self.password_hasher.hash("password")
+            admin_cred = PasswordCredential(
+                identity_id=admin_id,
+                password_hash=admin_pass,
+                status=CredentialStatus.ACTIVE,
+                created_at=datetime.now(timezone.utc),
+                last_changed_at=datetime.now(timezone.utc),
+            )
+            await self.credential_store.save_password(admin_cred)
+        except Exception as e:
+            logger.debug(f"Admin user already exists: {e}")
+        
+        # Regular user
+        user_id = "user-001"
+        user = Identity(
+            id=user_id,
+            type=IdentityType.USER,
+            attributes={
+                "username": "john",
+                "email": "john@example.com",
+                "roles": {"user"},
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            },
+            status=IdentityStatus.ACTIVE,
+        )
+        
+        try:
+            await self.identity_store.create(user)
+            user_pass = self.password_hasher.hash("password")
+            user_cred = PasswordCredential(
+                identity_id=user_id,
+                password_hash=user_pass,
+                status=CredentialStatus.ACTIVE,
+                created_at=datetime.now(timezone.utc),
+                last_changed_at=datetime.now(timezone.utc),
+            )
+            await self.credential_store.save_password(user_cred)
+        except Exception as e:
+            logger.debug(f"User already exists: {e}")
+        
+        self._initialized = True
+    
+    async def verify_credentials(self, username: str, password: str) -> Optional[Identity]:
+        """Verify username/password and return Identity if valid."""
+        await self.ensure_demo_users()
+        
+        # Find user by username using get_by_attribute
+        identity = await self.identity_store.get_by_attribute("username", username)
+        
+        if not identity:
+            return None
+        
+        # Verify password
+        try:
+            cred = await self.credential_store.get_password(identity.id)
+            if cred and self.password_hasher.verify(cred.password_hash, password):
+                return identity
+        except Exception as e:
+            logger.debug(f"Password verification failed: {e}")
+        
+        return None
+
 
 @service(scope="app")
 class UserService:
@@ -58,21 +170,98 @@ class UserService:
         logger.info(f"Registered user: {username} ({user_id})")
         return identity
 
+
 class AuthController(Controller):
     """
-    Controller for authentication.
+    Controller for authentication with template-based UI.
     """
     prefix = "/auth"
     tags = ["auth"]
 
-    def __init__(self, auth_manager: AuthManager, user_service: UserService):
+    def __init__(self, auth_manager: AuthManager, user_service: UserService, demo_service: DemoAuthService):
         self.auth_manager = auth_manager
         self.user_service = user_service
+        self.demo_service = demo_service
 
+    @GET("/login")
+    async def login_page(self, ctx: RequestCtx):
+        """Display login page template."""
+        from aquilia.templates import TemplateEngine
+        from aquilia.templates.loader import TemplateLoader
+        
+        search_paths = [Path("myapp/modules/myappmod/templates")]
+        loader = TemplateLoader(search_paths=search_paths)
+        engine = TemplateEngine(loader=loader)
+        
+        return self.render("login.html", {}, ctx, engine=engine)
+    
     @POST("/login")
-    async def login(self, ctx: RequestCtx):
+    async def login_submit(self, ctx: RequestCtx):
+        """Handle login form submission."""
+        from aquilia.templates import TemplateEngine
+        from aquilia.templates.loader import TemplateLoader
+        
+        # Parse form data
+        body = await ctx.request.get_body()
+        params = {}
+        if body:
+            for pair in body.split("&"):
+                if "=" in pair:
+                    k, v = pair.split("=", 1)
+                    params[k] = v
+        
+        username = params.get("username", "")
+        password = params.get("password", "")
+        
+        # Verify credentials
+        identity = await self.demo_service.verify_credentials(username, password)
+        
+        if not identity:
+            # Re-render login with error
+            search_paths = [Path("myapp/modules/myappmod/templates")]
+            loader = TemplateLoader(search_paths=search_paths)
+            engine = TemplateEngine(loader=loader)
+            
+            # Add flash message via session
+            if ctx.session:
+                ctx.session.data["_flash_messages"] = [
+                    {"text": "Invalid username or password", "level": "danger"}
+                ]
+            
+            return self.render("login.html", {}, ctx, engine=engine, status=401)
+        
+        # Set identity on session and context
+        if ctx.session:
+            ctx.session.principal = identity
+            ctx.session.data["user_id"] = identity.id
+        ctx.identity = identity
+        
+        # Add success flash message
+        if ctx.session:
+            ctx.session.data["_flash_messages"] = [
+                {"text": f"Welcome back, {identity.get_attribute('username')}!", "level": "success"}
+            ]
+        
+        # Redirect to dashboard
+        return Response.redirect("/dashboard")
+    
+    @GET("/logout")
+    async def logout(self, ctx: RequestCtx):
+        """Handle logout."""
+        # Clear session
+        if ctx.session:
+            ctx.session.data.clear()
+            ctx.session.principal = None
+        
+        ctx.identity = None
+        
+        # Redirect to login
+        return Response.redirect("/login")
+
+    @POST("/login-json")
+    async def login_json(self, ctx: RequestCtx):
         """
-        Login with username and password.
+        Login with username and password (JSON API).
         """
         data = await ctx.json()
         username = data.get("username")
@@ -135,37 +324,74 @@ class AuthController(Controller):
             logger.error(f"Registration failed: {e}")
             return Response.json({"error": str(e)}, status=400)
 
-    @POST("/mfa/enroll")
-    async def enroll_mfa(self, ctx: RequestCtx):
-        """
-        Enroll current user in TOTP MFA.
-        """
-        if not hasattr(ctx, "identity") or not ctx.identity:
-            return Response.json({"error": "Auth required"}, status=401)
-            
-        # Simplified: Use a mock MFAManager
-        mfa = MFAManager(totp_provider=TOTPProvider(issuer="MyApp"))
-        enrollment = await mfa.enroll_totp(ctx.identity.id, ctx.identity.get_attribute("username"))
-        
-        # In a real app, we'd save the secret to the identity store
-        # Here we just return it for testing
-        return Response.json(enrollment)
 
-    @POST("/mfa/verify")
-    async def verify_mfa(self, ctx: RequestCtx):
-        """
-        Verify TOTP code.
-        """
-        data = await ctx.json()
-        secret = data.get("secret")
-        code = data.get("code")
+class DashboardController(Controller):
+    """Dashboard and main pages."""
+    
+    prefix = ""
+    
+    @GET("/dashboard")
+    async def dashboard(self, ctx: RequestCtx):
+        """Display dashboard."""
+        from aquilia.templates import TemplateEngine
+        from aquilia.templates.loader import TemplateLoader
         
-        if not secret or not code:
-            return Response.json({"error": "Missing secret or code"}, status=400)
-            
-        mfa = MFAManager(totp_provider=TOTPProvider())
-        is_valid = await mfa.verify_totp(secret, code)
+        search_paths = [Path("myapp/modules/myappmod/templates")]
+        loader = TemplateLoader(search_paths=search_paths)
+        engine = TemplateEngine(loader=loader)
         
-        if is_valid:
-            return Response.json({"status": "verified"})
-        return Response.json({"error": "Invalid code"}, status=400)
+        return self.render("dashboard.html", {}, ctx, engine=engine)
+    
+    @GET("/profile")
+    async def profile(self, ctx: RequestCtx):
+        """Display user profile."""
+        from aquilia.templates import TemplateEngine
+        from aquilia.templates.loader import TemplateLoader
+        
+        search_paths = [Path("myapp/modules/myappmod/templates")]
+        loader = TemplateLoader(search_paths=search_paths)
+        engine = TemplateEngine(loader=loader)
+        
+        return self.render("profile.html", {}, ctx, engine=engine)
+    
+    @GET("/")
+    async def home(self, ctx: RequestCtx):
+        """Home page - redirect to dashboard."""
+        return Response.redirect("/dashboard")
+
+
+class SessionsController(Controller):
+    """Session management pages."""
+    
+    prefix = "/sessions"
+    
+    @GET("/list")
+    async def list_sessions(self, ctx: RequestCtx):
+        """Display active sessions."""
+        from aquilia.templates import TemplateEngine
+        from aquilia.templates.loader import TemplateLoader
+        
+        # Prepare sessions data for template
+        sessions_data = []
+        if ctx.session:
+            sessions_data.append({
+                "id": str(ctx.session.id),
+                "created_at": ctx.session.created_at.isoformat() if ctx.session.created_at else "N/A",
+                "expires_at": ctx.session.expires_at.isoformat() if ctx.session.expires_at else "Never",
+                "authenticated": bool(ctx.session.principal),
+                "data_size": len(str(ctx.session.data).encode()),
+            })
+        
+        search_paths = [Path("myapp/modules/myappmod/templates")]
+        loader = TemplateLoader(search_paths=search_paths)
+        engine = TemplateEngine(loader=loader)
+        
+        return self.render(
+            "sessions.html",
+            {"sessions": sessions_data},
+            ctx,
+            engine=engine
+        )
+
+
+__all__ = ["AuthController", "DashboardController", "SessionsController", "DemoAuthService", "UserService"]

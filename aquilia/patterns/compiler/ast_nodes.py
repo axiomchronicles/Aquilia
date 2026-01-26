@@ -191,7 +191,9 @@ class PatternAST:
                 prefix_parts.append(segment.value)
             else:
                 break
-        return "/" + "/".join(prefix_parts) if prefix_parts else ""
+        prefix = "/" + "/".join(prefix_parts) if prefix_parts else ""
+        # print(f"DEBUG: get_static_prefix for {self.raw} -> {prefix} (parts: {prefix_parts})")
+        return prefix
 
     def get_param_names(self) -> List[str]:
         """Get all parameter names (including nested optionals)."""

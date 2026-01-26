@@ -121,7 +121,8 @@ class SessionEngine:
             SessionIdleTimeoutFault: Idle timeout exceeded
             SessionConcurrencyViolationFault: Too many sessions
         """
-        now = datetime.utcnow()
+        from datetime import timezone
+        now = datetime.now(timezone.utc)
         
         # Phase 1: Detection - Extract session ID from transport
         session_id_str = self.transport.extract(request)
@@ -267,7 +268,8 @@ class SessionEngine:
             response: Response to inject session into
             privilege_changed: Whether authentication changed
         """
-        now = datetime.utcnow()
+        from datetime import timezone
+        now = datetime.now(timezone.utc)
         
         # Check if rotation needed
         if self.policy.should_rotate(session, privilege_changed):
@@ -409,7 +411,8 @@ class SessionEngine:
             now: Current timestamp
         """
         if now is None:
-            now = datetime.utcnow()
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
         
         if SessionFlag.RENEWABLE in session.flags and self.policy.ttl:
             session.extend_expiry(self.policy.ttl, now)

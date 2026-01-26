@@ -112,12 +112,18 @@ class Response:
         from aquilia.templates import TemplateEngine
         
         if engine is None:
-            # Try to get engine from DI (if available)
-            # For now, raise error - engine must be provided
-            raise ValueError(
-                "TemplateEngine not provided. "
-                "Pass engine parameter or use controller.render() helper."
-            )
+            # Try to get engine from DI (if available via request_ctx)
+            if request_ctx and hasattr(request_ctx, "container") and request_ctx.container:
+                try:
+                    engine = request_ctx.container.resolve(TemplateEngine)
+                except Exception:
+                    pass
+            
+            if engine is None:
+                raise ValueError(
+                    "TemplateEngine not provided and could not be resolved from DI. "
+                    "Pass engine parameter or inject TemplateEngine into controller."
+                )
         
         # Create async render function
         async def _render():
@@ -177,6 +183,8 @@ class Response:
     
     async def send_asgi(self, send: callable):
         """Send response via ASGI."""
+        import inspect
+        
         # Prepare headers
         headers = []
         for key, value in self.headers.items():
@@ -209,6 +217,24 @@ class Response:
                 "body": b"",
                 "more_body": False,
             })
+        elif inspect.iscoroutine(self._content):
+            # Coroutine object (e.g., async template render)
+            try:
+                rendered = await self._content
+                body = self._encode_body(rendered)
+                await send({
+                    "type": "http.response.body",
+                    "body": body,
+                    "more_body": False,
+                })
+            except Exception as e:
+                # Handle render errors
+                error_body = f"Template render error: {str(e)}".encode()
+                await send({
+                    "type": "http.response.body",
+                    "body": error_body,
+                    "more_body": False,
+                })
         elif callable(self._content):
             # Async callable (e.g., template render)
             try:

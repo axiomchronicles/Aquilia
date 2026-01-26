@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Protocol, TYPE_CHECKING
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 if TYPE_CHECKING:
     from aquilia.request import Request
@@ -137,7 +137,7 @@ class CookieTransport:
         # Add expiry (if session has expiry)
         if session.expires_at:
             # Calculate Max-Age in seconds
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             max_age = int((session.expires_at - now).total_seconds())
             if max_age > 0:
                 cookie_parts.append(f"Max-Age={max_age}")

@@ -16,7 +16,11 @@ from .aquilary import Aquilary, RuntimeRegistry, RegistryMode, AquilaryRegistry
 from .lifecycle import LifecycleCoordinator, LifecycleManager, LifecycleError
 from .middleware_ext.session_middleware import SessionMiddleware
 from .controller.openapi import OpenAPIGenerator
+from .faults.engine import FaultEngine, FaultMiddleware
 from .response import Response
+# Template Integration
+from .templates.middleware import TemplateMiddleware
+from .templates.di_providers import register_template_providers
 # Auth Integration
 from .auth.manager import AuthManager
 from .auth.integration.middleware import AquilAuthMiddleware, create_auth_middleware_stack
@@ -59,6 +63,9 @@ class AquiliaServer:
         self.logger.info("🔍 Initializing AquiliaServer...")
         self.logger.info(f"📦 Config has sessions: {'sessions' in self.config.to_dict()}")
         self.mode = mode
+        
+        # Initialize fault engine
+        self.fault_engine = FaultEngine(debug=self._is_debug())
         
         # Build or use provided Aquilary registry
         if aquilary_registry is not None:
@@ -133,6 +140,14 @@ class AquiliaServer:
             scope="global",
             priority=1,
             name="exception",
+        )
+        
+        # Add Fault engine middleware
+        self.middleware_stack.add(
+            FaultMiddleware(self.fault_engine),
+            scope="global",
+            priority=2,
+            name="faults",
         )
         
         # Add request scope middleware with RuntimeRegistry
@@ -279,6 +294,35 @@ class AquiliaServer:
                 self._auth_manager = None
         else:
             self.logger.info("Session/Auth management disabled")
+
+        # Add template engine integration
+        template_config = self.config.get_template_config()
+        use_templates = template_config.get("enabled", False)
+        
+        # Auto-enable if any app manifest has templates
+        if not use_templates and hasattr(self, "aquilary"):
+            for ctx in self.aquilary.app_contexts:
+                if hasattr(ctx.manifest, "templates") and ctx.manifest.templates and ctx.manifest.templates.enabled:
+                    use_templates = True
+                    break
+        
+        if use_templates:
+            self.logger.info("🎨 Initializing template engine...")
+            # Register providers for each container
+            for container in self.runtime.di_containers.values():
+                register_template_providers(container)
+            
+            # Register middleware
+            self.middleware_stack.add(
+                TemplateMiddleware(
+                    url_for=self.controller_router.url_for,
+                    config=self.config
+                ),
+                scope="global",
+                priority=25,  # Processed after Auth/Session
+                name="templates",
+            )
+            self.logger.info("✅ Template engine initialized and middleware registered")
             
         # Register app-specific middlewares from Aquilary manifest
         if hasattr(self, "aquilary"):
@@ -598,6 +642,9 @@ class AquiliaServer:
 
         # Initialize controller router
         self.controller_router.initialize()
+        
+        # Step 1.5: Register fault handlers from manifests
+        self._register_fault_handlers()
 
         # Step 2: Register OpenAPI/Docs routes if enabled
         if self.config.get("docs_enabled", True):
@@ -731,6 +778,44 @@ class AquiliaServer:
             raise ImportError(
                 f"Class '{class_name}' not found in module '{module_path}': {e}"
             ) from e
+
+    def _register_fault_handlers(self):
+        """Register fault handlers from manifests."""
+        import importlib
+        
+        for app_ctx in self.runtime.meta.app_contexts:
+            # Check for faults config in manifest
+            manifest = app_ctx.manifest
+            if not manifest or not hasattr(manifest, "faults") or not manifest.faults:
+                continue
+            
+            fault_config = manifest.faults
+            if not hasattr(fault_config, "handlers"):
+                continue
+
+            for handler_cfg in fault_config.handlers:
+                try:
+                    handler_path = handler_cfg.handler_path
+                    if ":" in handler_path:
+                        mod_path, attr_name = handler_path.split(":", 1)
+                    elif "." in handler_path:
+                        mod_path, attr_name = handler_path.rsplit(".", 1)
+                    else:
+                        self.logger.error(f"Invalid handler path format: {handler_path}")
+                        continue
+                        
+                    mod = importlib.import_module(mod_path)
+                    handler_obj = getattr(mod, attr_name)
+                    
+                    if isinstance(handler_obj, type):
+                        handler_instance = handler_obj()
+                    else:
+                        handler_instance = handler_obj
+                        
+                    self.fault_engine.register_app(app_ctx.name, handler_instance)
+                    self.logger.info(f"✓ Registered fault handler from {app_ctx.name} manifest")
+                except Exception as e:
+                    self.logger.error(f"Failed to register fault handler {handler_cfg.handler_path} for app {app_ctx.name}: {e}")
     
     async def startup(self):
         """

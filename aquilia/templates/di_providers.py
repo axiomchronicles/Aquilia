@@ -223,39 +223,19 @@ class TemplateEngineProvider:
     
     def _register_session_helpers(self, engine: TemplateEngine) -> None:
         """Register session access helpers in templates."""
-        # Global function to access session
-        def get_session():
-            """Get current session from request context."""
-            # This will be enhanced with proper request context access
-            # For now, it's a placeholder for deep integration
-            return None
-        
-        engine.register_global("session", get_session)
-        logger.debug("Registered session helpers in templates")
+        try:
+            from .sessions_integration import enhance_engine_with_sessions
+            enhance_engine_with_sessions(engine, self.session_engine)
+        except ImportError:
+            logger.debug("Session integration not available for templates")
     
     def _register_auth_helpers(self, engine: TemplateEngine) -> None:
         """Register auth/identity helpers in templates."""
-        # Helper to check if user is authenticated
-        def is_authenticated() -> bool:
-            """Check if current user is authenticated."""
-            # This will be enhanced with proper request context access
-            return False
-        
-        # Helper to check roles
-        def has_role(role: str) -> bool:
-            """Check if current user has role."""
-            return False
-        
-        # Helper to check permissions
-        def has_permission(permission: str) -> bool:
-            """Check if current user has permission."""
-            return False
-        
-        engine.register_global("is_authenticated", is_authenticated)
-        engine.register_global("has_role", has_role)
-        engine.register_global("has_permission", has_permission)
-        
-        logger.debug("Registered auth helpers in templates")
+        try:
+            from .auth_integration import enhance_engine_with_auth
+            enhance_engine_with_auth(engine, self.auth_manager)
+        except ImportError:
+            logger.debug("Auth integration not available for templates")
 
 
 @service(scope="app")
@@ -278,22 +258,39 @@ class TemplateManagerProvider:
 def register_template_providers(container) -> None:
     """
     Register all template providers with DI container.
-    
-    Call this during app initialization to enable automatic
-    TemplateEngine injection in controllers.
-    
-    Example:
-        from aquilia.templates.di_providers import register_template_providers
-        
-        container = Container()
-        register_template_providers(container)
     """
-    # Register in dependency order
-    container.register_provider(TemplateLoaderProvider)
-    container.register_provider(BytecodeCacheProvider)
-    container.register_provider(TemplateSandboxProvider)
-    container.register_provider(TemplateEngineProvider)
-    container.register_provider(TemplateManagerProvider)
+    from aquilia.di.providers import ClassProvider
+    
+    # Register provider classes as services
+    container.register(ClassProvider(TemplateLoaderProvider, scope="app"))
+    container.register(ClassProvider(BytecodeCacheProvider, scope="app"))
+    container.register(ClassProvider(TemplateSandboxProvider, scope="app"))
+    container.register(ClassProvider(TemplateEngineProvider, scope="app"))
+    container.register(ClassProvider(TemplateManagerProvider, scope="app"))
+    
+    # Register factories for core types that developers actually inject
+    from aquilia.di.providers import FactoryProvider
+    from .engine import TemplateEngine
+    from .loader import TemplateLoader
+    from .bytecode_cache import BytecodeCache
+    from .security import TemplateSandbox
+    
+    async def provide_loader(loader_provider: TemplateLoaderProvider) -> TemplateLoader:
+        return loader_provider.provide()
+    
+    async def provide_cache(cache_provider: BytecodeCacheProvider) -> Optional[BytecodeCache]:
+        return cache_provider.provide()
+    
+    async def provide_sandbox(sandbox_provider: TemplateSandboxProvider) -> Optional[TemplateSandbox]:
+        return sandbox_provider.provide()
+        
+    async def provide_engine(engine_provider: TemplateEngineProvider) -> TemplateEngine:
+        return engine_provider.provide()
+    
+    container.register(FactoryProvider(provide_loader, scope="app"))
+    container.register(FactoryProvider(provide_cache, scope="app"))
+    container.register(FactoryProvider(provide_sandbox, scope="app"))
+    container.register(FactoryProvider(provide_engine, scope="app"))
     
     logger.info("AquilaTemplates providers registered with DI container")
 

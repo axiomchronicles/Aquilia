@@ -222,6 +222,25 @@ class FeatureConfig:
 
 
 @dataclass
+class TemplateConfig:
+    """Template engine configuration."""
+    enabled: bool = True
+    search_paths: List[str] = field(default_factory=list)
+    precompile: bool = False
+    cache: str = "memory"  # "memory", "crous", "none"
+    sandbox: bool = True
+    context_processors: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "enabled": self.enabled,
+            "search_paths": self.search_paths,
+            "precompile": self.precompile,
+            "cache": self.cache,
+        }
+
+
+@dataclass
 class AppManifest:
     """
     Production-grade application manifest for complete app configuration.
@@ -257,6 +276,9 @@ class AppManifest:
     
     # Session management
     sessions: List[SessionConfig] = field(default_factory=list)
+    
+    # Template management
+    templates: Optional[TemplateConfig] = None
     
     # Error handling
     faults: Optional[FaultHandlingConfig] = None

@@ -115,6 +115,16 @@ def create_template_context(
                     ctx.extras[key] = value
         except ImportError:
             pass  # Auth integration not available
+        
+        # Inject helpers from request.state (set by TemplateMiddleware)
+        if hasattr(ctx.request, "state"):
+            state = ctx.request.state
+            if "template_url_for" in state:
+                inject_url_helpers(ctx.extras, state["template_url_for"])
+            if "template_config" in state:
+                inject_config(ctx.extras, state["template_config"])
+            if "template_csrf_token" in state:
+                inject_csrf_token(ctx.extras, state["template_csrf_token"])
     
     return ctx
 

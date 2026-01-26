@@ -53,35 +53,43 @@ class IdentityTemplateProxy:
         """Get identity ID."""
         if not self._identity:
             return None
-        return str(self._identity.identity_id)
+        return str(self._identity.id)
     
     @property
     def username(self) -> Optional[str]:
         """Get username."""
         if not self._identity:
             return None
-        return self._identity.username
+        # Identity stores username in attributes dict
+        return self._identity.get_attribute('username')
     
     @property
     def email(self) -> Optional[str]:
         """Get email."""
         if not self._identity:
             return None
-        return getattr(self._identity, 'email', None)
+        # Identity stores email in attributes dict
+        return self._identity.get_attribute('email')
     
     @property
     def display_name(self) -> Optional[str]:
         """Get display name."""
         if not self._identity:
             return None
-        return getattr(self._identity, 'display_name', self.username)
+        name = self._identity.get_attribute('display_name')
+        if name:
+            return name
+        return self.username
     
     @property
     def roles(self) -> Set[str]:
         """Get roles set."""
         if not self._identity:
             return set()
-        return getattr(self._identity, 'roles', set())
+        # Identity stores roles in attributes dict
+        roles = self._identity.get_attribute('roles', set())
+        # Handle both set and list
+        return set(roles) if isinstance(roles, (list, set)) else set()
     
     def has_role(self, role: str) -> bool:
         """

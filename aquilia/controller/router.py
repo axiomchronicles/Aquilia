@@ -104,7 +104,10 @@ class ControllerRouter:
         
         # Get routes for this method
         method_routes = self.routes_by_method.get(method, [])
+        print(f"DEBUG: Matching {method} {path}. Method routes: {len(method_routes)}")
+        
         if not method_routes:
+            print(f"DEBUG: No routes for method {method}. Available methods: {list(self.routes_by_method.keys())}")
             return None
         
         # Try to match path against patterns
@@ -112,20 +115,22 @@ class ControllerRouter:
         
         # Try each route in specificity order
         for route in method_routes:
+            print(f"DEBUG: Checking route {route.full_path}")
             # Use pattern matcher
             match_result = await self.matcher._try_match(
                 route.compiled_pattern,
                 path,
                 query_params,
             )
-            
             if match_result:
+                print(f"DEBUG: MATCH FOUND! {route.full_path}")
                 return ControllerRouteMatch(
                     route=route,
                     params=match_result.params,
                     query=match_result.query,
                 )
         
+        print(f"DEBUG: NO MATCH for {path}")
         return None
     
     def get_routes(self) -> List[Dict[str, Any]]:
@@ -188,3 +193,50 @@ class ControllerRouter:
         """
         match = asyncio.run(self.match(path, method))
         return match is not None
+
+    def url_for(self, name: str, **params) -> str:
+        """
+        Reverse URL generation.
+        
+        Args:
+            name: Handler name (format: "ControllerName.method_name" or just handler name)
+            params: Path parameters and query params
+            
+        Returns:
+            Generated URL string
+        """
+        # Try to find matching route
+        for controller in self.compiled_controllers:
+            for route in controller.routes:
+                # Check for match (ControllerName.handler_name)
+                full_name = f"{route.controller_class.__name__}.{route.route_metadata.handler_name}"
+                if full_name == name or route.route_metadata.handler_name == name:
+                    # Found route
+                    path = route.full_path
+                    
+                    # Substitute path parameters
+                    # Expects {param} format in full_path (from compiled route)
+                    path_params = {}
+                    query_params = {}
+                    
+                    # Split params into path and query
+                    # This is a bit naive but works for simple cases
+                    for k, v in params.items():
+                        placeholder = f"{{{k}}}"
+                        if placeholder in path:
+                            path = path.replace(placeholder, str(v))
+                        else:
+                            query_params[k] = v
+                    
+                    # Add query parameters
+                    if query_params:
+                        query_str = "&".join(f"{k}={v}" for k, v in query_params.items())
+                        path += f"?{query_str}"
+                    
+                    return path
+        
+        # Fallback for static paths
+        if name.startswith("/"):
+            return name
+            
+        raise ValueError(f"No route found with name: {name}")

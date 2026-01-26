@@ -446,6 +446,53 @@ def get_default_engine() -> FaultEngine:
     return _default_engine
 
 
+class FaultMiddleware:
+    """
+    Middleware that bridges the FaultEngine with the request/response lifecycle.
+    
+    Catches exceptions, processes them through the FaultEngine, and converts
+    the result to a Response.
+    """
+    
+    def __init__(self, engine: FaultEngine):
+        self.engine = engine
+    
+    async def __call__(
+        self, 
+        request: Any, 
+        ctx: Any, 
+        next_handler: Callable
+    ) -> Any:
+        try:
+            # Set fault context for current task
+            self.engine.set_context(
+                app=request.state.get("app_name"),
+                route=request.state.get("route_pattern"),
+                request_id=request.state.get("request_id"),
+            )
+            
+            try:
+                return await next_handler(request, ctx)
+            except Exception as e:
+                # Process fault through engine
+                result = await self.engine.process(e)
+                
+                if isinstance(result, Resolved):
+                    # Handler resolved it - convert response
+                    from ..response import Response
+                    if isinstance(result.response, Response):
+                        return result.response
+                    
+                    # Wrap raw dict/obj in JSON response if status is provided in result or default to 200/500
+                    # For now, simplistic conversion:
+                    return Response.json(result.response)
+                
+                # If escalated or transformed, re-raise for ExceptionMiddleware to catch
+                raise e
+        finally:
+            self.engine.clear_context()
+
+
 async def process_fault(
     exception: Exception | Fault,
     *,

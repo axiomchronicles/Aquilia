@@ -8,6 +8,8 @@ Supports both per-request and singleton instantiation modes.
 from typing import Any, Dict, Optional, Type
 from enum import Enum
 import asyncio
+import inspect
+import logging
 
 
 class InstantiationMode(str, Enum):
@@ -125,7 +127,7 @@ class ControllerFactory:
         
         # Call on_request hook
         if hasattr(instance, 'on_request'):
-            if asyncio.iscoroutinefunction(instance.on_request):
+            if inspect.iscoroutinefunction(instance.on_request):
                 await instance.on_request(ctx)
             else:
                 instance.on_request(ctx)

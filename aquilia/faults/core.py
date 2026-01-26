@@ -18,7 +18,7 @@ import traceback
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Any, Optional, Type
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # ============================================================================
@@ -280,7 +280,7 @@ class FaultContext:
     
     fault: Fault
     trace_id: str
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Scope context
     app: Optional[str] = None

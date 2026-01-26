@@ -97,7 +97,8 @@ class SessionTemplateProxy:
         """Get session ID."""
         if not self._session:
             return None
-        return str(self._session.session_id)
+        # Session object has 'id' attribute, not 'session_id'
+        return str(self._session.id)
     
     @property
     def created_at(self) -> Optional[str]:

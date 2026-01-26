@@ -2,7 +2,9 @@
 Middleware system - Composable, async-first middleware with effect awareness.
 """
 
-from typing import Callable, Awaitable, Optional, Dict, Any, List
+from __future__ import annotations
+
+from typing import Callable, Awaitable, Optional, Dict, Any, List, TYPE_CHECKING
 from dataclasses import dataclass
 import time
 import uuid
@@ -11,13 +13,14 @@ import logging
 
 from .request import Request
 from .response import Response, InternalError
-from .di import RequestCtx
 from .faults import Fault, FaultDomain
 
+if TYPE_CHECKING:
+    from .controller.base import RequestCtx
 
-# Type alias for middleware
-Handler = Callable[[Request, RequestCtx], Awaitable[Response]]
-Middleware = Callable[[Request, RequestCtx, Handler], Awaitable[Response]]
+# Type alias for middleware - use string annotation to avoid circular import
+Handler = Callable[[Request, "RequestCtx"], Awaitable[Response]]
+Middleware = Callable[[Request, "RequestCtx", Handler], Awaitable[Response]]
 
 
 @dataclass

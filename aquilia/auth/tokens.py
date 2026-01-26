@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Literal, Any, Protocol
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import json
 import base64
@@ -48,7 +48,7 @@ class KeyDescriptor:
     public_key_pem: str                # PEM-encoded public key
     private_key_pem: str | None = None # PEM-encoded private key (signing only)
     status: str = KeyStatus.ACTIVE
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     retire_after: datetime | None = None
     revoked_at: datetime | None = None
     
@@ -190,7 +190,7 @@ class KeyRing:
         if self.current_kid in self.keys:
             old_key = self.keys[self.current_kid]
             old_key.status = KeyStatus.RETIRED
-            old_key.retire_after = datetime.utcnow()
+            old_key.retire_after = datetime.now(timezone.utc)
         
         # Promote new key
         new_key.status = KeyStatus.ACTIVE
@@ -202,7 +202,7 @@ class KeyRing:
         
         if key:
             key.status = KeyStatus.REVOKED
-            key.revoked_at = datetime.utcnow()
+            key.revoked_at = datetime.now(timezone.utc)
     
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -363,7 +363,7 @@ class TokenManager:
         """
         token_id = f"rt_{secrets.token_urlsafe(32)}"
         
-        expires_at = datetime.utcnow() + timedelta(seconds=self.config.refresh_token_ttl)
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.config.refresh_token_ttl)
         
         await self.token_store.save_refresh_token(
             token_id=token_id,
@@ -450,7 +450,7 @@ class TokenManager:
         
         # Check expiration
         expires_at = data.get("expires_at")
-        if expires_at and datetime.fromisoformat(expires_at) < datetime.utcnow():
+        if expires_at and datetime.fromisoformat(expires_at) < datetime.now(timezone.utc):
             raise ValueError("Refresh token expired")
         
         return data

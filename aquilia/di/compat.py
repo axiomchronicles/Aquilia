@@ -30,6 +30,11 @@ class RequestCtx:
         """Get underlying container."""
         return self._container
     
+    @container.setter
+    def container(self, value: Container):
+        """Set underlying container."""
+        self._container = value
+    
     def get(self, token, *, tag: Optional[str] = None, default=None):
         """
         Get service from container (legacy API).

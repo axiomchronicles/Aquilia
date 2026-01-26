@@ -69,6 +69,7 @@ class PatternMatcher:
         """Try to match a single pattern."""
         # Quick prefix check
         if pattern.static_prefix and not path.startswith(pattern.static_prefix):
+            print(f"DEBUG: Static prefix mismatch: '{path}' does not start with '{pattern.static_prefix}'")
             return None
 
         # Use regex if available
@@ -137,9 +138,11 @@ class PatternMatcher:
 
         while pattern_idx < len(pattern_segments):
             segment = pattern_segments[pattern_idx]
-
+            print(f"DEBUG: Matching segment {pattern_idx}: {segment} against path segment {path_idx}")
+            
             if isinstance(segment, StaticSegment):
                 if path_idx >= len(path_segments) or path_segments[path_idx] != segment.value:
+                    print(f"DEBUG: Static mismatch: {path_segments[path_idx] if path_idx < len(path_segments) else 'EOF'} != {segment.value}")
                     return None
                 path_idx += 1
             elif isinstance(segment, TokenSegment):

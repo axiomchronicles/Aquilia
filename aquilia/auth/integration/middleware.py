@@ -111,6 +111,9 @@ class AquilAuthMiddleware:
         # Store session in request state
         request.state["session"] = session
         
+        # Also set on ctx for template rendering
+        ctx.session = session
+        
         # Phase 2: Resolve identity (Bearer token overrides session)
         identity = None
         
@@ -152,6 +155,9 @@ class AquilAuthMiddleware:
         # Phase 4: Inject identity into request and DI
         request.state["identity"] = identity
         request.state["authenticated"] = identity is not None
+        
+        # Also set on ctx for template rendering
+        ctx.identity = identity
         
         if container and identity:
             # Register identity in DI container for injection
@@ -280,6 +286,9 @@ class SessionMiddleware:
         
         # Store in request state
         request.state["session"] = session
+        
+        # Also set on ctx for template rendering
+        ctx.session = session
         
         # Register in DI if available
         if container:

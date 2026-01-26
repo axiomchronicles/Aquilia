@@ -518,4 +518,33 @@ class ConfigLoader:
         
         return merged
 
+    def get_template_config(self) -> dict:
+        """
+        Get template configuration with defaults.
+        
+        Returns:
+            Template configuration dictionary
+        """
+        default_template_config = {
+            "enabled": False,
+            "search_paths": [],
+            "precompile": False,
+            "cache": "memory",  # "memory", "crous", "none"
+            "sandbox": True,
+            "sandbox_policy": "strict",
+        }
+        
+        # Get user-provided template config
+        user_config = self.get("templates", {})
+        if not user_config:
+            user_config = self.get("integrations.templates", {})
+        
+        # Merge with defaults
+        merged = default_template_config.copy()
+        if user_config:
+            merged["enabled"] = user_config.get("enabled", True)
+            self._merge_dict(merged, user_config)
+        
+        return merged
+
 

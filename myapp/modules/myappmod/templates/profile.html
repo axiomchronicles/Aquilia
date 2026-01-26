@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile - Aquilia App{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px;">
+    <h2 style="color: #333; margin-bottom: 1.5rem;">User Profile</h2>
+    
+    {% if authenticated and identity %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <h3 style="color: #667eea; margin-bottom: 1rem;">Account Information</h3>
+                <div style="margin-bottom: 1rem;">
+                    <label style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem; display: block;">Username</label>
+                    <p style="color: #333; font-weight: 500;">{{ identity.username }}</p>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem; display: block;">User ID</label>
+                    <code style="background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 3px;">{{ identity.id }}</code>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem; display: block;">Type</label>
+                    <p style="color: #333;">{{ identity.type | default('User') }}</p>
+                </div>
+            </div>
+            
+            <div>
+                <h3 style="color: #667eea; margin-bottom: 1rem;">Permissions</h3>
+                <div style="margin-bottom: 1rem;">
+                    <label style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem; display: block;">Roles</label>
+                    <div>
+                        {% if has_role('admin') %}
+                            <span class="badge badge-primary">admin</span>
+                        {% endif %}
+                        {% if has_role('user') %}
+                            <span class="badge badge-success">user</span>
+                        {% endif %}
+                        {% if has_role('moderator') %}
+                            <span class="badge badge-primary">moderator</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="color: #666; font-size: 0.9rem; margin-bottom: 0.25rem; display: block;">Status</label>
+                    <p style="color: #333;">
+                        <strong>Active</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <hr style="margin: 2rem 0; border: none; border-top: 1px solid #eee;">
+        
+        <h3 style="color: #333; margin-bottom: 1rem;">Session Data</h3>
+        <table>
+            <tr>
+                <th>Property</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Session ID</td>
+                <td><code style="font-size: 0.85rem;">{{ session.id }}</code></td>
+            </tr>
+            <tr>
+                <td>Created At</td>
+                <td>{{ session.created_at }}</td>
+            </tr>
+            <tr>
+                <td>Expires At</td>
+                <td>{{ session.expires_at }}</td>
+            </tr>
+            <tr>
+                <td>Is Authenticated</td>
+                <td>{{ session.is_authenticated | default('True') }}</td>
+            </tr>
+        </table>
+        
+        <div style="margin-top: 2rem;">
+            <a href="/myappmod/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    {% else %}
+        <p style="color: #666;">Please <a href="/myappmod/login">login</a> to view your profile.</p>
+    {% endif %}
+</div>
+{% endblock %}
