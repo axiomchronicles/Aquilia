@@ -160,10 +160,16 @@ class Fault(Exception):
         retryable: Optional[bool] = None,
         public: bool = False,
         metadata: Optional[dict[str, Any]] = None,
+        **kwargs,
     ):
         """
         Initialize fault.
         """
+        # Merge kwargs into metadata
+        metadata = metadata or {}
+        if kwargs:
+            metadata.update(kwargs)
+            
         # Fallback to class attributes if not provided
         self.code = code if code is not None else getattr(self, "code", None)
         self.message = message if message is not None else getattr(self, "message", None)
@@ -198,6 +204,10 @@ class Fault(Exception):
             f"Fault(code={self.code!r}, domain={self.domain.value}, "
             f"severity={self.severity.value}, public={self.public})"
         )
+    
+    def _hash_identifier(self, identifier: str) -> str:
+        """Hash sensitive identifiers/usernames for logging/metadata."""
+        return hashlib.sha256(identifier.encode()).hexdigest()[:16]
     
     def to_dict(self) -> dict[str, Any]:
         """

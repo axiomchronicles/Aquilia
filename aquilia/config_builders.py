@@ -393,6 +393,71 @@ class Integration:
             **kwargs
         }
     
+    class templates:
+        """
+        Fluent template configuration builder.
+        
+        Unique Syntax:
+            Integration.templates.source("...").secure().cached()
+        """
+        
+        class Builder(dict):
+            """Fluent builder inheriting from dict for compatibility."""
+            
+            def __init__(self, defaults: Optional[Dict] = None):
+                super().__init__(defaults or {
+                    "enabled": True,
+                    "search_paths": ["templates"],
+                    "cache": "memory",
+                    "sandbox": True,
+                    "precompile": False,
+                })
+                
+            def source(self, *paths: str) -> "Integration.templates.Builder":
+                """Add template search paths."""
+                current = self.get("search_paths", [])
+                if current == ["templates"]:  # Replace default
+                    current = []
+                self["search_paths"] = current + list(paths)
+                return self
+                
+            def scan_modules(self) -> "Integration.templates.Builder":
+                """Enable module auto-discovery."""
+                # This is implicit in server logic but good for intent
+                return self
+                
+            def cached(self, strategy: str = "memory") -> "Integration.templates.Builder":
+                """Enable bytecode caching."""
+                self["cache"] = strategy
+                return self
+                
+            def secure(self, strict: bool = True) -> "Integration.templates.Builder":
+                """Enable sandbox with security policy."""
+                self["sandbox"] = True
+                self["sandbox_policy"] = "strict" if strict else "permissive"
+                return self
+                
+            def unsafe_dev_mode(self) -> "Integration.templates.Builder":
+                """Disable sandbox/caching for development."""
+                self["sandbox"] = False
+                self["cache"] = "none"
+                return self
+                
+            def precompile(self) -> "Integration.templates.Builder":
+                """Enable startup precompilation."""
+                self["precompile"] = True
+                return self
+        
+        @classmethod
+        def source(cls, *paths: str) -> "Integration.templates.Builder":
+            """Start builder with source paths."""
+            return cls.Builder().source(*paths)
+            
+        @classmethod
+        def defaults(cls) -> "Integration.templates.Builder":
+            """Start with default configuration."""
+            return cls.Builder()
+
     @staticmethod
     def patterns(**kwargs) -> Dict[str, Any]:
         """Configure patterns."""
@@ -452,6 +517,8 @@ class Workspace:
             self._integrations["routing"] = integration
         elif "default_strategy" in integration:
             self._integrations["fault_handling"] = integration
+        elif "search_paths" in integration and "cache" in integration:
+            self._integrations["templates"] = integration
         else:
             # Generic integration
             for key, value in integration.items():

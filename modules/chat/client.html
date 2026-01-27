@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aquilia Chat Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            height: 400px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .system {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .user {
+            background: #f5f5f5;
+        }
+        .own {
+            background: #c8e6c9;
+            text-align: right;
+        }
+        #input-area {
+            display: flex;
+            gap: 10px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #status {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+        }
+        .connected {
+            background: #c8e6c9;
+        }
+        .disconnected {
+            background: #ffcdd2;
+        }
+        #typing {
+            min-height: 20px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Aquilia Chat Example</h1>
+    
+    <div id="status" class="disconnected">
+        Status: <span id="status-text">Disconnected</span>
+    </div>
+    
+    <div id="messages"></div>
+    <div id="typing"></div>
+    
+    <div id="input-area">
+        <input type="text" id="message-input" placeholder="Type a message..." disabled>
+        <button id="send-button" disabled>Send</button>
+    </div>
+    
+    <script>
+        // WebSocket client
+        class ChatClient {
+            constructor(url, token) {
+                this.url = url;
+                this.token = token;
+                this.ws = null;
+                this.userId = null;
+                this.currentRoom = "general";
+                this.typingTimeout = null;
+            }
+            
+            connect() {
+                const fullUrl = this.token ? `${this.url}?token=${this.token}` : this.url;
+                this.ws = new WebSocket(fullUrl);
+                
+                this.ws.onopen = () => this.handleOpen();
+                this.ws.onclose = () => this.handleClose();
+                this.ws.onerror = (err) => this.handleError(err);
+                this.ws.onmessage = (event) => this.handleMessage(event);
+            }
+            
+            handleOpen() {
+                updateStatus("Connected", true);
+                document.getElementById("message-input").disabled = false;
+                document.getElementById("send-button").disabled = false;
+                
+                // Join default room
+                this.joinRoom(this.currentRoom);
+            }
+            
+            handleClose() {
+                updateStatus("Disconnected", false);
+                document.getElementById("message-input").disabled = true;
+                document.getElementById("send-button").disabled = true;
+            }
+            
+            handleError(err) {
+                console.error("WebSocket error:", err);
+                addMessage("Error connecting to server", "system");
+            }
+            
+            handleMessage(event) {
+                const envelope = JSON.parse(event.data);
+                const { type, event: eventName, payload } = envelope;
+                
+                if (type === "event") {
+                    this.handleEvent(eventName, payload);
+                } else if (type === "ack") {
+                    console.log("Received ack:", payload);
+                }
+            }
+            
+            handleEvent(event, payload) {
+                switch (event) {
+                    case "system.welcome":
+                        this.userId = payload.user_id;
+                        addMessage(`${payload.message} (User: ${payload.user_id})`, "system");
+                        if (payload.online_users) {
+                            addMessage(`Online users: ${payload.online_users.length}`, "system");
+                        }
+                        break;
+                    
+                    case "message.receive":
+                        const isOwn = payload.from === this.userId;
+                        addMessage(
+                            `${payload.from}: ${payload.text}`,
+                            isOwn ? "own" : "user"
+                        );
+                        break;
+                    
+                    case "room.joined":
+                        addMessage(`Joined room: ${payload.room}`, "system");
+                        break;
+                    
+                    case "user.joined":
+                        if (payload.user_id !== this.userId) {
+                            addMessage(`${payload.user_id} joined`, "system");
+                        }
+                        break;
+                    
+                    case "user.left":
+                        if (payload.user_id !== this.userId) {
+                            addMessage(`${payload.user_id} left`, "system");
+                        }
+                        break;
+                    
+                    case "typing.indicator":
+                        if (payload.user_id !== this.userId) {
+                            updateTyping(payload.user_id, payload.typing);
+                        }
+                        break;
+                }
+            }
+            
+            send(event, payload, ack = false) {
+                const envelope = {
+                    type: "event",
+                    event: event,
+                    payload: payload,
+                    ack: ack,
+                };
+                
+                this.ws.send(JSON.stringify(envelope));
+            }
+            
+            sendMessage(text) {
+                this.send("message.send", {
+                    room: this.currentRoom,
+                    text: text
+                });
+            }
+            
+            joinRoom(room) {
+                this.currentRoom = room;
+                this.send("room.join", { room: room });
+            }
+            
+            leaveRoom(room) {
+                this.send("room.leave", { room: room });
+            }
+            
+            startTyping() {
+                this.send("typing.start", { room: this.currentRoom });
+            }
+            
+            stopTyping() {
+                this.send("typing.stop", { room: this.currentRoom });
+            }
+        }
+        
+        // UI helpers
+        function addMessage(text, type = "user") {
+            const messagesDiv = document.getElementById("messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function updateStatus(text, connected) {
+            const statusDiv = document.getElementById("status");
+            const statusText = document.getElementById("status-text");
+            statusText.textContent = text;
+            statusDiv.className = connected ? "connected" : "disconnected";
+        }
+        
+        function updateTyping(userId, isTyping) {
+            const typingDiv = document.getElementById("typing");
+            if (isTyping) {
+                typingDiv.textContent = `${userId} is typing...`;
+            } else {
+                typingDiv.textContent = "";
+            }
+        }
+        
+        // Initialize
+        const wsUrl = "ws://localhost:8000/chat/general";
+        const client = new ChatClient(wsUrl);
+        
+        // Connect
+        client.connect();
+        
+        // Event handlers
+        const messageInput = document.getElementById("message-input");
+        const sendButton = document.getElementById("send-button");
+        
+        messageInput.addEventListener("keydown", (e) => {
+            if (!client.typingTimeout) {
+                client.startTyping();
+            }
+            
+            clearTimeout(client.typingTimeout);
+            client.typingTimeout = setTimeout(() => {
+                client.stopTyping();
+                client.typingTimeout = null;
+            }, 1000);
+            
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        sendButton.addEventListener("click", sendMessage);
+        
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (text) {
+                client.sendMessage(text);
+                messageInput.value = "";
+                client.stopTyping();
+                clearTimeout(client.typingTimeout);
+                client.typingTimeout = null;
+            }
+        }
+    </script>
+</body>
+</html>

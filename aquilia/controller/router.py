@@ -104,10 +104,10 @@ class ControllerRouter:
         
         # Get routes for this method
         method_routes = self.routes_by_method.get(method, [])
-        print(f"DEBUG: Matching {method} {path}. Method routes: {len(method_routes)}")
+        # print(f"DEBUG: Matching {method} {path}. Method routes: {len(method_routes)}")
         
         if not method_routes:
-            print(f"DEBUG: No routes for method {method}. Available methods: {list(self.routes_by_method.keys())}")
+            # print(f"DEBUG: No routes for method {method}. Available methods: {list(self.routes_by_method.keys())}")
             return None
         
         # Try to match path against patterns
@@ -115,7 +115,7 @@ class ControllerRouter:
         
         # Try each route in specificity order
         for route in method_routes:
-            print(f"DEBUG: Checking route {route.full_path}")
+            # print(f"DEBUG: Checking route {route.full_path}")
             # Use pattern matcher
             match_result = await self.matcher._try_match(
                 route.compiled_pattern,
@@ -123,14 +123,14 @@ class ControllerRouter:
                 query_params,
             )
             if match_result:
-                print(f"DEBUG: MATCH FOUND! {route.full_path}")
+                # print(f"DEBUG: MATCH FOUND! {route.full_path}")
                 return ControllerRouteMatch(
                     route=route,
                     params=match_result.params,
                     query=match_result.query,
                 )
         
-        print(f"DEBUG: NO MATCH for {path}")
+        # print(f"DEBUG: NO MATCH for {path}")
         return None
     
     def get_routes(self) -> List[Dict[str, Any]]:

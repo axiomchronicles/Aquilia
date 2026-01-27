@@ -263,6 +263,7 @@ class AppManifest:
     # Component declarations
     services: List[ServiceConfig] = field(default_factory=list)  # Detailed service config
     controllers: List[str] = field(default_factory=list)  # "path:ClassName" format
+    socket_controllers: List[str] = field(default_factory=list)  # "path:ClassName" format (WebSockets)
     
     # Middleware configuration
     middleware: List[MiddlewareConfig] = field(default_factory=list)
@@ -333,6 +334,7 @@ class AppManifest:
             "name": self.name,
             "version": self.version,
             "controllers": self.controllers,
+            "socket_controllers": self.socket_controllers,
             "services": [s.to_dict() for s in self.services],
             "depends_on": self.depends_on,
             "middleware": [m.to_dict() for m in self.middleware],

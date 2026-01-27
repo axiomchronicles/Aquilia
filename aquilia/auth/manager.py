@@ -225,7 +225,9 @@ class AuthManager:
 
         # Get roles from identity
         roles = identity.get_attribute("roles", [])
-        if not isinstance(roles, list):
+        if isinstance(roles, (set, tuple)):
+            roles = list(roles)
+        elif not isinstance(roles, list):
             roles = [roles] if roles else []
 
         # Issue tokens

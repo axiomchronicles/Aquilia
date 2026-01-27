@@ -4,3 +4,6 @@ pytest-cov>=4.1.0
 httpx>=0.24.0
 hypothesis>=6.90.0  # Property-based testing
 jinja2>=3.1.0  # Template engine
+python-multipart>=0.0.6  # Multipart form parsing
+aiofiles>=23.0.0  # Async file I/O
+

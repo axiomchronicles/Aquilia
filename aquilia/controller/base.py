@@ -116,7 +116,7 @@ class Controller:
     # Template engine (injected via DI)
     _template_engine: Optional[Any] = None
     
-    def render(
+    async def render(
         self,
         template_name: str,
         context: Optional[Dict[str, Any]] = None,
@@ -147,7 +147,7 @@ class Controller:
             @GET("/profile")
             async def profile(self, ctx):
                 user = await self.repo.get(ctx.identity.id)
-                return self.render("profile.html", {"user": user}, ctx)
+                return await self.render("profile.html", {"user": user}, ctx)
         """
         from aquilia.response import Response
         
@@ -155,7 +155,7 @@ class Controller:
         if engine is None:
             engine = getattr(self, "_template_engine", None) or getattr(self, "templates", None)
         
-        return Response.render(
+        return await Response.render(
             template_name,
             context,
             status=status,

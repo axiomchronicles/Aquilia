@@ -441,6 +441,15 @@ class WorkspaceGenerator:
                     metrics_enabled=True,
                 ))
                 .integrate(Integration.patterns())
+                
+                # Templates - Fluent configuration
+                .integrate(
+                    Integration.templates
+                    .source("templates")
+                    .scan_modules()
+                    .cached("memory")
+                    .secure()
+                )
 
                 # Sessions - Configure session management
                 .sessions(

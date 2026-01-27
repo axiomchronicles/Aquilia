@@ -25,6 +25,9 @@ from .templates.di_providers import register_template_providers
 from .auth.manager import AuthManager
 from .auth.integration.middleware import AquilAuthMiddleware, create_auth_middleware_stack
 from .auth.tokens import TokenConfig
+# WebSockets
+from .sockets.runtime import AquilaSockets, SocketRouter
+from .sockets.adapters import InMemoryAdapter
 
 
 class AquiliaServer:
@@ -118,6 +121,7 @@ class AquiliaServer:
         self.app = ASGIAdapter(
             controller_router=self.controller_router,
             controller_engine=self.controller_engine,
+            socket_runtime=self.aquila_sockets,
             middleware_stack=self.middleware_stack,
             server=self,  # Pass server for lifecycle callbacks
         )
@@ -308,9 +312,63 @@ class AquiliaServer:
         
         if use_templates:
             self.logger.info("🎨 Initializing template engine...")
+            
+            # Step 1: Initialize Engine with config
+            from .templates import TemplateEngine
+            from .templates.loader import TemplateLoader
+            from pathlib import Path
+
+            search_paths = []
+            
+            # 1. Config paths
+            if template_config.get("search_paths"):
+                for p in template_config["search_paths"]:
+                    search_paths.append(Path(p))
+                    
+            # 2. Manifest paths (auto-discovery)
+            if hasattr(self, "aquilary"):
+                 for ctx in self.aquilary.app_contexts:
+                     # Try to derive path from manifest source
+                     manifest_src = getattr(ctx.manifest, "__source__", None)
+                     
+                     found_path = False
+                     if manifest_src and isinstance(manifest_src, str):
+                         try:
+                             # Check if it looks like a path
+                             src_path = Path(manifest_src)
+                             if src_path.exists() or src_path.is_absolute():
+                                 app_template_dir = src_path.parent / "templates"
+                                 if app_template_dir.exists():
+                                     search_paths.append(app_template_dir)
+                                     found_path = True
+                         except Exception:
+                             pass
+                     
+                     if not found_path:
+                        # Fallback to convention: /modules/<name>/templates
+                        convention_path = Path("modules") / ctx.name / "templates"
+                        if convention_path.exists():
+                            search_paths.append(convention_path)
+            
+            # Deduplicate
+            search_paths = list(dict.fromkeys(search_paths))
+            self.logger.debug(f"Template search paths: {search_paths}")
+
+            # Register loader with discovered paths
+            loader = TemplateLoader(search_paths=search_paths)
+            
+            # Create engine with production/dev settings based on config
+            # (Here we use a generic engine, but factory methods in providers.py 
+            # allow for customized creation if resolved via DI)
+            self.template_engine = TemplateEngine(
+                loader=loader,
+                bytecode_cache=None if template_config.get("cache") == "none" else None # Default to memory if not specified or handled by provider logic
+            )
+
             # Register providers for each container
             for container in self.runtime.di_containers.values():
-                register_template_providers(container)
+                # Pass engine instance
+                register_template_providers(container, engine=self.template_engine)
             
             # Register middleware
             self.middleware_stack.add(
@@ -323,6 +381,17 @@ class AquiliaServer:
                 name="templates",
             )
             self.logger.info("✅ Template engine initialized and middleware registered")
+            
+        # Initialize WebSockets
+        self.socket_router = SocketRouter()
+        self.aquila_sockets = AquilaSockets(
+            router=self.socket_router,
+            adapter=InMemoryAdapter(), # TODO: Support Redis from config
+            container_factory=None, # Will be set per-connection manually or handled by runtime
+            auth_manager=self._auth_manager,
+            session_engine=self._session_engine,
+        )
+        self.logger.info("🔌 Initialized WebSocket subsystem")
             
         # Register app-specific middlewares from Aquilary manifest
         if hasattr(self, "aquilary"):
@@ -582,7 +651,7 @@ class AquiliaServer:
             password_hasher=None, # Uses default (Argon2 via Passlib)
         )
     
-    def _load_controllers(self):
+    async def _load_controllers(self):
         """Load and compile controllers from all apps."""
         if not self.controller_compiler:
             return
@@ -639,6 +708,10 @@ class AquiliaServer:
                     f"{c['route1']['controller']} vs {c['route2']['controller']}"
                 )
             raise RuntimeError(f"Found {len(conflicts)} route conflicts. check logs.")
+
+        # Step 1.2: Load socket controllers
+        self.logger.info("Loading socket controllers...")
+        await self._load_socket_controllers()
 
         # Initialize controller router
         self.controller_router.initialize()
@@ -733,6 +806,98 @@ class AquiliaServer:
         self.controller_router.routes_by_method.setdefault("GET", []).append(route_json)
         self.controller_router.routes_by_method.setdefault("GET", []).append(route_docs)
         self.logger.info("📡 Registered documentation routes at /docs and /openapi.json")
+
+    async def _load_socket_controllers(self):
+        """Load and register WebSocket controllers."""
+        from .sockets.runtime import RouteMetadata
+        import inspect
+        
+        if not hasattr(self, "aquila_sockets"):
+            return
+
+        for app_ctx in self.runtime.meta.app_contexts:
+            if not hasattr(app_ctx.manifest, "socket_controllers"):
+                continue
+
+            for controller_path in app_ctx.manifest.socket_controllers:
+                try:
+                    cls = self._import_controller_class(controller_path)
+                    
+                    if not hasattr(cls, "__socket_metadata__"):
+                        self.logger.warning(f"Socket controller {controller_path} missing @Socket decorator")
+                        continue
+                        
+                    meta = cls.__socket_metadata__
+                    namespace = meta["path"]
+                    
+                    # Ensure unique namespace
+                    if namespace in self.socket_router.routes:
+                        self.logger.warning(f"Duplicate socket namespace {namespace}, skipping {controller_path}")
+                        continue
+
+                    handlers = {}
+                    schemas = {}
+                    guards = [] 
+                    
+                    # Scan methods
+                    for name, method in inspect.getmembers(cls, inspect.isfunction):
+                        if hasattr(method, "__socket_handler__"):
+                            h_meta = method.__socket_handler__
+                            h_type = h_meta.get("type")
+                            
+                            if h_type in ("event", "subscribe", "unsubscribe"):
+                                event = h_meta.get("event")
+                                handlers[event] = method
+                                if h_meta.get("schema"):
+                                    schemas[event] = h_meta.get("schema")
+                            elif h_type == "guard":
+                                # TODO: Instantiate guards
+                                pass
+                    
+                    route_meta = RouteMetadata(
+                        namespace=namespace,
+                        path_pattern=namespace, # Pattern matching TODO
+                        controller_class=cls,
+                        handlers=handlers,
+                        schemas=schemas,
+                        guards=guards,
+                        allowed_origins=meta.get("allowed_origins"),
+                        max_connections=meta.get("max_connections"),
+                        message_rate_limit=meta.get("message_rate_limit"),
+                        max_message_size=meta.get("max_message_size", 1024 * 1024),
+                    )
+                    
+                    self.socket_router.register(namespace, route_meta)
+                    
+                    # Create singleton instance (controllers should be stateless generally, 
+                    # or manage state via Connection object)
+                    # We try to inject deps from app container if available
+                    instance = None
+                    app_container = self.runtime.di_containers.get(app_ctx.name)
+                    
+                    if app_container:
+                        # Ensure controller is registered
+                        if not app_container.is_registered(cls):
+                            from aquilia.di.providers import ClassProvider
+                            provider = ClassProvider(cls, scope="singleton")
+                            app_container.register(provider)
+                            
+                        # Resolve with dependencies (async)
+                        instance = await app_container.resolve_async(cls)
+                    else:
+                        instance = cls()
+                    
+                    # Ensure namespace is injected
+                    instance.namespace = namespace
+                        
+                    self.aquila_sockets.controller_instances[namespace] = instance
+                    self.logger.info(f"🔌 Loaded socket controller {cls.__name__} at {namespace}")
+                    
+                except Exception as e:
+                    self.logger.error(
+                        f"Error loading socket controller {controller_path} from {app_ctx.name}: {e}",
+                        exc_info=True
+                    )
 
     
     def _import_controller_class(self, controller_path: str) -> type:
@@ -857,7 +1022,7 @@ class AquiliaServer:
             
             # Step 1: Load and compile controllers
             self.logger.info("Loading controllers from manifests...")
-            self._load_controllers()
+            await self._load_controllers()
         
         # Step 2: Compile routes (includes service registration and handler wrapping)
         self.logger.info("Compiling routes with DI integration...")

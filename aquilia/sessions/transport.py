@@ -162,7 +162,7 @@ class CookieTransport:
         
         # Add Set-Cookie header
         response.set_cookie(
-            key=self.cookie_name,
+            name=self.cookie_name,
             value=session_id,
             max_age=max_age if session.expires_at else None,
             path=self.policy.cookie_path,

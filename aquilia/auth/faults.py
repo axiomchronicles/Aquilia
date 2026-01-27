@@ -20,10 +20,10 @@ class AUTH_INVALID_CREDENTIALS(Fault):
     public_message = "Invalid username or password"
     retryable = False
     
-    def __init__(self, username: str | None = None, **context):
-        super().__init__(**context)
+    def __init__(self, username: str | None = None, **metadata):
+        super().__init__(**metadata)
         if username:
-            self.context["username_hash"] = self._hash_identifier(username)
+            self.metadata["username_hash"] = self._hash_identifier(username)
 
 
 class AUTH_TOKEN_INVALID(Fault):
@@ -181,12 +181,12 @@ class AUTHZ_POLICY_DENIED(Fault):
     public_message = "You do not have permission to perform this action"
     retryable = False
     
-    def __init__(self, policy_id: str | None = None, reason: str | None = None, **context):
-        super().__init__(**context)
+    def __init__(self, policy_id: str | None = None, reason: str | None = None, **metadata):
+        super().__init__(**metadata)
         if policy_id:
-            self.context["policy_id"] = policy_id
+            self.metadata["policy_id"] = policy_id
         if reason:
-            self.context["denial_reason"] = reason
+            self.metadata["denial_reason"] = reason
 
 
 class AUTHZ_INSUFFICIENT_SCOPE(Fault):
@@ -198,10 +198,10 @@ class AUTHZ_INSUFFICIENT_SCOPE(Fault):
     public_message = "Insufficient permissions"
     retryable = False
     
-    def __init__(self, required: list[str] | None = None, **context):
-        super().__init__(**context)
+    def __init__(self, required: list[str] | None = None, **metadata):
+        super().__init__(**metadata)
         if required:
-            self.context["required_scopes"] = required
+            self.metadata["required_scopes"] = required
 
 
 class AUTHZ_INSUFFICIENT_ROLE(Fault):
@@ -213,10 +213,10 @@ class AUTHZ_INSUFFICIENT_ROLE(Fault):
     public_message = "Insufficient permissions"
     retryable = False
     
-    def __init__(self, required: list[str] | None = None, **context):
-        super().__init__(**context)
+    def __init__(self, required: list[str] | None = None, **metadata):
+        super().__init__(**metadata)
         if required:
-            self.context["required_roles"] = required
+            self.metadata["required_roles"] = required
 
 
 class AUTHZ_RESOURCE_FORBIDDEN(Fault):
@@ -252,10 +252,10 @@ class AUTH_PASSWORD_WEAK(Fault):
     public_message = "Password doesn't meet security requirements"
     retryable = True
     
-    def __init__(self, errors: list[str] | None = None, **context):
-        super().__init__(**context)
+    def __init__(self, errors: list[str] | None = None, **metadata):
+        super().__init__(**metadata)
         if errors:
-            self.context["validation_errors"] = errors
+            self.metadata["validation_errors"] = errors
 
 
 class AUTH_PASSWORD_BREACHED(Fault):

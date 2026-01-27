@@ -25,6 +25,7 @@ class ASGIAdapter:
         controller_engine: Any,
         middleware_stack: MiddlewareStack,
         server: Optional[Any] = None,
+        socket_runtime: Optional[Any] = None,
     ):
         """
         Initialize ASGI adapter.
@@ -34,12 +35,38 @@ class ASGIAdapter:
             controller_engine: ControllerEngine for controller execution
             middleware_stack: Middleware stack
             server: AquiliaServer instance for lifecycle management
+            socket_runtime: AquilaSockets runtime
         """
         self.controller_router = controller_router
         self.controller_engine = controller_engine
         self.middleware_stack = middleware_stack
         self.server = server
+        self.socket_runtime = socket_runtime
         self.logger = logging.getLogger("aquilia.asgi")
+        
+        # Configure socket runtime with DI factory if server is available
+        if self.socket_runtime and self.server:
+            self._setup_socket_di()
+            
+    def _setup_socket_di(self):
+        """Setup DI container factory for WebSockets."""
+        async def container_factory(request=None):
+            if not self.server or not hasattr(self.server, 'runtime'):
+                from .di import Container
+                return Container(scope="request")
+            
+            # Try to find a container
+            # For now, we take the first available app container
+            # In the future, we could map socket namespaces to apps
+            if self.server.runtime.di_containers:
+                app_container = next(iter(self.server.runtime.di_containers.values()))
+                return app_container.create_request_scope()
+            
+            # Fallback
+            from .di import Container
+            return Container(scope="request")
+            
+        self.socket_runtime.container_factory = container_factory
     
     async def __call__(self, scope: dict, receive: callable, send: callable):
         """ASGI entry point."""
@@ -145,23 +172,15 @@ class ASGIAdapter:
     
     async def handle_websocket(self, scope: dict, receive: callable, send: callable):
         """Handle WebSocket connection."""
-        # WebSocket support - basic accept/close for now
-        await send({"type": "websocket.accept"})
-        
-        while True:
-            message = await receive()
-            
-            if message["type"] == "websocket.disconnect":
-                break
-            
-            elif message["type"] == "websocket.receive":
-                # Echo back for now
-                text = message.get("text")
-                if text:
-                    await send({
-                        "type": "websocket.send",
-                        "text": text,
-                    })
+        if self.socket_runtime:
+            await self.socket_runtime.handle_websocket(scope, receive, send)
+        else:
+            # Reject if no socket runtime
+            self.logger.warning("WebSocket connection attempt but sockets are disabled")
+            await send({
+                "type": "websocket.close",
+                "code": 1003,
+            })
     
     async def handle_lifespan(self, scope: dict, receive: callable, send: callable):
         """

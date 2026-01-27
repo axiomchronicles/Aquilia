@@ -255,11 +255,11 @@ class TemplateManagerProvider:
 # ============================================================================
 
 
-def register_template_providers(container) -> None:
+def register_template_providers(container, engine: Optional[TemplateEngine] = None) -> None:
     """
     Register all template providers with DI container.
     """
-    from aquilia.di.providers import ClassProvider
+    from aquilia.di.providers import ClassProvider, ValueProvider
     
     # Register provider classes as services
     container.register(ClassProvider(TemplateLoaderProvider, scope="app"))
@@ -275,6 +275,18 @@ def register_template_providers(container) -> None:
     from .bytecode_cache import BytecodeCache
     from .security import TemplateSandbox
     
+    # If engine instance provided (e.g. from server setup), use it directly
+    if engine:
+        container.register(ValueProvider(value=engine, token=TemplateEngine, scope="app"))
+        # Also register components from the engine for individual injection
+        container.register(ValueProvider(value=engine.loader, token=TemplateLoader, scope="app"))
+        if engine.bytecode_cache:
+            container.register(ValueProvider(value=engine.bytecode_cache, token=BytecodeCache, scope="app"))
+        if engine.sandbox:
+            container.register(ValueProvider(value=engine.sandbox, token=TemplateSandbox, scope="app"))
+        logger.info("AquilaTemplates: Registered existing engine instance")
+        return
+
     async def provide_loader(loader_provider: TemplateLoaderProvider) -> TemplateLoader:
         return loader_provider.provide()
     

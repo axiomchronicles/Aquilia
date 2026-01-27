@@ -27,6 +27,23 @@ from .request import Request
 from .response import Response
 from .server import AquiliaServer
 
+# Request data structures
+from ._datastructures import (
+    MultiDict,
+    Headers,
+    URL,
+    ParsedContentType,
+    Range,
+)
+
+# Upload handling
+from ._uploads import (
+    UploadFile,
+    FormData,
+    UploadStore,
+    LocalUploadStore,
+)
+
 # ============================================================================
 # Aquilary Registry (Replaces Legacy Registry)
 # ============================================================================
@@ -221,6 +238,19 @@ __all__ = [
     "ConfigLoader",
     "Request",
     "Response",
+    
+    # Request data structures
+    "MultiDict",
+    "Headers",
+    "URL",
+    "ParsedContentType",
+    "Range",
+    
+    # Upload handling
+    "UploadFile",
+    "FormData",
+    "UploadStore",
+    "LocalUploadStore",
     
     # Aquilary
     "Aquilary",

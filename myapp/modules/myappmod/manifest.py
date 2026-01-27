@@ -64,6 +64,11 @@ manifest = AppManifest(
         "modules.myappmod.jwt_bearer:JwtBearerController",
         "modules.myappmod.dashboard:DashboardController",
     ],
+    socket_controllers=[
+        "modules.myappmod.sockets:ChatSocket",
+        "modules.myappmod.sockets:NotificationSocket",
+        "modules.myappmod.sockets:PublicFeedSocket",
+    ],
     # Middleware configuration
     middleware=[
         MiddlewareConfig(
