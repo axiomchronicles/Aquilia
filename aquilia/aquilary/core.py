@@ -447,11 +447,14 @@ class RuntimeRegistry:
             try:
                 # Scan entire module recursively for controllers
                 # This covers .controllers, .test_routes, root files, and any nested subdirectories
+                # use_cache=False: Each scan uses a different predicate on the same package,
+                # and lambda-based cache keys can collide.
                 controllers = scanner.scan_package(
                     base_package,
                     predicate=lambda cls: cls.__name__.endswith("Controller"),
                     recursive=True,
                     max_depth=5, # Deep nesting support
+                    use_cache=False,
                 )
                 
                 # Add discovered controllers to context
@@ -471,6 +474,7 @@ class RuntimeRegistry:
                     predicate=lambda cls: cls.__name__.endswith("Service") or hasattr(cls, "__di_scope__"),
                     recursive=True,
                     max_depth=5,
+                    use_cache=False,
                 )
                 
                 for cls in services:
@@ -489,6 +493,7 @@ class RuntimeRegistry:
                     predicate=lambda cls: hasattr(cls, "__socket_metadata__"),
                     recursive=True,
                     max_depth=5,
+                    use_cache=False,
                 )
                 
                 # Add to manifest's socket_controllers if not already present

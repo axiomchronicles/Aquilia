@@ -83,7 +83,7 @@ def patch_runtime_registry():
     
     # Store original methods
     original_compile_routes = RuntimeRegistry.compile_routes
-    original_ensure_dependencies_ready = RuntimeRegistry.ensure_dependencies_ready
+    original_validate_dependencies = RuntimeRegistry.validate_dependencies
     
     def patched_compile_routes(self):
         """Patched compile_routes with fault handling."""
@@ -93,25 +93,29 @@ def patch_runtime_registry():
             # Extract error messages if present
             msg = str(e)
             if "Route compilation failed:" in msg:
-                errors = msg.split("\\n")[1:]  # Skip first line
+                errors = msg.split("\n")[1:]  # Skip first line
                 raise RouteCompilationFault(errors) from e
             raise
     
-    def patched_ensure_dependencies_ready(self):
-        """Patched ensure_dependencies_ready with fault handling."""
+    def patched_validate_dependencies(self):
+        """Patched validate_dependencies with fault handling."""
         try:
-            return original_ensure_dependencies_ready(self)
+            errors = original_validate_dependencies(self)
+            if errors:
+                raise DependencyResolutionFault(errors)
+            return errors
+        except DependencyResolutionFault:
+            raise
         except RuntimeError as e:
-            # Extract error messages if present
             msg = str(e)
             if "Dependency resolution failed:" in msg:
-                errors = msg.split("\\n")[1:]  # Skip first line
+                errors = msg.split("\n")[1:]  # Skip first line
                 raise DependencyResolutionFault(errors) from e
             raise
     
     # Apply patches
     RuntimeRegistry.compile_routes = patched_compile_routes
-    RuntimeRegistry.ensure_dependencies_ready = patched_ensure_dependencies_ready
+    RuntimeRegistry.validate_dependencies = patched_validate_dependencies
 
 
 def create_registry_fault_handler():

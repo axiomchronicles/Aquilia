@@ -57,7 +57,16 @@ class SocketRouter:
     def __init__(self):
         """Initialize socket router."""
         self.routes: Dict[str, RouteMetadata] = {}  # namespace -> metadata
-        self._pattern_compiler = None
+        self._compiled_patterns: Dict[str, Any] = {}  # namespace -> CompiledPattern
+        try:
+            from aquilia.patterns import PatternCompiler, PatternMatcher
+            self._pattern_compiler = PatternCompiler()
+            self._pattern_matcher = PatternMatcher()
+            self._has_patterns = True
+        except ImportError:
+            self._pattern_compiler = None
+            self._pattern_matcher = None
+            self._has_patterns = False
     
     def register(
         self,
@@ -75,6 +84,15 @@ class SocketRouter:
             logger.warning(f"Namespace {namespace} already registered, overwriting")
         
         self.routes[namespace] = metadata
+        
+        # Pre-compile pattern for fast matching
+        if self._has_patterns and self._pattern_compiler:
+            try:
+                compiled = self._pattern_compiler.compile(metadata.path_pattern)
+                self._compiled_patterns[namespace] = compiled
+            except Exception as e:
+                logger.debug(f"Could not compile pattern for {namespace}: {e}")
+        
         logger.info(f"Registered WebSocket namespace: {namespace}")
     
     def match(self, path: str) -> Optional[tuple[str, RouteMetadata, Dict[str, Any]]]:
@@ -87,8 +105,23 @@ class SocketRouter:
         Returns:
             (namespace, metadata, path_params) or None
         """
-        # Simple prefix matching for now
-        # TODO: Use Aquilia's pattern matcher for full pattern support
+        # Use Aquilia's PatternMatcher if available for full pattern support
+        if self._has_patterns and self._pattern_matcher:
+            for namespace, metadata in self.routes.items():
+                compiled = self._compiled_patterns.get(namespace)
+                if compiled:
+                    try:
+                        result = self._pattern_matcher.match(compiled, path)
+                        if result and result.matched:
+                            return (namespace, metadata, result.params or {})
+                    except Exception:
+                        pass  # Fall through to basic matching
+                # Fallback: exact match
+                if metadata.path_pattern == path:
+                    return (namespace, metadata, {})
+            return None
+        
+        # Fallback: basic matching without Patterns subsystem
         for namespace, metadata in self.routes.items():
             pattern = metadata.path_pattern
             

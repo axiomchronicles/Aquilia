@@ -1,7 +1,0 @@
-Hello {{ val }}!
-Request path: {{ request.path }}
-{% if session %}Session ID: {{ session.id }}{% endif %}
-{% if identity %}User: {{ identity.username }}{% endif %}
-Auth: {{ is_authenticated() }}
-Has Admin: {{ has_role('admin') }}
-Flash: {% for msg in flash_messages() %}{{ msg.level }}: {{ msg.text }}{% endfor %}

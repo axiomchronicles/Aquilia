@@ -70,6 +70,13 @@ class AquiliaServer:
         # Initialize fault engine
         self.fault_engine = FaultEngine(debug=self._is_debug())
         
+        # Apply fault integration patches to subsystems (registry, DI)
+        try:
+            from .faults.integrations import patch_all_subsystems
+            patch_all_subsystems()
+        except Exception as e:
+            self.logger.warning(f"Fault integration patches failed (non-fatal): {e}")
+        
         # Build or use provided Aquilary registry
         if aquilary_registry is not None:
             self.aquilary = aquilary_registry
@@ -91,14 +98,38 @@ class AquiliaServer:
         # before controller factory is created
         self.runtime._register_services()
         
+        # Register EffectRegistry and FaultEngine in DI containers
+        from .di.providers import ValueProvider
+        from .effects import EffectRegistry
+        for container in self.runtime.di_containers.values():
+            container.register(ValueProvider(
+                value=self.fault_engine,
+                token=FaultEngine,
+                scope="app",
+            ))
+            container.register(ValueProvider(
+                value=EffectRegistry(),
+                token=EffectRegistry,
+                scope="app",
+            ))
+        
         # Create lifecycle coordinator for app startup/shutdown hooks
         self.coordinator = LifecycleCoordinator(self.runtime, self.config)
+        
+        # Connect lifecycle events to fault observability
+        def _lifecycle_fault_observer(event):
+            if event.error:
+                self.logger.error(
+                    f"Lifecycle fault in phase {event.phase.value}: "
+                    f"app={event.app_name}, error={event.error}"
+                )
+        self.coordinator.on_event(_lifecycle_fault_observer)
         
         # Initialize controller router and middleware
         self.controller_router = ControllerRouter()
         self.middleware_stack = MiddlewareStack()
         
-        # Setup middleware
+        # Setup middleware (also initializes aquila_sockets)
         self._setup_middleware()
         
         # Get base DI container for controller factory
@@ -110,7 +141,10 @@ class AquiliaServer:
         from .controller.compiler import ControllerCompiler
         
         self.controller_factory = ControllerFactory(app_container=base_container)
-        self.controller_engine = ControllerEngine(self.controller_factory)
+        self.controller_engine = ControllerEngine(
+            self.controller_factory,
+            fault_engine=self.fault_engine,
+        )
         self.controller_compiler = ControllerCompiler()
         
         # Track startup state
@@ -118,6 +152,7 @@ class AquiliaServer:
         self._startup_lock = None  # Will be created in async context
         
         # Create ASGI app with server reference for lifecycle management
+        # Note: self.aquila_sockets is initialized in _setup_middleware()
         self.app = ASGIAdapter(
             controller_router=self.controller_router,
             controller_engine=self.controller_engine,
@@ -245,7 +280,7 @@ class AquiliaServer:
                             session_engine=self._session_engine,
                             auth_manager=auth_manager,
                             require_auth=auth_config.get("security", {}).get("require_auth_by_default", False),
-                            fault_engine=None, # TODO: integrate fault engine from server
+                            fault_engine=self.fault_engine,
                         ),
                         scope="global",
                         priority=15, # Replaces session middleware
@@ -391,12 +426,20 @@ class AquiliaServer:
             )
             self.logger.info("✅ Template engine initialized and middleware registered")
             
-        # Initialize WebSockets
+        # Initialize WebSockets with DI container factory for per-connection scopes
         self.socket_router = SocketRouter()
+        
+        def _socket_container_factory(app_name: str = "default"):
+            """Create request-scoped DI container for WebSocket connections."""
+            app_container = self.runtime.di_containers.get(app_name)
+            if app_container and hasattr(app_container, 'create_request_scope'):
+                return app_container.create_request_scope()
+            return app_container
+        
         self.aquila_sockets = AquilaSockets(
             router=self.socket_router,
-            adapter=InMemoryAdapter(), # TODO: Support Redis from config
-            container_factory=None, # Will be set per-connection manually or handled by runtime
+            adapter=InMemoryAdapter(),
+            container_factory=_socket_container_factory,
             auth_manager=self._auth_manager,
             session_engine=self._session_engine,
         )
@@ -838,6 +881,7 @@ class AquiliaServer:
             if not hasattr(app_ctx.manifest, "socket_controllers"):
                 continue
 
+            print(f"DEBUG _load_socket_controllers: {app_ctx.name} socket_controllers = {app_ctx.manifest.socket_controllers}")
             for controller_path in app_ctx.manifest.socket_controllers:
                 try:
                     cls = self._import_controller_class(controller_path)
@@ -1056,6 +1100,28 @@ class AquiliaServer:
             self.logger.error(f"Lifecycle startup failed: {e}")
             raise LifecycleError(f"Startup failed: {e}") from e
         
+        # Step 3.5: Register effects from manifests and initialize providers
+        self.logger.info("Registering and initializing effect providers...")
+        self.runtime._register_effects()
+        try:
+            from .effects import EffectRegistry
+            # Retrieve the SAME EffectRegistry from DI (registered in __init__)
+            base_container = self._get_base_container()
+            try:
+                effect_registry = await base_container.resolve_async(EffectRegistry, optional=True)
+            except Exception:
+                effect_registry = None
+            
+            if effect_registry is None:
+                effect_registry = EffectRegistry()
+            
+            await effect_registry.initialize_all()
+            self._effect_registry = effect_registry
+            self.logger.info(f"Effect providers initialized ({len(effect_registry.providers)} registered)")
+        except Exception as e:
+            self._effect_registry = None
+            self.logger.debug(f"No effect providers to initialize: {e}")
+        
         # Step 4: Log registered routes
         routes = self.controller_router.get_routes()
         if routes:
@@ -1106,6 +1172,14 @@ class AquiliaServer:
                 self.logger.debug(f"Cleaned up DI container for app '{app_name}'")
             except Exception as e:
                 self.logger.warning(f"Error cleaning up container for '{app_name}': {e}")
+        
+        # Finalize effect providers
+        if hasattr(self, '_effect_registry') and self._effect_registry:
+            try:
+                await self._effect_registry.finalize_all()
+                self.logger.info("Effect providers finalized")
+            except Exception as e:
+                self.logger.warning(f"Error finalizing effect providers: {e}")
         
         # Reset startup state
         self._startup_complete = False

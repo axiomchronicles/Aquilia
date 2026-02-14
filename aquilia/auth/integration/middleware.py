@@ -172,12 +172,11 @@ class AquilAuthMiddleware:
         try:
             response = await next(request, ctx)
         except Exception as e:
-            # Handle faults
-            if self.fault_engine:
-                result = await self.fault_engine.process(e)
-                response = self._fault_to_response(result)
-            else:
-                raise
+            # Let all exceptions propagate to ExceptionMiddleware
+            # which properly maps Faults to HTTP status codes.
+            # The fault_engine is used for auth-specific operations
+            # (e.g., _handle_auth_required) not for general exception handling.
+            raise
         
         # Phase 6: Commit session
         await self.session_engine.commit(session, response)
@@ -207,8 +206,29 @@ class AquilAuthMiddleware:
     
     def _fault_to_response(self, fault_result: Any) -> Response:
         """Convert fault result to HTTP response."""
-        # This should be handled by FaultHandlerMiddleware
-        # But as fallback, return error response
+        from aquilia.faults import Resolved, Fault, FaultDomain
+        
+        # If the result is a Resolved with a response, use it
+        if hasattr(fault_result, 'value') and isinstance(fault_result.value, Response):
+            return fault_result.value
+        
+        # If the result wraps a Fault, map to status code
+        fault = getattr(fault_result, 'fault', None) or getattr(fault_result, 'original', None)
+        if isinstance(fault, Fault):
+            status_map = {
+                FaultDomain.ROUTING: 404,
+                FaultDomain.SECURITY: 403,
+                FaultDomain.IO: 502,
+                FaultDomain.EFFECT: 503,
+            }
+            status = status_map.get(fault.domain, 500)
+            message = fault.message if (getattr(fault, 'public', False)) else "Internal server error"
+            return Response.json(
+                {"error": {"code": fault.code, "message": message, "domain": fault.domain.value}},
+                status=status,
+            )
+        
+        # Fallback
         return Response.json(
             {"error": "Internal server error"},
             status=500,

@@ -103,6 +103,37 @@ from .faults import (
     AUTH_BACKUP_CODE_EXHAUSTED,
 )
 
+# Manager
+from .manager import AuthManager, RateLimiter
+
+# Authorization engines
+from .authz import AuthzEngine, RBACEngine, ABACEngine
+
+# Policy DSL
+from .policy import (
+    Policy,
+    PolicyResult,
+    PolicyDecision,
+    PolicyRegistry,
+    Allow,
+    Deny,
+    Abstain,
+    rule,
+)
+
+# OAuth2
+from .oauth import OAuth2Manager
+
+# MFA
+from .mfa import MFAManager
+
+# Stores
+from .stores import (
+    MemoryIdentityStore,
+    MemoryCredentialStore,
+    MemoryTokenStore,
+)
+
 
 __all__ = [
     # Core types
@@ -172,6 +203,30 @@ __all__ = [
     "AUTH_WEBAUTHN_INVALID",
     "AUTH_BACKUP_CODE_INVALID",
     "AUTH_BACKUP_CODE_EXHAUSTED",
+    # Manager
+    "AuthManager",
+    "RateLimiter",
+    # Authorization
+    "AuthzEngine",
+    "RBACEngine",
+    "ABACEngine",
+    # Policy DSL
+    "Policy",
+    "PolicyResult",
+    "PolicyDecision",
+    "PolicyRegistry",
+    "Allow",
+    "Deny",
+    "Abstain",
+    "rule",
+    # OAuth2
+    "OAuth2Manager",
+    # MFA
+    "MFAManager",
+    # Stores
+    "MemoryIdentityStore",
+    "MemoryCredentialStore",
+    "MemoryTokenStore",
 ]
 
 

@@ -1,8 +1,8 @@
 """
-AquilAuth - Flow Guards (Deep Integration)
+AquilAuth - Flow & Controller Guards (Deep Integration)
 
-Guards that properly integrate with Aquilia Flow pipeline.
-These replace the standalone guards with deep Flow integration.
+Guards that integrate with both the Aquilia Flow pipeline AND
+the Controller pipeline system.
 
 Flow Pipeline Structure:
 1. Middleware (global)
@@ -10,6 +10,12 @@ Flow Pipeline Structure:
 3. Transforms (data transformation)
 4. Handler (business logic)
 5. Post-hooks (response processing)
+
+Controller Pipeline:
+  Controllers accept pipeline nodes as callables.
+  ControllerEngine._execute_pipeline_node inspects signature
+  and injects: request, ctx/context, controller.
+  Guards work in controllers via the .guard() class methods.
 """
 
 from __future__ import annotations
@@ -34,6 +40,7 @@ from .aquila_sessions import get_identity_id, get_roles, get_scopes
 
 if TYPE_CHECKING:
     from aquilia.sessions import Session
+    from aquilia.controller.base import RequestCtx
 
 
 # ============================================================================
@@ -532,7 +539,140 @@ class RequirePolicyGuard(FlowGuard):
 
 
 # ============================================================================
-# Guard Factories
+# Controller Pipeline Guards
+# ============================================================================
+# These adapt FlowGuards for use in Controller.pipeline lists.
+# ControllerEngine._execute_pipeline_node inspects signature and
+# injects `ctx` (RequestCtx) or `request` (Request).
+# A guard returns False or a Response to short-circuit; None to continue.
+
+
+class ControllerGuardAdapter:
+    """
+    Adapts a FlowGuard to work in the Controller pipeline.
+    
+    ControllerEngine calls pipeline nodes with (ctx=RequestCtx).
+    This adapter converts between RequestCtx and the dict context
+    that FlowGuards expect.
+    
+    Usage:
+        class UsersController(Controller):
+            prefix = "/users"
+            pipeline = [RequireAuthGuard().for_controller()]
+    """
+    
+    def __init__(self, guard: "FlowGuard"):
+        self._guard = guard
+    
+    async def __call__(self, ctx: Any = None, request: Any = None) -> Any:
+        """
+        Execute guard in controller pipeline context.
+        
+        Args:
+            ctx: RequestCtx from ControllerEngine
+            request: Request (fallback)
+        """
+        # Build the dict context that FlowGuards expect
+        context: dict[str, Any] = {}
+        
+        if ctx is not None:
+            # RequestCtx -> dict
+            context["request"] = getattr(ctx, "request", request)
+            context["identity"] = getattr(ctx, "identity", None)
+            context["session"] = getattr(ctx, "session", None)
+            context["container"] = getattr(ctx, "container", None)
+            if hasattr(ctx, "state") and isinstance(ctx.state, dict):
+                context.update(ctx.state)
+        elif request is not None:
+            context["request"] = request
+            if hasattr(request, "state"):
+                context["identity"] = request.state.get("identity")
+                context["session"] = request.state.get("session")
+        
+        # Execute underlying guard
+        result_ctx = await self._guard(context)
+        
+        # Sync changes back to RequestCtx
+        if ctx is not None:
+            if "identity" in result_ctx:
+                ctx.identity = result_ctx["identity"]
+            if "session" in result_ctx:
+                ctx.session = result_ctx["session"]
+            if "authenticated" in result_ctx:
+                ctx.state["authenticated"] = result_ctx["authenticated"]
+            # Sync token claims etc.
+            if "token_claims" in result_ctx:
+                ctx.state["token_claims"] = result_ctx["token_claims"]
+        
+        return None  # Continue pipeline
+
+
+# Patch FlowGuard base with .for_controller() method
+
+def _for_controller(self) -> ControllerGuardAdapter:
+    """
+    Adapt this guard for use in Controller.pipeline.
+    
+    Returns:
+        ControllerGuardAdapter wrapping this guard
+    
+    Example:
+        class OrdersController(Controller):
+            prefix = "/orders"
+            pipeline = [RequireAuthGuard().for_controller()]
+            
+            @GET("/")
+            async def list_orders(self, ctx):
+                # ctx.identity is populated by guard
+                ...
+    """
+    return ControllerGuardAdapter(self)
+
+FlowGuard.for_controller = _for_controller
+
+
+# ============================================================================
+# Controller Guard Factories
+# ============================================================================
+# Convenience functions returning guards ready for Controller.pipeline.
+
+
+def controller_require_auth(optional: bool = False) -> ControllerGuardAdapter:
+    """Create auth guard for Controller pipeline."""
+    return RequireAuthGuard(optional=optional).for_controller()
+
+
+def controller_require_scopes(
+    *scopes: str,
+    require_all: bool = True,
+) -> ControllerGuardAdapter:
+    """Create scope guard for Controller pipeline."""
+    return RequireScopesGuard(*scopes, require_all=require_all).for_controller()
+
+
+def controller_require_roles(
+    *roles: str,
+    require_all: bool = True,
+) -> ControllerGuardAdapter:
+    """Create role guard for Controller pipeline."""
+    return RequireRolesGuard(*roles, require_all=require_all).for_controller()
+
+
+def controller_require_permission(
+    authz_engine: AuthzEngine,
+    permission: str,
+    resource: str | None = None,
+) -> ControllerGuardAdapter:
+    """Create permission guard for Controller pipeline."""
+    return RequirePermissionGuard(
+        authz_engine=authz_engine,
+        permission=permission,
+        resource=resource,
+    ).for_controller()
+
+
+# ============================================================================
+# Guard Factories (Flow)
 # ============================================================================
 
 
@@ -596,9 +736,15 @@ __all__ = [
     "RequireRolesGuard",
     "RequirePermissionGuard",
     "RequirePolicyGuard",
-    # Factories
+    # Flow Factories
     "require_auth",
     "require_scopes",
     "require_roles",
     "require_permission",
+    # Controller Integration
+    "ControllerGuardAdapter",
+    "controller_require_auth",
+    "controller_require_scopes",
+    "controller_require_roles",
+    "controller_require_permission",
 ]

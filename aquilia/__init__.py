@@ -218,6 +218,47 @@ from .middleware import (
 from .effects import Effect, EffectProvider, EffectRegistry
 
 # ============================================================================
+# Sockets (WebSockets)
+# ============================================================================
+
+from .sockets import (
+    SocketController,
+    Socket,
+    OnConnect,
+    OnDisconnect,
+    Event,
+    AquilaSockets,
+    SocketRouter,
+    SocketGuard,
+)
+
+# ============================================================================
+# Templates
+# ============================================================================
+
+from .templates import (
+    TemplateEngine,
+    TemplateMiddleware,
+)
+
+# ============================================================================
+# Patterns
+# ============================================================================
+
+from .patterns import (
+    PatternCompiler,
+    PatternMatcher,
+    CompiledPattern,
+    TypeRegistry as PatternTypeRegistry,
+)
+
+# ============================================================================
+# Discovery
+# ============================================================================
+
+from .discovery import PackageScanner
+
+# ============================================================================
 # Lifecycle
 # ============================================================================
 
@@ -350,6 +391,30 @@ __all__ = [
     # Effects
     "Effect",
     "EffectProvider",
+    "EffectRegistry",
+    
+    # Sockets (WebSockets)
+    "SocketController",
+    "Socket",
+    "OnConnect",
+    "OnDisconnect",
+    "Event",
+    "AquilaSockets",
+    "SocketRouter",
+    "SocketGuard",
+    
+    # Templates
+    "TemplateEngine",
+    "TemplateMiddleware",
+    
+    # Patterns
+    "PatternCompiler",
+    "PatternMatcher",
+    "CompiledPattern",
+    "PatternTypeRegistry",
+    
+    # Discovery
+    "PackageScanner",
     
     # Lifecycle
     "LifecycleCoordinator",

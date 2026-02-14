@@ -39,6 +39,7 @@ class ControllerEngine:
         self,
         factory: ControllerFactory,
         enable_lifecycle: bool = True,
+        fault_engine: Optional[Any] = None,
     ):
         """
         Initialize engine.
@@ -46,9 +47,11 @@ class ControllerEngine:
         Args:
             factory: Controller factory for instantiation
             enable_lifecycle: Whether to call lifecycle hooks
+            fault_engine: FaultEngine for structured error handling
         """
         self.factory = factory
         self.enable_lifecycle = enable_lifecycle
+        self.fault_engine = fault_engine
         self.logger = logging.getLogger("aquilia.controller.engine")
         self._lifecycle_initialized: set[type] = set()
     
@@ -153,7 +156,18 @@ class ControllerEngine:
                 f"Error executing {controller_class.__name__}.{route_metadata.handler_name}: {e}",
                 exc_info=True,
             )
-            # Let faults system handle it
+            # Process through fault engine if available
+            if self.fault_engine:
+                try:
+                    app_name = getattr(route, 'app_name', None)
+                    await self.fault_engine.process(
+                        e,
+                        app=app_name,
+                        route=route.full_path,
+                        request_id=getattr(request.state, 'get', lambda k, d=None: d)('request_id'),
+                    )
+                except Exception:
+                    pass  # Fault engine processing is best-effort
             raise
     
     async def _init_controller_lifecycle(

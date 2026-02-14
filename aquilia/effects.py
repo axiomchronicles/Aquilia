@@ -191,24 +191,41 @@ class EffectRegistry:
     """
     Registry for effect providers.
     Validates effect availability and instantiates providers.
+    
+    Integrates with DI system - can be registered as an app-scoped
+    singleton and provides lifecycle hooks for startup/shutdown.
     """
     
     def __init__(self):
         self.providers: dict[str, EffectProvider] = {}
+        self._initialized = False
     
     def register(self, effect_name: str, provider: EffectProvider):
         """Register an effect provider."""
         self.providers[effect_name] = provider
     
     async def initialize_all(self):
-        """Initialize all registered providers."""
-        for provider in self.providers.values():
+        """Initialize all registered providers (lifecycle startup hook)."""
+        if self._initialized:
+            return
+        for name, provider in self.providers.items():
             await provider.initialize()
+        self._initialized = True
     
     async def finalize_all(self):
-        """Finalize all providers."""
+        """Finalize all providers (lifecycle shutdown hook)."""
         for provider in self.providers.values():
             await provider.finalize()
+        self._initialized = False
+    
+    # DI lifecycle aliases
+    async def startup(self):
+        """DI lifecycle startup hook."""
+        await self.initialize_all()
+    
+    async def shutdown(self):
+        """DI lifecycle shutdown hook."""
+        await self.finalize_all()
     
     def has_effect(self, effect_name: str) -> bool:
         """Check if effect is available."""
@@ -219,3 +236,30 @@ class EffectRegistry:
         if effect_name not in self.providers:
             raise KeyError(f"Effect '{effect_name}' not registered")
         return self.providers[effect_name]
+    
+    def register_with_container(self, container: "Any"):
+        """
+        Register this EffectRegistry and all effect providers with a DI container.
+        
+        Args:
+            container: DI Container instance
+        """
+        from aquilia.di.providers import ValueProvider
+        
+        # Register the registry itself
+        container.register(ValueProvider(
+            value=self,
+            token=EffectRegistry,
+            scope="app",
+        ))
+        
+        # Register individual providers by effect name
+        for effect_name, provider in self.providers.items():
+            try:
+                container.register(ValueProvider(
+                    value=provider,
+                    token=f"effect:{effect_name}",
+                    scope="app",
+                ))
+            except ValueError:
+                pass  # Already registered

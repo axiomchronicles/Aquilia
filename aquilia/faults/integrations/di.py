@@ -106,10 +106,10 @@ def patch_di_container():
                 candidates=e.candidates if hasattr(e, 'candidates') else [],
             ) from e
     
-    def patched_register(self, provider):
+    def patched_register(self, provider, tag=None):
         """Patched register with fault handling."""
         try:
-            return original_register(self, provider)
+            return original_register(self, provider, tag=tag)
         except ValueError as e:
             # Extract token from error message
             msg = str(e)

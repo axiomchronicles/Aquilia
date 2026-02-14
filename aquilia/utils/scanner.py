@@ -89,7 +89,12 @@ class PackageScanner:
         start_time = time.time()
         
         # Generate cache key
-        cache_key = f"{package_name}:{bool(base_class)}:{bool(predicate)}:{recursive}:{max_depth}"
+        # IMPORTANT: Use predicate/base_class qualname or repr for stable identity.
+        # Using id() is unsafe because Python can reuse memory addresses for
+        # short-lived lambdas, causing cache collisions between different predicates.
+        predicate_key = getattr(predicate, '__qualname__', repr(predicate)) if predicate else "None"
+        base_class_key = getattr(base_class, '__qualname__', repr(base_class)) if base_class else "None"
+        cache_key = f"{package_name}:{base_class_key}:{predicate_key}:{recursive}:{max_depth}"
         
         # Check cache first
         if use_cache and cache_key in self._class_cache and self._is_cache_valid(cache_key):
