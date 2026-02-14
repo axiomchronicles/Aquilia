@@ -9,8 +9,12 @@ from . import (
     serve,
     freeze,
     inspect,
+    manifest,
     migrate,
     doctor,
+    analytics,
+    discover,
+    ws,
 )
 
 __all__ = [
@@ -22,6 +26,10 @@ __all__ = [
     'serve',
     'freeze',
     'inspect',
+    'manifest',
     'migrate',
     'doctor',
+    'analytics',
+    'discover',
+    'ws',
 ]

@@ -542,6 +542,101 @@ def doctor(ctx):
         sys.exit(1)
 
 
+# ============================================================================
+# WebSocket management
+# ============================================================================
+
+@cli.group()
+def ws():
+    """WebSocket management commands."""
+    pass
+
+
+@ws.command('inspect')
+@click.option('--artifacts-dir', type=click.Path(), default='artifacts', help='Artifacts directory')
+@click.pass_context
+def ws_inspect(ctx, artifacts_dir: str):
+    """Inspect compiled WebSocket namespaces."""
+    from .commands.ws import cmd_ws_inspect
+    try:
+        cmd_ws_inspect({'artifacts_dir': artifacts_dir})
+    except Exception as e:
+        error(f"✗ WS inspect failed: {e}")
+        sys.exit(1)
+
+
+@ws.command('broadcast')
+@click.option('--namespace', required=True, help='Namespace')
+@click.option('--room', default=None, help='Room (optional)')
+@click.option('--event', required=True, help='Event name')
+@click.option('--payload', default='{}', help='JSON payload')
+@click.pass_context
+def ws_broadcast(ctx, namespace: str, room: Optional[str], event: str, payload: str):
+    """Broadcast message to namespace or room."""
+    from .commands.ws import cmd_ws_broadcast
+    try:
+        cmd_ws_broadcast({'namespace': namespace, 'room': room, 'event': event, 'payload': payload})
+    except Exception as e:
+        error(f"✗ WS broadcast failed: {e}")
+        sys.exit(1)
+
+
+@ws.command('gen-client')
+@click.option('--lang', default='ts', help='Language (ts)')
+@click.option('--out', required=True, help='Output file')
+@click.option('--artifacts-dir', type=click.Path(), default='artifacts', help='Artifacts directory')
+@click.pass_context
+def ws_gen_client(ctx, lang: str, out: str, artifacts_dir: str):
+    """Generate TypeScript client SDK from compiled WebSocket artifacts."""
+    from .commands.ws import cmd_ws_gen_client
+    try:
+        cmd_ws_gen_client({'lang': lang, 'out': out, 'artifacts_dir': artifacts_dir})
+    except Exception as e:
+        error(f"✗ WS gen-client failed: {e}")
+        sys.exit(1)
+
+
+# ============================================================================
+# Discovery
+# ============================================================================
+
+@cli.command('discover')
+@click.option('--path', type=click.Path(), default=None, help='Workspace path')
+@click.pass_context
+def discover(ctx, path: Optional[str]):
+    """Inspect auto-discovered modules in workspace."""
+    from .commands.discover import DiscoveryInspector
+
+    try:
+        workspace_root = Path(path) if path else Path.cwd()
+        inspector = DiscoveryInspector(workspace_root.name, str(workspace_root))
+        inspector.inspect(verbose=ctx.obj['verbose'])
+    except Exception as e:
+        error(f"✗ Discovery failed: {e}")
+        sys.exit(1)
+
+
+# ============================================================================
+# Analytics
+# ============================================================================
+
+@cli.command('analytics')
+@click.option('--path', type=click.Path(), default=None, help='Workspace path')
+@click.pass_context
+def analytics(ctx, path: Optional[str]):
+    """Run discovery analytics and show health report."""
+    from .commands.analytics import DiscoveryAnalytics, print_analysis_report
+
+    try:
+        workspace_root = Path(path) if path else Path.cwd()
+        analyser = DiscoveryAnalytics(workspace_root.name, str(workspace_root))
+        analysis = analyser.analyze()
+        print_analysis_report(analysis)
+    except Exception as e:
+        error(f"✗ Analytics failed: {e}")
+        sys.exit(1)
+
+
 def main():
     """Entry point for `aq` command."""
     cli(obj={})

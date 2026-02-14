@@ -184,16 +184,24 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
             print(f"\n  🔍 Discovering module: {module_name}")
         
         try:
-            # Use enhanced discovery to get properly classified controllers and services
-            discovered_controllers, discovered_services = discovery.discover_module_controllers_and_services(
+            # Use enhanced discovery to get properly classified controllers, services, and socket controllers
+            result = discovery.discover_module_controllers_and_services(
                 base_package, module_name
             )
+            # Handle both 2-tuple (legacy) and 3-tuple (new) return values
+            if len(result) == 3:
+                discovered_controllers, discovered_services, discovered_sockets = result
+            else:
+                discovered_controllers, discovered_services = result
+                discovered_sockets = []
             
             if verbose:
                 if discovered_controllers:
                     print(f"    ✅ Found {len(discovered_controllers)} controller(s)")
                 if discovered_services:
                     print(f"    ✅ Found {len(discovered_services)} service(s)")
+                if discovered_sockets:
+                    print(f"    ✅ Found {len(discovered_sockets)} socket controller(s)")
             
             total_controllers += len(discovered_controllers)
             total_services += len(discovered_services)
@@ -301,9 +309,15 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
         
         try:
             # Use enhanced discovery
-            discovered_controllers, discovered_services = discovery.discover_module_controllers_and_services(
+            result = discovery.discover_module_controllers_and_services(
                 base_package, module_name
             )
+            # Handle both 2-tuple (legacy) and 3-tuple (new) return values
+            if len(result) == 3:
+                discovered_controllers, discovered_services, discovered_sockets = result
+            else:
+                discovered_controllers, discovered_services = result
+                discovered_sockets = []
             
             # Extract metadata from manifest
             manifest_content = manifest_path.read_text()
@@ -321,10 +335,17 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
                 'tags': tags or [module_name, 'core'],
                 'controllers_list': [c["path"] if isinstance(c, dict) else c for c in discovered_controllers],
                 'services_list': [s["path"] if isinstance(s, dict) else s for s in discovered_services],
+                'sockets_list': [
+                    {'path': s['path'] if isinstance(s, dict) else s,
+                     'namespace': s.get('metadata', {}).get('namespace', '') if isinstance(s, dict) else ''}
+                    for s in discovered_sockets
+                ],
                 'controllers_count': len(discovered_controllers),
                 'services_count': len(discovered_services),
+                'sockets_count': len(discovered_sockets),
                 'has_controllers': len(discovered_controllers) > 0,
                 'has_services': len(discovered_services) > 0,
+                'has_sockets': len(discovered_sockets) > 0,
             }
             
             if verbose:
@@ -360,8 +381,8 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
     print("=" * 70)
     
     # Display module table with controller details
-    print(f"\n{'Module':<20} {'Route Prefix':<25} {'Controllers':<12} {'Services':<10}")
-    print(f"{'-'*20} {'-'*25} {'-'*12} {'-'*10}")
+    print(f"\n{'Module':<20} {'Route Prefix':<25} {'Controllers':<12} {'Services':<10} {'Sockets':<10}")
+    print(f"{'-'*20} {'-'*25} {'-'*12} {'-'*10} {'-'*10}")
     
     for mod_name in sorted_names:
         if mod_name not in discovered_modules:
@@ -370,7 +391,8 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
         route = mod['route_prefix']
         controllers_count = mod.get('controllers_count', 0)
         services_count = mod.get('services_count', 0)
-        print(f"{mod_name:<20} {route:<25} {controllers_count:<12} {services_count:<10}")
+        sockets_count = mod.get('sockets_count', 0)
+        print(f"{mod_name:<20} {route:<25} {controllers_count:<12} {services_count:<10} {sockets_count:<10}")
     
     # Show detailed controller information
     total_controllers = sum(mod.get('controllers_count', 0) for mod in discovered_modules.values())
@@ -391,19 +413,46 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
                         controller_class = controller.split('.')[-1]
                     print(f"    • {controller_class}")
     
+    # Show WebSocket controller details
+    total_sockets = sum(mod.get('sockets_count', 0) for mod in discovered_modules.values())
+    if total_sockets > 0:
+        print(f"\n🔌 WebSocket Controllers:")
+        for mod_name in sorted_names:
+            if mod_name not in discovered_modules:
+                continue
+            mod = discovered_modules[mod_name]
+            sockets_list = mod.get('sockets_list', [])
+            if sockets_list:
+                print(f"  {mod_name}:")
+                for sock in sockets_list:
+                    sock_path = sock['path'] if isinstance(sock, dict) else sock
+                    namespace = sock.get('namespace', '') if isinstance(sock, dict) else ''
+                    if ':' in sock_path:
+                        sock_class = sock_path.split(':')[1]
+                    else:
+                        sock_class = sock_path.split('.')[-1]
+                    if namespace:
+                        print(f"    ⚡ {sock_class} → {namespace}")
+                    else:
+                        print(f"    ⚡ {sock_class}")
+    
     print()
     
     # Summary
     print(f"\n📊 Summary:")
     with_services = sum(1 for m in discovered_modules.values() if m['has_services'])
     with_controllers = sum(1 for m in discovered_modules.values() if m['has_controllers'])
+    with_sockets = sum(1 for m in discovered_modules.values() if m.get('has_sockets', False))
     
     total_services = sum(m.get('services_count', 0) for m in discovered_modules.values())
     total_controllers = sum(m.get('controllers_count', 0) for m in discovered_modules.values())
+    total_sockets = sum(m.get('sockets_count', 0) for m in discovered_modules.values())
     
     print(f"  Total Modules: {len(discovered_modules)}")
     print(f"  With Services: {with_services} ({total_services} total)")
     print(f"  With Controllers: {with_controllers} ({total_controllers} total)")
+    if total_sockets > 0:
+        print(f"  With Sockets: {with_sockets} ({total_sockets} total)")
     
     # Validation status
     if validation['errors']:

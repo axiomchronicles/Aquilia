@@ -230,9 +230,14 @@ class WorkspaceGenerator:
                 
                 # ENHANCED: Use intelligent discovery to properly classify items
                 try:
-                    discovered_controllers, discovered_services = discovery.discover_module_controllers_and_services(
+                    result = discovery.discover_module_controllers_and_services(
                         base_path, mod_name
                     )
+                    # Handle both 2-tuple (legacy) and 3-tuple (new) return values
+                    if len(result) == 3:
+                        discovered_controllers, discovered_services, _discovered_sockets = result
+                    else:
+                        discovered_controllers, discovered_services = result
                     
                     # Use discovered classification (more accurate than manifest)
                     services_list = discovered_services if discovered_services else manifest_services_list

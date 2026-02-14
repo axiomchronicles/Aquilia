@@ -881,7 +881,6 @@ class AquiliaServer:
             if not hasattr(app_ctx.manifest, "socket_controllers"):
                 continue
 
-            print(f"DEBUG _load_socket_controllers: {app_ctx.name} socket_controllers = {app_ctx.manifest.socket_controllers}")
             for controller_path in app_ctx.manifest.socket_controllers:
                 try:
                     cls = self._import_controller_class(controller_path)

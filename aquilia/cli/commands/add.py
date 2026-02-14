@@ -61,10 +61,9 @@ def add_module(
     workspace_content = workspace_file.read_text()
     existing_modules = []
     
-    # Simple regex to find .module() calls
+    # Simple regex to find .module() calls — match Module("name"...)
     import re
-    # (?m) enables multiline mode, ^ matches start of line, \s* matches indentation
-    module_pattern = r'(?m)^\s*\.module\(Module\("([^"]+)"\)'
+    module_pattern = r'Module\("([^"]+)"'
     existing_modules = re.findall(module_pattern, workspace_content)
     
     # Validate dependencies

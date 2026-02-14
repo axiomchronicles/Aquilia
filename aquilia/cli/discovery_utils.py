@@ -185,6 +185,8 @@ class EnhancedDiscovery:
                             
                         if base_name == "Controller":
                             item["type"] = "controller"
+                        elif base_name == "SocketController":
+                            item["type"] = "socket"
                         elif base_name == "Service":
                             item["type"] = "service"
 
@@ -212,6 +214,13 @@ class EnhancedDiscovery:
                                                 e.value for e in kw.value.elts 
                                                 if isinstance(e, ast.Constant)
                                             ]
+                        elif dec_name == "Socket":
+                            item["type"] = "socket"
+                            # Extract namespace path from @Socket("/path")
+                            if isinstance(decorator, ast.Call) and decorator.args:
+                                arg = decorator.args[0]
+                                if isinstance(arg, ast.Constant):
+                                    item["metadata"]["namespace"] = arg.value
                         elif dec_name in ("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"):
                             item["type"] = "controller"
                     
@@ -232,13 +241,17 @@ class EnhancedDiscovery:
         self,
         base_package: str,
         module_name: str,
-    ) -> Tuple[List[Any], List[Any]]:
+    ) -> Tuple[List[Any], List[Any], List[Any]]:
         """
-        Discover controllers and services using static analysis first,
+        Discover controllers, services, and socket controllers using static analysis first,
         falling back to runtime scanning only for specific standard paths.
+
+        Returns:
+            Tuple of (controllers, services, socket_controllers)
         """
         controllers_data = []
         services_data = []
+        socket_controllers_data = []
         seen_paths = set()
 
         try:
@@ -272,6 +285,8 @@ class EnhancedDiscovery:
                         controllers_data.append(item)
                     elif item["type"] == "service":
                         services_data.append(item)
+                    elif item["type"] == "socket":
+                        socket_controllers_data.append(item)
                         
         except Exception as e:
             if self.verbose:
@@ -282,7 +297,7 @@ class EnhancedDiscovery:
             # ... (Runtime strategies remain as fallback)
             pass
 
-        return controllers_data, services_data
+        return controllers_data, services_data, socket_controllers_data
     
     def clean_manifest_lists(
         self,
