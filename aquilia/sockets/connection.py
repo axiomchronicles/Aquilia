@@ -107,6 +107,11 @@ class Connection:
         self.bytes_received = 0
     
     @property
+    def id(self) -> str:
+        """Alias for connection_id for convenience."""
+        return self.connection_id
+
+    @property
     def is_connected(self) -> bool:
         """Check if connection is active."""
         return self._connection_state == ConnectionState.CONNECTED
@@ -170,6 +175,34 @@ class Connection:
         self.messages_sent += 1
         self.bytes_sent += len(data)
         self.last_activity = datetime.now(timezone.utc)
+
+    async def send_json(self, data: Dict[str, Any]):
+        """
+        Send a raw JSON dict to the client.
+
+        This is a convenience wrapper that serialises *data* directly
+        (bypassing the envelope protocol) so controllers can send
+        arbitrary JSON payloads.
+
+        Args:
+            data: JSON-serialisable dictionary.
+        """
+        import json as _json
+        encoded = _json.dumps(data).encode("utf-8")
+        await self._send_func(encoded)
+        self.messages_sent += 1
+        self.bytes_sent += len(encoded)
+        self.last_activity = datetime.now(timezone.utc)
+
+    # ── Room convenience aliases ─────────────────────────────────────────
+
+    async def join_room(self, room: str) -> bool:
+        """Alias for :meth:`join` – kept for readability in controllers."""
+        return await self.join(room)
+
+    async def leave_room(self, room: str) -> bool:
+        """Alias for :meth:`leave` – kept for readability in controllers."""
+        return await self.leave(room)
     
     async def send_raw(self, data: bytes):
         """Send raw bytes to client."""

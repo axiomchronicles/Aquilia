@@ -73,12 +73,19 @@ class MessageEnvelope:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> MessageEnvelope:
-        """Deserialize from dictionary."""
+        """Deserialize from dictionary.
+        
+        Accepts both protocol format (``payload``) and simplified
+        client format (``data``) so that browser clients sending
+        ``{"event": "...", "data": {...}}`` are handled correctly.
+        """
+        # Accept both 'payload' (protocol) and 'data' (client shorthand)
+        payload = data.get("payload") or data.get("data", {})
         return cls(
             id=data.get("id"),
             type=MessageType(data.get("type", "event")),
             event=data["event"],
-            payload=data.get("payload", {}),
+            payload=payload,
             meta=data.get("meta", {}),
             ack=data.get("ack", False),
         )

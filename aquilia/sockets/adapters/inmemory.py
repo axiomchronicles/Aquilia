@@ -89,6 +89,7 @@ class InMemoryAdapter(Adapter):
         namespace: str,
         room: str,
         envelope: MessageEnvelope,
+        exclude_connection: Optional[str] = None,
     ) -> None:
         """Publish message to room."""
         room_members = self._rooms[namespace].get(room, set())
@@ -102,9 +103,11 @@ class InMemoryAdapter(Adapter):
         codec = JSONCodec()
         data = codec.encode(envelope)
         
-        # Send to all members
+        # Send to all members (optionally excluding one)
         tasks = []
         for connection_id in room_members:
+            if exclude_connection and connection_id == exclude_connection:
+                continue
             callback = self._send_callbacks[namespace].get(connection_id)
             if callback:
                 tasks.append(callback(data))
@@ -112,7 +115,7 @@ class InMemoryAdapter(Adapter):
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
         
-        logger.debug(f"Published to {len(room_members)} members in {namespace}/{room}")
+        logger.debug(f"Published to {len(tasks)} members in {namespace}/{room}")
     
     async def broadcast(
         self,

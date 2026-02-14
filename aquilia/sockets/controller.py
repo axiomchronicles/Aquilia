@@ -85,6 +85,7 @@ class SocketController:
         payload: Dict[str, Any],
         *,
         namespace: Optional[str] = None,
+        exclude_connection: Optional[str] = None,
     ):
         """
         Publish message to all connections in a room.
@@ -96,6 +97,7 @@ class SocketController:
             event: Event name
             payload: Event data
             namespace: Optional namespace override
+            exclude_connection: Optional connection ID to exclude
         """
         from .envelope import MessageEnvelope, MessageType
         
@@ -118,6 +120,7 @@ class SocketController:
             namespace=ns,
             room=room,
             envelope=envelope,
+            exclude_connection=exclude_connection,
         )
     
     async def broadcast(

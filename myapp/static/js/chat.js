@@ -106,22 +106,46 @@ class AquiliaChat {
     }
     
     onMessage(event) {
+        // Handle Blob (binary frame) by reading as text first
+        if (event.data instanceof Blob) {
+            event.data.text().then(text => this._processMessage(text));
+            return;
+        }
+        this._processMessage(event.data);
+    }
+
+    _processMessage(raw) {
         try {
-            const data = JSON.parse(event.data);
+            const data = JSON.parse(raw);
             console.log('Received:', data);
-            
-            switch (data.type) {
+
+            // Unwrap Aquilia MessageEnvelope if present:
+            // envelope format: { type:"event", event:"...", payload:{...}, meta:{...} }
+            // raw format:      { type:"system"|"message"|..., event:"...", data:{...} }
+            let msg = data;
+            if (data.type === 'event' && data.payload !== undefined) {
+                // Envelope-wrapped message from publish_room / adapter
+                msg = data.payload;
+                // Preserve the event name if the payload doesn't have one
+                if (!msg.event && data.event) msg.event = data.event;
+            }
+
+            switch (msg.type) {
                 case 'system':
-                    this.handleSystemMessage(data);
+                    this.handleSystemMessage(msg);
                     break;
                 case 'message':
-                    this.handleChatMessage(data);
+                    this.handleChatMessage(msg);
                     break;
                 case 'presence':
-                    this.handlePresence(data);
+                    this.handlePresence(msg);
                     break;
                 case 'error':
-                    this.handleError(data);
+                    this.handleError(msg);
+                    break;
+                default:
+                    // AckEvent responses (e.g. {status:'ok', ...})
+                    // These are picked up by sendWithAck listeners
                     break;
             }
         } catch (error) {
@@ -503,12 +527,18 @@ class AquiliaChat {
     sendWithAck(event, data) {
         return new Promise((resolve, reject) => {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                const messageId = Date.now() + Math.random();
-                
-                const handler = (event) => {
+                const handler = (msgEvent) => {
+                    const raw = (msgEvent.data instanceof Blob)
+                        ? null : msgEvent.data;
+                    if (!raw) return;
                     try {
-                        const response = JSON.parse(event.data);
-                        if (response.ack_id === messageId) {
+                        let response = JSON.parse(raw);
+                        // Unwrap envelope if present
+                        if (response.type === 'event' && response.payload !== undefined) {
+                            response = response.payload;
+                        }
+                        // AckEvent responses have a 'status' field
+                        if (response.status !== undefined) {
                             this.ws.removeEventListener('message', handler);
                             resolve(response);
                         }
@@ -521,9 +551,7 @@ class AquiliaChat {
                 
                 this.ws.send(JSON.stringify({
                     event: event,
-                    data: data,
-                    ack: true,
-                    ack_id: messageId
+                    data: data
                 }));
                 
                 // Timeout after 5 seconds

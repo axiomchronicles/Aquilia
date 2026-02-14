@@ -106,17 +106,17 @@ class ChatSocket(SocketController):
         await self.presence.join_room(connection.id, "general")
 
         # Notify room
-        await self.broadcast_to_room("general", {
+        await self.publish_room("general", "user_joined", {
             "type": "system",
             "event": "user_joined",
             "data": {
                 "username": username,
                 "room": "general",
             },
-        }, exclude=connection.id)
+        }, exclude_connection=connection.id)
 
     @OnDisconnect()
-    async def on_disconnect(self, connection):
+    async def on_disconnect(self, connection, reason=None):
         """
         Handle WebSocket disconnection.
 
@@ -130,7 +130,7 @@ class ChatSocket(SocketController):
         for room in rooms:
             await connection.leave_room(room)
             await self.presence.leave_room(connection.id, room)
-            await self.broadcast_to_room(room, {
+            await self.publish_room(room, "user_left", {
                 "type": "system",
                 "event": "user_left",
                 "data": {
@@ -166,7 +166,7 @@ class ChatSocket(SocketController):
 
         # Notify rooms of name change
         for room in connection.state.get("rooms", set()):
-            await self.broadcast_to_room(room, {
+            await self.publish_room(room, "username_changed", {
                 "type": "system",
                 "event": "username_changed",
                 "data": {
@@ -174,7 +174,7 @@ class ChatSocket(SocketController):
                     "new_username": new_username,
                     "room": room,
                 },
-            }, exclude=connection.id)
+            }, exclude_connection=connection.id)
 
         return {"status": "ok", "username": new_username}
 
@@ -218,7 +218,7 @@ class ChatSocket(SocketController):
         )
 
         # Broadcast to room
-        await self.broadcast_to_room(room, {
+        await self.publish_room(room, "new_message", {
             "type": "message",
             "event": "new_message",
             "data": {
@@ -256,11 +256,11 @@ class ChatSocket(SocketController):
         await self.presence.join_room(connection.id, room)
 
         # Notify room
-        await self.broadcast_to_room(room, {
+        await self.publish_room(room, "user_joined", {
             "type": "system",
             "event": "user_joined",
             "data": {"username": username, "room": room},
-        }, exclude=connection.id)
+        }, exclude_connection=connection.id)
 
         return {"status": "ok", "room": room, "message": f"Joined '{room}'"}
 
@@ -294,7 +294,7 @@ class ChatSocket(SocketController):
         await self.presence.leave_room(connection.id, room)
 
         # Notify room
-        await self.broadcast_to_room(room, {
+        await self.publish_room(room, "user_left", {
             "type": "system",
             "event": "user_left",
             "data": {"username": username, "room": room},
@@ -315,7 +315,7 @@ class ChatSocket(SocketController):
         room = data.get("room", "general")
         username = connection.state.get("username", "anonymous")
 
-        await self.broadcast_to_room(room, {
+        await self.publish_room(room, "typing", {
             "type": "presence",
             "event": "typing",
             "data": {
@@ -323,7 +323,7 @@ class ChatSocket(SocketController):
                 "room": room,
                 "is_typing": True,
             },
-        }, exclude=connection.id)
+        }, exclude_connection=connection.id)
 
     @Unsubscribe("typing")
     async def on_typing_stop(self, connection, data):
@@ -336,7 +336,7 @@ class ChatSocket(SocketController):
         room = data.get("room", "general")
         username = connection.state.get("username", "anonymous")
 
-        await self.broadcast_to_room(room, {
+        await self.publish_room(room, "typing", {
             "type": "presence",
             "event": "typing",
             "data": {
@@ -344,7 +344,7 @@ class ChatSocket(SocketController):
                 "room": room,
                 "is_typing": False,
             },
-        }, exclude=connection.id)
+        }, exclude_connection=connection.id)
 
     @AckEvent("list_rooms")
     async def list_rooms(self, connection, data):
@@ -383,7 +383,7 @@ class NotificationSocket(SocketController):
         })
 
     @OnDisconnect()
-    async def on_disconnect(self, connection):
+    async def on_disconnect(self, connection, reason=None):
         """Cleanup notification subscriptions."""
         pass
 

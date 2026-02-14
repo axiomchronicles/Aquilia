@@ -50,6 +50,7 @@ class Adapter(Protocol):
         namespace: str,
         room: str,
         envelope: MessageEnvelope,
+        exclude_connection: Optional[str] = None,
     ) -> None:
         """
         Publish message to room.
@@ -60,6 +61,7 @@ class Adapter(Protocol):
             namespace: Socket namespace
             room: Room identifier
             envelope: Message envelope
+            exclude_connection: Optional connection ID to exclude
         """
         ...
     

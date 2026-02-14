@@ -119,14 +119,22 @@ class ASGIAdapter:
             self.logger.warning(f"Unknown ASGI scope type: {scope['type']}")
     
     async def handle_http(self, scope: dict, receive: callable, send: callable):
-        """Handle HTTP request."""
+        """Handle HTTP request.
+
+        The middleware chain is **always** executed so that middleware such as
+        ``StaticMiddleware``, ``CORSMiddleware`` (preflight), etc. can
+        intercept and respond to requests that do not match any controller
+        route.  The controller match is performed inside the *final handler*
+        of the middleware chain – if no route matches, a 404 is returned from
+        there, but only after every middleware has had a chance to act.
+        """
         # Create Request object
         request = Request(scope, receive)
-        
+
         # Match route
         path = scope.get("path", "/")
         method = scope.get("method", "GET")
-        
+
         # Extract query params for controller matching
         query_params = {}
         if scope.get("query_string"):
@@ -134,96 +142,102 @@ class ASGIAdapter:
             query_string = scope.get("query_string", b"").decode("utf-8")
             parsed = parse_qs(query_string)
             query_params = {k: v[0] for k, v in parsed.items()}
-        
-        # Match controller route
+
+        # Pre-match the controller route so we can set up the DI container
+        # and RequestCtx, but do NOT short-circuit on a miss – we need the
+        # middleware chain to run regardless.
         controller_match = await self.controller_router.match(path, method, query_params)
-        
-        if not controller_match:
-            # 404 Not Found — show debug page if enabled
+
+        # Get DI container from server runtime registry
+        di_container = None
+
+        if controller_match and self.server and hasattr(self.server, 'runtime'):
+            # Get app name from route metadata
+            app_name = getattr(controller_match.route, 'app_name', None)
+
+            if app_name and self.server.runtime.di_containers.get(app_name):
+                app_container = self.server.runtime.di_containers[app_name]
+                di_container = app_container.create_request_scope()
+            elif self.server.runtime.di_containers:
+                app_container = next(iter(self.server.runtime.di_containers.values()))
+                di_container = app_container.create_request_scope()
+
+        if not di_container:
+            # Fallback: try to get any available container, or create minimal one
+            if self.server and hasattr(self.server, 'runtime') and self.server.runtime.di_containers:
+                app_container = next(iter(self.server.runtime.di_containers.values()))
+                di_container = app_container.create_request_scope()
+            else:
+                from .di import Container
+                di_container = Container(scope="request")
+
+        # Create RequestCtx with proper initialization
+        from .controller.base import RequestCtx
+        ctx = RequestCtx(
+            request=request,
+            identity=None,
+            session=None,
+            container=di_container,
+        )
+
+        # Store metadata in request state for middleware access
+        if controller_match:
+            app_name = getattr(controller_match.route, 'app_name', None)
+            request.state["app_name"] = app_name
+            request.state["route_pattern"] = getattr(controller_match.route, 'full_path', None)
+            request.state["path_params"] = controller_match.params
+        else:
+            request.state["app_name"] = None
+            request.state["route_pattern"] = None
+            request.state["path_params"] = {}
+
+        # Define final handler: execute the matched controller or return 404.
+        # Middleware earlier in the chain (e.g. StaticMiddleware) may return
+        # a response before this handler is ever reached.
+        async def final_handler(req: Request, context: RequestCtx) -> Response:
+            if controller_match:
+                return await self.controller_engine.execute(
+                    controller_match.route,
+                    req,
+                    controller_match.params,
+                    context.container,
+                )
+
+            # No controller matched – 404
             if self._is_debug():
                 accept = self._get_accept(scope)
                 if "text/html" in accept:
                     from .debug.pages import render_http_error_page, render_welcome_page
                     version = self._get_version()
-                    # Show welcome page on root path with no routes
                     if path == "/" and not self._has_routes():
                         html_body = render_welcome_page(aquilia_version=version)
-                    else:
-                        html_body = render_http_error_page(
-                            404, "Not Found",
-                            f"No route matches {method} {path}",
-                            request,
-                            aquilia_version=version,
+                        return Response(
+                            content=html_body.encode("utf-8"),
+                            status=200,
+                            headers={"content-type": "text/html; charset=utf-8"},
                         )
-                    response = Response(
+                    html_body = render_http_error_page(
+                        404, "Not Found",
+                        f"No route matches {method} {path}",
+                        req,
+                        aquilia_version=version,
+                    )
+                    return Response(
                         content=html_body.encode("utf-8"),
-                        status=404 if not (path == "/" and not self._has_routes()) else 200,
+                        status=404,
                         headers={"content-type": "text/html; charset=utf-8"},
                     )
-                    await response.send_asgi(send)
-                    return
 
-            response = Response.json(
-                {"error": "Not found"},
-                status=404,
-            )
-            await response.send_asgi(send)
-            return
-        
-        # Get DI container from server runtime registry
-        di_container = None
-        
-        if self.server and hasattr(self.server, 'runtime'):
-            # Get app name from route metadata
-            app_name = getattr(controller_match.route, 'app_name', None)
-            
-            if app_name and self.server.runtime.di_containers.get(app_name):
-                # Get specific app container
-                app_container = self.server.runtime.di_containers[app_name]
-                # Create request-scoped child container
-                di_container = app_container.create_request_scope()
-            elif self.server.runtime.di_containers:
-                 # Fallback: Get first app container (or global if we had one)
-                app_container = next(iter(self.server.runtime.di_containers.values()))
-                di_container = app_container.create_request_scope()
-        
-        if not di_container:
-            # Fallback: create minimal container
-            from .di import Container
-            di_container = Container(scope="request")
-        
-        # Create RequestCtx with proper initialization
-        from .controller.base import RequestCtx
-        ctx = RequestCtx(
-            request=request,
-            identity=None,  # Will be set by auth middleware if needed
-            session=None,   # Will be set by session middleware if needed
-            container=di_container,
-        )
-        
-        # Store metadata in request state for middleware access
-        app_name = getattr(controller_match.route, 'app_name', None)
-        request.state["app_name"] = app_name
-        request.state["route_pattern"] = getattr(controller_match.route, 'full_path', None)
-        request.state["path_params"] = controller_match.params
-        
-        # Define final handler that executes the controller
-        async def final_handler(req: Request, context: RequestCtx) -> Response:
-            return await self.controller_engine.execute(
-                controller_match.route,
-                req,
-                controller_match.params,
-                context.container,
-            )
-            
+            return Response.json({"error": "Not found"}, status=404)
+
         # Build middleware chain (wraps final_handler with all registered middleware)
         chain = self.middleware_stack.build_handler(final_handler)
-        
+
         try:
-            # Execute the full chain (Middleware -> Controller)
+            # Execute the full chain (Middleware -> Controller or 404)
             response = await chain(request, ctx)
         except Exception as e:
-            # Fallback if middleware itself crashes (e.g. ExceptionMiddleware missing or failed)
+            # Fallback if middleware itself crashes
             self.logger.error(f"Critical error in request pipeline: {e}", exc_info=True)
             if self._is_debug():
                 accept = self._get_accept(scope)
@@ -243,7 +257,7 @@ class ASGIAdapter:
                 {"error": "Internal server error"},
                 status=500,
             )
-        
+
         await response.send_asgi(send)
     
     async def handle_websocket(self, scope: dict, receive: callable, send: callable):

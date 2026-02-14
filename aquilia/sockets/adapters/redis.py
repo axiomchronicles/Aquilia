@@ -188,6 +188,7 @@ class RedisAdapter(Adapter):
         namespace: str,
         room: str,
         envelope: MessageEnvelope,
+        exclude_connection: Optional[str] = None,
     ) -> None:
         """Publish message to room via Redis pub/sub."""
         channel = f"{self.prefix}room:{namespace}:{room}"
@@ -197,6 +198,7 @@ class RedisAdapter(Adapter):
             "namespace": namespace,
             "room": room,
             "envelope": envelope.to_dict(),
+            "exclude_connection": exclude_connection,
         })
         
         await self._redis.publish(channel, message)

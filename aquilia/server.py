@@ -973,7 +973,9 @@ class AquiliaServer:
                 )
             raise RuntimeError(f"Found {len(conflicts)} route conflicts. check logs.")
 
-        # Step 1.2: Load socket controllers
+        # Step 1.2: Initialize WebSocket runtime and load socket controllers
+        self.logger.info("Initializing WebSocket runtime...")
+        await self.aquila_sockets.initialize()
         self.logger.info("Loading socket controllers...")
         await self._load_socket_controllers()
 
@@ -1151,8 +1153,9 @@ class AquiliaServer:
                     else:
                         instance = cls()
                     
-                    # Ensure namespace is injected
+                    # Ensure namespace and adapter are injected
                     instance.namespace = namespace
+                    instance.adapter = self.aquila_sockets.adapter
                         
                     self.aquila_sockets.controller_instances[namespace] = instance
                     self.logger.info(f"🔌 Loaded socket controller {cls.__name__} at {namespace}")
@@ -1725,6 +1728,14 @@ class AquiliaServer:
             except Exception as e:
                 self.logger.warning(f"Error finalizing effect providers: {e}")
         
+        # Shutdown WebSocket runtime
+        if hasattr(self, 'aquila_sockets') and self.aquila_sockets:
+            try:
+                await self.aquila_sockets.shutdown()
+                self.logger.info("WebSocket runtime shut down")
+            except Exception as e:
+                self.logger.warning(f"Error shutting down WebSocket runtime: {e}")
+
         # Disconnect AMDL database if connected
         if hasattr(self, '_amdl_database') and self._amdl_database:
             try:

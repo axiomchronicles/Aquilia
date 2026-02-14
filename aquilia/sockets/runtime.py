@@ -336,7 +336,7 @@ class AquilaSockets:
         async def send_func(data: bytes):
             await send({
                 "type": "websocket.send",
-                "bytes": data,
+                "text": data.decode("utf-8") if isinstance(data, bytes) else data,
             })
         
         conn = Connection(
@@ -451,9 +451,10 @@ class AquilaSockets:
                 
                 if message["type"] == "websocket.receive":
                     # Handle text or binary message
-                    data = message.get("bytes") or message.get("text", "").encode("utf-8")
-                    
-                    if data:
+                    raw = message.get("bytes") or message.get("text")
+                    if raw:
+                        # Normalise to bytes for codec.decode()
+                        data = raw.encode("utf-8") if isinstance(raw, str) else raw
                         conn.record_received(len(data))
                         await self._handle_message(conn, controller, data)
                 
@@ -513,13 +514,20 @@ class AquilaSockets:
                     # Call handler
                     result = await method(controller, conn, envelope.payload)
                     
-                    # Send ack if requested
-                    if envelope.ack:
-                        await conn.send_ack(
-                            envelope.id,
-                            status="ok",
-                            data=result if isinstance(result, dict) else {},
-                        )
+                    # Send ack if handler or client requested it
+                    handler_wants_ack = metadata.get("ack", False)
+                    if handler_wants_ack or envelope.ack:
+                        ack_data = result if isinstance(result, dict) else {}
+                        # Use send_json for direct client-friendly response
+                        # when the handler produces a result (e.g. @AckEvent)
+                        if handler_wants_ack and result is not None:
+                            await conn.send_json(ack_data)
+                        elif envelope.ack:
+                            await conn.send_ack(
+                                envelope.id,
+                                status="ok",
+                                data=ack_data,
+                            )
                     
                     return
         
@@ -563,9 +571,18 @@ class AquilaSockets:
         reason: Optional[str],
     ):
         """Call controller's on_disconnect handler."""
+        import inspect
+
         for name, method in controller.__class__.__dict__.items():
             if hasattr(method, "__socket_handler__"):
                 metadata = method.__socket_handler__
                 if metadata.get("type") == "on_disconnect":
-                    await method(controller, conn, reason)
+                    # Inspect signature to determine if handler accepts reason
+                    sig = inspect.signature(method)
+                    # Parameters: (self, connection, [reason])
+                    params = list(sig.parameters.values())
+                    if len(params) >= 3:
+                        await method(controller, conn, reason)
+                    else:
+                        await method(controller, conn)
                     return
