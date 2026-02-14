@@ -501,3 +501,125 @@ class ResourceExhaustedFault(SystemFault):
             severity=Severity.FATAL,
             metadata={"resource": resource, **kwargs.get("metadata", {})},
         )
+
+
+# ============================================================================
+# MODEL Faults (AMDL / Database)
+# ============================================================================
+
+class ModelFault(Fault):
+    """Base class for AMDL model and database faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.ERROR,
+        retryable: bool = False,
+        public: bool = False,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.MODEL,
+            severity=severity,
+            retryable=retryable,
+            public=public,
+            metadata=metadata,
+        )
+
+
+class AMDLParseFault(ModelFault):
+    """AMDL file parsing failed."""
+    
+    def __init__(self, file: str, line: int, reason: str, **kwargs):
+        super().__init__(
+            code="AMDL_PARSE_ERROR",
+            message=f"AMDL parse error in '{file}' at line {line}: {reason}",
+            severity=Severity.FATAL,
+            metadata={"file": file, "line": line, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class ModelNotFoundFault(ModelFault):
+    """Model not found in registry."""
+    
+    def __init__(self, model_name: str, **kwargs):
+        super().__init__(
+            code="MODEL_NOT_FOUND",
+            message=f"Model '{model_name}' not found in ModelRegistry",
+            metadata={"model": model_name, **kwargs.get("metadata", {})},
+        )
+
+
+class ModelRegistrationFault(ModelFault):
+    """Model registration failed."""
+    
+    def __init__(self, model_name: str, reason: str, **kwargs):
+        super().__init__(
+            code="MODEL_REGISTRATION_FAILED",
+            message=f"Failed to register model '{model_name}': {reason}",
+            metadata={"model": model_name, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class MigrationFault(ModelFault):
+    """Database migration failed."""
+    
+    def __init__(self, migration: str, reason: str, **kwargs):
+        super().__init__(
+            code="MIGRATION_FAILED",
+            message=f"Migration '{migration}' failed: {reason}",
+            metadata={"migration": migration, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class MigrationConflictFault(ModelFault):
+    """Migration conflict detected (e.g. divergent migration branches)."""
+    
+    def __init__(self, conflicting: list[str], **kwargs):
+        super().__init__(
+            code="MIGRATION_CONFLICT",
+            message=f"Migration conflict: {', '.join(conflicting)}",
+            severity=Severity.FATAL,
+            metadata={"conflicting": conflicting, **kwargs.get("metadata", {})},
+        )
+
+
+class QueryFault(ModelFault):
+    """Query execution failed."""
+    
+    def __init__(self, model: str, operation: str, reason: str, **kwargs):
+        super().__init__(
+            code="QUERY_FAILED",
+            message=f"Query on '{model}' ({operation}) failed: {reason}",
+            retryable=True,
+            metadata={"model": model, "operation": operation, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class DatabaseConnectionFault(ModelFault):
+    """Database connection failed."""
+    
+    def __init__(self, url: str, reason: str, **kwargs):
+        super().__init__(
+            code="DB_CONNECTION_FAILED",
+            message=f"Database connection failed ({url}): {reason}",
+            severity=Severity.FATAL,
+            retryable=True,
+            metadata={"url": url, "reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class SchemaFault(ModelFault):
+    """Schema creation or validation failed."""
+    
+    def __init__(self, table: str, reason: str, **kwargs):
+        super().__init__(
+            code="SCHEMA_FAULT",
+            message=f"Schema error for table '{table}': {reason}",
+            severity=Severity.FATAL,
+            metadata={"table": table, "reason": reason, **kwargs.get("metadata", {})},
+        )

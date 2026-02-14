@@ -15,6 +15,7 @@ from . import (
     analytics,
     discover,
     ws,
+    model_cmds,
 )
 
 __all__ = [
@@ -32,4 +33,5 @@ __all__ = [
     'analytics',
     'discover',
     'ws',
+    'model_cmds',
 ]

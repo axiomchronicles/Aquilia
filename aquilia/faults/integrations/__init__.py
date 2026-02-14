@@ -51,6 +51,14 @@ from .routing import (
     validate_route_pattern,
 )
 
+from .models import (
+    ModelFaultHandler,
+    create_model_fault_handler,
+    patch_model_registry,
+    patch_database_engine,
+    patch_all_model_subsystems,
+)
+
 # Flow integration removed - flows are deprecated in favor of controllers
 # from .flow import (
 #     PipelineAbortedFault,
@@ -89,6 +97,13 @@ __all__ = [
     "create_routing_fault_handler",
     "safe_route_lookup",
     "validate_route_pattern",
+    
+    # Models
+    "ModelFaultHandler",
+    "create_model_fault_handler",
+    "patch_model_registry",
+    "patch_database_engine",
+    "patch_all_model_subsystems",
 ]
 
 
@@ -102,6 +117,7 @@ def patch_all_subsystems():
     """
     patch_runtime_registry()
     patch_di_container()
+    patch_all_model_subsystems()
 
 
 # Convenience function to create all integration handlers
@@ -116,5 +132,5 @@ def create_all_integration_handlers():
         create_registry_fault_handler(),
         create_di_fault_handler(),
         create_routing_fault_handler(),
-        # create_flow_fault_handler(),  # Removed - flows deprecated
+        create_model_fault_handler(),
     ]

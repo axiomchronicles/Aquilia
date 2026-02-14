@@ -56,6 +56,19 @@ from .default_handlers import (
     HTTPResponse,
 )
 
+from .domains import (
+    # Model faults
+    ModelFault,
+    AMDLParseFault,
+    ModelNotFoundFault,
+    ModelRegistrationFault,
+    MigrationFault,
+    MigrationConflictFault,
+    QueryFault,
+    DatabaseConnectionFault,
+    SchemaFault,
+)
+
 __all__ = [
     # Core types
     "Fault",
@@ -82,4 +95,15 @@ __all__ = [
     "FatalHandler",
     "LoggingHandler",
     "HTTPResponse",
+    
+    # Model faults
+    "ModelFault",
+    "AMDLParseFault",
+    "ModelNotFoundFault",
+    "ModelRegistrationFault",
+    "MigrationFault",
+    "MigrationConflictFault",
+    "QueryFault",
+    "DatabaseConnectionFault",
+    "SchemaFault",
 ]

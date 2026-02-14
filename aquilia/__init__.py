@@ -20,7 +20,7 @@ __version__ = "0.2.0"
 # Core Framework
 # ============================================================================
 
-from .manifest import AppManifest
+from .manifest import AppManifest, DatabaseConfig
 from .config import Config, ConfigLoader
 from .config_builders import Workspace, Module, Integration
 from .request import Request
@@ -197,6 +197,16 @@ from .faults import (
     FaultEngine,
     FaultHandler,
     RecoveryStrategy,
+    # Model faults
+    ModelFault,
+    AMDLParseFault,
+    ModelNotFoundFault,
+    ModelRegistrationFault,
+    MigrationFault,
+    MigrationConflictFault,
+    QueryFault,
+    DatabaseConnectionFault,
+    SchemaFault,
 )
 
 # ============================================================================
@@ -269,6 +279,45 @@ from .lifecycle import (
 )
 
 # ============================================================================
+# AMDL Model System
+# ============================================================================
+
+from .models import (
+    # AST nodes
+    ModelNode,
+    SlotNode,
+    LinkNode,
+    IndexNode,
+    HookNode,
+    MetaNode,
+    NoteNode,
+    AMDLFile,
+    FieldType,
+    LinkKind,
+    # Parser
+    parse_amdl,
+    parse_amdl_file,
+    parse_amdl_directory,
+    AMDLParseError,
+    # Runtime
+    ModelProxy,
+    ModelRegistry,
+    Q,
+    # Migrations
+    MigrationRunner,
+    MigrationOps,
+    generate_migration_file,
+)
+
+from .db import (
+    AquiliaDatabase,
+    configure_database,
+    get_database,
+    set_database,
+    DatabaseError,
+)
+
+# ============================================================================
 # Exports
 # ============================================================================
 
@@ -276,6 +325,7 @@ __all__ = [
     # Core
     "AquiliaServer",
     "AppManifest",
+    "DatabaseConfig",
     "Config",
     "ConfigLoader",
     "Request",
@@ -382,6 +432,15 @@ __all__ = [
     "FaultEngine",
     "FaultHandler",
     "RecoveryStrategy",
+    "ModelFault",
+    "AMDLParseFault",
+    "ModelNotFoundFault",
+    "ModelRegistrationFault",
+    "MigrationFault",
+    "MigrationConflictFault",
+    "QueryFault",
+    "DatabaseConnectionFault",
+    "SchemaFault",
     
     # Middleware
     "Middleware",
@@ -418,4 +477,33 @@ __all__ = [
     
     # Lifecycle
     "LifecycleCoordinator",
+    
+    # AMDL Model System
+    "ModelNode",
+    "SlotNode",
+    "LinkNode",
+    "IndexNode",
+    "HookNode",
+    "MetaNode",
+    "NoteNode",
+    "AMDLFile",
+    "FieldType",
+    "LinkKind",
+    "parse_amdl",
+    "parse_amdl_file",
+    "parse_amdl_directory",
+    "AMDLParseError",
+    "ModelProxy",
+    "ModelRegistry",
+    "Q",
+    "MigrationRunner",
+    "MigrationOps",
+    "generate_migration_file",
+    
+    # Database
+    "AquiliaDatabase",
+    "configure_database",
+    "get_database",
+    "set_database",
+    "DatabaseError",
 ]

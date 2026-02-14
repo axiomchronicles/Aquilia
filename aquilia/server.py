@@ -1044,6 +1044,150 @@ class AquiliaServer:
                 except Exception as e:
                     self.logger.error(f"Failed to register fault handler {handler_cfg.handler_path} for app {app_ctx.name}: {e}")
     
+    async def _register_amdl_models(self) -> None:
+        """
+        Register AMDL models discovered by the Aquilary pipeline.
+
+        Uses manifest-driven discovery (AppContext.models) populated by
+        RuntimeRegistry.perform_autodiscovery() and explicit manifest
+        declarations.  Also scans global ``models/`` and ``modules/``
+        directories as a fallback for workspace-level model files.
+
+        Lifecycle:
+        1. Collect .amdl paths from AppContexts + global scan
+        2. Parse and register models in ModelRegistry
+        3. Configure database from manifest DatabaseConfig or config
+        4. Optionally create tables / run migrations
+        5. Register AquiliaDatabase + ModelRegistry in all DI containers
+        """
+        from pathlib import Path
+
+        try:
+            from .models.parser import parse_amdl_file
+            from .models.runtime import ModelRegistry
+            from .db.engine import AquiliaDatabase, configure_database, set_database
+        except ImportError:
+            self.logger.debug("AMDL model system not available (missing deps?)")
+            return
+
+        # ── Phase 1: Collect .amdl paths ──────────────────────────────────
+        amdl_files: list[Path] = []
+        workspace_root = Path.cwd()
+
+        # 1a. From AppContexts (populated by Aquilary auto-discovery + manifests)
+        for ctx in self.runtime.meta.app_contexts:
+            for model_path in ctx.models:
+                p = Path(model_path)
+                if p.is_file() and p not in amdl_files:
+                    amdl_files.append(p)
+
+        # 1b. Global fallback scan (workspace-level models/ and modules/)
+        for search_dir in [workspace_root / "models", workspace_root / "modules"]:
+            if search_dir.is_dir():
+                for amdl in search_dir.rglob("*.amdl"):
+                    if amdl not in amdl_files:
+                        amdl_files.append(amdl)
+
+        if not amdl_files:
+            self.logger.debug("No .amdl model files found — skipping AMDL registration")
+            return
+
+        self.logger.info(f"Found {len(amdl_files)} .amdl file(s), registering models...")
+
+        # ── Phase 2: Parse and register ───────────────────────────────────
+        # Re-use RuntimeRegistry's ModelRegistry if already created
+        registry = getattr(self.runtime, '_model_registry', None) or ModelRegistry()
+
+        for amdl_path in amdl_files:
+            try:
+                amdl_file = parse_amdl_file(str(amdl_path))
+                for model in amdl_file.models:
+                    if model.name not in registry._models:
+                        registry.register_model(model)
+                        self.logger.debug(f"  Registered model: {model.name} (table={model.table_name})")
+            except Exception as e:
+                self.logger.warning(f"Failed to parse {amdl_path}: {e}")
+
+        # ── Phase 3: Resolve database configuration ───────────────────────
+        db_url = None
+        auto_create = False
+        auto_migrate = False
+        migrations_dir = "migrations"
+
+        # 3a. Check manifest DatabaseConfig across all app contexts
+        for ctx in self.runtime.meta.app_contexts:
+            manifest = ctx.manifest
+            if manifest and hasattr(manifest, "database") and manifest.database:
+                db_cfg = manifest.database
+                db_url = db_url or getattr(db_cfg, "url", None)
+                auto_create = auto_create or getattr(db_cfg, "auto_create", False)
+                auto_migrate = auto_migrate or getattr(db_cfg, "auto_migrate", False)
+                migrations_dir = getattr(db_cfg, "migrations_dir", migrations_dir)
+
+        # 3b. Check config dict (Workspace.database() / Integration.database())
+        if not db_url:
+            if hasattr(self.config, 'get'):
+                db_url = self.config.get("database.url", None)
+                auto_create = auto_create or self.config.get("database.auto_create", False)
+                auto_migrate = auto_migrate or self.config.get("database.auto_migrate", False)
+            elif hasattr(self.config, 'to_dict'):
+                cfg_dict = self.config.to_dict()
+                db_section = cfg_dict.get("database", {})
+                db_url = db_url or db_section.get("url")
+                auto_create = auto_create or db_section.get("auto_create", False)
+                auto_migrate = auto_migrate or db_section.get("auto_migrate", False)
+
+        # ── Phase 4: Connect and create tables ────────────────────────────
+        if db_url:
+            db = configure_database(db_url)
+            await db.connect()
+            registry.set_database(db)
+            self._amdl_database = db
+
+            if auto_create:
+                await registry.create_tables()
+                self.logger.info("AMDL tables auto-created")
+
+            if auto_migrate:
+                try:
+                    from .models.migrations import MigrationRunner
+                    runner = MigrationRunner(db, migrations_dir)
+                    await runner.migrate()
+                    self.logger.info("AMDL migrations applied")
+                except Exception as e:
+                    self.logger.warning(f"Auto-migration failed: {e}")
+
+            # ── Phase 5: Register in DI containers ────────────────────────
+            from .di.providers import ValueProvider
+            for container in self.runtime.di_containers.values():
+                try:
+                    container.register(ValueProvider(
+                        value=db,
+                        token=AquiliaDatabase,
+                        scope="app",
+                    ))
+                except (ValueError, Exception):
+                    pass  # Already registered
+
+                try:
+                    container.register(ValueProvider(
+                        value=registry,
+                        token=ModelRegistry,
+                        scope="app",
+                    ))
+                except (ValueError, Exception):
+                    pass  # Already registered
+
+            self.logger.info(
+                f"✓ AMDL models registered: "
+                f"{len(registry._models)} model(s), DB={db.driver}"
+            )
+        else:
+            self._amdl_database = None
+            self.logger.debug(
+                "No database.url in config — AMDL models registered without DB connection"
+            )
+
     async def startup(self):
         """
         Execute startup sequence with Aquilary lifecycle management.
@@ -1099,6 +1243,9 @@ class AquiliaServer:
             self.logger.error(f"Lifecycle startup failed: {e}")
             raise LifecycleError(f"Startup failed: {e}") from e
         
+        # Step 3.1: Register AMDL models from apps (if any .amdl files exist)
+        await self._register_amdl_models()
+        
         # Step 3.5: Register effects from manifests and initialize providers
         self.logger.info("Registering and initializing effect providers...")
         self.runtime._register_effects()
@@ -1153,6 +1300,7 @@ class AquiliaServer:
         1. Stop lifecycle coordinator (runs app shutdown hooks in reverse order)
         2. Cleanup DI containers
         3. Finalize effects
+        4. Disconnect database
         
         This method is idempotent and safe to call multiple times.
         """
@@ -1179,6 +1327,14 @@ class AquiliaServer:
                 self.logger.info("Effect providers finalized")
             except Exception as e:
                 self.logger.warning(f"Error finalizing effect providers: {e}")
+        
+        # Disconnect AMDL database if connected
+        if hasattr(self, '_amdl_database') and self._amdl_database:
+            try:
+                await self._amdl_database.disconnect()
+                self.logger.info("AMDL database disconnected")
+            except Exception as e:
+                self.logger.warning(f"Error disconnecting AMDL database: {e}")
         
         # Reset startup state
         self._startup_complete = False

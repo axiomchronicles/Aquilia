@@ -81,6 +81,7 @@ FaultDomain.EFFECT = FaultDomain("effect", "Side effect failures")
 FaultDomain.IO = FaultDomain("io", "I/O operations")
 FaultDomain.SECURITY = FaultDomain("security", "Security and auth")
 FaultDomain.SYSTEM = FaultDomain("system", "System level faults")
+FaultDomain.MODEL = FaultDomain("model", "AMDL model and database faults")
 
 
 class RecoveryStrategy(str, Enum):
@@ -108,6 +109,7 @@ DOMAIN_DEFAULTS = {
     FaultDomain.IO: {"severity": Severity.WARN, "retryable": True},
     FaultDomain.SECURITY: {"severity": Severity.ERROR, "retryable": False},
     FaultDomain.SYSTEM: {"severity": Severity.FATAL, "retryable": False},
+    FaultDomain.MODEL: {"severity": Severity.ERROR, "retryable": False},
 }
 
 

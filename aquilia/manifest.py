@@ -241,6 +241,41 @@ class TemplateConfig:
 
 
 @dataclass
+class DatabaseConfig:
+    """
+    Database configuration for AMDL model system.
+    
+    Controls database connection, auto-creation, migration behaviour,
+    and discovery of .amdl model files.
+    """
+    url: str = "sqlite:///db.sqlite3"     # Database URL
+    auto_connect: bool = True             # Connect on startup
+    auto_create: bool = True              # Create tables on startup
+    auto_migrate: bool = False            # Run pending migrations on startup
+    migrations_dir: str = "migrations"    # Migration files directory
+    pool_size: int = 5                    # Connection pool size (future)
+    echo: bool = False                    # Log SQL statements
+    
+    # Model discovery
+    model_paths: List[str] = field(default_factory=list)  # Explicit .amdl paths
+    scan_dirs: List[str] = field(default_factory=lambda: ["models"])  # Directories to scan
+    
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "url": self.url,
+            "auto_connect": self.auto_connect,
+            "auto_create": self.auto_create,
+            "auto_migrate": self.auto_migrate,
+            "migrations_dir": self.migrations_dir,
+            "pool_size": self.pool_size,
+            "echo": self.echo,
+            "model_paths": self.model_paths,
+            "scan_dirs": self.scan_dirs,
+        }
+
+
+@dataclass
 class AppManifest:
     """
     Production-grade application manifest for complete app configuration.
@@ -264,6 +299,7 @@ class AppManifest:
     services: List[ServiceConfig] = field(default_factory=list)  # Detailed service config
     controllers: List[str] = field(default_factory=list)  # "path:ClassName" format
     socket_controllers: List[str] = field(default_factory=list)  # "path:ClassName" format (WebSockets)
+    models: List[str] = field(default_factory=list)  # .amdl file paths or glob patterns
     
     # Middleware configuration
     middleware: List[MiddlewareConfig] = field(default_factory=list)
@@ -280,6 +316,9 @@ class AppManifest:
     
     # Template management
     templates: Optional[TemplateConfig] = None
+    
+    # Database and models
+    database: Optional[DatabaseConfig] = None
     
     # Error handling
     faults: Optional[FaultHandlingConfig] = None
@@ -330,11 +369,12 @@ class AppManifest:
     
     def to_dict(self) -> dict:
         """Serialize manifest to dictionary (for fingerprinting)."""
-        return {
+        result = {
             "name": self.name,
             "version": self.version,
             "controllers": self.controllers,
             "socket_controllers": self.socket_controllers,
+            "models": self.models,
             "services": [s.to_dict() for s in self.services],
             "depends_on": self.depends_on,
             "middleware": [m.to_dict() for m in self.middleware],
@@ -342,6 +382,9 @@ class AppManifest:
             "author": self.author,
             "tags": self.tags,
         }
+        if self.database:
+            result["database"] = self.database.to_dict()
+        return result
     
     def fingerprint(self) -> str:
         """Generate stable hash of manifest for reproducible deploys."""

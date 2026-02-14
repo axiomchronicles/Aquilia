@@ -43,14 +43,18 @@ class ModuleConfig:
     providers: List[Dict[str, Any]] = field(default_factory=list)
     middlewares: List[str] = field(default_factory=list)
     socket_controllers: List[str] = field(default_factory=list)
+    models: List[str] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
+    
+    # Database configuration (per-module override)
+    database: Optional[Dict[str, Any]] = None
     
     # Discovery configuration
     auto_discover: bool = True  # Default to True for convenience
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format."""
-        return {
+        result = {
             "name": self.name,
             "version": self.version,
             "description": self.description,
@@ -63,9 +67,13 @@ class ModuleConfig:
             "providers": self.providers,
             "middlewares": self.middlewares,
             "socket_controllers": self.socket_controllers,
+            "models": self.models,
             "tags": self.tags,
             "auto_discover": self.auto_discover,
         }
+        if self.database:
+            result["database"] = self.database
+        return result
 
 
 class Module:
@@ -141,6 +149,47 @@ class Module:
     def register_middlewares(self, *middlewares: str) -> "Module":
         """Register explicit middlewares."""
         self._config.middlewares.extend(middlewares)
+        return self
+    
+    def register_models(self, *models: str) -> "Module":
+        """
+        Register explicit AMDL model files or glob patterns.
+        
+        Args:
+            *models: Paths to .amdl files or glob patterns.
+                     E.g. "models/user.amdl", "models/*.amdl"
+        """
+        self._config.models.extend(models)
+        return self
+    
+    def database(
+        self,
+        url: str = "sqlite:///db.sqlite3",
+        auto_connect: bool = True,
+        auto_create: bool = True,
+        auto_migrate: bool = False,
+        migrations_dir: str = "migrations",
+        **kwargs,
+    ) -> "Module":
+        """
+        Configure database for this module.
+        
+        Args:
+            url: Database URL
+            auto_connect: Connect on startup
+            auto_create: Create tables automatically
+            auto_migrate: Run pending migrations on startup
+            migrations_dir: Migration files directory
+            **kwargs: Additional database options
+        """
+        self._config.database = {
+            "url": url,
+            "auto_connect": auto_connect,
+            "auto_create": auto_create,
+            "auto_migrate": auto_migrate,
+            "migrations_dir": migrations_dir,
+            **kwargs,
+        }
         return self
     
     def build(self) -> ModuleConfig:
@@ -311,6 +360,60 @@ class Integration:
             "enabled": True,
             "auto_wire": auto_wire,
             **kwargs
+        }
+    
+    @staticmethod
+    def database(
+        url: str = "sqlite:///db.sqlite3",
+        auto_connect: bool = True,
+        auto_create: bool = True,
+        auto_migrate: bool = False,
+        migrations_dir: str = "migrations",
+        pool_size: int = 5,
+        echo: bool = False,
+        model_paths: Optional[List[str]] = None,
+        scan_dirs: Optional[List[str]] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure database and AMDL model integration.
+        
+        Args:
+            url: Database URL (sqlite:///path, postgresql://..., etc.)
+            auto_connect: Connect database on server startup
+            auto_create: Automatically create tables from discovered models
+            auto_migrate: Run pending migrations on startup
+            migrations_dir: Directory for migration files
+            pool_size: Connection pool size
+            echo: Log SQL statements
+            model_paths: Explicit .amdl file paths
+            scan_dirs: Directories to scan for .amdl files
+            **kwargs: Additional database options
+        
+        Returns:
+            Database configuration dictionary
+            
+        Example:
+            ```python
+            .integrate(Integration.database(
+                url="sqlite:///app.db",
+                auto_create=True,
+                scan_dirs=["models", "modules/*/models"],
+            ))
+            ```
+        """
+        return {
+            "enabled": True,
+            "url": url,
+            "auto_connect": auto_connect,
+            "auto_create": auto_create,
+            "auto_migrate": auto_migrate,
+            "migrations_dir": migrations_dir,
+            "pool_size": pool_size,
+            "echo": echo,
+            "model_paths": model_paths or [],
+            "scan_dirs": scan_dirs or ["models"],
+            **kwargs,
         }
     
     # ========================================================================
@@ -487,6 +590,7 @@ class Workspace:
         self._sessions_config: Optional[Dict[str, Any]] = None
         self._security_config: Optional[Dict[str, Any]] = None
         self._telemetry_config: Optional[Dict[str, Any]] = None
+        self._database_config: Optional[Dict[str, Any]] = None
     
     def runtime(
         self,
@@ -526,6 +630,9 @@ class Workspace:
             self._integrations["fault_handling"] = integration
         elif "search_paths" in integration and "cache" in integration:
             self._integrations["templates"] = integration
+        elif "url" in integration and ("auto_create" in integration or "scan_dirs" in integration):
+            self._integrations["database"] = integration
+            self._database_config = integration
         else:
             # Generic integration
             for key, value in integration.items():
@@ -602,6 +709,49 @@ class Workspace:
         }
         return self
     
+    def database(
+        self,
+        url: str = "sqlite:///db.sqlite3",
+        auto_connect: bool = True,
+        auto_create: bool = True,
+        auto_migrate: bool = False,
+        migrations_dir: str = "migrations",
+        **kwargs,
+    ) -> "Workspace":
+        """
+        Configure global database for the workspace.
+        
+        This sets the default database for all modules.
+        Individual modules can override with Module.database().
+        
+        Args:
+            url: Database URL
+            auto_connect: Connect on startup
+            auto_create: Create tables on startup
+            auto_migrate: Run pending migrations on startup
+            migrations_dir: Migration files directory
+            **kwargs: Additional database options
+            
+        Example:
+            ```python
+            workspace = (
+                Workspace("myapp")
+                .database(url="sqlite:///app.db", auto_create=True)
+                .module(Module("blog").register_models("models/blog.amdl"))
+            )
+            ```
+        """
+        self._database_config = {
+            "enabled": True,
+            "url": url,
+            "auto_connect": auto_connect,
+            "auto_create": auto_create,
+            "auto_migrate": auto_migrate,
+            "migrations_dir": migrations_dir,
+            **kwargs,
+        }
+        return self
+    
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert workspace to dictionary format compatible with ConfigLoader.
@@ -637,6 +787,10 @@ class Workspace:
             config["security"] = self._security_config
         if self._telemetry_config:
             config["telemetry"] = self._telemetry_config
+        if self._database_config:
+            config["database"] = self._database_config
+            # Also add to integrations for compatibility
+            config["integrations"]["database"] = self._database_config
         
         return config
     
@@ -650,4 +804,5 @@ __all__ = [
     "Integration",
     "RuntimeConfig",
     "ModuleConfig",
+    "AuthConfig",
 ]

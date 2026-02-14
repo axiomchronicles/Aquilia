@@ -33,6 +33,7 @@ dependencies = [
     "cryptography>=41.0.0",
     "argon2-cffi>=23.1.0",
     "passlib>=1.7.4",
+    "aiosqlite>=0.19.0",
 ]
 
 [project.optional-dependencies]
@@ -41,6 +42,7 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.1.0",
     "httpx>=0.24.0",
+    "aiosqlite>=0.19.0",
 ]
 
 [project.urls]
@@ -52,8 +54,9 @@ Issues = "https://github.com/yourusername/aquilia/issues"
 [project.scripts]
 aq = "aquilia.cli.__main__:main"
 
-[tool.setuptools]
-packages = ["aquilia"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aquilia*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

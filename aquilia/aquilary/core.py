@@ -22,7 +22,7 @@ class AppContext:
     Runtime context for a loaded app.
     
     Contains resolved config, DI bucket, and metadata.
-    Controllers/services remain lazy until demanded.
+    Controllers/services/models remain lazy until demanded.
     """
     
     name: str
@@ -33,6 +33,7 @@ class AppContext:
     # Lazy-loaded resources (import paths only)
     controllers: List[str] = field(default_factory=list)
     services: List[str] = field(default_factory=list)
+    models: List[str] = field(default_factory=list)  # .amdl file paths
     middlewares: List[tuple[str, dict]] = field(default_factory=list)
     
     # Dependencies
@@ -290,6 +291,7 @@ class Aquilary:
                 config_namespace=config_ns,
                 controllers=getattr(manifest, "controllers", []),
                 services=getattr(manifest, "services", []),
+                models=getattr(manifest, "models", []),
                 # Prefer 'middleware' (new format) over 'middlewares' (legacy)
                 middlewares=getattr(manifest, "middleware", None) or getattr(manifest, "middlewares", []),
                 depends_on=getattr(manifest, "depends_on", []),
@@ -344,6 +346,7 @@ class Aquilary:
                 config_namespace={},
                 controllers=app_data["controllers"],
                 services=app_data["services"],
+                models=app_data.get("models", []),
                 middlewares=[
                     (m["path"], m["kwargs"])
                     for m in app_data["middlewares"]
@@ -510,6 +513,12 @@ class RuntimeRegistry:
 
             except Exception as e:
                 pass
+            
+            # 4. Discover AMDL Model Files (Filesystem scan)
+            try:
+                self._discover_amdl_models(ctx)
+            except Exception as e:
+                print(f"Model discovery warning for {ctx.name}: {e}")
     
     def compile_routes(self) -> None:
         """
@@ -525,6 +534,9 @@ class RuntimeRegistry:
         
         # First, register services in DI containers
         self._register_services()
+        
+        # Register models in DI containers
+        self._register_models()
         
         # Compile routes from manifests
         compiler = RouteCompiler()
@@ -593,6 +605,118 @@ class RuntimeRegistry:
     #         
     #         # Add flow to router
     #         self.router.add_flow(flow)
+    
+    def _discover_amdl_models(self, ctx) -> None:
+        """
+        Discover .amdl model files for an app context via filesystem scan.
+        
+        Scans standard locations:
+        - modules/<app_name>/models/*.amdl
+        - modules/<app_name>/models.amdl
+        - modules/<app_name>/**/*.amdl (recursive)
+        
+        Also honours DatabaseConfig.scan_dirs if present in manifest.
+        """
+        from pathlib import Path
+        
+        workspace_root = Path.cwd()
+        
+        # Determine scan directories
+        scan_dirs = []
+        
+        # Standard location: modules/<app_name>/models/
+        module_models = workspace_root / "modules" / ctx.name / "models"
+        if module_models.is_dir():
+            scan_dirs.append(module_models)
+        
+        # Single file: modules/<app_name>/models.amdl
+        single_file = workspace_root / "modules" / ctx.name / "models.amdl"
+        if single_file.is_file():
+            amdl_path = str(single_file)
+            if amdl_path not in ctx.models:
+                ctx.models.append(amdl_path)
+        
+        # DatabaseConfig scan_dirs from manifest
+        if ctx.manifest and hasattr(ctx.manifest, "database") and ctx.manifest.database:
+            db_config = ctx.manifest.database
+            extra_dirs = getattr(db_config, "scan_dirs", [])
+            for d in extra_dirs:
+                resolved = workspace_root / "modules" / ctx.name / d
+                if resolved.is_dir():
+                    scan_dirs.append(resolved)
+        
+        # Scan directories for .amdl files
+        for scan_dir in scan_dirs:
+            for amdl_file in scan_dir.rglob("*.amdl"):
+                amdl_path = str(amdl_file)
+                if amdl_path not in ctx.models:
+                    ctx.models.append(amdl_path)
+    
+    def _register_models(self) -> None:
+        """
+        Register discovered AMDL models into DI containers.
+        
+        Parses all .amdl files from AppContexts, builds a ModelRegistry,
+        and registers it (+ AquiliaDatabase) as DI providers.
+        """
+        if hasattr(self, '_models_registered') and self._models_registered:
+            return
+        
+        # Collect all .amdl paths from all app contexts
+        all_amdl_paths = []
+        for ctx in self.meta.app_contexts:
+            all_amdl_paths.extend(ctx.models)
+        
+        if not all_amdl_paths:
+            self._models_registered = True
+            return
+        
+        try:
+            from aquilia.models.parser import parse_amdl_file
+            from aquilia.models.runtime import ModelRegistry
+        except ImportError:
+            self._models_registered = True
+            return
+        
+        registry = ModelRegistry()
+        
+        for amdl_path in all_amdl_paths:
+            try:
+                from pathlib import Path
+                if not Path(amdl_path).is_file():
+                    continue
+                amdl_file = parse_amdl_file(amdl_path)
+                for model in amdl_file.models:
+                    registry.register_model(model)
+            except Exception as e:
+                print(f"Warning: Failed to parse {amdl_path}: {e}")
+        
+        if not registry._models:
+            self._models_registered = True
+            return
+        
+        # Register ModelRegistry in each DI container
+        from aquilia.di import Container
+        from aquilia.di.providers import ValueProvider
+        
+        for ctx in self.meta.app_contexts:
+            if ctx.name not in self.di_containers:
+                self.di_containers[ctx.name] = Container(scope="app")
+            
+            container = self.di_containers[ctx.name]
+            
+            try:
+                container.register(ValueProvider(
+                    value=registry,
+                    token=ModelRegistry,
+                    scope="app",
+                ))
+            except (ValueError, Exception):
+                pass  # Already registered
+        
+        self._model_registry = registry
+        self._models_registered = True
+        print(f"✓ Registered {len(registry._models)} AMDL model(s) in DI")
     
     def _register_services(self):
         """Register services from manifests with DI containers."""

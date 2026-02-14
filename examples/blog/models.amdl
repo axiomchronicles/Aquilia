@@ -1,0 +1,56 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Blog Example — AMDL (Aquilia Model Definition Language)
+# ═══════════════════════════════════════════════════════════════════════
+# This file defines the blog data model using AMDL stanza syntax.
+# Each MODEL stanza maps to a database table and a runtime ModelProxy.
+
+≪ MODEL User ≫
+  slot id       :: Auto     [PK]
+  slot username :: Str      [max=150, unique]
+  slot email    :: Str      [max=255, nullable]
+  slot bio      :: Text     [nullable]
+  slot active   :: Bool     [default:=seq()]
+  slot created_at :: DateTime [default:=now_utc()]
+
+  hook before_save -> hash_password
+
+  index [username] unique
+
+  meta table = "aq_user"
+  note "Core user account for the blog platform"
+≪ /MODEL ≫
+
+
+≪ MODEL Post ≫
+  slot id        :: Auto [PK]
+  slot title     :: Str  [max=300]
+  slot body      :: Text []
+  slot author_id :: Int  []
+
+  link author -> ONE User     [fk=author_id, back=posts]
+  link tags   -> MANY Tag     [through=PostTag, back=posts]
+
+  meta table = "blog_post"
+  note "Blog post with author and tags"
+≪ /MODEL ≫
+
+
+≪ MODEL Tag ≫
+  slot id   :: Auto [PK]
+  slot name :: Str  [max=100, unique]
+
+  meta table = "blog_tag"
+  note "Tag for categorizing posts"
+≪ /MODEL ≫
+
+
+≪ MODEL PostTag ≫
+  slot id      :: Auto [PK]
+  slot post_id :: Int  []
+  slot tag_id  :: Int  []
+
+  index [post_id, tag_id] unique
+
+  meta table = "blog_post_tag"
+  note "Join table for Post ↔ Tag many-to-many"
+≪ /MODEL ≫

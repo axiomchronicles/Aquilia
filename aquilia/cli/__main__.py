@@ -637,6 +637,124 @@ def analytics(ctx, path: Optional[str]):
         sys.exit(1)
 
 
+# ============================================================================
+# Database / AMDL Models
+# ============================================================================
+
+@cli.group()
+def db():
+    """Database and AMDL model commands."""
+    pass
+
+
+@db.command('makemigrations')
+@click.option('--app', type=str, default=None, help='Restrict to specific module/app')
+@click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
+@click.pass_context
+def db_makemigrations(ctx, app: Optional[str], migrations_dir: str):
+    """
+    Generate migration files from .amdl model definitions.
+
+    Scans for .amdl files, parses them, and writes a migration script
+    into the migrations directory.
+
+    Examples:
+      aq db makemigrations
+      aq db makemigrations --app=blog
+      aq db makemigrations --migrations-dir=db/migrations
+    """
+    from .commands.model_cmds import cmd_makemigrations
+
+    try:
+        cmd_makemigrations(
+            app=app,
+            migrations_dir=migrations_dir,
+            verbose=ctx.obj['verbose'],
+        )
+    except Exception as e:
+        error(f"✗ makemigrations failed: {e}")
+        sys.exit(1)
+
+
+@db.command('migrate')
+@click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
+@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--target', type=str, default=None, help='Target revision (or "zero" to rollback all)')
+@click.pass_context
+def db_migrate(ctx, migrations_dir: str, database_url: str, target: Optional[str]):
+    """
+    Apply pending migrations to the database.
+
+    Examples:
+      aq db migrate
+      aq db migrate --database-url=sqlite:///prod.db
+      aq db migrate --target=zero
+    """
+    from .commands.model_cmds import cmd_migrate
+
+    try:
+        cmd_migrate(
+            migrations_dir=migrations_dir,
+            database_url=database_url,
+            target=target,
+            verbose=ctx.obj['verbose'],
+        )
+    except Exception as e:
+        error(f"✗ migrate failed: {e}")
+        sys.exit(1)
+
+
+@db.command('dump')
+@click.option('--emit', type=click.Choice(['python', 'sql']), default='python', help='Output format')
+@click.option('--output-dir', type=click.Path(), default=None, help='Output directory')
+@click.pass_context
+def db_dump(ctx, emit: str, output_dir: Optional[str]):
+    """
+    Dump generated Python proxies or raw SQL from .amdl models.
+
+    Examples:
+      aq db dump
+      aq db dump --emit=sql
+      aq db dump --output-dir=generated/
+    """
+    from .commands.model_cmds import cmd_model_dump
+
+    try:
+        cmd_model_dump(
+            emit=emit,
+            output_dir=output_dir,
+            verbose=ctx.obj['verbose'],
+        )
+    except Exception as e:
+        error(f"✗ dump failed: {e}")
+        sys.exit(1)
+
+
+@db.command('shell')
+@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.pass_context
+def db_shell(ctx, database_url: str):
+    """
+    Open an async REPL with AMDL models pre-loaded.
+
+    All registered ModelProxy classes are available in the namespace.
+
+    Examples:
+      aq db shell
+      aq db shell --database-url=sqlite:///prod.db
+    """
+    from .commands.model_cmds import cmd_shell
+
+    try:
+        cmd_shell(
+            database_url=database_url,
+            verbose=ctx.obj['verbose'],
+        )
+    except Exception as e:
+        error(f"✗ shell failed: {e}")
+        sys.exit(1)
+
+
 def main():
     """Entry point for `aq` command."""
     cli(obj={})
