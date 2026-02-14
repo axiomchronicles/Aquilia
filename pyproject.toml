@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aquilia"
-version = "0.1.0"
+version = "0.2.0"
 description = "Async-native Python web framework with flow-first routing"
 readme = "README.md"
 authors = [
@@ -30,6 +30,9 @@ dependencies = [
     "uvicorn>=0.30.0",
     "python-dotenv>=1.0.0",
     "jinja2>=3.1.0",
+    "cryptography>=41.0.0",
+    "argon2-cffi>=23.1.0",
+    "passlib>=1.7.4",
 ]
 
 [project.optional-dependencies]
@@ -47,7 +50,7 @@ Repository = "https://github.com/yourusername/aquilia"
 Issues = "https://github.com/yourusername/aquilia/issues"
 
 [project.scripts]
-aq = "aquilia.cli:main"
+aq = "aquilia.cli.__main__:main"
 
 [tool.setuptools]
 packages = ["aquilia"]

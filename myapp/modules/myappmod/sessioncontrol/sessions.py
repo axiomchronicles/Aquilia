@@ -4,6 +4,16 @@ from aquilia.sessions import SessionPrincipal, session, authenticated, stateful
 from aquilia.sessions.state import SessionState, Field
 from aquilia.sessions.enhanced import requires, AdminGuard
 
+
+def _require_session(ctx: RequestCtx):
+    """Guard: return error Response if ctx.session is None, else return the session."""
+    if ctx.session is None:
+        return None, Response.json(
+            {"error": "Session not available. Is session middleware configured?"},
+            status=503,
+        )
+    return ctx.session, None
+
 class UserPrefs(SessionState):
     """Typed session state for user preferences."""
     theme: str = Field(default="light")
@@ -25,7 +35,9 @@ class SessionController(Controller):
     @GET("/")
     async def get_session_info(self, ctx: RequestCtx):
         """Get information about the current session."""
-        sess = ctx.session
+        sess, err = _require_session(ctx)
+        if err:
+            return err
         return {
             "session_id": str(sess.id),
             "is_authenticated": sess.is_authenticated,
@@ -41,6 +53,9 @@ class SessionController(Controller):
     @POST("/login")
     async def login(self, ctx: RequestCtx):
         """Log in a user by creating a principal and binding it to the session."""
+        sess, err = _require_session(ctx)
+        if err:
+            return err
         data = await ctx.json()
         user_id = data.get("user_id", "test_user")
         
@@ -55,11 +70,11 @@ class SessionController(Controller):
         )
         
         # Bind principal to current session (this triggers rotation if configured)
-        ctx.session.mark_authenticated(principal)
+        sess.mark_authenticated(principal)
         
         return {
             "message": f"Logged in as {user_id}", 
-            "session_id": str(ctx.session.id)
+            "session_id": str(sess.id)
         }
 
     @POST("/logout")
@@ -116,8 +131,11 @@ class SessionController(Controller):
     @GET("/force-expire")
     async def force_expire(self, ctx: RequestCtx):
         """Utility to test session expiration."""
+        sess, err = _require_session(ctx)
+        if err:
+            return err
         import datetime
-        ctx.session.expires_at = datetime.datetime.utcnow() - datetime.timedelta(seconds=1)
+        sess.expires_at = datetime.datetime.utcnow() - datetime.timedelta(seconds=1)
         return {"message": "Session marked as expired"}
 
     @GET("/admin")
@@ -138,6 +156,9 @@ class SessionController(Controller):
     @GET("/context")
     async def test_context(self, ctx: RequestCtx):
         """Test SessionContext managers."""
+        sess, err = _require_session(ctx)
+        if err:
+            return err
         from aquilia.sessions.enhanced import SessionContext
         
         async with SessionContext.ensure(ctx) as sess:

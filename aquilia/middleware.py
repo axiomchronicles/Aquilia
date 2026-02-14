@@ -142,13 +142,6 @@ class ExceptionMiddleware:
                 {"error": "Forbidden"},
                 status=403,
             )
-        
-        except KeyError as e:
-            # Not found
-            return Response.json(
-                {"error": "Not found"},
-                status=404,
-            )
 
         except Fault as e:
             # Typed Fault

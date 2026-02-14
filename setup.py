@@ -22,7 +22,7 @@ if requirements_file.exists():
 
 setup(
     name="aquilia",
-    version="0.1.0",
+    version="0.2.0",
     description="Async-native Python web framework with flow-first routing",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -31,7 +31,14 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*", "examples", "docs"]),
     include_package_data=True,
     python_requires=">=3.10",
-    install_requires=requirements,
+    install_requires=requirements + [
+        "uvicorn>=0.30.0",
+        "python-dotenv>=1.0.0",
+        "jinja2>=3.1.0",
+        "cryptography>=41.0.0",
+        "argon2-cffi>=23.1.0",
+        "passlib>=1.7.4",
+    ],
     extras_require={
         "dev": [
             "pytest>=7.4.0",

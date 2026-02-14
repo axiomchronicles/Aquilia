@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
+from collections import deque
 from typing import Any, Optional, Callable
 from contextvars import ContextVar
 
@@ -93,8 +94,8 @@ class FaultEngine:
         self._event_listeners: list[Callable[[FaultContext], None]] = []
         
         # Fault history (debug only)
-        self._history: list[FaultContext] = [] if debug else []
         self._max_history = 100
+        self._history: deque[FaultContext] = deque(maxlen=self._max_history)
     
     # ========================================================================
     # Handler Registration
@@ -184,8 +185,6 @@ class FaultEngine:
         # Record in history (debug mode)
         if self.debug:
             self._history.append(ctx)
-            if len(self._history) > self._max_history:
-                self._history.pop(0)
         
         return result
     

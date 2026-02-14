@@ -42,6 +42,7 @@ class ModuleConfig:
     services: List[str] = field(default_factory=list)
     providers: List[Dict[str, Any]] = field(default_factory=list)
     middlewares: List[str] = field(default_factory=list)
+    socket_controllers: List[str] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
     
     # Discovery configuration
@@ -61,6 +62,7 @@ class ModuleConfig:
             "services": self.services,
             "providers": self.providers,
             "middlewares": self.middlewares,
+            "socket_controllers": self.socket_controllers,
             "tags": self.tags,
             "auto_discover": self.auto_discover,
         }
@@ -131,6 +133,11 @@ class Module:
         self._config.routes.extend(routes)
         return self
 
+    def register_sockets(self, *sockets: str) -> "Module":
+        """Register explicit WebSocket controllers."""
+        self._config.socket_controllers.extend(sockets)
+        return self
+
     def register_middlewares(self, *middlewares: str) -> "Module":
         """Register explicit middlewares."""
         self._config.middlewares.extend(middlewares)
@@ -146,7 +153,7 @@ class AuthConfig:
     """Authentication configuration."""
     enabled: bool = True
     store_type: str = "memory"
-    secret_key: str = "aquilia_insecure_dev_secret"
+    secret_key: Optional[str] = None  # MUST be set explicitly; no insecure default
     algorithm: str = "HS256"
     issuer: str = "aquilia"
     audience: str = "aquilia-app"
@@ -211,7 +218,7 @@ class Integration:
                     "type": store_type,
                 },
                 "tokens": {
-                    "secret_key": secret_key or defaults.secret_key,
+                    "secret_key": secret_key or defaults.secret_key,  # None if not provided
                     "algorithm": defaults.algorithm,
                     "issuer": defaults.issuer,
                     "audience": defaults.audience,

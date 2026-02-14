@@ -45,3 +45,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Backup/leftover files
+*.py.backup
+*.py.old
+p.html

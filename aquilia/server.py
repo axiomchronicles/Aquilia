@@ -226,11 +226,15 @@ class AquiliaServer:
                 # Create session engine
                 session_engine = self._create_session_engine(session_config)
                 self._session_engine = session_engine
-                
-                # Check for Auth
-                if use_auth:
-                    self.logger.info("🔐 Initializing authentication system...")
-                    
+            except Exception as e:
+                self.logger.error(f"Failed to create session engine: {e}", exc_info=True)
+                self._session_engine = None
+            
+            # Try to set up auth if requested AND session engine succeeded
+            auth_initialized = False
+            if use_auth and self._session_engine is not None:
+                self.logger.info("🔐 Initializing authentication system...")
+                try:
                     # Create AuthManager
                     auth_manager = self._create_auth_manager(auth_config)
                     self._auth_manager = auth_manager
@@ -238,7 +242,7 @@ class AquiliaServer:
                     # Add Unified Auth Middleware (handles both sessions and auth)
                     self.middleware_stack.add(
                         AquilAuthMiddleware(
-                            session_engine=session_engine,
+                            session_engine=self._session_engine,
                             auth_manager=auth_manager,
                             require_auth=auth_config.get("security", {}).get("require_auth_by_default", False),
                             fault_engine=None, # TODO: integrate fault engine from server
@@ -267,35 +271,40 @@ class AquiliaServer:
                         container.register(ValueProvider(value=auth_manager.password_hasher, token="aquilia.auth.hashing.PasswordHasher", scope="app"))
                         
                     self.logger.info("✅ Auth system components registered in DI")
+                    auth_initialized = True
                     
-                else:
-                    # Sessions only
-                    self.middleware_stack.add(
-                        SessionMiddleware(session_engine),
-                        scope="global",
-                        priority=15,
-                        name="session",
+                except Exception as e:
+                    self.logger.error(
+                        f"Failed to initialize auth system: {e}. "
+                        f"Falling back to session-only middleware.",
+                        exc_info=True,
                     )
-                    self.logger.info("✅ Session management enabled (Auth disabled)")
-                
-                # Register SessionEngine in DI (common for both)
+                    self._auth_manager = None
+            
+            # Fallback: add session-only middleware if auth wasn't initialized
+            if not auth_initialized and self._session_engine is not None:
+                self.middleware_stack.add(
+                    SessionMiddleware(self._session_engine),
+                    scope="global",
+                    priority=15,
+                    name="session",
+                )
+                self.logger.info("✅ Session management enabled (Auth disabled or failed)")
+            
+            # Register SessionEngine in DI (if engine was created)
+            if self._session_engine is not None:
                 from aquilia.di.providers import ValueProvider
                 from aquilia.sessions import SessionEngine
                 
                 engine_provider = ValueProvider(
                     token=SessionEngine,
-                    value=session_engine,
+                    value=self._session_engine,
                     scope="app",
                     name="session_engine_instance"
                 )
                 
                 for container in self.runtime.di_containers.values():
                     container.register(engine_provider)
-                
-            except Exception as e:
-                self.logger.error(f"Failed to initialize session/auth system: {e}", exc_info=True)
-                self._session_engine = None
-                self._auth_manager = None
         else:
             self.logger.info("Session/Auth management disabled")
 
@@ -622,8 +631,18 @@ class AquiliaServer:
         token_config = auth_config.get("tokens", {})
         secret = token_config.get("secret_key", "dev_secret")
         
-        if secret == "aquilia_insecure_dev_secret" and self.mode != RegistryMode.DEV:
-            self.logger.warning("⚠️  USING INSECURE DEFAULT SECRET KEY IN NON-DEV MODE")
+        _INSECURE_SECRETS = {"aquilia_insecure_dev_secret", "dev_secret", "", None}
+        is_dev = (
+            self.mode == RegistryMode.DEV
+            or self.config.get("mode", "") == "dev"
+            or self.config.get("server.mode", "") == "dev"
+            or self._is_debug()
+        )
+        if secret in _INSECURE_SECRETS and not is_dev:
+            raise ValueError(
+                "FATAL: Auth secret_key is insecure or unset in non-DEV mode. "
+                "Set a strong secret via AQ_AUTH__TOKENS__SECRET_KEY or config."
+            )
             
         # Generate KeyRing (simple for now, just one RS256 key)
         # In prod, this should load from file/KMS

@@ -14,7 +14,7 @@ Complete integration of:
 Everything deeply integrated for seamless developer experience.
 """
 
-__version__ = "2.0.0"
+__version__ = "0.2.0"
 
 # ============================================================================
 # Core Framework
@@ -83,7 +83,8 @@ from .controller import (
 # Engine
 # ============================================================================
 
-from .engine import RequestCtx
+# Note: RequestCtx is imported from .controller above; do not re-import
+# from .engine to avoid shadowing.
 
 # ============================================================================
 # DI System (Complete)
@@ -270,15 +271,6 @@ __all__ = [
     "ControllerFactory",
     "InstantiationMode",
     
-    # Flow (Legacy)
-    "flow",
-    "Flow",
-    "FlowBuilder",
-    "FlowEngine",
-    
-    # Router
-    "Router",
-    "RouteMatch",
     
     # DI
     "Container",
@@ -342,9 +334,6 @@ __all__ = [
     "AuthConfig",
     "AquilAuthMiddleware",
     "create_auth_middleware_stack",
-    "require_auth",
-    "require_scopes",
-    "require_roles",
     
     # Faults
     "Fault",

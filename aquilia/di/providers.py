@@ -494,9 +494,18 @@ class LazyProxyProvider:
             def _resolve(self):
                 """Resolve actual instance on first access."""
                 if self._instance is None:
-                    # Must be called from async context
-                    loop = asyncio.get_event_loop()
-                    self._instance = loop.run_until_complete(
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        loop = None
+                    if loop is not None and loop.is_running():
+                        raise RuntimeError(
+                            f"Cannot lazily resolve '{self._token}' synchronously "
+                            f"inside a running async event loop. Use "
+                            f"'await container.resolve_async(...)' or resolve "
+                            f"eagerly during startup."
+                        )
+                    self._instance = asyncio.run(
                         self._container.resolve_async(self._token, tag=self._tag)
                     )
                 return self._instance

@@ -61,10 +61,8 @@ class RequestScopeMiddleware:
             await self.app(scope, receive, send)
             return
         
-        # Create request-scoped container
-        # Note: For now, we reuse the app container since Container doesn't support
-        # child containers yet. In full implementation, this would create a child.
-        request_container = app_container
+        # Create request-scoped child container for proper isolation
+        request_container = app_container.create_request_scope()
         
         # Store in scope for handler access
         if "state" not in scope:
@@ -79,8 +77,11 @@ class RequestScopeMiddleware:
         finally:
             # Cleanup request-scoped container
             # This ensures proper disposal of request-scoped services
-            if hasattr(request_container, "dispose") and request_container != app_container:
-                request_container.dispose()
+            if request_container is not app_container:
+                if hasattr(request_container, "shutdown"):
+                    await request_container.shutdown()
+                elif hasattr(request_container, "dispose"):
+                    request_container.dispose()
 
 
 class SimplifiedRequestScopeMiddleware:
@@ -130,9 +131,8 @@ class SimplifiedRequestScopeMiddleware:
             # No DI, proceed without container
             return await call_next(request)
         
-        # Create request-scoped container
-        # Note: Reusing app container for now
-        request_container = app_container
+        # Create request-scoped child container for proper isolation
+        request_container = app_container.create_request_scope()
         
         # Store in request state
         request.state.di_container = request_container
@@ -143,9 +143,12 @@ class SimplifiedRequestScopeMiddleware:
             response = await call_next(request)
             return response
         finally:
-            # Cleanup
-            if hasattr(request_container, "dispose") and request_container != app_container:
-                request_container.dispose()
+            # Cleanup request-scoped container
+            if request_container is not app_container:
+                if hasattr(request_container, "shutdown"):
+                    await request_container.shutdown()
+                elif hasattr(request_container, "dispose"):
+                    request_container.dispose()
 
 
 def create_request_scope_middleware(runtime: Any) -> Callable:

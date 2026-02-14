@@ -480,6 +480,31 @@ class RuntimeRegistry:
                         
             except Exception as e:
                 pass
+
+            # 3. Discover Socket Controllers (Recursive)
+            try:
+                # Scan for classes with @Socket decorator (__socket_metadata__ attribute)
+                socket_controllers = scanner.scan_package(
+                    base_package,
+                    predicate=lambda cls: hasattr(cls, "__socket_metadata__"),
+                    recursive=True,
+                    max_depth=5,
+                )
+                
+                # Add to manifest's socket_controllers if not already present
+                if hasattr(ctx.manifest, "socket_controllers"):
+                    existing = ctx.manifest.socket_controllers
+                else:
+                    ctx.manifest.socket_controllers = []
+                    existing = ctx.manifest.socket_controllers
+
+                for cls in socket_controllers:
+                    path = f"{cls.__module__}:{cls.__name__}"
+                    if path not in existing:
+                        existing.append(path)
+
+            except Exception as e:
+                pass
     
     def compile_routes(self) -> None:
         """

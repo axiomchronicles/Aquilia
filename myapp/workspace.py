@@ -55,6 +55,11 @@ workspace = (
             "modules.myappmod.services_ext:AuditLogger",
             "modules.myappmod.services_ext:ExpensiveService",
             "modules.myappmod.services_ext:LazyProcessor"
+        )
+        .register_sockets(
+            "modules.myappmod.sockets:ChatSocket",
+            "modules.myappmod.sockets:NotificationSocket",
+            "modules.myappmod.sockets:PublicFeedSocket"
         ))
 
     # Integrations - Configure core systems

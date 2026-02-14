@@ -6,6 +6,7 @@ Argon2id implementation for secure password hashing.
 
 from typing import Literal
 import secrets
+import hashlib
 
 
 try:
@@ -14,8 +15,6 @@ try:
     HAS_ARGON2 = True
 except ImportError:
     HAS_ARGON2 = False
-    # Fallback to PBKDF2
-    import hashlib
 
 
 class PasswordHasher:
@@ -112,6 +111,16 @@ class PasswordHasher:
                 return False
         except Exception:
             return False
+
+    async def hash_async(self, password: str) -> str:
+        """Hash password without blocking the event loop."""
+        import asyncio
+        return await asyncio.to_thread(self.hash, password)
+
+    async def verify_async(self, password_hash: str, password: str) -> bool:
+        """Verify password without blocking the event loop."""
+        import asyncio
+        return await asyncio.to_thread(self.verify, password_hash, password)
     
     def check_needs_rehash(self, password_hash: str) -> bool:
         """
@@ -301,6 +310,23 @@ class PasswordPolicy:
         except Exception:
             # API unavailable, assume not breached
             return False
+
+    async def _is_breached_async(self, password: str) -> bool:
+        """Async version of breach check — does not block event loop."""
+        import asyncio
+        return await asyncio.to_thread(self._is_breached, password)
+
+    async def validate_async(self, password: str) -> tuple[bool, list[str]]:
+        """Async password validation (non-blocking breach check)."""
+        errors = []
+        # Run sync validations first (cheap)
+        valid, sync_errors = self.validate(password) if hasattr(self, 'validate') else (True, [])
+        errors.extend(sync_errors)
+        # Run async breach check if enabled
+        if self.check_breached:
+            if await self._is_breached_async(password):
+                errors.append("Password has been found in data breaches")
+        return (len(errors) == 0, errors)
 
 
 # ============================================================================

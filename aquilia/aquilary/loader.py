@@ -299,6 +299,7 @@ class ManifestLoader:
             version = data.get("version")
             controllers = data.get("controllers", [])
             services = data.get("services", [])
+            socket_controllers = data.get("socket_controllers", [])
             middlewares = data.get("middlewares", [])
             depends_on = data.get("depends_on", [])
             

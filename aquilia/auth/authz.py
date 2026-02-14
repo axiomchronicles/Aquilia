@@ -91,22 +91,29 @@ class RBACEngine:
         if inherits:
             self._role_hierarchy[role] = set(inherits)
 
-    def get_permissions(self, role: str) -> set[str]:
+    def get_permissions(self, role: str, _visited: set[str] | None = None) -> set[str]:
         """
         Get all permissions for role (including inherited).
 
         Args:
             role: Role name
+            _visited: Internal set for cycle detection
 
         Returns:
             Set of permissions
         """
+        if _visited is None:
+            _visited = set()
+        if role in _visited:
+            return set()  # break cycle
+        _visited.add(role)
+
         permissions = set(self._roles.get(role, set()))
 
         # Add inherited permissions
         if role in self._role_hierarchy:
             for parent_role in self._role_hierarchy[role]:
-                permissions.update(self.get_permissions(parent_role))
+                permissions.update(self.get_permissions(parent_role, _visited))
 
         return permissions
 

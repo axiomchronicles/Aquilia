@@ -754,10 +754,16 @@ config.config_data["apps"] = {{}}
 # Build the apps namespace (required by Aquilary)
 config._build_apps_namespace()
 
+# Determine registry mode from config
+from aquilia.aquilary.core import RegistryMode
+_mode_str = config.config_data.get("mode", "dev")
+_registry_mode = RegistryMode(_mode_str) if _mode_str in ("dev", "prod", "test") else RegistryMode.DEV
+
 # Create server with all module manifests
 server = AquiliaServer(
     manifests=[{manifests_str}],
     config=config,
+    mode=_registry_mode,
 )
 
 # ASGI application
