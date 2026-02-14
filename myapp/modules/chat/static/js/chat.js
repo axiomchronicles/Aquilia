@@ -117,7 +117,6 @@ class AquiliaChat {
     _processMessage(raw) {
         try {
             const data = JSON.parse(raw);
-            console.log('Received:', data);
 
             // Unwrap Aquilia MessageEnvelope if present:
             // envelope format: { type:"event", event:"...", payload:{...}, meta:{...} }
@@ -196,7 +195,7 @@ class AquiliaChat {
     }
     
     handleChatMessage(data) {
-        const { data: payload } = data;
+        const payload = data.data;
         
         if (payload.room === this.currentRoom) {
             this.addChatMessage(payload.from, payload.text, payload.connection_id);
@@ -208,9 +207,9 @@ class AquiliaChat {
     }
     
     handlePresence(data) {
-        const { data: payload } = data;
+        const payload = data.data;
         
-        if (payload.event === 'typing') {
+        if (data.event === 'typing') {
             if (payload.room === this.currentRoom) {
                 if (payload.is_typing) {
                     this.showTypingIndicator(payload.username);
@@ -222,7 +221,7 @@ class AquiliaChat {
     }
     
     handleError(data) {
-        const { data: payload } = data;
+        const payload = data.data;
         this.showNotification(payload.message, 'error');
     }
     

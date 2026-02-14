@@ -138,6 +138,24 @@ workspace = (
     # Patterns - EBNF-based URL pattern compiler
     .integrate(Integration.patterns())
 
+    # OpenAPI - Interactive API documentation
+    .integrate(Integration.openapi(
+        title="MyApp API",
+        version="1.0.0",
+        description=(
+            "Production API for the MyApp workspace.\n\n"
+            "Built with **Aquilia** — a manifest-driven async Python web framework."
+        ),
+        contact_name="MyApp Team",
+        license_name="MIT",
+        docs_path="/docs",
+        openapi_json_path="/openapi.json",
+        redoc_path="/redoc",
+        detect_security=True,
+        infer_request_body=True,
+        infer_responses=True,
+    ))
+
     # Templates - Jinja2 with module scanning and sandboxing
     .integrate(
         Integration.templates

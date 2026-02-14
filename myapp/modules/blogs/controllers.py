@@ -26,7 +26,7 @@ class BlogsController(Controller):
     @GET("/")
     async def list_blogs(self, ctx: RequestCtx):
         """
-        Get list of blogs.
+        List all blogs.
 
         Example:
             GET /blogs/ -> {"items": [...], "total": 0}
@@ -39,9 +39,9 @@ class BlogsController(Controller):
         }
 
     @POST("/")
-    async def create_blogs(self, ctx: RequestCtx):
+    async def create_blog(self, ctx: RequestCtx):
         """
-        Create new blogs.
+        Create a new blog.
 
         Example:
             POST /blogs/
@@ -53,9 +53,9 @@ class BlogsController(Controller):
         return Response.json(item, status=201)
 
     @GET("/«id:int»")
-    async def get_blogs(self, ctx: RequestCtx, id: int):
+    async def get_blog(self, ctx: RequestCtx, id: int):
         """
-        Get single blogs by ID.
+        Get a blog by ID.
 
         Example:
             GET /blogs/1 -> {"id": 1, "name": "Example"}
@@ -67,9 +67,9 @@ class BlogsController(Controller):
         return Response.json(item)
 
     @PUT("/«id:int»")
-    async def update_blogs(self, ctx: RequestCtx, id: int):
+    async def update_blog(self, ctx: RequestCtx, id: int):
         """
-        Update blogs by ID.
+        Update a blog by ID.
 
         Example:
             PUT /blogs/1
@@ -84,9 +84,9 @@ class BlogsController(Controller):
         return Response.json(item)
 
     @DELETE("/«id:int»")
-    async def delete_blogs(self, ctx: RequestCtx, id: int):
+    async def delete_blog(self, ctx: RequestCtx, id: int):
         """
-        Delete blogs by ID.
+        Delete a blog by ID.
 
         Example:
             DELETE /blogs/1 -> 204 No Content

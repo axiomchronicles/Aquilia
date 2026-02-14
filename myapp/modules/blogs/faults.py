@@ -17,7 +17,7 @@ BLOGS = FaultDomain(
 
 class BlogsNotFoundFault(Fault):
     """
-    Raised when blogs item is not found.
+    Raised when a blog is not found.
 
     Recovery: Return 404 response
     """
@@ -30,7 +30,7 @@ class BlogsNotFoundFault(Fault):
         super().__init__(
             code=self.code,
             domain=self.domain,
-            message=f"Blogs with id {item_id} not found",
+            message=f"Blog with id {item_id} not found",
             metadata={"item_id": item_id},
             retryable=False,
         )
@@ -38,7 +38,7 @@ class BlogsNotFoundFault(Fault):
 
 class BlogsValidationFault(Fault):
     """
-    Raised when blogs data validation fails.
+    Raised when blog data validation fails.
 
     Recovery: Return 400 response with validation errors
     """
@@ -59,7 +59,7 @@ class BlogsValidationFault(Fault):
 
 class BlogsOperationFault(Fault):
     """
-    Raised when blogs operation fails.
+    Raised when a blog operation fails.
 
     Recovery: Retry with exponential backoff
     """
