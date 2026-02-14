@@ -222,6 +222,17 @@ from .middleware import (
 )
 
 # ============================================================================
+# Debug Pages
+# ============================================================================
+
+from .debug import (
+    DebugPageRenderer,
+    render_debug_exception_page,
+    render_http_error_page,
+    render_welcome_page,
+)
+
+# ============================================================================
 # Effects & Patterns
 # ============================================================================
 
@@ -446,6 +457,12 @@ __all__ = [
     "Middleware",
     "Handler",
     "MiddlewareStack",
+    
+    # Debug Pages
+    "DebugPageRenderer",
+    "render_debug_exception_page",
+    "render_http_error_page",
+    "render_welcome_page",
     
     # Effects
     "Effect",

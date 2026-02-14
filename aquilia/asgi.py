@@ -67,6 +67,45 @@ class ASGIAdapter:
             return Container(scope="request")
             
         self.socket_runtime.container_factory = container_factory
+
+    # ------------------------------------------------------------------
+    # Debug helpers
+    # ------------------------------------------------------------------
+
+    def _is_debug(self) -> bool:
+        """Check if the server is running in debug mode."""
+        if self.server and hasattr(self.server, '_is_debug'):
+            return self.server._is_debug()
+        return False
+
+    def _get_accept(self, scope: dict) -> str:
+        """Extract the Accept header from ASGI scope."""
+        for header_name, header_value in scope.get("headers", []):
+            if header_name == b"accept":
+                return header_value.decode("utf-8", errors="replace")
+        return ""
+
+    def _get_version(self) -> str:
+        """Get Aquilia version."""
+        try:
+            from aquilia import __version__
+            return __version__
+        except Exception:
+            return ""
+
+    def _has_routes(self) -> bool:
+        """Check if any controller routes are registered."""
+        try:
+            if hasattr(self.controller_router, 'routes_by_method'):
+                return any(
+                    len(routes) > 0
+                    for routes in self.controller_router.routes_by_method.values()
+                )
+            if hasattr(self.controller_router, 'compiled_controllers'):
+                return len(self.controller_router.compiled_controllers) > 0
+            return True  # Assume routes exist if we can't check
+        except Exception:
+            return True
     
     async def __call__(self, scope: dict, receive: callable, send: callable):
         """ASGI entry point."""
@@ -100,7 +139,30 @@ class ASGIAdapter:
         controller_match = await self.controller_router.match(path, method, query_params)
         
         if not controller_match:
-            # 404 Not Found
+            # 404 Not Found — show debug page if enabled
+            if self._is_debug():
+                accept = self._get_accept(scope)
+                if "text/html" in accept:
+                    from .debug.pages import render_http_error_page, render_welcome_page
+                    version = self._get_version()
+                    # Show welcome page on root path with no routes
+                    if path == "/" and not self._has_routes():
+                        html_body = render_welcome_page(aquilia_version=version)
+                    else:
+                        html_body = render_http_error_page(
+                            404, "Not Found",
+                            f"No route matches {method} {path}",
+                            request,
+                            aquilia_version=version,
+                        )
+                    response = Response(
+                        content=html_body.encode("utf-8"),
+                        status=404 if not (path == "/" and not self._has_routes()) else 200,
+                        headers={"content-type": "text/html; charset=utf-8"},
+                    )
+                    await response.send_asgi(send)
+                    return
+
             response = Response.json(
                 {"error": "Not found"},
                 status=404,
@@ -163,6 +225,20 @@ class ASGIAdapter:
         except Exception as e:
             # Fallback if middleware itself crashes (e.g. ExceptionMiddleware missing or failed)
             self.logger.error(f"Critical error in request pipeline: {e}", exc_info=True)
+            if self._is_debug():
+                accept = self._get_accept(scope)
+                if "text/html" in accept:
+                    from .debug.pages import render_debug_exception_page
+                    html_body = render_debug_exception_page(
+                        e, request, aquilia_version=self._get_version(),
+                    )
+                    response = Response(
+                        content=html_body.encode("utf-8"),
+                        status=500,
+                        headers={"content-type": "text/html; charset=utf-8"},
+                    )
+                    await response.send_asgi(send)
+                    return
             response = Response.json(
                 {"error": "Internal server error"},
                 status=500,

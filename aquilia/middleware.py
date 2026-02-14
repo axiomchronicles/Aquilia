@@ -117,27 +117,94 @@ class RequestIdMiddleware:
 
 
 class ExceptionMiddleware:
-    """Catches exceptions and converts them to error responses."""
+    """Catches exceptions and converts them to error responses.
+
+    When ``debug=True`` and the request ``Accept`` header includes
+    ``text/html``, renders beautiful React-style debug pages using the
+    MongoDB Atlas color palette with dark/light mode support.
+    Otherwise, returns structured JSON error responses.
+    """
     
     def __init__(self, debug: bool = False):
         self.debug = debug
         self.logger = logging.getLogger("aquilia.exceptions")
     
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _wants_html(self, request: Request) -> bool:
+        """Check if the client prefers an HTML response."""
+        try:
+            accept = ""
+            if hasattr(request, 'headers'):
+                h = request.headers
+                if hasattr(h, 'get'):
+                    accept = h.get("accept", "")
+                elif isinstance(h, dict):
+                    accept = h.get("accept", "") or h.get("Accept", "")
+            return "text/html" in accept
+        except Exception:
+            return False
+
+    def _html_response(self, body: str, status: int) -> Response:
+        """Build an HTML response from rendered page string."""
+        return Response(
+            content=body.encode("utf-8"),
+            status=status,
+            headers={"content-type": "text/html; charset=utf-8"},
+        )
+
+    def _get_version(self) -> str:
+        """Get Aquilia version string."""
+        try:
+            from aquilia import __version__
+            return __version__
+        except Exception:
+            return ""
+
+    def _render_debug_exception(self, exc: BaseException, request: Request) -> Response:
+        """Render a full debug exception page."""
+        from .debug.pages import render_debug_exception_page
+        html_body = render_debug_exception_page(
+            exc, request, aquilia_version=self._get_version(),
+        )
+        return self._html_response(html_body, 500)
+
+    def _render_debug_http_error(
+        self, status: int, message: str, detail: str, request: Request,
+    ) -> Response:
+        """Render a styled HTTP error page."""
+        from .debug.pages import render_http_error_page
+        html_body = render_http_error_page(
+            status, message, detail, request,
+            aquilia_version=self._get_version(),
+        )
+        return self._html_response(html_body, status)
+
+    # ------------------------------------------------------------------
+    # Main handler
+    # ------------------------------------------------------------------
+
     async def __call__(self, request: Request, ctx: RequestCtx, next: Handler) -> Response:
         try:
             return await next(request, ctx)
         
         except ValueError as e:
-            # Client error
+            # Client error — 400
             self.logger.warning(f"ValueError: {e}")
+            if self.debug and self._wants_html(request):
+                return self._render_debug_http_error(400, "Bad Request", str(e), request)
             return Response.json(
                 {"error": str(e)},
                 status=400,
             )
         
         except PermissionError as e:
-            # Forbidden
+            # Forbidden — 403
             self.logger.warning(f"PermissionError: {e}")
+            if self.debug and self._wants_html(request):
+                return self._render_debug_http_error(403, "Forbidden", str(e), request)
             return Response.json(
                 {"error": "Forbidden"},
                 status=403,
@@ -164,6 +231,13 @@ class ExceptionMiddleware:
                 self.logger.error(f"Fault {e.code}: {e.message}")
             else:
                 self.logger.warning(f"Fault {e.code}: {e.message}")
+
+            # Debug HTML page for Fault exceptions
+            if self.debug and self._wants_html(request):
+                if status >= 500:
+                    return self._render_debug_exception(e, request)
+                else:
+                    return self._render_debug_http_error(status, e.code, message, request)
                 
             return Response.json(
                 {
@@ -177,8 +251,11 @@ class ExceptionMiddleware:
             )
         
         except Exception as e:
-            # Internal error
+            # Internal error — 500
             self.logger.error(f"Unhandled exception: {e}", exc_info=True)
+
+            if self.debug and self._wants_html(request):
+                return self._render_debug_exception(e, request)
             
             error_data = {"error": "Internal server error"}
             

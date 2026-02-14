@@ -31,6 +31,9 @@ class WorkspaceGenerator:
         self._create_workspace_manifest()
         self._create_config_files()
         
+        # Create starter page
+        self._create_starter_page()
+        
         # Create additional files
         if not self.minimal:
             self._create_gitignore()
@@ -425,7 +428,11 @@ class WorkspaceGenerator:
                     name="{self.name}",
                     version="0.1.0",
                     description="Aquilia workspace",
-                ){"" if not module_registrations else chr(10) + "    # Auto-detected modules" + module_registrations}
+                )
+                # Starter — the server auto-loads starter.py from the workspace
+                # root when debug=True. No need to register it as a module.
+                # Delete starter.py once you add your own routes.
+{"" if not module_registrations else chr(10) + "    # Auto-detected modules" + module_registrations}
                 # Add modules here with explicit configuration:
                 # .module(Module("auth", version="1.0.0", description="Authentication module").route_prefix("/api/v1/auth").depends_on("core"))
                 # .module(Module("users", version="1.0.0", description="User management").route_prefix("/api/v1/users").depends_on("auth", "core"))
@@ -536,6 +543,7 @@ class WorkspaceGenerator:
             
             server:
               mode: dev
+              debug: true                 # Enable beautiful debug pages
               host: 127.0.0.1
               port: 8000
               reload: true                # Hot-reload on file changes
@@ -566,6 +574,57 @@ class WorkspaceGenerator:
         """).strip()
         
         (self.path / 'config' / 'prod.yaml').write_text(prod_config)
+
+    def _create_starter_page(self) -> None:
+        """Create a starter welcome controller that renders the Aquilia welcome page.
+
+        This gives new workspaces a default landing page visible at ``/``
+        similar to Django's rocket page or React's spinning logo.
+        The page is only shown when ``debug=True`` — in production it
+        should be replaced by real routes.
+        """
+        # Create the starter controller file in the workspace root
+        content = textwrap.dedent('''\
+            """
+            Aquilia Starter Page — shown at / when debug=True.
+
+            Replace this controller with your own routes.
+            Delete this file once you have real endpoints.
+            """
+
+            from aquilia import Controller, GET, RequestCtx, Response
+
+
+            class StarterController(Controller):
+                """Default welcome page controller.
+
+                Renders the built-in Aquilia welcome page using MongoDB Atlas
+                colors with dark/light mode support.
+
+                Remove this controller once you've added your own modules.
+                """
+                prefix = "/"
+                tags = ["starter"]
+
+                @GET("/")
+                async def welcome(self, ctx: RequestCtx):
+                    """Render the Aquilia welcome page."""
+                    from aquilia.debug.pages import render_welcome_page
+                    try:
+                        from aquilia import __version__
+                        version = __version__
+                    except Exception:
+                        version = ""
+
+                    html = render_welcome_page(aquilia_version=version)
+                    return Response(
+                        content=html.encode("utf-8"),
+                        status=200,
+                        headers={"content-type": "text/html; charset=utf-8"},
+                    )
+        ''')
+
+        (self.path / 'starter.py').write_text(content)
     
     def _create_gitignore(self) -> None:
         """Create .gitignore file."""

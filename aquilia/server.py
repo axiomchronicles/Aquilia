@@ -507,8 +507,21 @@ class AquiliaServer:
         self.logger.info(f"✓ Registered app middleware: {class_name} (priority={priority})")
     
     def _is_debug(self) -> bool:
-        """Check if debug mode is enabled."""
-        return self.config.get("debug", False)
+        """Check if debug mode is enabled.
+
+        Checks multiple locations for the debug flag:
+        1. Top-level ``debug`` key (set by generated runtime/app.py)
+        2. ``server.debug`` (dev.yaml / prod.yaml convention)
+        3. ``AQUILIA_ENV`` environment variable (``dev`` implies debug)
+        """
+        if self.config.get("debug", False):
+            return True
+        if self.config.get("server.debug", False):
+            return True
+        import os
+        if os.environ.get("AQUILIA_ENV", "").lower() == "dev":
+            return True
+        return False
     
     def _create_session_engine(self, session_config: dict):
         """
@@ -760,6 +773,11 @@ class AquiliaServer:
                         exc_info=True
                     )
         
+        # Step 1.1: Auto-load starter controller in debug mode
+        starter_compiled = await self._load_starter_controller()
+        if starter_compiled:
+            compiled_controllers.append(starter_compiled)
+
         # VALIDATION: Check for conflicts in the fully assembled tree
         conflicts = self.controller_compiler.validate_route_tree(compiled_controllers)
         if conflicts:
@@ -962,6 +980,77 @@ class AquiliaServer:
                     )
 
     
+    async def _load_starter_controller(self):
+        """Auto-load starter.py controller from workspace root when debug=True.
+
+        Discovers a ``StarterController`` in the workspace ``starter.py``
+        file and registers it so that new projects have a welcome page
+        at ``/`` out of the box.
+
+        The starter controller is only loaded if:
+        - Debug mode is enabled
+        - ``starter.py`` exists in the working directory
+        - No other controller has already claimed ``GET /``
+        """
+        if not self._is_debug():
+            return None
+
+        import importlib
+        import importlib.util
+        from pathlib import Path
+
+        # Look for starter.py in cwd (the workspace root)
+        starter_path = Path.cwd() / "starter.py"
+        if not starter_path.exists():
+            return None
+
+        # Check if any existing route already handles GET /
+        try:
+            existing_match = await self.controller_router.match("/", "GET", {})
+            if existing_match:
+                self.logger.debug("Starter controller skipped — GET / already registered")
+                return None
+        except Exception:
+            pass
+
+        try:
+            spec = importlib.util.spec_from_file_location("starter", str(starter_path))
+            if spec is None or spec.loader is None:
+                return None
+            module = importlib.util.module_from_spec(spec)
+            # Register in sys.modules so inspect.getfile() can resolve
+            # the class back to its source file.
+            import sys as _sys
+            _sys.modules["starter"] = module
+            spec.loader.exec_module(module)
+
+            # Find Controller subclasses in the module
+            from .controller import Controller
+            for attr_name in dir(module):
+                obj = getattr(module, attr_name)
+                if (
+                    isinstance(obj, type)
+                    and issubclass(obj, Controller)
+                    and obj is not Controller
+                ):
+                    compiled = self.controller_compiler.compile_controller(
+                        obj, base_prefix=None,
+                    )
+                    # Tag routes so DI can fall back gracefully
+                    for route in compiled.routes:
+                        route.app_name = "__starter__"
+                    self.controller_router.add_controller(compiled)
+                    self.logger.info(
+                        f"🚀 Loaded starter controller {obj.__name__} "
+                        f"with {len(compiled.routes)} routes"
+                    )
+                    return compiled
+
+        except Exception as e:
+            self.logger.warning(f"Could not load starter controller: {e}")
+
+        return None
+
     def _import_controller_class(self, controller_path: str) -> type:
         """
         Import controller class from path.

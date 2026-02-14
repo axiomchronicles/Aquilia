@@ -45,6 +45,11 @@ def _validate_workspace_config(workspace_root: Path, verbose: bool = False) -> L
         import re
         module_matches = re.findall(r'Module\("([^"]+)"', workspace_content)
         module_names = list(set(module_matches))  # Deduplicate
+
+        # The "starter" pseudo-module lives in workspace root (starter.py),
+        # not under modules/.  Skip it during validation — the server
+        # auto-loads it via _load_starter_controller().
+        module_names = [m for m in module_names if m != "starter"]
         
         if not module_names:
             # No modules registered - that's OK
@@ -728,6 +733,10 @@ def _generate_workspace_app_code(workspace_root: Path, mode: str, verbose: bool 
     # (?m) enables multiline mode, ^ matches start of line, \s* matches indentation
     # Updated regex to handle Module with parameters: Module("name", version=..., ...)
     modules = re.findall(r'(?m)^\s*\.module\(Module\("([^"]+)"[^)]*\)', workspace_content)
+
+    # The "starter" pseudo-module is loaded automatically by the server
+    # via _load_starter_controller(); don't try to import it as a manifest.
+    modules = [m for m in modules if m != "starter"]
     
     if verbose:
         print(f"  Found modules: {', '.join(modules)}")

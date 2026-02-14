@@ -29,32 +29,17 @@ workspace = (
         version="0.1.0",
         description="Aquilia workspace",
     )
-    # Add modules here with explicit configuration:
+    # Starter — the server auto-loads starter.py when debug=True.
+    # Delete starter.py once you add your own routes.
 
-    .module(Module("myappmod", version="0.1.0", description="Myappmod module")
-        .route_prefix("/myappmod")
-        .tags("myappmod", "core")
+    .module(Module("blogs", version="0.1.0", description="Blogs module")
+        .route_prefix("/blogs")
+        .tags("blogs", "core")
         .register_controllers(
-            "modules.myappmod.auth:AuthController",
-            "modules.myappmod.auth:MyappmodUIController",
-            "modules.myappmod.auth:SessionsController",
-            "modules.myappmod.advanced_di:AdvancedUserController",
-            "modules.myappmod.controllers:MyappmodController",
-            "modules.myappmod.controllers:AdvancedFeaturesController",
-            "modules.myappmod.jwt_bearer:JwtBearerController",
-            "modules.myappmod.dashboard:DashboardController",
-            "modules.myappmod.sessioncontrol.sessions:SessionController"
+            "modules.blogs.controllers:BlogsController"
         )
         .register_services(
-            "modules.myappmod.auth:DemoAuthService",
-            "modules.myappmod.auth:UserService",
-            "modules.myappmod.services:MyappmodService",
-            "modules.myappmod.advanced_di:IUserRepository",
-            "modules.myappmod.advanced_di:MemoryUserRepository",
-            "modules.myappmod.advanced_di:SqlUserRepository",
-            "modules.myappmod.services_ext:AuditLogger",
-            "modules.myappmod.services_ext:ExpensiveService",
-            "modules.myappmod.services_ext:LazyProcessor"
+            "modules.blogs.services:BlogsService"
         ))
 
     # Integrations - Configure core systems
@@ -73,10 +58,12 @@ workspace = (
         metrics_enabled=True,
     ))
     .integrate(Integration.patterns())
-    .integrate(Integration.auth(enabled=True))
+
+    # Templates - Fluent configuration
     .integrate(
         Integration.templates
-        .source("modules/myappmod/templates")
+        .source("templates")
+        .scan_modules()
         .cached("memory")
         .secure()
     )
@@ -89,7 +76,6 @@ workspace = (
                 name="default",
                 ttl=timedelta(days=7),
                 idle_timeout=timedelta(hours=1),
-                rotate_on_use=False,
                 rotate_on_privilege_change=True,
                 persistence=PersistencePolicy(
                     enabled=True,
