@@ -77,12 +77,6 @@ workspace = (
             "modules.chat.sockets:NotificationSocket"
         ))
 
-    .module(Module("static_files", version="0.1.0", description="Static file serving (CSS, JS, images)")
-        .route_prefix("/static_files")
-        .register_controllers(
-            "modules.static_files.controllers:StaticFilesController"
-        ))
-
     .module(Module("sessions", version="0.1.0", description="Session management showcase: cart, preferences, wizard, and lifecycle")
         .route_prefix("/sessions")
         .tags("sessions", "cart", "preferences", "wizard")
@@ -152,6 +146,16 @@ workspace = (
         .cached("memory")
         .secure()
     )
+
+    # Static Files - Serve CSS, JS, images from workspace root
+    .integrate(Integration.static_files(
+        directories={
+            "/static": "static",
+        },
+        cache_max_age=86400,
+        etag=True,
+        memory_cache=True,
+    ))
 
     # ---- Sessions --------------------------------------------------------
     .sessions(

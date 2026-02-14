@@ -53,7 +53,7 @@ class ChatController(Controller):
         """
         if self.templates:
             return await self.templates.render_to_response(
-                "chat_index.html",
+                "chat:index.html",
                 {},
                 request_ctx=ctx
             )
@@ -76,7 +76,7 @@ class ChatController(Controller):
 
         if self.templates:
             return await self.templates.render_to_response(
-                "chat_room.html",
+                "chat:room.html",
                 {
                     "room": room,
                     "messages": messages,
