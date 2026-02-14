@@ -153,11 +153,13 @@ class Module:
     
     def register_models(self, *models: str) -> "Module":
         """
-        Register explicit AMDL model files or glob patterns.
+        Register explicit model files or glob patterns.
+        
+        Supports both legacy .amdl files and new Python model modules.
         
         Args:
-            *models: Paths to .amdl files or glob patterns.
-                     E.g. "models/user.amdl", "models/*.amdl"
+            *models: Paths to model files or glob patterns.
+                     E.g. "models/user.py", "models/*.py", "models/legacy.amdl"
         """
         self._config.models.extend(models)
         return self

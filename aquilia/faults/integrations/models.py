@@ -1,12 +1,13 @@
 """
 AquilaFaults - Model/Database Integration.
 
-Integration module for connecting AquilaFaults with the AMDL model system:
-- Parser error wrapping
+Integration module for connecting AquilaFaults with the model system:
+- Parser error wrapping (legacy AMDL)
 - Database connection fault handling
 - Query fault interception
 - Migration fault handling
 - Model discovery fault reporting
+- New Python ORM model registry patching
 
 Usage:
     ```python
@@ -144,52 +145,77 @@ def create_model_fault_handler(
 
 def patch_model_registry() -> None:
     """
-    Patch ModelRegistry to raise structured faults instead of bare exceptions.
+    Patch model registries to raise structured faults instead of bare exceptions.
     
-    Wraps:
+    Patches both the legacy AMDL ModelRegistry and the new Python ORM ModelRegistry.
+    
+    Legacy wraps:
     - ModelRegistry.register_model() → ModelRegistrationFault
     - ModelRegistry.get_proxy() → ModelNotFoundFault
     - ModelRegistry.create_tables() → SchemaFault
+    
+    New ORM wraps:
+    - ModelRegistry.create_tables() → SchemaFault
     """
+    # --- Legacy AMDL ModelRegistry ---
     try:
-        from aquilia.models.runtime import ModelRegistry
+        from aquilia.models.runtime import ModelRegistry as LegacyRegistry
     except ImportError:
-        logger.debug("ModelRegistry not available — skipping patch")
-        return
+        logger.debug("Legacy ModelRegistry not available — skipping patch")
+    else:
+        _original_register = LegacyRegistry.register_model
+        _original_get_proxy = LegacyRegistry.get_proxy
+        _original_create_tables_legacy = LegacyRegistry.create_tables
+        
+        def _patched_register(self, model_node, *args, **kwargs):
+            try:
+                return _original_register(self, model_node, *args, **kwargs)
+            except Exception as e:
+                raise ModelRegistrationFault(
+                    model_name=getattr(model_node, "name", "unknown"),
+                    reason=str(e),
+                ) from e
+        
+        def _patched_get_proxy(self, name):
+            try:
+                return _original_get_proxy(self, name)
+            except (KeyError, LookupError) as e:
+                raise ModelNotFoundFault(model_name=name) from e
+        
+        async def _patched_create_tables_legacy(self):
+            try:
+                return await _original_create_tables_legacy(self)
+            except Exception as e:
+                raise SchemaFault(
+                    table="(multiple)",
+                    reason=str(e),
+                ) from e
+        
+        LegacyRegistry.register_model = _patched_register
+        LegacyRegistry.get_proxy = _patched_get_proxy
+        LegacyRegistry.create_tables = _patched_create_tables_legacy
+        logger.debug("Patched legacy ModelRegistry with fault integration")
     
-    _original_register = ModelRegistry.register_model
-    _original_get_proxy = ModelRegistry.get_proxy
-    _original_create_tables = ModelRegistry.create_tables
-    
-    def _patched_register(self, model_node, *args, **kwargs):
-        try:
-            return _original_register(self, model_node, *args, **kwargs)
-        except Exception as e:
-            raise ModelRegistrationFault(
-                model_name=getattr(model_node, "name", "unknown"),
-                reason=str(e),
-            ) from e
-    
-    def _patched_get_proxy(self, name):
-        try:
-            return _original_get_proxy(self, name)
-        except (KeyError, LookupError) as e:
-            raise ModelNotFoundFault(model_name=name) from e
-    
-    async def _patched_create_tables(self):
-        try:
-            return await _original_create_tables(self)
-        except Exception as e:
-            raise SchemaFault(
-                table="(multiple)",
-                reason=str(e),
-            ) from e
-    
-    ModelRegistry.register_model = _patched_register
-    ModelRegistry.get_proxy = _patched_get_proxy
-    ModelRegistry.create_tables = _patched_create_tables
-    
-    logger.debug("Patched ModelRegistry with fault integration")
+    # --- New Python ORM ModelRegistry ---
+    try:
+        from aquilia.models.base import ModelRegistry as NewRegistry
+    except ImportError:
+        logger.debug("New ModelRegistry not available — skipping patch")
+    else:
+        _original_create_tables_new = NewRegistry.create_tables
+        
+        @classmethod
+        async def _patched_create_tables_new(cls):
+            try:
+                return await _original_create_tables_new.__func__(cls)
+            except Exception as e:
+                raise SchemaFault(
+                    table="(multiple)",
+                    reason=str(e),
+                ) from e
+        
+        NewRegistry.create_tables = _patched_create_tables_new
+        logger.debug("Patched new ModelRegistry with fault integration")
 
 
 def patch_database_engine() -> None:

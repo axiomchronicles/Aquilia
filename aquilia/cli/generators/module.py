@@ -359,9 +359,9 @@ class ModuleGenerator:
             
             
             # Define fault domain for this module
-            {fault_domain_var} = FaultDomain(
-                name="{self.fault_domain}",
-                description="{self.name.capitalize()} module faults",
+            {fault_domain_var} = FaultDomain.custom(
+                "{self.fault_domain}",
+                "{self.name.capitalize()} module faults",
             )
             
             

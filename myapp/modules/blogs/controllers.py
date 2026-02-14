@@ -6,7 +6,7 @@ using the modern Controller architecture with pattern-based routing.
 """
 
 from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
-from .faults import BlogsNotFoundFault
+from .faults import BlogsNotFoundFault, BlogsOperationFault
 from .services import BlogsService
 
 
@@ -33,10 +33,7 @@ class BlogsController(Controller):
         """
         items = await self.service.get_all()
 
-        return Response.json({
-            "items": items,
-            "total": len(items)
-        })
+        raise BlogsOperationFault
 
     @POST("/")
     async def create_blogs(self, ctx: RequestCtx):

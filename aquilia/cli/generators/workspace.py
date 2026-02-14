@@ -119,11 +119,15 @@ class WorkspaceGenerator:
             module_line = f'    .module({config_chain})'
             lines.append(module_line)
         
-        return '\n'.join(lines)
+        # Separate each .module() block with a blank line for readability
+        return '\n\n'.join(lines)
     
     def update_workspace_config(self, workspace_path: Path, discovered_modules: dict) -> None:
         """
         Update workspace.py with auto-discovered module configurations.
+        
+        Safely strips existing .module() blocks and re-inserts them
+        before the integrations section, preserving all other content.
         
         Args:
             workspace_path: Path to workspace.py file
@@ -139,61 +143,88 @@ class WorkspaceGenerator:
         
         import re
         
-        # Strategy: Find the right place to insert modules
-        # 1. Look for existing modules and remove them
-        # 2. Find the comment "# Integrations" and insert before it
-        
-        # Remove existing module blocks by looking for pattern: 
-        # Lines with .module(Module(...)) that might span multiple lines
+        # --- Phase 1: Strip all existing .module() blocks ---
         lines = content.split('\n')
         new_lines = []
         i = 0
         while i < len(lines):
             line = lines[i]
+            stripped = line.lstrip()
             
-            # Check if this line starts a .module(...) block
-            # Handles both single-line and multi-line formats
-            if '.module(' in line:
-                # Skip lines until we find the closing ) of this module block
+            # Only match lines where .module( is at the START of meaningful content
+            # (possibly preceded by whitespace). This avoids matching lines where
+            # .module( appears embedded inside a comment.
+            if stripped.startswith('.module('):
+                # Skip the entire multi-line .module(...) block
                 paren_depth = 0
-                start_i = i
                 while i < len(lines):
                     paren_depth += lines[i].count('(') - lines[i].count(')')
-                    if paren_depth <= 0 and i > start_i:
-                        i += 1
-                        break
                     i += 1
+                    if paren_depth <= 0:
+                        break
             else:
                 new_lines.append(line)
                 i += 1
         
         content = '\n'.join(new_lines)
         
-        # Now find where to insert modules
-        # Look for "# Integrations - Configure core systems"
-        integrations_comment = "    # Integrations - Configure core systems"
+        # --- Phase 2: Remove any existing "# ---- Modules" section header ---
+        content = re.sub(r'\n\s*# -+ Modules -+\n', '\n', content)
         
-        if integrations_comment in content:
-            # Insert before this comment
-            content = content.replace(
-                integrations_comment,
-                new_config + '\n\n' + integrations_comment
+        # --- Phase 3: Find the insertion point ---
+        # Strategy: insert modules BEFORE the integrations section.
+        # Look for known markers in order of preference:
+        #   1. "# ---- Integrations" (our own marker)
+        #   2. Any comment line containing "Integrations"
+        #   3. First .integrate( call
+        
+        insertion_re = re.search(
+            r'^(\s*# -+ Integrations)',
+            content,
+            re.MULTILINE,
+        )
+        if not insertion_re:
+            insertion_re = re.search(
+                r'^(\s*#.*Integrations)',
+                content,
+                re.MULTILINE,
             )
-        else:
-            # Fallback: find .integrate( and insert before it
-            integrate_match = re.search(r'(\s*\.integrate\()', content)
-            if integrate_match:
-                insertion_point = integrate_match.start()
-                # Get the indentation
-                indent = len(integrate_match.group(1)) - len(integrate_match.group(1).lstrip())
-                content = content[:insertion_point] + new_config + '\n\n    ' + content[insertion_point:]
+        if not insertion_re:
+            insertion_re = re.search(
+                r'^(\s*\.integrate\()',
+                content,
+                re.MULTILINE,
+            )
         
-        # Clean up extra newlines
-        content = re.sub(r'\n\s*\n\s*\n', '\n\n', content)
+        if insertion_re:
+            pos = insertion_re.start()
+            # Build the modules section with its own header
+            modules_section = (
+                '\n    # ---- Modules '
+                + '-' * 57
+                + '\n\n'
+                + new_config
+                + '\n\n'
+            )
+            content = content[:pos] + modules_section + content[pos:]
+        
+        # --- Phase 4: Clean up excessive blank lines ---
+        content = re.sub(r'\n{3,}', '\n\n', content)
+        
+        # --- Phase 5: Validate syntax before writing ---
+        import ast
+        try:
+            ast.parse(content)
+        except SyntaxError as exc:
+            print(
+                f"  \u26a0\ufe0f  Generated workspace.py has syntax error "
+                f"(line {exc.lineno}): {exc.msg} -- skipping write"
+            )
+            return
         
         # Write back
         workspace_path.write_text(content)
-        print(f"✅ Updated workspace.py with {len(discovered_modules)} module configurations")
+        print(f"\u2705 Updated workspace.py with {len(discovered_modules)} module configurations")
 
     def _discover_modules(self) -> dict:
         """Enhanced module discovery with intelligent classification."""

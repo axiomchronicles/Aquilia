@@ -70,6 +70,17 @@ class FaultDomain:
     def __hash__(self) -> int:
         return hash(self.name)
 
+    @classmethod
+    def custom(cls, name: str, description: str = "") -> FaultDomain:
+        """
+        Create a custom module-specific fault domain.
+
+        Usage:
+            TASKS_DOMAIN = FaultDomain.custom("TASKS")
+        """
+        desc = description or f"Custom domain: {name}"
+        return cls(name.lower(), desc)
+
 
 # Standard Domains
 FaultDomain.CONFIG = FaultDomain("config", "Configuration errors")
@@ -81,7 +92,7 @@ FaultDomain.EFFECT = FaultDomain("effect", "Side effect failures")
 FaultDomain.IO = FaultDomain("io", "I/O operations")
 FaultDomain.SECURITY = FaultDomain("security", "Security and auth")
 FaultDomain.SYSTEM = FaultDomain("system", "System level faults")
-FaultDomain.MODEL = FaultDomain("model", "AMDL model and database faults")
+FaultDomain.MODEL = FaultDomain("model", "Model ORM and database faults")
 
 
 class RecoveryStrategy(str, Enum):

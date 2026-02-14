@@ -504,11 +504,11 @@ class ResourceExhaustedFault(SystemFault):
 
 
 # ============================================================================
-# MODEL Faults (AMDL / Database)
+# MODEL Faults (ORM / Database)
 # ============================================================================
 
 class ModelFault(Fault):
-    """Base class for AMDL model and database faults."""
+    """Base class for model and database faults."""
     
     def __init__(
         self,

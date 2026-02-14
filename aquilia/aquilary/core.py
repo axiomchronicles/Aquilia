@@ -608,12 +608,16 @@ class RuntimeRegistry:
     
     def _discover_amdl_models(self, ctx) -> None:
         """
-        Discover .amdl model files for an app context via filesystem scan.
+        Discover model definitions for an app context.
+        
+        Supports both legacy .amdl files and new pure-Python Model subclasses.
         
         Scans standard locations:
-        - modules/<app_name>/models/*.amdl
-        - modules/<app_name>/models.amdl
-        - modules/<app_name>/**/*.amdl (recursive)
+        - modules/<app_name>/models/*.amdl  (legacy)
+        - modules/<app_name>/models.amdl    (legacy)
+        - modules/<app_name>/models.py      (new Python models)
+        - modules/<app_name>/models/*.py    (new Python models)
+        - modules/<app_name>/**/*.amdl      (recursive, legacy)
         
         Also honours DatabaseConfig.scan_dirs if present in manifest.
         """
@@ -629,12 +633,19 @@ class RuntimeRegistry:
         if module_models.is_dir():
             scan_dirs.append(module_models)
         
-        # Single file: modules/<app_name>/models.amdl
+        # Single file: modules/<app_name>/models.amdl (legacy)
         single_file = workspace_root / "modules" / ctx.name / "models.amdl"
         if single_file.is_file():
             amdl_path = str(single_file)
             if amdl_path not in ctx.models:
                 ctx.models.append(amdl_path)
+        
+        # Single file: modules/<app_name>/models.py (new Python models)
+        py_models = workspace_root / "modules" / ctx.name / "models.py"
+        if py_models.is_file():
+            py_path = str(py_models)
+            if py_path not in ctx.models:
+                ctx.models.append(py_path)
         
         # DatabaseConfig scan_dirs from manifest
         if ctx.manifest and hasattr(ctx.manifest, "database") and ctx.manifest.database:
@@ -645,78 +656,161 @@ class RuntimeRegistry:
                 if resolved.is_dir():
                     scan_dirs.append(resolved)
         
-        # Scan directories for .amdl files
+        # Scan directories for .amdl files (legacy) and .py files (new)
         for scan_dir in scan_dirs:
             for amdl_file in scan_dir.rglob("*.amdl"):
                 amdl_path = str(amdl_file)
                 if amdl_path not in ctx.models:
                     ctx.models.append(amdl_path)
+            for py_file in scan_dir.rglob("*.py"):
+                if py_file.name.startswith("_"):
+                    continue
+                py_path = str(py_file)
+                if py_path not in ctx.models:
+                    ctx.models.append(py_path)
+    
+    def _discover_python_models(self, path: str) -> list:
+        """
+        Import a Python module and discover Model subclasses in it.
+        
+        Returns a list of Model subclass classes found in the module.
+        """
+        import importlib.util
+        from pathlib import Path
+        
+        try:
+            from aquilia.models.base import Model
+        except ImportError:
+            return []
+        
+        file_path = Path(path)
+        if not file_path.is_file() or not file_path.suffix == ".py":
+            return []
+        
+        module_name = f"_aquilia_models_{file_path.stem}_{id(file_path)}"
+        
+        try:
+            spec = importlib.util.spec_from_file_location(module_name, str(file_path))
+            if spec is None or spec.loader is None:
+                return []
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+        except Exception:
+            return []
+        
+        discovered = []
+        for attr_name in dir(mod):
+            attr = getattr(mod, attr_name)
+            if (
+                isinstance(attr, type)
+                and issubclass(attr, Model)
+                and attr is not Model
+                and not getattr(attr, '_meta', None) or (
+                    hasattr(attr, '_meta') and not getattr(attr._meta, 'abstract', False)
+                )
+            ):
+                discovered.append(attr)
+        
+        return discovered
     
     def _register_models(self) -> None:
         """
-        Register discovered AMDL models into DI containers.
+        Register discovered models into DI containers.
         
-        Parses all .amdl files from AppContexts, builds a ModelRegistry,
-        and registers it (+ AquiliaDatabase) as DI providers.
+        Supports both legacy AMDL (.amdl) and new Python Model subclasses (.py).
+        Parses all model files from AppContexts, builds registries,
+        and registers them as DI providers.
         """
         if hasattr(self, '_models_registered') and self._models_registered:
             return
         
-        # Collect all .amdl paths from all app contexts
-        all_amdl_paths = []
+        # Collect all model paths from all app contexts
+        all_model_paths = []
         for ctx in self.meta.app_contexts:
-            all_amdl_paths.extend(ctx.models)
+            all_model_paths.extend(ctx.models)
         
-        if not all_amdl_paths:
+        if not all_model_paths:
             self._models_registered = True
             return
         
-        try:
-            from aquilia.models.parser import parse_amdl_file
-            from aquilia.models.runtime import ModelRegistry
-        except ImportError:
-            self._models_registered = True
-            return
+        # Separate legacy .amdl from .py
+        amdl_paths = [p for p in all_model_paths if p.endswith('.amdl')]
+        py_paths = [p for p in all_model_paths if p.endswith('.py')]
         
-        registry = ModelRegistry()
+        registered_count = 0
         
-        for amdl_path in all_amdl_paths:
+        # --- Handle legacy AMDL files ---
+        if amdl_paths:
             try:
-                from pathlib import Path
-                if not Path(amdl_path).is_file():
-                    continue
-                amdl_file = parse_amdl_file(amdl_path)
-                for model in amdl_file.models:
-                    registry.register_model(model)
-            except Exception as e:
-                print(f"Warning: Failed to parse {amdl_path}: {e}")
+                from aquilia.models.parser import parse_amdl_file
+                from aquilia.models.runtime import ModelRegistry as LegacyRegistry
+            except ImportError:
+                pass
+            else:
+                legacy_registry = LegacyRegistry()
+                
+                for amdl_path in amdl_paths:
+                    try:
+                        from pathlib import Path
+                        if not Path(amdl_path).is_file():
+                            continue
+                        amdl_file = parse_amdl_file(amdl_path)
+                        for model in amdl_file.models:
+                            legacy_registry.register_model(model)
+                            registered_count += 1
+                    except Exception as e:
+                        print(f"Warning: Failed to parse {amdl_path}: {e}")
+                
+                if legacy_registry._models:
+                    from aquilia.di import Container
+                    from aquilia.di.providers import ValueProvider
+                    
+                    for ctx in self.meta.app_contexts:
+                        if ctx.name not in self.di_containers:
+                            self.di_containers[ctx.name] = Container(scope="app")
+                        container = self.di_containers[ctx.name]
+                        try:
+                            container.register(ValueProvider(
+                                value=legacy_registry,
+                                token=LegacyRegistry,
+                                scope="app",
+                            ))
+                        except (ValueError, Exception):
+                            pass
+                    self._model_registry = legacy_registry
         
-        if not registry._models:
-            self._models_registered = True
-            return
-        
-        # Register ModelRegistry in each DI container
-        from aquilia.di import Container
-        from aquilia.di.providers import ValueProvider
-        
-        for ctx in self.meta.app_contexts:
-            if ctx.name not in self.di_containers:
-                self.di_containers[ctx.name] = Container(scope="app")
-            
-            container = self.di_containers[ctx.name]
-            
+        # --- Handle new Python Model subclasses ---
+        if py_paths:
             try:
-                container.register(ValueProvider(
-                    value=registry,
-                    token=ModelRegistry,
-                    scope="app",
-                ))
-            except (ValueError, Exception):
-                pass  # Already registered
+                from aquilia.models.base import ModelRegistry
+            except ImportError:
+                pass
+            else:
+                for py_path in py_paths:
+                    discovered = self._discover_python_models(py_path)
+                    registered_count += len(discovered)
+                
+                # ModelRegistry is a global singleton — models self-register via metaclass
+                if ModelRegistry._models:
+                    from aquilia.di import Container
+                    from aquilia.di.providers import ValueProvider
+                    
+                    for ctx in self.meta.app_contexts:
+                        if ctx.name not in self.di_containers:
+                            self.di_containers[ctx.name] = Container(scope="app")
+                        container = self.di_containers[ctx.name]
+                        try:
+                            container.register(ValueProvider(
+                                value=ModelRegistry,
+                                token=ModelRegistry,
+                                scope="app",
+                            ))
+                        except (ValueError, Exception):
+                            pass
         
-        self._model_registry = registry
         self._models_registered = True
-        print(f"✓ Registered {len(registry._models)} AMDL model(s) in DI")
+        if registered_count:
+            print(f"✓ Registered {registered_count} model(s) in DI")
     
     def _register_services(self):
         """Register services from manifests with DI containers."""

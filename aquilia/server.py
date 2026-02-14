@@ -1135,7 +1135,10 @@ class AquiliaServer:
     
     async def _register_amdl_models(self) -> None:
         """
-        Register AMDL models discovered by the Aquilary pipeline.
+        Register models discovered by the Aquilary pipeline.
+
+        Supports both legacy AMDL (.amdl) files and new pure-Python Model
+        subclasses (.py files with Model subclasses).
 
         Uses manifest-driven discovery (AppContext.models) populated by
         RuntimeRegistry.perform_autodiscovery() and explicit manifest
@@ -1143,59 +1146,159 @@ class AquiliaServer:
         directories as a fallback for workspace-level model files.
 
         Lifecycle:
-        1. Collect .amdl paths from AppContexts + global scan
-        2. Parse and register models in ModelRegistry
+        1. Collect model paths from AppContexts + global scan
+        2. Parse AMDL files / import Python model modules
         3. Configure database from manifest DatabaseConfig or config
         4. Optionally create tables / run migrations
-        5. Register AquiliaDatabase + ModelRegistry in all DI containers
+        5. Register AquiliaDatabase + registries in all DI containers
         """
         from pathlib import Path
 
         try:
             from .models.parser import parse_amdl_file
-            from .models.runtime import ModelRegistry
+            from .models.runtime import ModelRegistry as LegacyRegistry
+            from .models.base import ModelRegistry, Model
             from .db.engine import AquiliaDatabase, configure_database, set_database
         except ImportError:
-            self.logger.debug("AMDL model system not available (missing deps?)")
+            self.logger.debug("Model system not available (missing deps?)")
             return
 
-        # ── Phase 1: Collect .amdl paths ──────────────────────────────────
-        amdl_files: list[Path] = []
+        # ── Phase 1: Collect model paths ──────────────────────────────────
+        model_files: list[Path] = []
         workspace_root = Path.cwd()
 
         # 1a. From AppContexts (populated by Aquilary auto-discovery + manifests)
         for ctx in self.runtime.meta.app_contexts:
             for model_path in ctx.models:
                 p = Path(model_path)
-                if p.is_file() and p not in amdl_files:
-                    amdl_files.append(p)
+                if p.is_file() and p not in model_files:
+                    model_files.append(p)
 
         # 1b. Global fallback scan (workspace-level models/ and modules/)
         for search_dir in [workspace_root / "models", workspace_root / "modules"]:
             if search_dir.is_dir():
                 for amdl in search_dir.rglob("*.amdl"):
-                    if amdl not in amdl_files:
-                        amdl_files.append(amdl)
+                    if amdl not in model_files:
+                        model_files.append(amdl)
+                # Only pick up Python files that are inside a "models" directory
+                # or are themselves named "models.py" — never controllers/services/etc.
+                for pyf in search_dir.rglob("*.py"):
+                    if pyf.name.startswith("_"):
+                        continue
+                    # Accept: models.py, or any .py inside a models/ package
+                    is_model_file = (
+                        pyf.stem == "models"
+                        or "models" in pyf.parent.parts
+                    )
+                    if not is_model_file:
+                        continue
+                    if pyf not in model_files:
+                        model_files.append(pyf)
 
-        if not amdl_files:
-            self.logger.debug("No .amdl model files found — skipping AMDL registration")
+        amdl_files = [f for f in model_files if f.suffix == ".amdl"]
+        py_files = [f for f in model_files if f.suffix == ".py"]
+
+        if not amdl_files and not py_files:
+            self.logger.debug("No model files found — skipping model registration")
             return
 
-        self.logger.info(f"Found {len(amdl_files)} .amdl file(s), registering models...")
+        total_count = len(amdl_files) + len(py_files)
+        self.logger.info(f"Found {total_count} model file(s), registering models...")
 
-        # ── Phase 2: Parse and register ───────────────────────────────────
-        # Re-use RuntimeRegistry's ModelRegistry if already created
-        registry = getattr(self.runtime, '_model_registry', None) or ModelRegistry()
+        # ── Phase 2a: Parse and register AMDL (legacy) ────────────────────
+        legacy_registry = getattr(self.runtime, '_model_registry', None) or LegacyRegistry()
+        amdl_count = 0
 
         for amdl_path in amdl_files:
             try:
                 amdl_file = parse_amdl_file(str(amdl_path))
                 for model in amdl_file.models:
-                    if model.name not in registry._models:
-                        registry.register_model(model)
-                        self.logger.debug(f"  Registered model: {model.name} (table={model.table_name})")
+                    if model.name not in legacy_registry._models:
+                        legacy_registry.register_model(model)
+                        self.logger.debug(f"  Registered AMDL model: {model.name}")
+                        amdl_count += 1
             except Exception as e:
                 self.logger.warning(f"Failed to parse {amdl_path}: {e}")
+
+        # ── Phase 2b: Import and register Python models ───────────────────
+        import importlib
+        import importlib.util
+        import sys
+        py_count = 0
+
+        for py_path in py_files:
+            try:
+                # Try package-aware import first (supports relative imports).
+                # Compute a dotted module name relative to the workspace root.
+                try:
+                    rel = py_path.relative_to(workspace_root)
+                except ValueError:
+                    rel = None
+
+                if rel is not None:
+                    # e.g. modules/products/models/__init__.py → modules.products.models
+                    parts = list(rel.with_suffix("").parts)
+                    if parts and parts[-1] == "__init__":
+                        parts = parts[:-1]
+                    dotted = ".".join(parts)
+
+                    # Ensure workspace root is on sys.path
+                    ws_str = str(workspace_root)
+                    if ws_str not in sys.path:
+                        sys.path.insert(0, ws_str)
+
+                    # Ensure parent packages exist in sys.modules
+                    for i in range(1, len(parts)):
+                        parent_dotted = ".".join(parts[:i])
+                        if parent_dotted not in sys.modules:
+                            parent_path = workspace_root / Path(*parts[:i])
+                            init_file = parent_path / "__init__.py"
+                            if init_file.is_file():
+                                parent_spec = importlib.util.spec_from_file_location(
+                                    parent_dotted, str(init_file),
+                                    submodule_search_locations=[str(parent_path)]
+                                )
+                                if parent_spec and parent_spec.loader:
+                                    parent_mod = importlib.util.module_from_spec(parent_spec)
+                                    sys.modules[parent_dotted] = parent_mod
+                                    try:
+                                        parent_spec.loader.exec_module(parent_mod)
+                                    except Exception:
+                                        pass  # parent init may fail; that's ok
+                            else:
+                                # Create a namespace package stub
+                                import types
+                                ns_mod = types.ModuleType(parent_dotted)
+                                ns_mod.__path__ = [str(parent_path)]
+                                ns_mod.__package__ = parent_dotted
+                                sys.modules[parent_dotted] = ns_mod
+
+                    # Now import the actual model module
+                    if dotted in sys.modules:
+                        mod = sys.modules[dotted]
+                    else:
+                        mod = importlib.import_module(dotted)
+                else:
+                    # Fallback: file outside workspace, use spec_from_file_location
+                    module_name = f"_aquilia_models_{py_path.stem}_{id(py_path)}"
+                    spec = importlib.util.spec_from_file_location(module_name, str(py_path))
+                    if spec is None or spec.loader is None:
+                        continue
+                    mod = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(mod)
+                
+                # Models self-register via metaclass; count them
+                for attr_name in dir(mod):
+                    attr = getattr(mod, attr_name)
+                    if (
+                        isinstance(attr, type)
+                        and issubclass(attr, Model)
+                        and attr is not Model
+                    ):
+                        py_count += 1
+                        self.logger.debug(f"  Registered Python model: {attr.__name__}")
+            except Exception as e:
+                self.logger.warning(f"Failed to import {py_path}: {e}")
 
         # ── Phase 3: Resolve database configuration ───────────────────────
         db_url = None
@@ -1230,19 +1333,28 @@ class AquiliaServer:
         if db_url:
             db = configure_database(db_url)
             await db.connect()
-            registry.set_database(db)
             self._amdl_database = db
 
+            # Wire database to both registries
+            if legacy_registry._models:
+                legacy_registry.set_database(db)
+            if ModelRegistry._models:
+                ModelRegistry.set_database(db)
+
             if auto_create:
-                await registry.create_tables()
-                self.logger.info("AMDL tables auto-created")
+                # Create tables for both AMDL and Python models
+                if legacy_registry._models:
+                    await legacy_registry.create_tables()
+                if ModelRegistry._models:
+                    await ModelRegistry.create_tables()
+                self.logger.info("Model tables auto-created")
 
             if auto_migrate:
                 try:
                     from .models.migrations import MigrationRunner
                     runner = MigrationRunner(db, migrations_dir)
                     await runner.migrate()
-                    self.logger.info("AMDL migrations applied")
+                    self.logger.info("Migrations applied")
                 except Exception as e:
                     self.logger.warning(f"Auto-migration failed: {e}")
 
@@ -1256,25 +1368,37 @@ class AquiliaServer:
                         scope="app",
                     ))
                 except (ValueError, Exception):
-                    pass  # Already registered
+                    pass
 
-                try:
-                    container.register(ValueProvider(
-                        value=registry,
-                        token=ModelRegistry,
-                        scope="app",
-                    ))
-                except (ValueError, Exception):
-                    pass  # Already registered
+                if legacy_registry._models:
+                    try:
+                        container.register(ValueProvider(
+                            value=legacy_registry,
+                            token=LegacyRegistry,
+                            scope="app",
+                        ))
+                    except (ValueError, Exception):
+                        pass
 
+                if ModelRegistry._models:
+                    try:
+                        container.register(ValueProvider(
+                            value=ModelRegistry,
+                            token=ModelRegistry,
+                            scope="app",
+                        ))
+                    except (ValueError, Exception):
+                        pass
+
+            model_total = amdl_count + py_count
             self.logger.info(
-                f"✓ AMDL models registered: "
-                f"{len(registry._models)} model(s), DB={db.driver}"
+                f"✓ Models registered: "
+                f"{model_total} model(s) ({amdl_count} AMDL + {py_count} Python), DB={db.driver}"
             )
         else:
             self._amdl_database = None
             self.logger.debug(
-                "No database.url in config — AMDL models registered without DB connection"
+                "No database.url in config — models registered without DB connection"
             )
 
     async def startup(self):

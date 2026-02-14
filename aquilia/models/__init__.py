@@ -1,14 +1,112 @@
 """
-Aquilia Model System — AMDL-based, async-first models.
+Aquilia Model System — Pure Python, Django-grade ORM.
+
+The model system has been completely rewritten from the old AMDL DSL
+to a pure Pythonic, metaclass-driven architecture.
+
+Usage:
+    from aquilia.models import Model
+    from aquilia.models.fields import (
+        CharField, IntegerField, DateTimeField, ForeignKey, ManyToManyField,
+    )
+
+    class User(Model):
+        table = "users"
+
+        name = CharField(max_length=150)
+        email = EmailField(unique=True)
+        active = BooleanField(default=True)
+        created_at = DateTimeField(auto_now_add=True)
+
+        class Meta:
+            ordering = ["-created_at"]
 
 Public API:
-    - AMDL parser: parse_amdl, parse_amdl_file, parse_amdl_directory
-    - AST nodes: ModelNode, SlotNode, LinkNode, etc.
-    - Runtime: ModelProxy, Q, ModelRegistry
-    - Migrations: MigrationRunner, MigrationOps, op, generate_migration_file
+    - Model: Base class for all models
+    - Fields: All field types (Char, Integer, DateTime, FK, M2M, etc.)
+    - Q: Query builder
+    - ModelRegistry: Global model registry
+    - Migrations: MigrationRunner, MigrationOps, generate_migration_file
     - Database: AquiliaDatabase (re-exported from aquilia.db)
-    - Faults: ModelNotFoundFault, QueryFault, etc. (re-exported from aquilia.faults)
+    - Faults: ModelNotFoundFault, QueryFault, etc.
 """
+
+# ── New Pure Python Model System ─────────────────────────────────────────────
+
+from .base import (
+    Model,
+    ModelMeta,
+    ModelRegistry,
+    Options,
+    Q,
+)
+
+from .fields import (
+    # Base
+    Field,
+    FieldValidationError,
+    Index,
+    UniqueConstraint,
+    UNSET,
+    # Numeric
+    AutoField,
+    BigAutoField,
+    IntegerField,
+    BigIntegerField,
+    SmallIntegerField,
+    PositiveIntegerField,
+    PositiveSmallIntegerField,
+    FloatField,
+    DecimalField,
+    # Text
+    CharField,
+    TextField,
+    SlugField,
+    EmailField,
+    URLField,
+    UUIDField,
+    FilePathField,
+    # Date/Time
+    DateField,
+    TimeField,
+    DateTimeField,
+    DurationField,
+    # Boolean
+    BooleanField,
+    # Binary/Special
+    BinaryField,
+    JSONField,
+    # Relationships
+    ForeignKey,
+    OneToOneField,
+    ManyToManyField,
+    RelationField,
+    # IP/Network
+    GenericIPAddressField,
+    InetAddressField,
+    # File/Media
+    FileField,
+    ImageField,
+    # PostgreSQL
+    ArrayField,
+    HStoreField,
+    RangeField,
+    IntegerRangeField,
+    BigIntegerRangeField,
+    DecimalRangeField,
+    DateRangeField,
+    DateTimeRangeField,
+    CICharField,
+    CIEmailField,
+    CITextField,
+    # Meta/Special
+    GeneratedField,
+    OrderWrt,
+)
+
+# ── Legacy AMDL compatibility layer ─────────────────────────────────────────
+# These are preserved for backward compatibility with existing code that
+# imports AMDL types. They still function but are deprecated.
 
 from .ast_nodes import (
     AMDLFile,
@@ -32,8 +130,8 @@ from .parser import (
 
 from .runtime import (
     ModelProxy,
-    ModelRegistry,
-    Q,
+    ModelRegistry as LegacyModelRegistry,
+    Q as LegacyQ,
     generate_create_table_sql,
     generate_create_index_sql,
 )
@@ -43,6 +141,7 @@ from .migrations import (
     MigrationRunner,
     MigrationInfo,
     generate_migration_file,
+    generate_migration_from_models,
     op,
 )
 
@@ -60,7 +159,63 @@ from ..faults.domains import (
 )
 
 __all__ = [
-    # AST
+    # ── New Pure Python Model System ─────────────────────────────────
+    "Model",
+    "ModelMeta",
+    "ModelRegistry",
+    "Options",
+    "Q",
+    # Fields
+    "Field",
+    "FieldValidationError",
+    "Index",
+    "UniqueConstraint",
+    "UNSET",
+    "AutoField",
+    "BigAutoField",
+    "IntegerField",
+    "BigIntegerField",
+    "SmallIntegerField",
+    "PositiveIntegerField",
+    "PositiveSmallIntegerField",
+    "FloatField",
+    "DecimalField",
+    "CharField",
+    "TextField",
+    "SlugField",
+    "EmailField",
+    "URLField",
+    "UUIDField",
+    "FilePathField",
+    "DateField",
+    "TimeField",
+    "DateTimeField",
+    "DurationField",
+    "BooleanField",
+    "BinaryField",
+    "JSONField",
+    "ForeignKey",
+    "OneToOneField",
+    "ManyToManyField",
+    "RelationField",
+    "GenericIPAddressField",
+    "InetAddressField",
+    "FileField",
+    "ImageField",
+    "ArrayField",
+    "HStoreField",
+    "RangeField",
+    "IntegerRangeField",
+    "BigIntegerRangeField",
+    "DecimalRangeField",
+    "DateRangeField",
+    "DateTimeRangeField",
+    "CICharField",
+    "CIEmailField",
+    "CITextField",
+    "GeneratedField",
+    "OrderWrt",
+    # ── Legacy AMDL (backward compat) ────────────────────────────────
     "AMDLFile",
     "FieldType",
     "HookNode",
@@ -71,15 +226,13 @@ __all__ = [
     "ModelNode",
     "NoteNode",
     "SlotNode",
-    # Parser
     "AMDLParseError",
     "parse_amdl",
     "parse_amdl_file",
     "parse_amdl_directory",
-    # Runtime
     "ModelProxy",
-    "ModelRegistry",
-    "Q",
+    "LegacyModelRegistry",
+    "LegacyQ",
     "generate_create_table_sql",
     "generate_create_index_sql",
     # Migrations
@@ -87,6 +240,7 @@ __all__ = [
     "MigrationRunner",
     "MigrationInfo",
     "generate_migration_file",
+    "generate_migration_from_models",
     "op",
     # Faults (re-exported)
     "ModelFault",

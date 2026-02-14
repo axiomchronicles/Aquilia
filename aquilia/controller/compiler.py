@@ -326,6 +326,8 @@ class ControllerCompiler:
                 return "dynamic", "str"
             return "static", segment
 
+        has_mixed_static_dynamic = False
+
         # Check each segment
         for p1, p2 in zip(parts1, parts2):
             kind1, info1 = get_segment_info(p1)
@@ -336,24 +338,28 @@ class ControllerCompiler:
                 if info1 != info2:
                     return False # Distinct static paths
             
-            # One static, one dynamic
+            # One static, one dynamic — these are NOT true conflicts.
+            # The router should prefer static matches over dynamic ones.
             elif kind1 == "static" and kind2 == "dynamic":
                 if info2 == "int" and not info1.isdigit():
-                    return False # Static is not int
-                # If dynamic is string, it overlaps with any static string
+                    return False # Static is not int — no overlap
+                has_mixed_static_dynamic = True
                 
             elif kind1 == "dynamic" and kind2 == "static":
                 if info1 == "int" and not info2.isdigit():
                     return False # Static is not int
+                has_mixed_static_dynamic = True
             
             # Both dynamic
             else:
-                # If different types (e.g. int vs bool), might not conflict?
-                # But widely overlapping types (str vs int) do conflict for numbers.
-                # Assuming conflict for safety if both are dynamic at same pos.
                 pass
+
+        # If ambiguity comes from static-vs-dynamic segments, it's not a
+        # true conflict — the router resolves it via static-first priority.
+        if has_mixed_static_dynamic:
+            return False
                 
-        # If we got here, all segments potentially overlap
+        # If we got here, all segments potentially overlap (both-dynamic)
         return True
     
     def export_routes(self, controllers: List[CompiledController]) -> Dict[str, Any]:

@@ -638,12 +638,12 @@ def analytics(ctx, path: Optional[str]):
 
 
 # ============================================================================
-# Database / AMDL Models
+# Database / Models
 # ============================================================================
 
 @cli.group()
 def db():
-    """Database and AMDL model commands."""
+    """Database and model ORM commands."""
     pass
 
 
@@ -653,14 +653,14 @@ def db():
 @click.pass_context
 def db_makemigrations(ctx, app: Optional[str], migrations_dir: str):
     """
-    Generate migration files from .amdl model definitions.
+    Generate migration files from Python Model definitions.
 
-    Scans for .amdl files, parses them, and writes a migration script
-    into the migrations directory.
+    Discovers Model subclasses in modules/*/models/, generates
+    CREATE TABLE SQL, and writes a migration script.
 
     Examples:
       aq db makemigrations
-      aq db makemigrations --app=blog
+      aq db makemigrations --app=products
       aq db makemigrations --migrations-dir=db/migrations
     """
     from .commands.model_cmds import cmd_makemigrations
@@ -710,7 +710,7 @@ def db_migrate(ctx, migrations_dir: str, database_url: str, target: Optional[str
 @click.pass_context
 def db_dump(ctx, emit: str, output_dir: Optional[str]):
     """
-    Dump generated Python proxies or raw SQL from .amdl models.
+    Dump model schema — annotated Python overview or raw SQL DDL.
 
     Examples:
       aq db dump
@@ -735,9 +735,10 @@ def db_dump(ctx, emit: str, output_dir: Optional[str]):
 @click.pass_context
 def db_shell(ctx, database_url: str):
     """
-    Open an async REPL with AMDL models pre-loaded.
+    Open an async REPL with models pre-loaded.
 
-    All registered ModelProxy classes are available in the namespace.
+    All discovered Model classes, Q query builder, and ModelRegistry
+    are available in the shell namespace.
 
     Examples:
       aq db shell
