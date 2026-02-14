@@ -41,7 +41,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from .fields import (
+from .fields_module import (
     AutoField,
     BigAutoField,
     BooleanField,
@@ -62,8 +62,35 @@ from .fields import (
     UNSET,
 )
 
+from .signals import (
+    pre_save,
+    post_save,
+    pre_delete,
+    post_delete,
+    pre_init,
+    post_init,
+    class_prepared,
+    m2m_changed,
+)
+
+from .manager import Manager, BaseManager
+from .deletion import (
+    CASCADE,
+    SET_NULL,
+    PROTECT,
+    SET_DEFAULT,
+    DO_NOTHING,
+    RESTRICT,
+    OnDeleteHandler,
+    ProtectedError,
+    RestrictedError,
+)
+from .constraint import CheckConstraint
+from .sql_builder import InsertBuilder, UpdateBuilder, DeleteBuilder, CreateTableBuilder
+
 if TYPE_CHECKING:
     from ..db.engine import AquiliaDatabase
+    from .expression import Expression
 
 logger = logging.getLogger("aquilia.models")
 
@@ -318,9 +345,20 @@ class ModelMeta(type):
             if not isinstance(f, ManyToManyField)
         ]
 
+        # Auto-inject default Manager if none declared
+        if not opts.abstract and not any(
+            isinstance(v, BaseManager) for v in namespace.values()
+        ):
+            mgr = Manager()
+            mgr.__set_name__(cls, "objects")
+            cls.objects = mgr
+
         # Register in global registry (skip abstract)
         if not opts.abstract:
             ModelRegistry.register(cls)
+
+            # Signal: class_prepared (fired after model class is fully created)
+            class_prepared.send_sync(sender=cls)
 
         return cls
 
@@ -335,6 +373,7 @@ class Q:
     Usage:
         users = await User.query().where("active = ?", True).order("-id").limit(10).all()
         count = await User.query().where("age > ?", 18).count()
+        result = await User.query().aggregate(avg_age=Avg("age"))
     """
 
     __slots__ = (
@@ -346,6 +385,12 @@ class Q:
         "_limit_val",
         "_offset_val",
         "_db",
+        "_annotations",
+        "_group_by",
+        "_having",
+        "_having_params",
+        "_distinct",
+        "_select_related",
     )
 
     def __init__(self, table: str, model_cls: Type[Model], db: AquiliaDatabase):
@@ -357,6 +402,12 @@ class Q:
         self._limit_val: Optional[int] = None
         self._offset_val: Optional[int] = None
         self._db = db
+        self._annotations: Dict[str, Any] = {}
+        self._group_by: List[str] = []
+        self._having: List[str] = []
+        self._having_params: List[Any] = []
+        self._distinct: bool = False
+        self._select_related: List[str] = []
 
     def where(self, clause: str, *args: Any, **kwargs: Any) -> Q:
         """
@@ -381,54 +432,29 @@ class Q:
     def filter(self, **kwargs: Any) -> Q:
         """
         Django-style filter: User.query().filter(name="John", active=True)
+
+        Supports all lookups: exact, gt, gte, lt, lte, ne, like, ilike,
+        in, isnull, contains, icontains, startswith, istartswith,
+        endswith, iendswith, range, regex.
         """
+        from .query import _build_filter_clause
         new = self._clone()
         for key, value in kwargs.items():
-            if "__" in key:
-                field, op = key.rsplit("__", 1)
-                lookup_map = {
-                    "gt": ">", "gte": ">=", "lt": "<", "lte": "<=",
-                    "ne": "!=", "like": "LIKE", "ilike": "LIKE",
-                    "in": "IN", "isnull": "IS NULL" if value else "IS NOT NULL",
-                    "contains": "LIKE", "startswith": "LIKE", "endswith": "LIKE",
-                }
-                sql_op = lookup_map.get(op, "=")
-
-                if op == "in":
-                    placeholders = ", ".join("?" for _ in value)
-                    new._wheres.append(f'"{field}" IN ({placeholders})')
-                    new._params.extend(value)
-                elif op == "isnull":
-                    null_clause = "IS NULL" if value else "IS NOT NULL"
-                    new._wheres.append(f'"{field}" {null_clause}')
-                elif op == "contains":
-                    new._wheres.append(f'"{field}" LIKE ?')
-                    new._params.append(f"%{value}%")
-                elif op == "startswith":
-                    new._wheres.append(f'"{field}" LIKE ?')
-                    new._params.append(f"{value}%")
-                elif op == "endswith":
-                    new._wheres.append(f'"{field}" LIKE ?')
-                    new._params.append(f"%{value}")
-                elif op == "ilike":
-                    new._wheres.append(f'LOWER("{field}") LIKE LOWER(?)')
-                    new._params.append(value)
-                else:
-                    new._wheres.append(f'"{field}" {sql_op} ?')
-                    new._params.append(value)
-            else:
-                new._wheres.append(f'"{key}" = ?')
-                new._params.append(value)
+            clause, params = _build_filter_clause(key, value)
+            new._wheres.append(clause)
+            new._params.extend(params)
         return new
 
     def exclude(self, **kwargs: Any) -> Q:
         """
         Exclude matching records: User.query().exclude(active=False)
         """
+        from .query import _build_filter_clause
         new = self._clone()
         for key, value in kwargs.items():
-            new._wheres.append(f'"{key}" != ?')
-            new._params.append(value)
+            clause, params = _build_filter_clause(key, value)
+            new._wheres.append(f"NOT ({clause})")
+            new._params.extend(params)
         return new
 
     def order(self, *fields: str) -> Q:
@@ -453,6 +479,76 @@ class Q:
         new._offset_val = n
         return new
 
+    def distinct(self) -> Q:
+        """Apply SELECT DISTINCT."""
+        new = self._clone()
+        new._distinct = True
+        return new
+
+    def annotate(self, **expressions: Any) -> Q:
+        """
+        Add aggregate/expression annotations.
+
+        Usage:
+            from aquilia.models.aggregate import Avg, Count
+            qs = User.query().annotate(avg_age=Avg("age"), num=Count("id"))
+        """
+        new = self._clone()
+        new._annotations.update(expressions)
+        return new
+
+    def group_by(self, *fields: str) -> Q:
+        """GROUP BY clause."""
+        new = self._clone()
+        new._group_by.extend(fields)
+        return new
+
+    def having(self, clause: str, *args: Any) -> Q:
+        """HAVING clause (use after group_by)."""
+        new = self._clone()
+        new._having.append(clause)
+        new._having_params.extend(args)
+        return new
+
+    def select_related(self, *fields: str) -> Q:
+        """
+        Hint for eager loading related objects.
+
+        Currently stores the relation names; actual JOIN-based loading
+        is applied when executing the query.
+        """
+        new = self._clone()
+        new._select_related.extend(fields)
+        return new
+
+    async def aggregate(self, **expressions: Any) -> Dict[str, Any]:
+        """
+        Compute aggregates and return a dict.
+
+        Usage:
+            result = await User.query().aggregate(avg_age=Avg("age"), total=Count("id"))
+            # result == {"avg_age": 25.5, "total": 100}
+        """
+        from .aggregate import Aggregate
+
+        select_parts = []
+        params: List[Any] = []
+        for alias, expr in expressions.items():
+            if isinstance(expr, Aggregate):
+                sql_fragment, expr_params = expr.as_sql("sqlite")
+                select_parts.append(f"{sql_fragment} AS \"{alias}\"")
+                params.extend(expr_params)
+            else:
+                select_parts.append(f"{expr} AS \"{alias}\"")
+
+        sql = f'SELECT {", ".join(select_parts)} FROM "{self._table}"'
+        if self._wheres:
+            sql += " WHERE " + " AND ".join(f"({w})" for w in self._wheres)
+            params.extend(self._params)
+
+        row = await self._db.fetch_one(sql, params)
+        return dict(row) if row else {alias: None for alias in expressions}
+
     def _clone(self) -> Q:
         c = Q(self._table, self._model_cls, self._db)
         c._wheres = self._wheres.copy()
@@ -460,17 +556,62 @@ class Q:
         c._order_clauses = self._order_clauses.copy()
         c._limit_val = self._limit_val
         c._offset_val = self._offset_val
+        c._annotations = self._annotations.copy()
+        c._group_by = self._group_by.copy()
+        c._having = self._having.copy()
+        c._having_params = self._having_params.copy()
+        c._distinct = self._distinct
+        c._select_related = self._select_related.copy()
         return c
 
     def _build_select(self, count: bool = False) -> Tuple[str, List[Any]]:
-        col = "COUNT(*)" if count else "*"
-        sql = f'SELECT {col} FROM "{self._table}"'
+        from .aggregate import Aggregate
+        from .expression import Expression
+
         params = self._params.copy()
+
+        if count:
+            col = "COUNT(*)"
+        elif self._annotations:
+            parts = ["*"]
+            for alias, expr in self._annotations.items():
+                if isinstance(expr, (Aggregate, Expression)):
+                    sql_frag, expr_params = expr.as_sql("sqlite")
+                    parts.append(f'{sql_frag} AS "{alias}"')
+                    params = list(expr_params) + params
+                else:
+                    parts.append(f'{expr} AS "{alias}"')
+            col = ", ".join(parts)
+        else:
+            col = "*"
+
+        distinct = "DISTINCT " if self._distinct and not count else ""
+        sql = f'SELECT {distinct}{col} FROM "{self._table}"'
 
         if self._wheres:
             sql += " WHERE " + " AND ".join(f"({w})" for w in self._wheres)
-        if not count and self._order_clauses:
-            sql += " ORDER BY " + ", ".join(self._order_clauses)
+
+        if self._group_by:
+            sql += " GROUP BY " + ", ".join(f'"{g}"' for g in self._group_by)
+
+        if self._having:
+            sql += " HAVING " + " AND ".join(f"({h})" for h in self._having)
+            params.extend(self._having_params)
+
+        # Apply ordering: explicit order_clauses first, then Meta.ordering default
+        order = self._order_clauses
+        if not count and not order and hasattr(self._model_cls, '_meta'):
+            meta_ordering = getattr(self._model_cls._meta, 'ordering', [])
+            if meta_ordering:
+                order = []
+                for f in meta_ordering:
+                    if f.startswith("-"):
+                        order.append(f'"{f[1:]}" DESC')
+                    else:
+                        order.append(f'"{f}" ASC')
+
+        if not count and order:
+            sql += " ORDER BY " + ", ".join(order)
         if not count and self._limit_val is not None:
             sql += f" LIMIT {self._limit_val}"
         if not count and self._offset_val is not None:
@@ -614,6 +755,7 @@ class Model(metaclass=ModelMeta):
 
     def __init__(self, **kwargs: Any):
         """Create a model instance (in-memory, not persisted)."""
+        pre_init.send_sync(sender=self.__class__, kwargs=kwargs)
         for attr_name, field in self._fields.items():
             if isinstance(field, ManyToManyField):
                 continue
@@ -625,6 +767,7 @@ class Model(metaclass=ModelMeta):
                 setattr(self, attr_name, field.get_default())
             else:
                 setattr(self, attr_name, None)
+        post_init.send_sync(sender=self.__class__, instance=self)
 
     def __repr__(self) -> str:
         pk_val = getattr(self, self._pk_attr, "?")
@@ -661,6 +804,12 @@ class Model(metaclass=ModelMeta):
         """
         db = cls._get_db()
         instance = cls(**data)
+
+        # Validate all fields before persisting (like Django)
+        instance.full_clean()
+
+        # Signal: pre_save (created=True)
+        await pre_save.send(sender=cls, instance=instance, created=True)
 
         # Process fields: defaults, auto_now_add, validation
         final_data: Dict[str, Any] = {}
@@ -702,16 +851,16 @@ class Model(metaclass=ModelMeta):
                 reason="Cannot create record with empty data",
             )
 
-        cols = list(final_data.keys())
-        placeholders = ", ".join("?" for _ in cols)
-        col_names = ", ".join(f'"{c}"' for c in cols)
-        values = list(final_data.values())
-
-        sql = f'INSERT INTO "{cls._table_name}" ({col_names}) VALUES ({placeholders})'
+        # Use InsertBuilder from sql_builder for safe, consistent SQL generation
+        builder = InsertBuilder(cls._table_name).from_dict(final_data)
+        sql, values = builder.build()
         cursor = await db.execute(sql, values)
 
         if cursor.lastrowid:
             setattr(instance, cls._pk_attr, cursor.lastrowid)
+
+        # Signal: post_save (created=True)
+        await post_save.send(sender=cls, instance=instance, created=True)
 
         return instance
 
@@ -824,6 +973,10 @@ class Model(metaclass=ModelMeta):
         """
         pk_val = getattr(self, self._pk_attr, None)
         db = self._get_db()
+        is_create = pk_val is None
+
+        # Signal: pre_save
+        await pre_save.send(sender=self.__class__, instance=self, created=is_create)
 
         if pk_val is not None:
             # Update
@@ -843,12 +996,10 @@ class Model(metaclass=ModelMeta):
                     data[field.column_name] = None
 
             if data:
-                set_parts = [f'"{k}" = ?' for k in data]
-                params = list(data.values()) + [pk_val]
-                sql = (
-                    f'UPDATE "{self._table_name}" SET {", ".join(set_parts)} '
-                    f'WHERE "{self._pk_name}" = ?'
-                )
+                # Use UpdateBuilder from sql_builder for safe SQL
+                builder = UpdateBuilder(self._table_name).set_dict(data)
+                builder.where(f'"{self._pk_name}" = ?', pk_val)
+                sql, params = builder.build()
                 await db.execute(sql, params)
         else:
             # Insert
@@ -861,19 +1012,107 @@ class Model(metaclass=ModelMeta):
             )
             setattr(self, self._pk_attr, getattr(result, self._pk_attr))
 
+        # Signal: post_save
+        await post_save.send(sender=self.__class__, instance=self, created=is_create)
+
         return self
 
     async def delete_instance(self) -> int:
-        """Delete this instance from database."""
+        """
+        Delete this instance from database.
+
+        Handles on_delete cascading via OnDeleteHandler from deletion.py:
+        - CASCADE: delete related records
+        - SET_NULL: set FK to NULL
+        - PROTECT: raise ProtectedError if references exist
+        - RESTRICT: raise RestrictedError if references exist
+        """
         pk_val = getattr(self, self._pk_attr)
         if pk_val is None:
             raise ValueError("Cannot delete unsaved instance")
+
+        # Signal: pre_delete
+        await pre_delete.send(sender=self.__class__, instance=self)
+
         db = self._get_db()
-        cursor = await db.execute(
-            f'DELETE FROM "{self._table_name}" WHERE "{self._pk_name}" = ?',
-            [pk_val],
-        )
-        return cursor.rowcount
+
+        # Handle on_delete for models that FK to us
+        for model_cls in ModelRegistry.all_models().values():
+            for fname, field in model_cls._fields.items():
+                if isinstance(field, ForeignKey):
+                    target_name = field.to if isinstance(field.to, str) else field.to.__name__
+                    if target_name == self.__class__.__name__:
+                        handler = OnDeleteHandler(field.on_delete)
+                        await handler.handle(db, model_cls, field.column_name, pk_val)
+
+        # Delete this instance using DeleteBuilder
+        builder = DeleteBuilder(self._table_name)
+        builder.where(f'"{self._pk_name}" = ?', pk_val)
+        sql, params = builder.build()
+        cursor = await db.execute(sql, params)
+        row_count = cursor.rowcount
+
+        # Signal: post_delete
+        await post_delete.send(sender=self.__class__, instance=self)
+
+        return row_count
+
+    def full_clean(self, exclude: Optional[List[str]] = None) -> None:
+        """
+        Validate instance completely — like Django's Model.full_clean().
+
+        Calls:
+        1. clean_fields() — per-field validation (type, null, choices, validators)
+        2. clean() — model-level cross-field validation (override in subclass)
+
+        Raises:
+            FieldValidationError: If any field fails validation
+        """
+        self.clean_fields(exclude=exclude)
+        self.clean()
+
+    def clean_fields(self, exclude: Optional[List[str]] = None) -> None:
+        """
+        Validate all fields on this instance.
+
+        Runs field.validate() for each field, collecting errors.
+
+        Raises:
+            FieldValidationError: On first validation failure
+        """
+        exclude = set(exclude or [])
+        errors: Dict[str, str] = {}
+        for attr_name, field in self._fields.items():
+            if isinstance(field, ManyToManyField):
+                continue
+            if attr_name in exclude:
+                continue
+            value = getattr(self, attr_name, None)
+            try:
+                field.validate(value)
+            except FieldValidationError as e:
+                errors[attr_name] = str(e)
+        if errors:
+            first_field = next(iter(errors))
+            raise FieldValidationError(first_field, errors[first_field])
+
+    def clean(self) -> None:
+        """
+        Model-level validation hook — override in subclasses.
+
+        Called by full_clean() after clean_fields(). Use for cross-field
+        validation logic.
+
+        Usage:
+            class Event(Model):
+                start = DateTimeField()
+                end = DateTimeField()
+
+                def clean(self):
+                    if self.start and self.end and self.start > self.end:
+                        raise FieldValidationError("end", "End must be after start")
+        """
+        pass
 
     async def refresh(self) -> Model:
         """Reload instance from database."""
@@ -973,6 +1212,15 @@ class Model(metaclass=ModelMeta):
                 [pk_val, target_pk],
             )
 
+        # Signal: m2m_changed
+        await m2m_changed.send(
+            sender=self.__class__,
+            instance=self,
+            action="attach",
+            model=name,
+            pk_set=[t if isinstance(t, (int, str)) else getattr(t, t._pk_attr) for t in targets],
+        )
+
     async def detach(self, name: str, *targets: Any) -> None:
         """
         Detach records from a M2M relationship.
@@ -995,6 +1243,15 @@ class Model(metaclass=ModelMeta):
                 f'DELETE FROM "{jt}" WHERE "{src_col}" = ? AND "{tgt_col}" = ?',
                 [pk_val, target_pk],
             )
+
+        # Signal: m2m_changed
+        await m2m_changed.send(
+            sender=self.__class__,
+            instance=self,
+            action="detach",
+            model=name,
+            pk_set=[t if isinstance(t, (int, str)) else getattr(t, t._pk_attr) for t in targets],
+        )
 
     # ── Serialization ────────────────────────────────────────────────
 
@@ -1050,27 +1307,30 @@ class Model(metaclass=ModelMeta):
 
     @classmethod
     def generate_create_table_sql(cls, dialect: str = "sqlite") -> str:
-        """Generate CREATE TABLE SQL."""
-        cols: List[str] = []
+        """Generate CREATE TABLE SQL using CreateTableBuilder."""
+        builder = CreateTableBuilder(cls._table_name)
+
         for attr_name, field in cls._fields.items():
             if isinstance(field, ManyToManyField):
                 continue
             col_def = field.sql_column_def(dialect)
             if col_def:
-                cols.append(col_def)
+                builder.column(col_def)
 
         # unique_together constraints
         for ut in cls._meta.unique_together:
             col_list = ", ".join(f'"{f}"' for f in ut)
-            cols.append(f"UNIQUE ({col_list})")
+            builder.constraint(f"UNIQUE ({col_list})")
 
-        # UniqueConstraint from Meta.constraints
+        # Meta.constraints — CheckConstraint, UniqueConstraint, etc.
         for constraint in cls._meta.constraints:
-            col_list = ", ".join(f'"{f}"' for f in constraint.fields)
-            cols.append(f"UNIQUE ({col_list})")
+            if isinstance(constraint, CheckConstraint):
+                builder.constraint(constraint.sql(cls._table_name, dialect))
+            elif hasattr(constraint, 'fields'):
+                col_list = ", ".join(f'"{f}"' for f in constraint.fields)
+                builder.constraint(f"UNIQUE ({col_list})")
 
-        body = ",\n  ".join(cols)
-        return f'CREATE TABLE IF NOT EXISTS "{cls._table_name}" (\n  {body}\n);'
+        return builder.build()
 
     @classmethod
     def generate_index_sql(cls, dialect: str = "sqlite") -> List[str]:

@@ -484,3 +484,317 @@ def cmd_shell(
         loop.close()
     except (ImportError, Exception) as e:
         click.echo(click.style(f"Shell error: {e}", fg="red"))
+
+
+# ── New Commands ──────────────────────────────────────────────────────────────
+
+
+def cmd_inspectdb(
+    database_url: str = "sqlite:///db.sqlite3",
+    tables: Optional[List[str]] = None,
+    verbose: bool = False,
+) -> str:
+    """
+    Introspect an existing database and generate Model classes.
+
+    Reads the database schema and emits Python Model definitions
+    that can be pasted into a models.py file.
+
+    Args:
+        database_url: Database connection URL
+        tables: Specific tables to inspect (None = all)
+        verbose: Verbose output
+
+    Returns:
+        Generated Python source code
+    """
+    from aquilia.db import AquiliaDatabase
+
+    async def _run() -> str:
+        db = AquiliaDatabase(database_url)
+        await db.connect()
+
+        try:
+            # Get table list
+            if database_url.startswith("sqlite"):
+                rows = await db.fetch_all(
+                    "SELECT name FROM sqlite_master WHERE type='table' "
+                    "AND name NOT LIKE 'sqlite_%' ORDER BY name"
+                )
+                all_tables = [row["name"] for row in rows]
+            else:
+                all_tables = []
+
+            if tables:
+                all_tables = [t for t in all_tables if t in tables]
+
+            if not all_tables:
+                return "# No tables found in database."
+
+            lines = [
+                '"""',
+                "Auto-generated Model definitions from database introspection.",
+                "",
+                f"Database: {database_url}",
+                '"""',
+                "",
+                "from aquilia.models import Model",
+                "from aquilia.models.fields import (",
+                "    CharField, IntegerField, FloatField, BooleanField,",
+                "    TextField, DateTimeField, DecimalField, BigIntegerField,",
+                "    BinaryField, JSONField,",
+                ")",
+                "",
+                "",
+            ]
+
+            for table_name in all_tables:
+                if verbose:
+                    click.echo(click.style(f"  Inspecting: {table_name}", fg="blue"))
+
+                # Get table schema
+                if database_url.startswith("sqlite"):
+                    col_rows = await db.fetch_all(f'PRAGMA table_info("{table_name}")')
+                else:
+                    col_rows = []
+
+                class_name = _table_to_class_name(table_name)
+                lines.append(f"class {class_name}(Model):")
+                lines.append(f'    table = "{table_name}"')
+                lines.append("")
+
+                for col in col_rows:
+                    col_name = col["name"]
+                    col_type = col["type"].upper()
+                    notnull = col["notnull"]
+                    pk = col["pk"]
+                    default_val = col["dflt_value"]
+
+                    if pk:
+                        # Skip auto-PK — Model adds it automatically
+                        continue
+
+                    field_type, field_args = _sql_type_to_field(col_type, notnull, default_val)
+                    lines.append(f"    {col_name} = {field_type}({field_args})")
+
+                lines.append("")
+                lines.append(f"    class Meta:")
+                lines.append(f'        verbose_name = "{class_name}"')
+                lines.append("")
+                lines.append("")
+
+            return "\n".join(lines)
+        finally:
+            await db.disconnect()
+
+    return asyncio.run(_run())
+
+
+def cmd_showmigrations(
+    migrations_dir: str = "migrations",
+    verbose: bool = False,
+) -> List[dict]:
+    """
+    Show all migrations and their status (applied / pending).
+
+    Returns:
+        List of dicts with keys: name, applied, timestamp
+    """
+    migrations_path = Path(migrations_dir)
+
+    if not migrations_path.is_dir():
+        click.echo(click.style(f"No migrations directory: {migrations_dir}", fg="yellow"))
+        return []
+
+    results: List[dict] = []
+    for pyf in sorted(migrations_path.glob("*.py")):
+        if pyf.name.startswith("_"):
+            continue
+        name = pyf.stem
+        info = {
+            "name": name,
+            "file": str(pyf),
+            "applied": False,  # Would check DB _migrations table in real impl
+        }
+        results.append(info)
+        marker = click.style("[X]", fg="green") if info["applied"] else click.style("[ ]", fg="yellow")
+        click.echo(f"  {marker} {name}")
+
+    if not results:
+        click.echo(click.style("  No migrations found.", fg="yellow"))
+
+    return results
+
+
+def cmd_sqlmigrate(
+    migration_name: str,
+    migrations_dir: str = "migrations",
+    verbose: bool = False,
+) -> Optional[str]:
+    """
+    Display the SQL statements for a specific migration.
+
+    Args:
+        migration_name: Name of the migration file (without .py)
+        migrations_dir: Directory containing migration files
+
+    Returns:
+        SQL string or None
+    """
+    migrations_path = Path(migrations_dir)
+    target = migrations_path / f"{migration_name}.py"
+
+    if not target.is_file():
+        # Try partial match
+        candidates = list(migrations_path.glob(f"*{migration_name}*.py"))
+        if len(candidates) == 1:
+            target = candidates[0]
+        elif len(candidates) > 1:
+            click.echo(click.style(f"Ambiguous: {[c.stem for c in candidates]}", fg="yellow"))
+            return None
+        else:
+            click.echo(click.style(f"Migration not found: {migration_name}", fg="red"))
+            return None
+
+    # Read and extract SQL from migration file
+    source = target.read_text(encoding="utf-8")
+
+    # Extract SQL from upgrade() function — look for execute() calls
+    import re
+    sql_statements = re.findall(r'(?:execute|executescript)\s*\(\s*["\']+(.*?)["\']+\s*\)', source, re.DOTALL)
+
+    # Also extract triple-quoted SQL
+    sql_statements += re.findall(r'(?:execute|executescript)\s*\(\s*"""(.*?)"""\s*\)', source, re.DOTALL)
+    sql_statements += re.findall(r"(?:execute|executescript)\s*\(\s*'''(.*?)'''\s*\)", source, re.DOTALL)
+
+    if sql_statements:
+        output = f"-- SQL for migration: {target.stem}\n"
+        for sql in sql_statements:
+            output += f"\n{sql.strip()};\n"
+        click.echo(output)
+        return output
+    else:
+        # Fallback: just show the migration source
+        click.echo(click.style(f"-- Migration: {target.stem}", fg="cyan"))
+        click.echo(source)
+        return source
+
+
+def cmd_db_status(
+    database_url: str = "sqlite:///db.sqlite3",
+    verbose: bool = False,
+) -> dict:
+    """
+    Show database status — tables, row counts, schema details.
+
+    Returns:
+        Dict with database status information
+    """
+    from aquilia.db import AquiliaDatabase
+
+    async def _run() -> dict:
+        db = AquiliaDatabase(database_url)
+        await db.connect()
+
+        try:
+            status = {
+                "url": database_url,
+                "tables": [],
+                "total_tables": 0,
+            }
+
+            if database_url.startswith("sqlite"):
+                rows = await db.fetch_all(
+                    "SELECT name FROM sqlite_master WHERE type='table' "
+                    "AND name NOT LIKE 'sqlite_%' ORDER BY name"
+                )
+                for row in rows:
+                    table_name = row["name"]
+                    count_row = await db.fetch_one(f'SELECT COUNT(*) as cnt FROM "{table_name}"')
+                    count = count_row["cnt"] if count_row else 0
+
+                    col_rows = await db.fetch_all(f'PRAGMA table_info("{table_name}")')
+                    col_count = len(col_rows)
+
+                    table_info = {
+                        "name": table_name,
+                        "rows": count,
+                        "columns": col_count,
+                    }
+                    status["tables"].append(table_info)
+
+                    # Display
+                    row_str = click.style(f"{count:>8} rows", fg="cyan")
+                    col_str = click.style(f"{col_count} columns", dim=True)
+                    click.echo(f"  {table_name:<30} {row_str}  ({col_str})")
+
+                status["total_tables"] = len(status["tables"])
+
+            click.echo(
+                click.style(
+                    f"\n  Total: {status['total_tables']} table(s), "
+                    f"{sum(t['rows'] for t in status['tables'])} row(s)",
+                    fg="green",
+                    bold=True,
+                )
+            )
+
+            return status
+        finally:
+            await db.disconnect()
+
+    return asyncio.run(_run())
+
+
+# ── Internal Helpers ──────────────────────────────────────────────────────────
+
+
+def _table_to_class_name(table_name: str) -> str:
+    """Convert a table name to a PascalCase class name."""
+    # users → User, order_items → OrderItem
+    parts = table_name.replace("-", "_").split("_")
+    return "".join(part.capitalize() for part in parts if part)
+
+
+def _sql_type_to_field(
+    col_type: str, notnull: int, default_val: Optional[str]
+) -> tuple:
+    """Map an SQL column type to an Aquilia field type + args."""
+    args: List[str] = []
+
+    if not notnull:
+        args.append("null=True")
+    if default_val is not None and default_val not in ("NULL", ""):
+        args.append(f"default={default_val}")
+
+    col_upper = col_type.upper()
+
+    if "INT" in col_upper:
+        if "BIGINT" in col_upper:
+            return "BigIntegerField", ", ".join(args)
+        return "IntegerField", ", ".join(args)
+    elif "CHAR" in col_upper or "VARCHAR" in col_upper:
+        # Extract max_length from VARCHAR(N)
+        import re
+        m = re.search(r'\((\d+)\)', col_type)
+        if m:
+            args.insert(0, f"max_length={m.group(1)}")
+        else:
+            args.insert(0, "max_length=255")
+        return "CharField", ", ".join(args)
+    elif "TEXT" in col_upper or "CLOB" in col_upper:
+        return "TextField", ", ".join(args)
+    elif "REAL" in col_upper or "FLOAT" in col_upper or "DOUBLE" in col_upper:
+        return "FloatField", ", ".join(args)
+    elif "DECIMAL" in col_upper or "NUMERIC" in col_upper:
+        return "DecimalField", ", ".join(args)
+    elif "BOOL" in col_upper:
+        return "BooleanField", ", ".join(args)
+    elif "BLOB" in col_upper:
+        return "BinaryField", ", ".join(args)
+    elif "DATETIME" in col_upper or "TIMESTAMP" in col_upper:
+        return "DateTimeField", ", ".join(args)
+    elif "JSON" in col_upper:
+        return "JSONField", ", ".join(args)
+    else:
+        return "CharField", "max_length=255" + (", " + ", ".join(args) if args else "")

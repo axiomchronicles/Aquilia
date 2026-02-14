@@ -225,7 +225,8 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
                     manifest_content,
                     discovered_controllers,
                     discovered_services,
-                    module_dir=module_dir  # Pass module path for validation
+                    module_dir=module_dir,  # Pass module path for validation
+                    discovered_sockets=discovered_sockets,
                 )
             except Exception as e:
                 if verbose:

@@ -6,8 +6,10 @@ Injects common variables into template context:
 - session: Active session (if available)
 - identity: Authenticated identity (if available)
 - url_for: URL generation helper
+- static: Static asset URL generator (like Django's {% static %})
 - csrf_token: CSRF token (if available)
 - config: Safe config subset
+- csp_nonce: CSP nonce (if CSPMiddleware is active)
 """
 
 from typing import Any, Callable, Optional, TYPE_CHECKING
@@ -31,13 +33,17 @@ class TemplateMiddleware:
     - session: Session object (if sessions enabled)
     - identity: Authenticated user (if auth successful)
     - url_for: URL generation function
+    - static: Static asset URL function (prefix-aware)
     - csrf_token: CSRF token string
     - config: Safe config values
+    - csp_nonce: Per-request CSP nonce (if CSPMiddleware is active)
     
     Args:
         url_for: URL generation function
         config: Application config
         csrf_token_func: Function to get CSRF token from request
+        static_url_prefix: URL prefix for static files (default "/static")
+        static_url_func: Custom function for static URL generation
     
     Example:
         middleware = TemplateMiddleware(
@@ -51,11 +57,15 @@ class TemplateMiddleware:
         self,
         url_for: Optional[Callable] = None,
         config: Optional[Any] = None,
-        csrf_token_func: Optional[Callable] = None
+        csrf_token_func: Optional[Callable] = None,
+        static_url_prefix: str = "/static",
+        static_url_func: Optional[Callable] = None,
     ):
         self.url_for = url_for or self._default_url_for
         self.config = config
         self.csrf_token_func = csrf_token_func
+        self._static_prefix = static_url_prefix.rstrip("/")
+        self._static_url_func = static_url_func
     
     async def __call__(
         self,
@@ -81,6 +91,13 @@ class TemplateMiddleware:
         # Inject helpers
         request.state["template_url_for"] = self.url_for
         request.state["template_config"] = self._get_safe_config()
+        
+        # Static URL function — available as {{ static('css/app.css') }} in templates
+        if self._static_url_func:
+            request.state["template_static"] = self._static_url_func
+        else:
+            prefix = self._static_prefix
+            request.state["template_static"] = lambda path: f"{prefix}/{path.lstrip('/')}"
         
         if self.csrf_token_func:
             request.state["template_csrf_token"] = self.csrf_token_func(request)

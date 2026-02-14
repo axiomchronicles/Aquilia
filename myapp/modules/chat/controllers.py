@@ -6,17 +6,20 @@ Showcases:
 - Chat room management endpoints
 - Message history retrieval
 - Online presence endpoints
+- Template rendering with TemplateEngine
 """
 
 from aquilia import Controller, GET, POST, DELETE, RequestCtx, Response
+from aquilia.templates import TemplateEngine
 from .services import ChatRoomService, MessageService, PresenceService
 
 
 class ChatController(Controller):
     """
-    Chat REST API controller.
+    Chat REST API controller with template rendering.
 
     Provides HTTP endpoints for:
+    - Web UI (template-rendered)
     - Room management (CRUD)
     - Message history
     - Online user presence
@@ -32,10 +35,55 @@ class ChatController(Controller):
         rooms: ChatRoomService = None,
         messages: MessageService = None,
         presence: PresenceService = None,
+        templates: TemplateEngine = None,
     ):
         self.rooms = rooms or ChatRoomService()
         self.messages = messages or MessageService()
         self.presence = presence or PresenceService()
+        self.templates = templates
+
+    # ── Web UI ───────────────────────────────────────────────────────────
+
+    @GET("/")
+    async def chat_index(self, ctx: RequestCtx):
+        """
+        Render the main chat interface.
+
+        GET /chat
+        """
+        if self.templates:
+            return await self.templates.render_to_response(
+                "chat_index.html",
+                {},
+                request_ctx=ctx
+            )
+        return Response.html(
+            "<h1>Chat</h1><p>Template engine not available. Enable templates in config.</p>"
+        )
+
+    @GET("/room/«room_id:str»")
+    async def room_details(self, ctx: RequestCtx, room_id: str):
+        """
+        Render room details page.
+
+        GET /chat/room/<room_id>
+        """
+        room = await self.rooms.get_room(room_id)
+        if not room:
+            return Response.html("<h1>404</h1><p>Room not found</p>", status=404)
+
+        messages = await self.messages.get_history(room_id, limit=20)
+
+        if self.templates:
+            return await self.templates.render_to_response(
+                "chat_room.html",
+                {
+                    "room": room,
+                    "messages": messages,
+                },
+                request_ctx=ctx
+            )
+        return Response.json({"room": room, "messages": messages})
 
     # ── Rooms ────────────────────────────────────────────────────────────
 

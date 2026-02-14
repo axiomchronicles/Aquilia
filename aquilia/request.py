@@ -284,6 +284,7 @@ class Request:
     # Query Parameters
     # ========================================================================
     
+    @property
     def query_params(self) -> MultiDict:
         """Get parsed query parameters as MultiDict."""
         if self._query_params is None:
@@ -298,12 +299,13 @@ class Request:
     
     def query_param(self, name: str, default: Optional[str] = None) -> Optional[str]:
         """Get single query parameter."""
-        return self.query_params().get(name, default)
+        return self.query_params.get(name, default)
     
     # ========================================================================
     # Headers
     # ========================================================================
     
+    @property
     def headers(self) -> Headers:
         """Get parsed headers."""
         if self._headers is None:
@@ -313,16 +315,17 @@ class Request:
     
     def header(self, name: str, default: Optional[str] = None) -> Optional[str]:
         """Get single header (case-insensitive)."""
-        return self.headers().get(name, default)
+        return self.headers.get(name, default)
     
     def has_header(self, name: str) -> bool:
         """Check if header exists."""
-        return self.headers().has(name)
+        return self.headers.has(name)
     
     # ========================================================================
     # Cookies
     # ========================================================================
     
+    @property
     def cookies(self) -> Mapping[str, str]:
         """Get parsed cookies."""
         if self._cookies is None:
@@ -337,7 +340,7 @@ class Request:
     
     def cookie(self, name: str, default: Optional[str] = None) -> Optional[str]:
         """Get single cookie value."""
-        return self.cookies().get(name, default)
+        return self.cookies.get(name, default)
     
     # ========================================================================
     # URL Building
@@ -1467,7 +1470,7 @@ class Request:
         context.setdefault("url", self.url())
         context.setdefault("method", self.method)
         context.setdefault("path", self.path)
-        context.setdefault("query_params", dict(self.query_params()))
+        context.setdefault("query_params", dict(self.query_params))
         context.setdefault("flash_messages", self.flash_messages)
         context.setdefault("has_role", self.has_role)
         

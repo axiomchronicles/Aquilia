@@ -114,6 +114,13 @@ class WorkspaceGenerator:
                 normalized_services = [s["path"] if isinstance(s, dict) else s for s in services_list]
                 services_str = ',\n            '.join(f'"{svc}"' for svc in normalized_services)
                 config_chain += f'\n        .register_services(\n            {services_str}\n        )'
+
+            # Add discovered socket controllers registration
+            sockets_list = mod_data.get('socket_controllers_list', [])
+            if sockets_list and len(sockets_list) > 0:
+                normalized_sockets = [s["path"] if isinstance(s, dict) else s for s in sockets_list]
+                sockets_str = ',\n            '.join(f'"{sock}"' for sock in normalized_sockets)
+                config_chain += f'\n        .register_sockets(\n            {sockets_str}\n        )'
             
             # .module at same level as .integrate (4 spaces)
             module_line = f'    .module({config_chain})'
@@ -262,6 +269,9 @@ class WorkspaceGenerator:
                 manifest_controllers_list = self._extract_list(manifest_content, r'controllers=\s*\[(.*?)\]', [])
                 manifest_middleware_list = self._extract_list(manifest_content, r'middleware=\s*\[(.*?)\]', [])
                 
+                # Extract socket controllers from manifest declarations
+                manifest_socket_controllers_list = self._extract_list(manifest_content, r'socket_controllers=\s*\[(.*?)\]', [])
+
                 # ENHANCED: Use intelligent discovery to properly classify items
                 try:
                     result = discovery.discover_module_controllers_and_services(
@@ -269,22 +279,26 @@ class WorkspaceGenerator:
                     )
                     # Handle both 2-tuple (legacy) and 3-tuple (new) return values
                     if len(result) == 3:
-                        discovered_controllers, discovered_services, _discovered_sockets = result
+                        discovered_controllers, discovered_services, discovered_sockets = result
                     else:
                         discovered_controllers, discovered_services = result
+                        discovered_sockets = []
                     
                     # Use discovered classification (more accurate than manifest)
                     services_list = discovered_services if discovered_services else manifest_services_list
                     controllers_list = discovered_controllers if discovered_controllers else manifest_controllers_list
+                    socket_controllers_list = discovered_sockets if discovered_sockets else manifest_socket_controllers_list
                     
                 except Exception:
                     # Fallback to manifest declarations if discovery fails
                     services_list = manifest_services_list
                     controllers_list = manifest_controllers_list
+                    socket_controllers_list = manifest_socket_controllers_list
                 
                 # Check for actual declarations/discoveries
                 has_services = len(services_list) > 0
                 has_controllers = len(controllers_list) > 0
+                has_sockets = len(socket_controllers_list) > 0
                 has_middleware = len(manifest_middleware_list) > 0
                 
                 discovered_modules[mod_name] = {
@@ -299,12 +313,15 @@ class WorkspaceGenerator:
                     'depends_on': depends_on,
                     'has_services': has_services,
                     'has_controllers': has_controllers,
+                    'has_sockets': has_sockets,
                     'has_middleware': has_middleware,
                     'services_list': services_list,
                     'controllers_list': controllers_list,
+                    'socket_controllers_list': socket_controllers_list,
                     'middleware_list': manifest_middleware_list,
                     'services_count': len(services_list),
                     'controllers_count': len(controllers_list),
+                    'socket_controllers_count': len(socket_controllers_list),
                     'middleware_count': len(manifest_middleware_list),
                     'manifest_path': mod_dir / 'manifest.py',
                 }
@@ -418,6 +435,13 @@ class WorkspaceGenerator:
                     normalized_services = [s["path"] if isinstance(s, dict) else s for s in services_list]
                     services_str = ',\n            '.join(f'"{svc}"' for svc in normalized_services)
                     config_chain += f'\n        .register_services(\n            {services_str}\n        )'
+
+                # Add discovered socket controllers registration
+                sockets_list = mod.get('socket_controllers_list', [])
+                if sockets_list and len(sockets_list) > 0:
+                    normalized_sockets = [s["path"] if isinstance(s, dict) else s for s in sockets_list]
+                    sockets_str = ',\n            '.join(f'"{sock}"' for sock in normalized_sockets)
+                    config_chain += f'\n        .register_sockets(\n            {sockets_str}\n        )'
                 
                 # .module(Module(...) on same line, then chain methods indented
                 module_line = f'.module({config_chain}\n    ))'
@@ -494,6 +518,13 @@ class WorkspaceGenerator:
                     .secure()
                 )
 
+                # Static Files - Serve static assets (CSS, JS, images)
+                .integrate(Integration.static_files(
+                    directories={{"/static": "static"}},
+                    cache_max_age=86400,
+                    etag=True,
+                ))
+
                 # Sessions - Configure session management
                 .sessions(
                     policies=[
@@ -524,11 +555,17 @@ class WorkspaceGenerator:
                 )
 
                 # Security - Enable/disable security features
+                # These flags control which security middleware are auto-registered.
+                # For fine-grained control, use Integration.cors(), Integration.csp(),
+                # Integration.rate_limit() with .integrate().
                 .security(
-                    cors_enabled=False,
-                    csrf_protection=False,
-                    helmet_enabled=True,
-                    rate_limiting=True,
+                    cors_enabled=False,       # Enable CORS (configure with Integration.cors() for details)
+                    csrf_protection=False,    # Enable CSRF protection tokens
+                    helmet_enabled=True,      # Enable Helmet-style security headers (X-Frame-Options, etc.)
+                    rate_limiting=True,       # Enable rate limiting (100 req/min default)
+                    https_redirect=False,     # Enable HTTP→HTTPS redirect (enable in production)
+                    hsts=False,               # Enable HSTS header (enable in production)
+                    proxy_fix=False,          # Enable X-Forwarded-* processing (enable behind reverse proxy)
                 )
 
                 # Telemetry - Enable observability

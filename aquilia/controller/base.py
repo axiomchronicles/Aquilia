@@ -54,7 +54,7 @@ class RequestCtx:
     @property
     def query_params(self) -> Dict[str, list]:
         """Query parameters (parsed from query string)."""
-        return self.request.query
+        return self.request.query_params
     
     def query_param(self, key: str, default: Optional[str] = None) -> Optional[str]:
         """Get single query parameter."""

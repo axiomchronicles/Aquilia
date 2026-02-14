@@ -773,7 +773,8 @@ class TestQBuilder:
     def test_q_exclude(self):
         M = fresh_model("QExcludeModel", attrs={"status": CharField(max_length=20)})
         q = self._q(M).exclude(status="deleted")
-        assert "!=" in q._wheres[0]
+        # exclude now wraps with NOT() via _build_filter_clause
+        assert "NOT" in q._wheres[0] and '"status" = ?' in q._wheres[0]
 
     def test_q_order(self):
         M = fresh_model("QOrderModel", attrs={"name": CharField(max_length=100)})
@@ -1374,3 +1375,621 @@ class TestModelIntegration:
         assert "INTEGER" in sql
         assert "REAL" in sql
         assert "UNIQUE" in sql
+
+
+# ============================================================================
+# Deep Integration Tests — Cross-Module Connectivity
+# ============================================================================
+
+
+class TestLookupRegistryIntegration:
+    """Tests that Q.filter() delegates to fields.lookups.resolve_lookup()."""
+
+    def _q(self, model_cls):
+        mock_db = MagicMock()
+        return Q(table=model_cls._table_name, model_cls=model_cls, db=mock_db)
+
+    def test_filter_exact_via_lookup(self):
+        M = fresh_model("LkExact", attrs={"name": CharField(max_length=50)})
+        q = self._q(M).filter(name__exact="Alice")
+        assert '"name" = ?' in q._wheres[0]
+        assert "Alice" in q._params
+
+    def test_filter_iexact_via_lookup(self):
+        M = fresh_model("LkIExact", attrs={"name": CharField(max_length=50)})
+        q = self._q(M).filter(name__iexact="alice")
+        assert "LOWER" in q._wheres[0]
+        assert "alice" in q._params
+
+    def test_filter_contains_via_lookup(self):
+        M = fresh_model("LkContains", attrs={"bio": TextField()})
+        q = self._q(M).filter(bio__contains="python")
+        assert "LIKE" in q._wheres[0]
+        assert "%python%" in q._params
+
+    def test_filter_icontains_via_lookup(self):
+        M = fresh_model("LkIContains", attrs={"bio": TextField()})
+        q = self._q(M).filter(bio__icontains="python")
+        assert "LOWER" in q._wheres[0]
+        assert "LIKE" in q._wheres[0]
+
+    def test_filter_startswith_via_lookup(self):
+        M = fresh_model("LkStartsWith", attrs={"name": CharField(max_length=50)})
+        q = self._q(M).filter(name__startswith="Al")
+        assert "LIKE" in q._wheres[0]
+        assert "Al%" in q._params
+
+    def test_filter_endswith_via_lookup(self):
+        M = fresh_model("LkEndsWith", attrs={"name": CharField(max_length=50)})
+        q = self._q(M).filter(name__endswith="ice")
+        assert "LIKE" in q._wheres[0]
+        assert "%ice" in q._params
+
+    def test_filter_gt_via_lookup(self):
+        M = fresh_model("LkGt", attrs={"age": IntegerField()})
+        q = self._q(M).filter(age__gt=18)
+        assert '"age" > ?' in q._wheres[0]
+
+    def test_filter_gte_via_lookup(self):
+        M = fresh_model("LkGte", attrs={"age": IntegerField()})
+        q = self._q(M).filter(age__gte=18)
+        assert '"age" >= ?' in q._wheres[0]
+
+    def test_filter_lt_via_lookup(self):
+        M = fresh_model("LkLt", attrs={"age": IntegerField()})
+        q = self._q(M).filter(age__lt=65)
+        assert '"age" < ?' in q._wheres[0]
+
+    def test_filter_lte_via_lookup(self):
+        M = fresh_model("LkLte", attrs={"age": IntegerField()})
+        q = self._q(M).filter(age__lte=65)
+        assert '"age" <= ?' in q._wheres[0]
+
+    def test_filter_in_via_lookup(self):
+        M = fresh_model("LkIn", attrs={"status": CharField(max_length=20)})
+        q = self._q(M).filter(status__in=["active", "pending"])
+        assert "IN" in q._wheres[0]
+        assert "active" in q._params
+        assert "pending" in q._params
+
+    def test_filter_isnull_via_lookup(self):
+        M = fresh_model("LkIsNull", attrs={"email": CharField(max_length=100, null=True)})
+        q = self._q(M).filter(email__isnull=True)
+        assert "IS NULL" in q._wheres[0]
+
+    def test_filter_isnull_false_via_lookup(self):
+        M = fresh_model("LkIsNotNull", attrs={"email": CharField(max_length=100, null=True)})
+        q = self._q(M).filter(email__isnull=False)
+        assert "IS NOT NULL" in q._wheres[0]
+
+    def test_filter_range_via_lookup(self):
+        M = fresh_model("LkRange", attrs={"price": FloatField()})
+        q = self._q(M).filter(price__range=(10.0, 50.0))
+        assert "BETWEEN" in q._wheres[0]
+        assert 10.0 in q._params
+        assert 50.0 in q._params
+
+    def test_filter_regex_via_lookup(self):
+        M = fresh_model("LkRegex", attrs={"code": CharField(max_length=20)})
+        q = self._q(M).filter(code__regex=r"^[A-Z]+$")
+        assert "REGEXP" in q._wheres[0]
+
+    def test_filter_date_via_lookup(self):
+        """Date lookup should use DATE() function."""
+        M = fresh_model("LkDate", attrs={"created": DateTimeField()})
+        q = self._q(M).filter(created__date="2024-01-01")
+        assert "DATE" in q._wheres[0]
+
+    def test_filter_year_via_lookup(self):
+        """Year lookup should use STRFTIME for sqlite."""
+        M = fresh_model("LkYear", attrs={"created": DateTimeField()})
+        q = self._q(M).filter(created__year=2024)
+        assert "STRFTIME" in q._wheres[0] or "EXTRACT" in q._wheres[0]
+
+    def test_filter_legacy_ne_still_works(self):
+        """ne is not in lookup registry — should still work via fallback."""
+        M = fresh_model("LkNe", attrs={"status": CharField(max_length=20)})
+        q = self._q(M).filter(status__ne="deleted")
+        assert "!=" in q._wheres[0]
+
+    def test_filter_legacy_ilike_still_works(self):
+        """ilike is not in lookup registry — should still work via fallback."""
+        M = fresh_model("LkILike", attrs={"name": CharField(max_length=50)})
+        q = self._q(M).filter(name__ilike="%test%")
+        assert "LOWER" in q._wheres[0]
+
+
+class TestCreateTableBuilderIntegration:
+    """Tests that generate_create_table_sql uses CreateTableBuilder."""
+
+    def test_basic_table_uses_builder(self):
+        M = fresh_model("CTBBasic", attrs={"name": CharField(max_length=100)})
+        sql = M.generate_create_table_sql()
+        assert "CREATE TABLE IF NOT EXISTS" in sql
+        assert "VARCHAR(100)" in sql
+
+    def test_check_constraint_in_builder(self):
+        from aquilia.models.constraint import CheckConstraint
+        M = fresh_model("CTBCheck", attrs={
+            "age": IntegerField(),
+        }, meta_attrs={
+            "constraints": [CheckConstraint(check="age >= 0", name="age_positive")],
+        })
+        sql = M.generate_create_table_sql()
+        assert "CHECK" in sql
+        assert "age >= 0" in sql
+
+    def test_unique_together_in_builder(self):
+        M = fresh_model("CTBUniq", attrs={
+            "first_name": CharField(max_length=50),
+            "last_name": CharField(max_length=50),
+        }, meta_attrs={
+            "unique_together": [("first_name", "last_name")],
+        })
+        sql = M.generate_create_table_sql()
+        assert "UNIQUE" in sql
+
+    def test_unique_constraint_in_builder(self):
+        M = fresh_model("CTBUniqC", attrs={
+            "email": CharField(max_length=100),
+            "username": CharField(max_length=50),
+        }, meta_attrs={
+            "constraints": [UniqueConstraint(fields=("email", "username"), name="unique_email_user")],
+        })
+        sql = M.generate_create_table_sql()
+        assert "UNIQUE" in sql
+        assert '"email"' in sql
+        assert '"username"' in sql
+
+
+class TestFullCleanIntegration:
+    """Tests for full_clean(), clean_fields(), clean() — like Django."""
+
+    def test_full_clean_valid(self):
+        M = fresh_model("FCValid", attrs={"name": CharField(max_length=50)})
+        instance = M(name="Alice")
+        instance.full_clean()  # Should not raise
+
+    def test_full_clean_null_violation(self):
+        M = fresh_model("FCNull", attrs={"name": CharField(max_length=50)})
+        instance = M()  # name is None, null=False
+        with pytest.raises(FieldValidationError):
+            instance.full_clean()
+
+    def test_clean_fields_with_exclude(self):
+        M = fresh_model("FCExclude", attrs={
+            "name": CharField(max_length=50),
+            "email": CharField(max_length=100),
+        })
+        instance = M()  # Both None
+        # Excluding name — should still fail on email
+        with pytest.raises(FieldValidationError) as exc_info:
+            instance.clean_fields(exclude=["name"])
+        assert "email" in str(exc_info.value)
+
+    def test_clean_fields_with_choices(self):
+        M = fresh_model("FCChoices", attrs={
+            "status": CharField(max_length=20, choices=[("active", "Active"), ("banned", "Banned")]),
+        })
+        instance = M(status="invalid")
+        with pytest.raises(FieldValidationError):
+            instance.full_clean()
+
+    def test_clean_fields_with_validators(self):
+        from aquilia.models.fields.validators import MinValueValidator
+        M = fresh_model("FCValidators", attrs={
+            "age": IntegerField(validators=[MinValueValidator(0)]),
+        })
+        instance = M(age=-5)
+        with pytest.raises(Exception):
+            instance.full_clean()
+
+    def test_clean_override(self):
+        """Custom clean() for cross-field validation."""
+        attrs = {
+            "start": IntegerField(),
+            "end": IntegerField(),
+        }
+        M = fresh_model("FCClean", attrs=attrs)
+
+        # Monkey-patch clean for this test
+        def custom_clean(self_inner):
+            if self_inner.start is not None and self_inner.end is not None:
+                if self_inner.start > self_inner.end:
+                    raise FieldValidationError("end", "End must be >= start")
+        M.clean = custom_clean
+
+        instance = M(start=10, end=5)
+        with pytest.raises(FieldValidationError):
+            instance.full_clean()
+
+
+class TestExcludeNOTIntegration:
+    """Tests that exclude() wraps clauses with NOT() via _build_filter_clause."""
+
+    def _q(self, model_cls):
+        mock_db = MagicMock()
+        return Q(table=model_cls._table_name, model_cls=model_cls, db=mock_db)
+
+    def test_exclude_simple_not(self):
+        M = fresh_model("ExclNot", attrs={"status": CharField(max_length=20)})
+        q = self._q(M).exclude(status="deleted")
+        assert "NOT" in q._wheres[0]
+        assert '"status" = ?' in q._wheres[0]
+
+    def test_exclude_with_lookup(self):
+        M = fresh_model("ExclLookup", attrs={"age": IntegerField()})
+        q = self._q(M).exclude(age__gt=100)
+        assert "NOT" in q._wheres[0]
+        assert '"age" > ?' in q._wheres[0]
+
+
+class TestExpressionInAnnotations:
+    """Tests that _build_select handles Expression objects in annotations."""
+
+    def _q(self, model_cls):
+        mock_db = MagicMock()
+        return Q(table=model_cls._table_name, model_cls=model_cls, db=mock_db)
+
+    def test_aggregate_in_annotations(self):
+        from aquilia.models.aggregate import Count
+        M = fresh_model("ExprAgg", attrs={"category": CharField(max_length=50)})
+        q = self._q(M).annotate(total=Count("id"))
+        sql, params = q._build_select()
+        assert "COUNT" in sql
+        assert "total" in sql
+
+    def test_expression_f_in_annotations(self):
+        from aquilia.models.expression import F
+        M = fresh_model("ExprF", attrs={
+            "price": FloatField(),
+            "tax": FloatField(),
+        })
+        q = self._q(M).annotate(total=F("price") + F("tax"))
+        sql, params = q._build_select()
+        assert "total" in sql
+
+    def test_expression_value_in_annotations(self):
+        from aquilia.models.expression import Value
+        M = fresh_model("ExprVal", attrs={"name": CharField(max_length=50)})
+        q = self._q(M).annotate(constant=Value(42))
+        sql, params = q._build_select()
+        assert "constant" in sql
+
+
+class TestMetaOrderingDefault:
+    """Tests that Meta.ordering is applied as default ORDER BY."""
+
+    def _q(self, model_cls):
+        mock_db = MagicMock()
+        return Q(table=model_cls._table_name, model_cls=model_cls, db=mock_db)
+
+    def test_meta_ordering_applied(self):
+        M = fresh_model("MetaOrd", attrs={
+            "name": CharField(max_length=50),
+            "created": DateTimeField(),
+        }, meta_attrs={"ordering": ["-created", "name"]})
+        q = self._q(M)
+        sql, params = q._build_select()
+        assert "ORDER BY" in sql
+        assert "DESC" in sql  # -created → DESC
+
+    def test_explicit_order_overrides_meta(self):
+        M = fresh_model("MetaOrdOvr", attrs={
+            "name": CharField(max_length=50),
+            "age": IntegerField(),
+        }, meta_attrs={"ordering": ["name"]})
+        q = self._q(M).order("-age")
+        sql, params = q._build_select()
+        assert "ORDER BY" in sql
+        assert '"age" DESC' in sql
+
+    def test_no_meta_ordering_no_fallback(self):
+        M = fresh_model("NoMetaOrd", attrs={"name": CharField(max_length=50)})
+        q = self._q(M)
+        sql, params = q._build_select()
+        assert "ORDER BY" not in sql
+
+
+class TestSQLBuilderIntegration:
+    """Tests that Model.create/save/delete use sql_builder classes."""
+
+    def test_insert_builder_format(self):
+        """Verify InsertBuilder produces expected SQL format."""
+        from aquilia.models.sql_builder import InsertBuilder
+        builder = InsertBuilder("users").from_dict({"name": "Alice", "age": 30})
+        sql, params = builder.build()
+        assert "INSERT INTO" in sql
+        assert '"users"' in sql
+        assert '"name"' in sql
+        assert '"age"' in sql
+        assert params == ["Alice", 30]
+
+    def test_update_builder_format(self):
+        """Verify UpdateBuilder produces expected SQL format."""
+        from aquilia.models.sql_builder import UpdateBuilder
+        builder = UpdateBuilder("users").set_dict({"name": "Bob"})
+        builder.where('"id" = ?', 1)
+        sql, params = builder.build()
+        assert "UPDATE" in sql
+        assert "SET" in sql
+        assert '"name" = ?' in sql
+        assert params == ["Bob", 1]
+
+    def test_delete_builder_format(self):
+        """Verify DeleteBuilder produces expected SQL format."""
+        from aquilia.models.sql_builder import DeleteBuilder
+        builder = DeleteBuilder("users")
+        builder.where('"id" = ?', 5)
+        sql, params = builder.build()
+        assert 'DELETE FROM "users"' in sql
+        assert params == [5]
+
+    def test_create_table_builder_format(self):
+        """Verify CreateTableBuilder produces expected SQL format."""
+        from aquilia.models.sql_builder import CreateTableBuilder
+        builder = CreateTableBuilder("products")
+        builder.column('"id" INTEGER PRIMARY KEY')
+        builder.column('"name" VARCHAR(100) NOT NULL')
+        builder.constraint("UNIQUE (\"name\")")
+        sql = builder.build()
+        assert "CREATE TABLE IF NOT EXISTS" in sql
+        assert '"products"' in sql
+        assert "UNIQUE" in sql
+
+
+class TestDeletionIntegration:
+    """Tests that deletion.py OnDeleteHandler uses sql_builder."""
+
+    def test_on_delete_handler_cascade(self):
+        """Verify OnDeleteHandler is importable and configured."""
+        from aquilia.models.deletion import (
+            CASCADE, SET_NULL, PROTECT, RESTRICT, DO_NOTHING,
+            OnDeleteHandler, ProtectedError, RestrictedError,
+        )
+        handler = OnDeleteHandler(CASCADE)
+        assert handler.action == CASCADE
+
+    def test_on_delete_handler_protect(self):
+        from aquilia.models.deletion import PROTECT, OnDeleteHandler
+        handler = OnDeleteHandler(PROTECT)
+        assert handler.action == PROTECT
+
+
+class TestSignalIntegration:
+    """Tests that signals are properly wired into models."""
+
+    def test_class_prepared_exists(self):
+        from aquilia.models.signals import class_prepared
+        assert class_prepared is not None
+
+    def test_m2m_changed_exists(self):
+        from aquilia.models.signals import m2m_changed
+        assert m2m_changed is not None
+
+    def test_pre_migrate_exists(self):
+        from aquilia.models.signals import pre_migrate, post_migrate
+        assert pre_migrate is not None
+        assert post_migrate is not None
+
+    def test_signal_receiver_decorator(self):
+        from aquilia.models.signals import receiver, pre_save
+        called = []
+
+        @receiver(pre_save)
+        def on_pre_save(sender, **kwargs):
+            called.append(sender)
+
+        # Verify handler was registered
+        assert len(pre_save._receivers) > 0
+
+
+class TestQNodeWithLookupRegistry:
+    """Tests that QNode._build_sql() goes through resolve_lookup."""
+
+    def test_qnode_basic_filter(self):
+        from aquilia.models.query import QNode
+        node = QNode(name="Alice")
+        sql, params = node._build_sql()
+        assert '"name" = ?' in sql
+        assert params == ["Alice"]
+
+    def test_qnode_with_lookup(self):
+        from aquilia.models.query import QNode
+        node = QNode(age__gte=18)
+        sql, params = node._build_sql()
+        assert '"age" >= ?' in sql
+        assert params == [18]
+
+    def test_qnode_and_composition(self):
+        from aquilia.models.query import QNode
+        node = QNode(active=True) & QNode(age__gt=18)
+        sql, params = node._build_sql()
+        assert "AND" in sql
+        assert True in params
+        assert 18 in params
+
+    def test_qnode_or_composition(self):
+        from aquilia.models.query import QNode
+        node = QNode(role="admin") | QNode(is_superuser=True)
+        sql, params = node._build_sql()
+        assert "OR" in sql
+
+    def test_qnode_negation(self):
+        from aquilia.models.query import QNode
+        node = ~QNode(banned=True)
+        sql, params = node._build_sql()
+        assert "NOT" in sql
+
+    def test_qnode_contains_lookup(self):
+        from aquilia.models.query import QNode
+        node = QNode(name__contains="test")
+        sql, params = node._build_sql()
+        assert "LIKE" in sql
+        assert "%test%" in params
+
+    def test_qnode_range_lookup(self):
+        from aquilia.models.query import QNode
+        node = QNode(price__range=(10, 50))
+        sql, params = node._build_sql()
+        assert "BETWEEN" in sql
+        assert 10 in params
+        assert 50 in params
+
+    def test_qnode_isnull_lookup(self):
+        from aquilia.models.query import QNode
+        node = QNode(email__isnull=True)
+        sql, params = node._build_sql()
+        assert "IS NULL" in sql
+
+    def test_qnode_in_lookup(self):
+        from aquilia.models.query import QNode
+        node = QNode(status__in=["active", "pending", "review"])
+        sql, params = node._build_sql()
+        assert "IN" in sql
+        assert "active" in params
+
+    def test_qnode_regex_lookup(self):
+        from aquilia.models.query import QNode
+        node = QNode(code__regex=r"^[A-Z]{3}$")
+        sql, params = node._build_sql()
+        assert "REGEXP" in sql
+
+    def test_qnode_year_lookup(self):
+        from aquilia.models.query import QNode
+        node = QNode(created__year=2024)
+        sql, params = node._build_sql()
+        assert "STRFTIME" in sql or "EXTRACT" in sql
+        assert 2024 in params
+
+
+class TestConstraintIntegration:
+    """Tests that constraint.py is properly used in DDL generation."""
+
+    def test_check_constraint_sql(self):
+        from aquilia.models.constraint import CheckConstraint
+        c = CheckConstraint(check="price > 0", name="positive_price")
+        sql = c.sql("products", "sqlite")
+        assert "CHECK" in sql
+        assert "price > 0" in sql
+
+    def test_check_constraint_in_model_ddl(self):
+        from aquilia.models.constraint import CheckConstraint
+        M = fresh_model("CkModel", attrs={
+            "price": FloatField(),
+            "qty": IntegerField(),
+        }, meta_attrs={
+            "constraints": [
+                CheckConstraint(check="price > 0", name="pos_price"),
+                CheckConstraint(check="qty >= 0", name="non_neg_qty"),
+            ],
+        })
+        sql = M.generate_create_table_sql()
+        assert "price > 0" in sql
+        assert "qty >= 0" in sql
+
+    def test_mixed_constraints_and_unique_together(self):
+        from aquilia.models.constraint import CheckConstraint
+        M = fresh_model("MixedConst", attrs={
+            "a": IntegerField(),
+            "b": IntegerField(),
+        }, meta_attrs={
+            "unique_together": [("a", "b")],
+            "constraints": [CheckConstraint(check="a != b", name="a_ne_b")],
+        })
+        sql = M.generate_create_table_sql()
+        assert "UNIQUE" in sql
+        assert "CHECK" in sql
+        assert "a != b" in sql
+
+
+class TestCrossModuleImports:
+    """Tests that all modules can import from each other without circular import errors."""
+
+    def test_base_imports_deletion(self):
+        from aquilia.models.base import OnDeleteHandler, ProtectedError, RestrictedError
+        assert OnDeleteHandler is not None
+
+    def test_base_imports_sql_builder(self):
+        from aquilia.models.base import InsertBuilder, UpdateBuilder, DeleteBuilder, CreateTableBuilder
+        assert InsertBuilder is not None
+
+    def test_base_imports_signals(self):
+        from aquilia.models.base import pre_save, post_save, pre_delete, post_delete, class_prepared, m2m_changed
+        assert class_prepared is not None
+
+    def test_base_imports_constraint(self):
+        from aquilia.models.base import CheckConstraint
+        assert CheckConstraint is not None
+
+    def test_query_imports_lookups(self):
+        from aquilia.models.query import resolve_lookup, lookup_registry
+        assert resolve_lookup is not None
+        assert len(lookup_registry()) >= 20  # 20+ built-in lookups
+
+    def test_deletion_imports_sql_builder(self):
+        from aquilia.models.deletion import DeleteBuilder, UpdateBuilder
+        assert DeleteBuilder is not None
+
+    def test_migrations_imports_signals(self):
+        from aquilia.models.migrations import pre_migrate, post_migrate
+        assert pre_migrate is not None
+
+    def test_all_modules_importable(self):
+        """Smoke test — import every models sub-module."""
+        import aquilia.models.base
+        import aquilia.models.query
+        import aquilia.models.signals
+        import aquilia.models.deletion
+        import aquilia.models.constraint
+        import aquilia.models.sql_builder
+        import aquilia.models.expression
+        import aquilia.models.aggregate
+        import aquilia.models.manager
+        import aquilia.models.transactions
+        import aquilia.models.migrations
+        import aquilia.models.fields
+        import aquilia.models.fields.validators
+        import aquilia.models.fields.lookups
+        assert True
+
+
+class TestLookupRegistryDirect:
+    """Tests for the lookup registry itself."""
+
+    def test_registry_has_all_builtins(self):
+        from aquilia.models.fields.lookups import lookup_registry
+        reg = lookup_registry()
+        expected = {
+            "exact", "iexact", "contains", "icontains",
+            "startswith", "istartswith", "endswith", "iendswith",
+            "in", "gt", "gte", "lt", "lte", "isnull",
+            "range", "regex", "iregex", "date", "year", "month", "day",
+        }
+        assert expected.issubset(set(reg.keys()))
+
+    def test_resolve_lookup_exact(self):
+        from aquilia.models.fields.lookups import resolve_lookup, Exact
+        lookup = resolve_lookup("name", "exact", "Alice")
+        assert isinstance(lookup, Exact)
+        sql, params = lookup.as_sql()
+        assert sql == '"name" = ?'
+        assert params == ["Alice"]
+
+    def test_resolve_lookup_unknown_raises(self):
+        from aquilia.models.fields.lookups import resolve_lookup
+        with pytest.raises(ValueError, match="Unknown lookup"):
+            resolve_lookup("name", "nonexistent", "value")
+
+    def test_register_custom_lookup(self):
+        from aquilia.models.fields.lookups import register_lookup, resolve_lookup, Lookup
+
+        class NotEqualLookup(Lookup):
+            lookup_name = "neq"
+            sql_operator = "!="
+
+        register_lookup("neq", NotEqualLookup)
+        lookup = resolve_lookup("status", "neq", "deleted")
+        sql, params = lookup.as_sql()
+        assert '"status" != ?' in sql
+

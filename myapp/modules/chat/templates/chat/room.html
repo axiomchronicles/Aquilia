@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{{ room.name }} - Aquilia Chat{% endblock %}
+
+{% block content %}
+<div class="room-page">
+    <div class="room-header">
+        <a href="/chat" class="back-btn">← Back to Chat</a>
+        <h1>{{ room.name }}</h1>
+    </div>
+
+    <div class="room-details">
+        <div class="detail-section">
+            <h2>Room Information</h2>
+            <dl>
+                <dt>Name:</dt>
+                <dd>{{ room.name }}</dd>
+                
+                <dt>Description:</dt>
+                <dd>{{ room.description or 'No description' }}</dd>
+                
+                <dt>Created:</dt>
+                <dd>{{ room.created_at }}</dd>
+                
+                <dt>Type:</dt>
+                <dd>{{ 'Public' if room.is_public else 'Private' }}</dd>
+            </dl>
+        </div>
+
+        <div class="detail-section">
+            <h2>Recent Messages</h2>
+            <div class="message-preview">
+                {% if messages %}
+                    {% for msg in messages %}
+                    <div class="preview-message">
+                        <span class="message-sender">{{ msg.sender }}</span>
+                        <span class="message-text">{{ msg.text }}</span>
+                        <span class="message-time">{{ msg.timestamp }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-messages">No messages yet</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="room-actions">
+            <a href="/chat?room={{ room.id }}" class="btn btn-primary">Join Room</a>
+            {% if not room.id in ['general', 'random'] %}
+            <button class="btn btn-danger" id="delete-room-btn" data-room="{{ room.id }}">Delete Room</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

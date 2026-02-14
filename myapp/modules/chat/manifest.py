@@ -21,6 +21,8 @@ manifest = AppManifest(
     ],
     controllers=[
         "modules.chat.controllers:ChatController",
+    ],
+    socket_controllers=[
         "modules.chat.sockets:ChatSocket",
         "modules.chat.sockets:NotificationSocket",
     ],

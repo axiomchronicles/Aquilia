@@ -54,7 +54,7 @@ class TestRequestQueryParams:
 
     def test_query_params(self):
         req = make_request(query_string="a=1&b=2")
-        params = req.query_params()
+        params = req.query_params
         assert params.get("a") == "1"
         assert params.get("b") == "2"
 
@@ -66,12 +66,12 @@ class TestRequestQueryParams:
 
     def test_repeated_params(self):
         req = make_request(query_string="tag=a&tag=b&tag=c")
-        params = req.query_params()
+        params = req.query_params
         assert params.get_all("tag") == ["a", "b", "c"]
 
     def test_empty_query(self):
         req = make_request(query_string="")
-        params = req.query_params()
+        params = req.query_params
         assert len(params) == 0
 
 
@@ -105,7 +105,7 @@ class TestRequestCookies:
 
     def test_cookies(self):
         req = make_request(headers=[("Cookie", "sid=abc123; theme=dark")])
-        cookies = req.cookies()
+        cookies = req.cookies
         assert cookies["sid"] == "abc123"
         assert cookies["theme"] == "dark"
 
@@ -117,7 +117,7 @@ class TestRequestCookies:
 
     def test_no_cookies(self):
         req = make_request()
-        cookies = req.cookies()
+        cookies = req.cookies
         assert len(cookies) == 0
 
 

@@ -3,7 +3,8 @@ Aquilia Database — async-first database layer.
 
 Provides:
 - AquiliaDatabase: Connection manager with transaction support
-- SQLite driver (default), Postgres/MySQL planned
+- SQLite driver (default), Postgres/MySQL adapters
+- Pluggable backend adapters (DatabaseAdapter)
 - Module-level accessors for DI integration
 - Structured faults via AquilaFaults (DatabaseConnectionFault, QueryFault, SchemaFault)
 """
@@ -14,6 +15,15 @@ from .engine import (
     get_database,
     configure_database,
     set_database,
+)
+
+# Backend adapters
+from .backends import (
+    DatabaseAdapter,
+    AdapterCapabilities,
+    SQLiteAdapter,
+    PostgresAdapter,
+    MySQLAdapter,
 )
 
 # Re-export fault types for convenience
@@ -32,4 +42,10 @@ __all__ = [
     "get_database",
     "configure_database",
     "set_database",
+    # Backends
+    "DatabaseAdapter",
+    "AdapterCapabilities",
+    "SQLiteAdapter",
+    "PostgresAdapter",
+    "MySQLAdapter",
 ]

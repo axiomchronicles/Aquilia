@@ -41,7 +41,14 @@ from .base import (
     Q,
 )
 
-from .fields import (
+from .manager import Manager, BaseManager, QuerySet
+
+# New split-module exports (available but not replacing base.py)
+from .registry import ModelRegistry as NewModelRegistry
+from .query import Q as QueryBuilder, QNode, QCombination
+from .options import Options as EnhancedOptions
+
+from .fields_module import (
     # Base
     Field,
     FieldValidationError,
@@ -102,6 +109,116 @@ from .fields import (
     # Meta/Special
     GeneratedField,
     OrderWrt,
+)
+
+# New sub-module exports
+from .fields import (
+    NullableMixin,
+    UniqueMixin,
+    IndexedMixin,
+    AutoNowMixin,
+    ChoiceMixin,
+    EncryptedMixin,
+    CompositeField,
+    CompositePrimaryKey,
+    CompositeAttribute,
+    EnumField,
+)
+
+# ── Expression / Aggregate system ────────────────────────────────────────────
+
+from .expression import (
+    Expression,
+    F,
+    Value,
+    RawSQL,
+    Col,
+    Star,
+    CombinedExpression,
+    When,
+    Case,
+    Subquery,
+    Exists,
+    OuterRef,
+    ExpressionWrapper,
+    Func,
+    Cast,
+    Coalesce,
+    Greatest,
+    Least,
+    NullIf,
+)
+
+from .aggregate import (
+    Aggregate,
+    Sum,
+    Avg,
+    Count,
+    Max,
+    Min,
+    StdDev,
+    Variance,
+    ArrayAgg,
+    StringAgg,
+    GroupConcat,
+    BoolAnd,
+    BoolOr,
+)
+
+# ── Signals ──────────────────────────────────────────────────────────────────
+
+from .signals import (
+    Signal,
+    pre_save,
+    post_save,
+    pre_delete,
+    post_delete,
+    pre_init,
+    post_init,
+    m2m_changed,
+    receiver,
+    class_prepared,
+    pre_migrate,
+    post_migrate,
+)
+
+# ── Transactions ─────────────────────────────────────────────────────────────
+
+from .transactions import atomic, Atomic, TransactionManager
+
+# ── Deletion constants ───────────────────────────────────────────────────────
+
+from .deletion import (
+    CASCADE,
+    SET_NULL,
+    PROTECT,
+    SET_DEFAULT,
+    DO_NOTHING,
+    RESTRICT,
+    OnDeleteHandler,
+    SET,
+    ProtectedError,
+    RestrictedError,
+)
+
+# ── Enums / Choices ──────────────────────────────────────────────────────────
+
+from .enums import Choices, TextChoices, IntegerChoices
+
+# ── SQL Builder ──────────────────────────────────────────────────────────────
+
+from .sql_builder import SQLBuilder, InsertBuilder, UpdateBuilder, DeleteBuilder, CreateTableBuilder
+
+# ── Constraints & Indexes ────────────────────────────────────────────────────
+
+from .constraint import CheckConstraint, ExclusionConstraint, Deferrable
+
+from .index import (
+    GinIndex,
+    GistIndex,
+    BrinIndex,
+    HashIndex,
+    FunctionalIndex,
 )
 
 # ── Legacy AMDL compatibility layer ─────────────────────────────────────────
@@ -165,6 +282,16 @@ __all__ = [
     "ModelRegistry",
     "Options",
     "Q",
+    # New split modules
+    "NewModelRegistry",
+    "QueryBuilder",
+    "QNode",
+    "QCombination",
+    "EnhancedOptions",
+    # Manager
+    "Manager",
+    "BaseManager",
+    "QuerySet",
     # Fields
     "Field",
     "FieldValidationError",
@@ -215,6 +342,97 @@ __all__ = [
     "CITextField",
     "GeneratedField",
     "OrderWrt",
+    # Field mixins & composites
+    "NullableMixin",
+    "UniqueMixin",
+    "IndexedMixin",
+    "AutoNowMixin",
+    "ChoiceMixin",
+    "EncryptedMixin",
+    "CompositeField",
+    "CompositePrimaryKey",
+    "CompositeAttribute",
+    "EnumField",
+    # Expressions & Aggregates
+    "Expression",
+    "F",
+    "Value",
+    "RawSQL",
+    "Col",
+    "Star",
+    "CombinedExpression",
+    "When",
+    "Case",
+    "Subquery",
+    "Exists",
+    "OuterRef",
+    "ExpressionWrapper",
+    "Func",
+    "Cast",
+    "Coalesce",
+    "Greatest",
+    "Least",
+    "NullIf",
+    "Aggregate",
+    "Sum",
+    "Avg",
+    "Count",
+    "Max",
+    "Min",
+    "StdDev",
+    "Variance",
+    "ArrayAgg",
+    "StringAgg",
+    "GroupConcat",
+    "BoolAnd",
+    "BoolOr",
+    # Signals
+    "Signal",
+    "pre_save",
+    "post_save",
+    "pre_delete",
+    "post_delete",
+    "pre_init",
+    "post_init",
+    "m2m_changed",
+    "receiver",
+    "class_prepared",
+    "pre_migrate",
+    "post_migrate",
+    # Transactions
+    "atomic",
+    "Atomic",
+    "TransactionManager",
+    # Deletion
+    "CASCADE",
+    "SET_NULL",
+    "PROTECT",
+    "SET_DEFAULT",
+    "DO_NOTHING",
+    "RESTRICT",
+    "OnDeleteHandler",
+    "SET",
+    "ProtectedError",
+    "RestrictedError",
+    # Enums / Choices
+    "Choices",
+    "TextChoices",
+    "IntegerChoices",
+    # SQL Builder
+    "SQLBuilder",
+    "InsertBuilder",
+    "UpdateBuilder",
+    "DeleteBuilder",
+    "CreateTableBuilder",
+    # Constraints & Indexes
+    "CheckConstraint",
+    "ExclusionConstraint",
+    "Deferrable",
+    "GinIndex",
+    "GistIndex",
+    "BrinIndex",
+    "HashIndex",
+    "FunctionalIndex",
     # ── Legacy AMDL (backward compat) ────────────────────────────────
     "AMDLFile",
     "FieldType",

@@ -292,8 +292,8 @@ class AquilaSockets:
         req = Request(scope, mock_receive)
         
         # Extract parsing results from Request
-        headers = dict(req.headers())
-        query_params = dict(req.query_params())
+        headers = dict(req.headers)
+        query_params = dict(req.query_params)
         
         conn_scope = ConnectionScope(
             namespace=namespace,

@@ -76,6 +76,43 @@ class MessageService:
     def __init__(self):
         self._messages: Dict[str, List[Dict[str, Any]]] = {}
         self._max_per_room = 100
+        # Seed with some initial messages
+        self._seed_initial_messages()
+
+    def _seed_initial_messages(self):
+        """Add some initial messages for demonstration."""
+        initial_messages = [
+            {
+                "room": "general",
+                "sender": "System",
+                "text": "Welcome to Aquilia Chat! 🚀",
+            },
+            {
+                "room": "general",
+                "sender": "Admin",
+                "text": "Feel free to introduce yourself and start chatting!",
+            },
+            {
+                "room": "random",
+                "sender": "System",
+                "text": "This is the random channel - anything goes!",
+            },
+        ]
+
+        for msg_data in initial_messages:
+            room_id = msg_data["room"]
+            if room_id not in self._messages:
+                self._messages[room_id] = []
+
+            message = {
+                "id": str(uuid.uuid4()),
+                "room_id": room_id,
+                "sender": msg_data["sender"],
+                "text": msg_data["text"],
+                "type": "text",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            self._messages[room_id].append(message)
 
     async def add_message(
         self,

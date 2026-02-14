@@ -33,7 +33,10 @@ class BlogsController(Controller):
         """
         items = await self.service.get_all()
 
-        raise BlogsOperationFault
+        return {
+            "items": items,
+            "total": len(items)
+        }
 
     @POST("/")
     async def create_blogs(self, ctx: RequestCtx):

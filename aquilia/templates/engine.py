@@ -229,7 +229,7 @@ class TemplateEngine:
         async for chunk in template.generate_async(**template_context.to_dict()):
             yield chunk.encode("utf-8")
     
-    def render_to_response(
+    async def render_to_response(
         self,
         template_name: str,
         context: Optional[Mapping[str, Any]] = None,
@@ -258,15 +258,12 @@ class TemplateEngine:
         # Import here to avoid circular dependency
         from aquilia.response import Response
         
-        # We need to render in async context, so create a placeholder
-        # that will be resolved by the framework
-        async def _render():
-            return await self.render(template_name, context, request_ctx)
+        # Render the template
+        html_content = await self.render(template_name, context, request_ctx)
         
-        # Create response with async content
-        # The framework will handle awaiting this
+        # Create response with rendered content
         return Response(
-            content=_render(),
+            content=html_content,
             status=status,
             headers=headers,
             media_type=content_type

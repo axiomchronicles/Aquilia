@@ -24,6 +24,7 @@ from ..db.engine import AquiliaDatabase
 from ..faults.domains import MigrationFault, MigrationConflictFault, SchemaFault
 from .ast_nodes import FieldType, ModelNode
 from .runtime import generate_create_table_sql, generate_create_index_sql, SQLITE_TYPE_MAP
+from .signals import pre_migrate, post_migrate
 
 logger = logging.getLogger("aquilia.models.migrations")
 
@@ -457,11 +458,17 @@ class MigrationRunner:
         pending = await self.get_pending()
         applied: List[str] = []
 
+        # Signal: pre_migrate
+        await pre_migrate.send(sender=self.__class__, db=self.db)
+
         for path in pending:
             await self.apply_migration(path)
             parts = path.stem.split("_", 2)
             rev = f"{parts[0]}_{parts[1]}"
             applied.append(rev)
+
+        # Signal: post_migrate
+        await post_migrate.send(sender=self.__class__, db=self.db)
 
         return applied
 

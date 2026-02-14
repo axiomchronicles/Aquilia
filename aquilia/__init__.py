@@ -221,6 +221,22 @@ from .middleware import (
     LoggingMiddleware,
 )
 
+# Extended Middleware (Security, Rate Limiting, Static Files)
+from .middleware_ext.security import (
+    CORSMiddleware,
+    CSPMiddleware,
+    CSPPolicy,
+    HSTSMiddleware,
+    HTTPSRedirectMiddleware,
+    ProxyFixMiddleware,
+    SecurityHeadersMiddleware,
+)
+from .middleware_ext.rate_limit import (
+    RateLimitMiddleware,
+    RateLimitRule,
+)
+from .middleware_ext.static import StaticMiddleware
+
 # ============================================================================
 # Debug Pages
 # ============================================================================
@@ -495,6 +511,16 @@ __all__ = [
     "Middleware",
     "Handler",
     "MiddlewareStack",
+    "CORSMiddleware",
+    "CSPMiddleware",
+    "CSPPolicy",
+    "HSTSMiddleware",
+    "HTTPSRedirectMiddleware",
+    "ProxyFixMiddleware",
+    "SecurityHeadersMiddleware",
+    "RateLimitMiddleware",
+    "RateLimitRule",
+    "StaticMiddleware",
     
     # Debug Pages
     "DebugPageRenderer",

@@ -547,4 +547,59 @@ class ConfigLoader:
         
         return merged
 
+    def get_security_config(self) -> dict:
+        """
+        Get security configuration with defaults.
+
+        Returns:
+            Security configuration dictionary with middleware flags
+        """
+        default_security_config = {
+            "enabled": False,
+            "cors_enabled": False,
+            "csrf_protection": False,
+            "helmet_enabled": False,
+            "rate_limiting": False,
+            "https_redirect": False,
+            "hsts": False,
+            "proxy_fix": False,
+        }
+
+        user_config = self.get("security", {})
+
+        merged = default_security_config.copy()
+        if user_config:
+            merged["enabled"] = user_config.get("enabled", True)
+            self._merge_dict(merged, user_config)
+
+        return merged
+
+    def get_static_config(self) -> dict:
+        """
+        Get static files configuration with defaults.
+
+        Returns:
+            Static files configuration dictionary
+        """
+        default_static_config = {
+            "enabled": False,
+            "directories": {"/static": "static"},
+            "cache_max_age": 86400,
+            "etag": True,
+            "gzip": True,
+            "brotli": True,
+            "memory_cache": True,
+        }
+
+        user_config = self.get("integrations.static_files", {})
+        if not user_config:
+            user_config = self.get("static_files", {})
+
+        merged = default_static_config.copy()
+        if user_config:
+            merged["enabled"] = user_config.get("enabled", True)
+            self._merge_dict(merged, user_config)
+
+        return merged
+
 

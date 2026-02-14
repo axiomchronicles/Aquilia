@@ -578,6 +578,190 @@ class Integration:
             **kwargs
         }
 
+    @staticmethod
+    def static_files(
+        directories: Optional[Dict[str, str]] = None,
+        cache_max_age: int = 86400,
+        immutable: bool = False,
+        etag: bool = True,
+        gzip: bool = True,
+        brotli: bool = True,
+        memory_cache: bool = True,
+        html5_history: bool = False,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure static file serving middleware.
+
+        Args:
+            directories: Mapping of URL prefix → filesystem directory.
+                         Example: {"/static": "static", "/media": "uploads"}
+            cache_max_age: Cache-Control max-age in seconds (default 1 day).
+            immutable: Set Cache-Control: immutable for fingerprinted assets.
+            etag: Enable ETag generation.
+            gzip: Serve pre-compressed .gz files.
+            brotli: Serve pre-compressed .br files.
+            memory_cache: Enable in-memory LRU file cache.
+            html5_history: Serve index.html for SPA 404s.
+
+        Returns:
+            Static files configuration dictionary.
+
+        Example::
+
+            .integrate(Integration.static_files(
+                directories={"/static": "static", "/media": "uploads"},
+                cache_max_age=86400,
+                etag=True,
+            ))
+        """
+        return {
+            "_integration_type": "static_files",
+            "enabled": True,
+            "directories": directories or {"/static": "static"},
+            "cache_max_age": cache_max_age,
+            "immutable": immutable,
+            "etag": etag,
+            "gzip": gzip,
+            "brotli": brotli,
+            "memory_cache": memory_cache,
+            "html5_history": html5_history,
+            **kwargs,
+        }
+
+    @staticmethod
+    def cors(
+        allow_origins: Optional[List[str]] = None,
+        allow_methods: Optional[List[str]] = None,
+        allow_headers: Optional[List[str]] = None,
+        expose_headers: Optional[List[str]] = None,
+        allow_credentials: bool = False,
+        max_age: int = 600,
+        allow_origin_regex: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure CORS middleware.
+
+        Args:
+            allow_origins: Allowed origins (supports globs like "*.example.com").
+            allow_methods: Allowed HTTP methods.
+            allow_headers: Allowed request headers.
+            expose_headers: Headers exposed to the browser.
+            allow_credentials: Allow cookies / Authorization header.
+            max_age: Preflight cache duration (seconds).
+            allow_origin_regex: Regex pattern for origin matching.
+
+        Returns:
+            CORS configuration dictionary.
+
+        Example::
+
+            .integrate(Integration.cors(
+                allow_origins=["https://example.com", "*.staging.example.com"],
+                allow_credentials=True,
+                max_age=3600,
+            ))
+        """
+        return {
+            "_integration_type": "cors",
+            "enabled": True,
+            "allow_origins": allow_origins or ["*"],
+            "allow_methods": allow_methods or ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+            "allow_headers": allow_headers or ["accept", "accept-language", "content-language", "content-type", "authorization", "x-requested-with"],
+            "expose_headers": expose_headers or [],
+            "allow_credentials": allow_credentials,
+            "max_age": max_age,
+            "allow_origin_regex": allow_origin_regex,
+            **kwargs,
+        }
+
+    @staticmethod
+    def csp(
+        policy: Optional[Dict[str, List[str]]] = None,
+        report_only: bool = False,
+        nonce: bool = True,
+        preset: str = "strict",
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure Content-Security-Policy middleware.
+
+        Args:
+            policy: CSP directives dict (e.g. {"default-src": ["'self'"]}).
+            report_only: Use Content-Security-Policy-Report-Only header.
+            nonce: Enable per-request nonce generation.
+            preset: "strict" or "relaxed" (used when policy is None).
+
+        Returns:
+            CSP configuration dictionary.
+
+        Example::
+
+            .integrate(Integration.csp(
+                policy={
+                    "default-src": ["'self'"],
+                    "script-src": ["'self'", "'nonce-{nonce}'"],
+                    "style-src": ["'self'", "'unsafe-inline'"],
+                },
+                nonce=True,
+            ))
+        """
+        return {
+            "_integration_type": "csp",
+            "enabled": True,
+            "policy": policy,
+            "report_only": report_only,
+            "nonce": nonce,
+            "preset": preset,
+            **kwargs,
+        }
+
+    @staticmethod
+    def rate_limit(
+        limit: int = 100,
+        window: int = 60,
+        algorithm: str = "sliding_window",
+        per_user: bool = False,
+        burst: Optional[int] = None,
+        exempt_paths: Optional[List[str]] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure rate limiting middleware.
+
+        Args:
+            limit: Maximum requests per window.
+            window: Window size in seconds.
+            algorithm: "sliding_window" or "token_bucket".
+            per_user: Use user identity as key (requires auth).
+            burst: Extra burst capacity (token_bucket only).
+            exempt_paths: Paths to skip rate limiting.
+
+        Returns:
+            Rate limit configuration dictionary.
+
+        Example::
+
+            .integrate(Integration.rate_limit(
+                limit=200,
+                window=60,
+                algorithm="token_bucket",
+                burst=50,
+            ))
+        """
+        return {
+            "_integration_type": "rate_limit",
+            "enabled": True,
+            "limit": limit,
+            "window": window,
+            "algorithm": algorithm,
+            "per_user": per_user,
+            "burst": burst,
+            "exempt_paths": exempt_paths or ["/health", "/healthz", "/ready"],
+            **kwargs,
+        }
+
 
 class Workspace:
     """Fluent workspace builder."""
@@ -619,7 +803,30 @@ class Workspace:
     
     def integrate(self, integration: Dict[str, Any]) -> "Workspace":
         """Add an integration."""
-        # Determine integration type from keys
+        # Check for explicit integration type marker
+        integration_type = integration.get("_integration_type")
+        if integration_type:
+            self._integrations[integration_type] = integration
+            # Wire specific types to their config slots
+            if integration_type == "cors":
+                if not self._security_config:
+                    self._security_config = {"enabled": True}
+                self._security_config["cors_enabled"] = True
+                self._security_config["cors"] = integration
+            elif integration_type == "csp":
+                if not self._security_config:
+                    self._security_config = {"enabled": True}
+                self._security_config["csp"] = integration
+            elif integration_type == "rate_limit":
+                if not self._security_config:
+                    self._security_config = {"enabled": True}
+                self._security_config["rate_limiting"] = True
+                self._security_config["rate_limit"] = integration
+            elif integration_type == "static_files":
+                self._integrations["static_files"] = integration
+            return self
+
+        # Determine integration type from keys (legacy detection)
         if "tokens" in integration and "security" in integration:
             self._integrations["auth"] = integration
         elif "policy" in integration or "store" in integration:
@@ -664,16 +871,28 @@ class Workspace:
         csrf_protection: bool = False,
         helmet_enabled: bool = True,
         rate_limiting: bool = False,
+        https_redirect: bool = False,
+        hsts: bool = True,
+        proxy_fix: bool = False,
         **kwargs
     ) -> "Workspace":
         """
         Configure security features.
         
+        These flags control which security middleware are automatically
+        added to the middleware stack during server startup.
+
+        For fine-grained control, use Integration.cors(), Integration.csp(),
+        Integration.rate_limit() instead (or in addition).
+        
         Args:
-            cors_enabled: Enable CORS
+            cors_enabled: Enable CORS middleware (default origins: *)
             csrf_protection: Enable CSRF protection
-            helmet_enabled: Enable Helmet.js security headers
-            rate_limiting: Enable rate limiting
+            helmet_enabled: Enable Helmet-style security headers
+            rate_limiting: Enable rate limiting (100 req/min default)
+            https_redirect: Enable HTTP→HTTPS redirect
+            hsts: Enable HSTS header (Strict-Transport-Security)
+            proxy_fix: Enable X-Forwarded-* header processing
             **kwargs: Additional security configuration
         """
         self._security_config = {
@@ -682,6 +901,9 @@ class Workspace:
             "csrf_protection": csrf_protection,
             "helmet_enabled": helmet_enabled,
             "rate_limiting": rate_limiting,
+            "https_redirect": https_redirect,
+            "hsts": hsts,
+            "proxy_fix": proxy_fix,
             **kwargs
         }
         return self

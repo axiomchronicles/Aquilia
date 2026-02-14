@@ -756,6 +756,112 @@ def db_shell(ctx, database_url: str):
         sys.exit(1)
 
 
+@db.command('inspectdb')
+@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--table', type=str, multiple=True, help='Specific tables to inspect')
+@click.option('--output', type=click.Path(), default=None, help='Output file path')
+@click.pass_context
+def db_inspectdb(ctx, database_url: str, table: tuple, output: Optional[str]):
+    """
+    Introspect database and generate Model definitions.
+
+    Reads the database schema and emits Python Model class
+    definitions that mirror the existing tables.
+
+    Examples:
+      aq db inspectdb
+      aq db inspectdb --table=users --table=orders
+      aq db inspectdb --output=models/generated.py
+    """
+    from .commands.model_cmds import cmd_inspectdb
+
+    try:
+        tables = list(table) if table else None
+        result = cmd_inspectdb(
+            database_url=database_url,
+            tables=tables,
+            verbose=ctx.obj['verbose'],
+        )
+        if output and result:
+            Path(output).parent.mkdir(parents=True, exist_ok=True)
+            Path(output).write_text(result, encoding="utf-8")
+            click.echo(click.style(f"✓ Models written to {output}", fg="green"))
+    except Exception as e:
+        error(f"✗ inspectdb failed: {e}")
+        sys.exit(1)
+
+
+@db.command('showmigrations')
+@click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
+@click.pass_context
+def db_showmigrations(ctx, migrations_dir: str):
+    """
+    Show all migrations and their applied/pending status.
+
+    Examples:
+      aq db showmigrations
+      aq db showmigrations --migrations-dir=db/migrations
+    """
+    from .commands.model_cmds import cmd_showmigrations
+
+    try:
+        cmd_showmigrations(
+            migrations_dir=migrations_dir,
+            verbose=ctx.obj['verbose'],
+        )
+    except Exception as e:
+        error(f"✗ showmigrations failed: {e}")
+        sys.exit(1)
+
+
+@db.command('sqlmigrate')
+@click.argument('migration_name')
+@click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
+@click.pass_context
+def db_sqlmigrate(ctx, migration_name: str, migrations_dir: str):
+    """
+    Display SQL statements for a specific migration.
+
+    Examples:
+      aq db sqlmigrate 0001_initial
+      aq db sqlmigrate 0002 --migrations-dir=db/migrations
+    """
+    from .commands.model_cmds import cmd_sqlmigrate
+
+    try:
+        cmd_sqlmigrate(
+            migration_name=migration_name,
+            migrations_dir=migrations_dir,
+            verbose=ctx.obj['verbose'],
+        )
+    except Exception as e:
+        error(f"✗ sqlmigrate failed: {e}")
+        sys.exit(1)
+
+
+@db.command('status')
+@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.pass_context
+def db_status(ctx, database_url: str):
+    """
+    Show database status — tables, row counts, columns.
+
+    Examples:
+      aq db status
+      aq db status --database-url=sqlite:///prod.db
+    """
+    from .commands.model_cmds import cmd_db_status
+
+    try:
+        cmd_db_status(
+            database_url=database_url,
+            verbose=ctx.obj['verbose'],
+        )
+    except Exception as e:
+        error(f"✗ status failed: {e}")
+        sys.exit(1)
+
+
 def main():
     """Entry point for `aq` command."""
     cli(obj={})

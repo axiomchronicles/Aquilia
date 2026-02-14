@@ -71,6 +71,16 @@ workspace = (
             "modules.chat.services:ChatRoomService",
             "modules.chat.services:MessageService",
             "modules.chat.services:PresenceService"
+        )
+        .register_sockets(
+            "modules.chat.sockets:ChatSocket",
+            "modules.chat.sockets:NotificationSocket"
+        ))
+
+    .module(Module("static_files", version="0.1.0", description="Static file serving (CSS, JS, images)")
+        .route_prefix("/static_files")
+        .register_controllers(
+            "modules.static_files.controllers:StaticFilesController"
         ))
 
     .module(Module("sessions", version="0.1.0", description="Session management showcase: cart, preferences, wizard, and lifecycle")

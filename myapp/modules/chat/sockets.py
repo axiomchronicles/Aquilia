@@ -10,6 +10,7 @@ Showcases:
 - Connection state management
 - Per-connection identity
 - Message broadcasting patterns
+- Service integration for persistence
 """
 
 from aquilia.sockets import (
@@ -22,12 +23,13 @@ from aquilia.sockets import (
     Subscribe,
     Unsubscribe,
 )
+from .services import ChatRoomService, MessageService, PresenceService
 
 
 @Socket("/chat")
 class ChatSocket(SocketController):
     """
-    Real-time chat WebSocket controller.
+    Real-time chat WebSocket controller with service integration.
 
     Demonstrates the full WebSocket lifecycle:
     1. Client connects → @OnConnect
@@ -59,6 +61,17 @@ class ChatSocket(SocketController):
 
     namespace = "/chat"
 
+    def __init__(
+        self,
+        rooms: ChatRoomService = None,
+        messages: MessageService = None,
+        presence: PresenceService = None,
+    ):
+        super().__init__()
+        self.rooms = rooms or ChatRoomService()
+        self.messages = messages or MessageService()
+        self.presence = presence or PresenceService()
+
     @OnConnect()
     async def on_connect(self, connection):
         """
@@ -67,9 +80,14 @@ class ChatSocket(SocketController):
         - Assign a temporary guest username
         - Join the default "general" room
         - Notify others of the new connection
+        - Register with presence service
         """
-        connection.state["username"] = f"guest_{connection.id[:8]}"
+        username = f"guest_{connection.id[:8]}"
+        connection.state["username"] = username
         connection.state["rooms"] = {"general"}
+
+        # Register with presence service
+        await self.presence.user_connected(connection.id, username)
 
         # Send welcome message
         await connection.send_json({
@@ -78,20 +96,21 @@ class ChatSocket(SocketController):
             "data": {
                 "message": "Welcome to Aquilia Chat!",
                 "connection_id": connection.id,
-                "username": connection.state["username"],
+                "username": username,
                 "default_room": "general",
             },
         })
 
         # Join general room
         await connection.join_room("general")
+        await self.presence.join_room(connection.id, "general")
 
         # Notify room
         await self.broadcast_to_room("general", {
             "type": "system",
             "event": "user_joined",
             "data": {
-                "username": connection.state["username"],
+                "username": username,
                 "room": "general",
             },
         }, exclude=connection.id)
@@ -103,12 +122,14 @@ class ChatSocket(SocketController):
 
         - Leave all rooms
         - Notify others
+        - Unregister from presence service
         """
         username = connection.state.get("username", "unknown")
         rooms = connection.state.get("rooms", set())
 
         for room in rooms:
             await connection.leave_room(room)
+            await self.presence.leave_room(connection.id, room)
             await self.broadcast_to_room(room, {
                 "type": "system",
                 "event": "user_left",
@@ -117,6 +138,9 @@ class ChatSocket(SocketController):
                     "room": room,
                 },
             })
+
+        # Unregister from presence
+        await self.presence.user_disconnected(connection.id)
 
     @AckEvent("set_username")
     async def set_username(self, connection, data):
@@ -162,7 +186,8 @@ class ChatSocket(SocketController):
         Event: message
         Data: { "text": "Hello!", "room": "general" }
 
-        Broadcasts the message to all connections in the specified room.
+        Broadcasts the message to all connections in the specified room
+        and stores it in message history.
         """
         text = data.get("text", "").strip()
         room = data.get("room", "general")
@@ -183,6 +208,14 @@ class ChatSocket(SocketController):
                 "data": {"message": "Message too long (max 2000 chars)"},
             })
             return
+
+        # Store message in history
+        await self.messages.add_message(
+            room_id=room,
+            sender=username,
+            text=text,
+            message_type="text"
+        )
 
         # Broadcast to room
         await self.broadcast_to_room(room, {
@@ -219,6 +252,9 @@ class ChatSocket(SocketController):
         rooms.add(room)
         connection.state["rooms"] = rooms
 
+        # Register with presence
+        await self.presence.join_room(connection.id, room)
+
         # Notify room
         await self.broadcast_to_room(room, {
             "type": "system",
@@ -253,6 +289,9 @@ class ChatSocket(SocketController):
         await connection.leave_room(room)
         rooms.discard(room)
         connection.state["rooms"] = rooms
+
+        # Unregister from presence
+        await self.presence.leave_room(connection.id, room)
 
         # Notify room
         await self.broadcast_to_room(room, {

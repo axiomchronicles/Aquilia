@@ -418,14 +418,18 @@ class AquiliaServer:
             self.middleware_stack.add(
                 TemplateMiddleware(
                     url_for=self.controller_router.url_for,
-                    config=self.config
+                    config=self.config,
+                    static_url_prefix=self._get_static_prefix(),
                 ),
                 scope="global",
                 priority=25,  # Processed after Auth/Session
                 name="templates",
             )
             self.logger.info("✅ Template engine initialized and middleware registered")
-            
+
+        # ── Security & Infrastructure Middleware ──────────────────────────
+        self._setup_security_middleware()
+
         # Initialize WebSockets with DI container factory for per-connection scopes
         self.socket_router = SocketRouter()
         
@@ -505,6 +509,186 @@ class AquiliaServer:
             name=name or class_name,
         )
         self.logger.info(f"✓ Registered app middleware: {class_name} (priority={priority})")
+
+    def _get_static_prefix(self) -> str:
+        """Get the static URL prefix from config or default."""
+        static_config = self.config.get("integrations.static_files", {})
+        if static_config:
+            dirs = static_config.get("directories", {})
+            if dirs:
+                return next(iter(dirs))
+        return "/static"
+
+    def _setup_security_middleware(self):
+        """
+        Wire security configuration to actual middleware instances.
+
+        Reads from:
+        - self.config["security"]  (set by Workspace.security())
+        - self.config["integrations"]["static_files"]
+        - self.config["integrations"]["cors"]
+        - self.config["integrations"]["csp"]
+        - self.config["integrations"]["rate_limit"]
+
+        Middleware priority layout:
+            3  - ProxyFixMiddleware  (must run before IP-dependent middleware)
+            4  - HTTPSRedirectMiddleware
+            6  - StaticMiddleware  (serve files before heavy processing)
+            7  - SecurityHeadersMiddleware (helmet)
+            8  - HSTSMiddleware
+            9  - CSPMiddleware
+            11 - CORSMiddleware
+            12 - RateLimitMiddleware
+        """
+        security_config = self.config.get("security", {})
+        integrations = self.config.get("integrations", {})
+
+        # ── Proxy Fix (priority 3) ───────────────────────────────────────
+        if security_config.get("proxy_fix"):
+            from .middleware_ext.security import ProxyFixMiddleware
+            proxy_cfg = security_config.get("proxy_fix_config", {})
+            if isinstance(proxy_cfg, bool):
+                proxy_cfg = {}
+            mw = ProxyFixMiddleware(
+                trusted_proxies=proxy_cfg.get("trusted_proxies"),
+                x_for=proxy_cfg.get("x_for", 1),
+                x_proto=proxy_cfg.get("x_proto", 1),
+                x_host=proxy_cfg.get("x_host", 1),
+                x_port=proxy_cfg.get("x_port", 0),
+            )
+            self.middleware_stack.add(mw, scope="global", priority=3, name="proxy_fix")
+            self.logger.info("🔧 ProxyFix middleware enabled")
+
+        # ── HTTPS Redirect (priority 4) ──────────────────────────────────
+        if security_config.get("https_redirect"):
+            from .middleware_ext.security import HTTPSRedirectMiddleware
+            https_cfg = security_config.get("https_redirect_config", {})
+            if isinstance(https_cfg, bool):
+                https_cfg = {}
+            mw = HTTPSRedirectMiddleware(
+                redirect_status=https_cfg.get("redirect_status", 301),
+                exclude_paths=https_cfg.get("exclude_paths"),
+                exclude_hosts=https_cfg.get("exclude_hosts"),
+            )
+            self.middleware_stack.add(mw, scope="global", priority=4, name="https_redirect")
+            self.logger.info("🔒 HTTPS redirect middleware enabled")
+
+        # ── Static Files (priority 6) ────────────────────────────────────
+        static_config = integrations.get("static_files", {})
+        if static_config.get("enabled"):
+            from .middleware_ext.static import StaticMiddleware
+            mw = StaticMiddleware(
+                directories=static_config.get("directories", {"/static": "static"}),
+                cache_max_age=static_config.get("cache_max_age", 86400),
+                immutable=static_config.get("immutable", False),
+                etag=static_config.get("etag", True),
+                gzip=static_config.get("gzip", True),
+                brotli=static_config.get("brotli", True),
+                memory_cache=static_config.get("memory_cache", True),
+                html5_history=static_config.get("html5_history", False),
+            )
+            self.middleware_stack.add(mw, scope="global", priority=6, name="static_files")
+            self._static_middleware = mw
+            self.logger.info(
+                f"📁 Static files middleware enabled: "
+                f"{', '.join(f'{k}→{v}' for k, v in static_config.get('directories', {}).items())}"
+            )
+
+        # ── Security Headers / Helmet (priority 7) ───────────────────────
+        if security_config.get("helmet_enabled", False):
+            from .middleware_ext.security import SecurityHeadersMiddleware
+            helmet_cfg = security_config.get("helmet_config", {})
+            if isinstance(helmet_cfg, bool):
+                helmet_cfg = {}
+            mw = SecurityHeadersMiddleware(
+                frame_options=helmet_cfg.get("frame_options", "DENY"),
+                referrer_policy=helmet_cfg.get("referrer_policy", "strict-origin-when-cross-origin"),
+                permissions_policy=helmet_cfg.get("permissions_policy"),
+                cross_origin_opener_policy=helmet_cfg.get("cross_origin_opener_policy", "same-origin"),
+                cross_origin_resource_policy=helmet_cfg.get("cross_origin_resource_policy", "same-origin"),
+                content_type_nosniff=helmet_cfg.get("content_type_nosniff", True),
+                remove_server_header=helmet_cfg.get("remove_server_header", True),
+            )
+            self.middleware_stack.add(mw, scope="global", priority=7, name="security_headers")
+            self.logger.info("🛡️ Security headers (helmet) middleware enabled")
+
+        # ── HSTS (priority 8) ────────────────────────────────────────────
+        if security_config.get("hsts", False):
+            from .middleware_ext.security import HSTSMiddleware
+            hsts_cfg = security_config.get("hsts_config", {})
+            if isinstance(hsts_cfg, bool):
+                hsts_cfg = {}
+            mw = HSTSMiddleware(
+                max_age=hsts_cfg.get("max_age", 31536000),
+                include_subdomains=hsts_cfg.get("include_subdomains", True),
+                preload=hsts_cfg.get("preload", False),
+            )
+            self.middleware_stack.add(mw, scope="global", priority=8, name="hsts")
+            self.logger.info("🔐 HSTS middleware enabled")
+
+        # ── CSP (priority 9) ─────────────────────────────────────────────
+        csp_config = security_config.get("csp") or integrations.get("csp", {})
+        if csp_config and csp_config.get("enabled"):
+            from .middleware_ext.security import CSPMiddleware, CSPPolicy
+            policy_dict = csp_config.get("policy")
+            if policy_dict:
+                policy = CSPPolicy(directives=policy_dict)
+            else:
+                preset = csp_config.get("preset", "strict")
+                policy = CSPPolicy.strict() if preset == "strict" else CSPPolicy.relaxed()
+            mw = CSPMiddleware(
+                policy=policy,
+                report_only=csp_config.get("report_only", False),
+                nonce=csp_config.get("nonce", True),
+            )
+            self.middleware_stack.add(mw, scope="global", priority=9, name="csp")
+            self.logger.info("📋 CSP middleware enabled")
+
+        # ── CORS (priority 11) ───────────────────────────────────────────
+        cors_config = security_config.get("cors") or integrations.get("cors", {})
+        if security_config.get("cors_enabled") or (cors_config and cors_config.get("enabled")):
+            from .middleware_ext.security import CORSMiddleware as EnhancedCORSMiddleware
+            if cors_config and cors_config.get("enabled"):
+                mw = EnhancedCORSMiddleware(
+                    allow_origins=cors_config.get("allow_origins", ["*"]),
+                    allow_methods=cors_config.get("allow_methods"),
+                    allow_headers=cors_config.get("allow_headers"),
+                    expose_headers=cors_config.get("expose_headers"),
+                    allow_credentials=cors_config.get("allow_credentials", False),
+                    max_age=cors_config.get("max_age", 600),
+                    allow_origin_regex=cors_config.get("allow_origin_regex"),
+                )
+            else:
+                # Simple flag — use permissive defaults
+                mw = EnhancedCORSMiddleware(allow_origins=["*"])
+            self.middleware_stack.add(mw, scope="global", priority=11, name="cors")
+            self.logger.info("🌐 CORS middleware enabled")
+
+        # ── Rate Limiting (priority 12) ──────────────────────────────────
+        rl_config = security_config.get("rate_limit") or integrations.get("rate_limit", {})
+        if security_config.get("rate_limiting") or (rl_config and rl_config.get("enabled")):
+            from .middleware_ext.rate_limit import RateLimitMiddleware, RateLimitRule
+            from .middleware_ext.rate_limit import ip_key_extractor, user_key_extractor
+            rules = []
+            if rl_config and rl_config.get("enabled"):
+                key_func = user_key_extractor if rl_config.get("per_user") else ip_key_extractor
+                rules.append(RateLimitRule(
+                    limit=rl_config.get("limit", 100),
+                    window=rl_config.get("window", 60),
+                    algorithm=rl_config.get("algorithm", "sliding_window"),
+                    key_func=key_func,
+                    burst=rl_config.get("burst"),
+                ))
+                exempt = rl_config.get("exempt_paths")
+            else:
+                rules.append(RateLimitRule(limit=100, window=60))
+                exempt = None
+            mw = RateLimitMiddleware(
+                rules=rules,
+                exempt_paths=exempt,
+            )
+            self.middleware_stack.add(mw, scope="global", priority=12, name="rate_limit")
+            self.logger.info("⏱️ Rate limiting middleware enabled")
     
     def _is_debug(self) -> bool:
         """Check if debug mode is enabled.

@@ -305,18 +305,51 @@ class EnhancedDiscovery:
         discovered_controllers: List[Dict[str, Any]],
         discovered_services: List[Dict[str, Any]],
         module_dir: Optional[Path] = None,
+        discovered_sockets: Optional[List[Dict[str, Any]]] = None,
     ) -> Tuple[str, int, int]:
         """
         Clean and update manifest.py with properly classified items.
         Bidirectional sync: 
         1. Class metadata -> Manifest (Upgrade to ServiceConfig)
         2. Manifest -> FS (Dead link detection)
+        
+        Socket controllers are separated from regular controllers and
+        written to the ``socket_controllers`` field of AppManifest.
         """
         import ast
         
         # Extract current declarations using AST
         current_services_raw = self._extract_list_from_manifest_ast(manifest_content, "services")
         current_controllers_raw = self._extract_list_from_manifest_ast(manifest_content, "controllers")
+        current_sockets_raw = self._extract_list_from_manifest_ast(manifest_content, "socket_controllers")
+        
+        # Build a set of known socket paths from discovery for fast lookup
+        _discovered_sockets = discovered_sockets or []
+        known_socket_paths = {s["path"] for s in _discovered_sockets if isinstance(s, dict) and "path" in s}
+        
+        # Separate misplaced sockets out of the controllers list.
+        # A controller item is a socket if:
+        #   a) it was discovered as type="socket", OR
+        #   b) its class name ends with "Socket" (heuristic fallback)
+        cleaned_controllers_raw = []
+        migrated_sockets = []
+        for item in current_controllers_raw:
+            p = get_class_path(item)
+            class_name = p.rsplit(":", 1)[-1] if ":" in p else ""
+            if p in known_socket_paths or class_name.endswith("Socket"):
+                migrated_sockets.append(item)
+                if self.verbose:
+                    print(f"    ↪ Migrating socket controller from controllers → socket_controllers: {p}")
+            else:
+                cleaned_controllers_raw.append(item)
+        
+        current_controllers_raw = cleaned_controllers_raw
+        # Merge migrated sockets into the existing socket_controllers list (dedup)
+        existing_socket_paths = {get_class_path(s) for s in current_sockets_raw}
+        for sock in migrated_sockets:
+            if get_class_path(sock) not in existing_socket_paths:
+                current_sockets_raw.append(sock)
+                existing_socket_paths.add(get_class_path(sock))
         
         # Helper to get class_path
         def get_class_path(item: Union[str, Dict[str, Any]]) -> str:
@@ -410,12 +443,22 @@ class EnhancedDiscovery:
             
             services_added += 1
 
-        # Add discovered controllers
+        # Add discovered controllers (excluding sockets)
         for disc in discovered_controllers:
             path = disc["path"]
             if path not in existing_controller_paths:
                 final_controllers_raw.append(path)
                 controllers_added += 1
+
+        # Add discovered socket controllers
+        final_sockets_raw = list(current_sockets_raw)
+        sockets_added = 0
+        for disc in _discovered_sockets:
+            path = disc["path"]
+            if path not in existing_socket_paths:
+                final_sockets_raw.append(path)
+                existing_socket_paths.add(path)
+                sockets_added += 1
         
         # Update manifest content
         updated_content = manifest_content
@@ -435,7 +478,71 @@ class EnhancedDiscovery:
             if new_block != old_block_match.group(0):
                 updated_content = updated_content.replace(old_block_match.group(0), new_block)
         
+        # Handle socket_controllers: If sockets were migrated or discovered,
+        # ensure a socket_controllers=[] field exists in the manifest.
+        if final_sockets_raw:
+            updated_content = self._ensure_socket_controllers_field(
+                updated_content, final_sockets_raw
+            )
+        
         return updated_content, services_added, controllers_added
+
+    def _ensure_socket_controllers_field(
+        self, content: str, sockets: List[Union[str, Dict[str, Any]]]
+    ) -> str:
+        """
+        Ensure the manifest has a ``socket_controllers=[...]`` field
+        with the given socket controller paths.
+
+        If the field already exists, replace its contents.
+        If not, insert it right after the ``controllers=[...]`` block.
+        """
+        import ast
+        import re
+
+        # Format socket items
+        formatted = []
+        for item in sockets:
+            if isinstance(item, str):
+                formatted.append(f'"{item}"')
+            elif isinstance(item, dict) and "source" in item:
+                formatted.append(item["source"])
+            elif isinstance(item, dict) and "path" in item:
+                formatted.append(f'"{item["path"]}"')
+
+        if not formatted:
+            return content
+
+        # Check if socket_controllers= already exists in the file
+        existing_match = re.search(
+            r'(\s*)socket_controllers\s*=\s*\[(.*?)\]',
+            content,
+            re.DOTALL,
+        )
+
+        if existing_match:
+            # Replace existing socket_controllers block
+            indent = existing_match.group(1)
+            inner_indent = indent + "    "
+            items_str = (",\n" + inner_indent).join(formatted)
+            replacement = f"{indent}socket_controllers=[\n{inner_indent}{items_str},\n{indent}]"
+            content = content[:existing_match.start()] + replacement + content[existing_match.end():]
+        else:
+            # Insert after the controllers=[] block
+            ctrl_match = re.search(
+                r'([ \t]*)controllers\s*=\s*\[.*?\],',
+                content,
+                re.DOTALL,
+            )
+            if ctrl_match:
+                indent = ctrl_match.group(1)
+                inner_indent = indent + "    "
+                items_str = (",\n" + inner_indent).join(formatted)
+                socket_block = f"\n{indent}socket_controllers=[\n{inner_indent}{items_str},\n{indent}],"
+                insert_pos = ctrl_match.end()
+                content = content[:insert_pos] + socket_block + content[insert_pos:]
+
+        return content
 
     def _verify_path_exists(self, item_path: str, module_dir: Path) -> bool:
         """Verify that an import path exists relative to module_dir."""

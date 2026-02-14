@@ -121,10 +121,14 @@ def create_template_context(
             state = ctx.request.state
             if "template_url_for" in state:
                 inject_url_helpers(ctx.extras, state["template_url_for"])
+            if "template_static" in state:
+                inject_static_helper(ctx.extras, state["template_static"])
             if "template_config" in state:
                 inject_config(ctx.extras, state["template_config"])
             if "template_csrf_token" in state:
                 inject_csrf_token(ctx.extras, state["template_csrf_token"])
+            if "csp_nonce" in state:
+                inject_csp_nonce(ctx.extras, state["csp_nonce"])
     
     return ctx
 
@@ -139,12 +143,47 @@ def inject_url_helpers(context: Dict[str, Any], url_for_func: Any) -> None:
     """
     context["url_for"] = url_for_func
     
-    # Static URL helper
-    def static_url(path: str) -> str:
-        """Generate static asset URL."""
-        return f"/static/{path.lstrip('/')}"
-    
-    context["static_url"] = static_url
+    # Static URL helper (legacy fallback — prefer inject_static_helper)
+    if "static" not in context:
+        def static_url(path: str) -> str:
+            """Generate static asset URL."""
+            return f"/static/{path.lstrip('/')}"
+        
+        context["static_url"] = static_url
+        context["static"] = static_url
+
+
+def inject_static_helper(context: Dict[str, Any], static_func: Any) -> None:
+    """
+    Inject static asset URL helper into context.
+
+    Available in templates as:
+        {{ static('css/app.css') }}
+        {{ static('js/main.js') }}
+
+    This is the Aquilia equivalent of Django's {% static %} tag.
+
+    Args:
+        context: Template context dictionary
+        static_func: Function that takes a path and returns a URL
+    """
+    context["static"] = static_func
+    context["static_url"] = static_func
+
+
+def inject_csp_nonce(context: Dict[str, Any], nonce: str) -> None:
+    """
+    Inject CSP nonce into context.
+
+    Available in templates as:
+        <script nonce="{{ csp_nonce }}">...</script>
+        <style nonce="{{ csp_nonce }}">...</style>
+
+    Args:
+        context: Template context dictionary
+        nonce: Per-request CSP nonce string
+    """
+    context["csp_nonce"] = nonce
 
 
 def inject_csrf_token(context: Dict[str, Any], token: Optional[str] = None) -> None:
