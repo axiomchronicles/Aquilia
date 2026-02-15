@@ -28,6 +28,9 @@ workspace = (
         description="Aquilia full-feature showcase workspace",
     )
 
+    # ---- Database ---------------------------------------------------------
+    .database(url="sqlite:///db.sqlite3", auto_connect=True, auto_create=True)
+
     # ---- Modules ---------------------------------------------------------
 
     .module(Module("blogs", version="0.1.0", description="Blogs module")

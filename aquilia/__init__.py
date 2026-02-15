@@ -77,6 +77,8 @@ from .controller import (
     extract_controller_metadata,
     ControllerFactory,
     InstantiationMode,
+    OpenAPIGenerator,
+    OpenAPIConfig,
 )
 
 # ============================================================================

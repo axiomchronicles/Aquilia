@@ -762,6 +762,111 @@ class Integration:
             **kwargs,
         }
 
+    @staticmethod
+    def openapi(
+        title: str = "Aquilia API",
+        version: str = "1.0.0",
+        description: str = "",
+        terms_of_service: str = "",
+        contact_name: str = "",
+        contact_email: str = "",
+        contact_url: str = "",
+        license_name: str = "",
+        license_url: str = "",
+        servers: Optional[List[Dict[str, str]]] = None,
+        docs_path: str = "/docs",
+        openapi_json_path: str = "/openapi.json",
+        redoc_path: str = "/redoc",
+        include_internal: bool = False,
+        group_by_module: bool = True,
+        infer_request_body: bool = True,
+        infer_responses: bool = True,
+        detect_security: bool = True,
+        external_docs_url: str = "",
+        external_docs_description: str = "",
+        swagger_ui_theme: str = "",
+        swagger_ui_config: Optional[Dict[str, Any]] = None,
+        enabled: bool = True,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure OpenAPI specification generation and interactive documentation.
+
+        Enables automatic API documentation from controller metadata, type hints,
+        and docstrings. Serves Swagger UI at ``docs_path`` and ReDoc at ``redoc_path``.
+
+        Args:
+            title: API title shown in documentation.
+            version: API version string.
+            description: Markdown description for the API overview.
+            terms_of_service: URL to Terms of Service.
+            contact_name: Maintainer / team name.
+            contact_email: Contact email address.
+            contact_url: Contact URL.
+            license_name: License name (e.g. "MIT", "Apache-2.0").
+            license_url: URL to the full license text.
+            servers: List of server dicts ``[{"url": "...", "description": "..."}]``.
+            docs_path: URL path for Swagger UI (default ``/docs``).
+            openapi_json_path: URL path for raw JSON spec (default ``/openapi.json``).
+            redoc_path: URL path for ReDoc viewer (default ``/redoc``).
+            include_internal: Include ``/_internal`` routes in the spec.
+            group_by_module: Group tags by module.
+            infer_request_body: Infer request bodies from source analysis.
+            infer_responses: Infer response schemas from source analysis.
+            detect_security: Auto-detect security schemes from pipeline guards.
+            external_docs_url: URL to external documentation.
+            external_docs_description: Description for external docs link.
+            swagger_ui_theme: Swagger UI theme ("dark", "" for default).
+            swagger_ui_config: Extra Swagger UI configuration overrides.
+            enabled: Enable/disable OpenAPI routes entirely.
+
+        Returns:
+            OpenAPI configuration dictionary.
+
+        Example::
+
+            .integrate(Integration.openapi(
+                title="My App API",
+                version="2.0.0",
+                description="Production API for My App",
+                contact_name="Backend Team",
+                contact_email="api@myapp.com",
+                license_name="MIT",
+                servers=[
+                    {"url": "https://api.myapp.com", "description": "Production"},
+                    {"url": "https://staging-api.myapp.com", "description": "Staging"},
+                ],
+                swagger_ui_theme="dark",
+            ))
+        """
+        return {
+            "_integration_type": "openapi",
+            "enabled": enabled,
+            "title": title,
+            "version": version,
+            "description": description,
+            "terms_of_service": terms_of_service,
+            "contact_name": contact_name,
+            "contact_email": contact_email,
+            "contact_url": contact_url,
+            "license_name": license_name,
+            "license_url": license_url,
+            "servers": servers or [],
+            "docs_path": docs_path,
+            "openapi_json_path": openapi_json_path,
+            "redoc_path": redoc_path,
+            "include_internal": include_internal,
+            "group_by_module": group_by_module,
+            "infer_request_body": infer_request_body,
+            "infer_responses": infer_responses,
+            "detect_security": detect_security,
+            "external_docs_url": external_docs_url,
+            "external_docs_description": external_docs_description,
+            "swagger_ui_theme": swagger_ui_theme,
+            "swagger_ui_config": swagger_ui_config or {},
+            **kwargs,
+        }
+
 
 class Workspace:
     """Fluent workspace builder."""
@@ -824,6 +929,8 @@ class Workspace:
                 self._security_config["rate_limit"] = integration
             elif integration_type == "static_files":
                 self._integrations["static_files"] = integration
+            elif integration_type == "openapi":
+                self._integrations["openapi"] = integration
             return self
 
         # Determine integration type from keys (legacy detection)

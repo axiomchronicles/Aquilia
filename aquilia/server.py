@@ -15,7 +15,7 @@ from .controller.router import ControllerRouter
 from .aquilary import Aquilary, RuntimeRegistry, RegistryMode, AquilaryRegistry
 from .lifecycle import LifecycleCoordinator, LifecycleManager, LifecycleError
 from .middleware_ext.session_middleware import SessionMiddleware
-from .controller.openapi import OpenAPIGenerator
+from .controller.openapi import OpenAPIGenerator, OpenAPIConfig, generate_swagger_html, generate_redoc_html
 from .faults.engine import FaultEngine, FaultMiddleware
 from .response import Response
 # Template Integration
@@ -519,6 +519,66 @@ class AquiliaServer:
                 return next(iter(dirs))
         return "/static"
 
+    def _discover_module_static_dirs(self) -> dict:
+        """
+        Auto-discover static/ directories inside loaded modules.
+
+        Works like Django's AppDirectoriesFinder: scans each module's
+        package directory for a ``static/`` subdirectory.  Found directories
+        are grouped under the configured static URL prefix so that
+        ``{{ static('js/chat.js') }}`` resolves correctly regardless of
+        which module owns the file.
+
+        Returns:
+            Dict mapping URL prefix → list of filesystem paths for every
+            discovered module static directory.
+        """
+        from pathlib import Path
+        import importlib
+
+        # Group all discovered dirs under the static prefix
+        static_prefix = self._get_static_prefix()   # e.g. "/static"
+        discovered: list = []
+        seen_packages: set = set()
+
+        for ctx in self.runtime.meta.app_contexts:
+            # Derive module package from any registered import path.
+            # Controller paths look like "modules.chat.controllers:ChatController"
+            import_paths = list(ctx.controllers) + list(ctx.services)
+            for import_path in import_paths:
+                if ":" in import_path:
+                    mod_dotted = import_path.split(":", 1)[0]
+                else:
+                    mod_dotted = import_path.rsplit(".", 1)[0]
+
+                # Go one level up to get the package dir (modules.chat)
+                pkg_dotted = mod_dotted.rsplit(".", 1)[0] if "." in mod_dotted else mod_dotted
+
+                if pkg_dotted in seen_packages:
+                    continue
+                seen_packages.add(pkg_dotted)
+
+                try:
+                    pkg = importlib.import_module(pkg_dotted)
+                except ImportError:
+                    continue
+
+                pkg_dir = Path(pkg.__file__).parent if hasattr(pkg, "__file__") and pkg.__file__ else None
+                if pkg_dir is None:
+                    continue
+
+                static_dir = pkg_dir / "static"
+                if static_dir.is_dir():
+                    resolved = str(static_dir.resolve())
+                    discovered.append(resolved)
+                    self.logger.debug(
+                        f"Discovered module static dir: {ctx.name} → {resolved}"
+                    )
+
+        if discovered:
+            return {static_prefix: discovered}
+        return {}
+
     def _setup_security_middleware(self):
         """
         Wire security configuration to actual middleware instances.
@@ -577,8 +637,16 @@ class AquiliaServer:
         static_config = integrations.get("static_files", {})
         if static_config.get("enabled"):
             from .middleware_ext.static import StaticMiddleware
+
+            # Explicitly configured directories
+            directories = dict(static_config.get("directories", {"/static": "static"}))
+
+            # Auto-discover static/ dirs inside loaded modules
+            # (like Django's AppDirectoriesFinder)
+            module_static_dirs = self._discover_module_static_dirs()
+
             mw = StaticMiddleware(
-                directories=static_config.get("directories", {"/static": "static"}),
+                directories=directories,
                 cache_max_age=static_config.get("cache_max_age", 86400),
                 immutable=static_config.get("immutable", False),
                 etag=static_config.get("etag", True),
@@ -586,12 +654,17 @@ class AquiliaServer:
                 brotli=static_config.get("brotli", True),
                 memory_cache=static_config.get("memory_cache", True),
                 html5_history=static_config.get("html5_history", False),
+                extra_directories=module_static_dirs,
             )
             self.middleware_stack.add(mw, scope="global", priority=6, name="static_files")
             self._static_middleware = mw
+            all_dirs = dict(directories)
+            for prefix, paths in module_static_dirs.items():
+                for p in paths:
+                    all_dirs[f"{prefix} (module)"] = p
             self.logger.info(
                 f"📁 Static files middleware enabled: "
-                f"{', '.join(f'{k}→{v}' for k, v in static_config.get('directories', {}).items())}"
+                f"{', '.join(f'{k}→{v}' for k, v in all_dirs.items())}"
             )
 
         # ── Security Headers / Helmet (priority 7) ───────────────────────
@@ -990,88 +1063,104 @@ class AquiliaServer:
             self._register_docs_routes()
     
     def _register_docs_routes(self):
-        """Register OpenAPI and Swagger UI routes."""
-        generator = OpenAPIGenerator(
-            title=self.config.get("api_title", "Aquilia API"),
-            version=self.config.get("api_version", "1.0.0")
-        )
-        
+        """Register OpenAPI JSON, Swagger UI, and ReDoc routes."""
+        # Build OpenAPIConfig from integration config or fallback to legacy keys
+        openapi_integration = self.config.get("integrations", {}).get("openapi", {})
+        if openapi_integration and openapi_integration.get("enabled", True):
+            openapi_config = OpenAPIConfig.from_dict(openapi_integration)
+        else:
+            # Legacy fallback for backward compatibility
+            openapi_config = OpenAPIConfig(
+                title=self.config.get("api_title", "Aquilia API"),
+                version=self.config.get("api_version", "1.0.0"),
+            )
+
+        generator = OpenAPIGenerator(config=openapi_config)
+
+        # ── Handler: /openapi.json ───────────────────────────────────────
         async def openapi_handler(request, ctx):
             spec = generator.generate(self.controller_router)
             return Response.json(spec)
-            
+
+        # ── Handler: /docs (Swagger UI) ──────────────────────────────────
+        swagger_html = generate_swagger_html(openapi_config)
+
         async def docs_handler(request, ctx):
-            html = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
-                <title>Aquilia API Docs</title>
-            </head>
-            <body>
-                <div id="swagger-ui"></div>
-                <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-                <script>
-                    window.onload = () => {
-                        window.ui = SwaggerUIBundle({
-                            url: '/openapi.json',
-                            dom_id: '#swagger-ui',
-                        });
-                    };
-                </script>
-            </body>
-            </html>
-            """
-            return Response.html(html)
-            
-        # We need a way to manually add routes to the router that bypass controller compilation
-        # For now, let's just add them to the routes_by_method directly
-        # or use a pseudo-controller. 
-        # A better way is to move this to the compiler or have a 'manual_route' helper.
-        
+            return Response.html(swagger_html)
+
+        # ── Handler: /redoc ──────────────────────────────────────────────
+        redoc_html = generate_redoc_html(openapi_config)
+
+        async def redoc_handler(request, ctx):
+            return Response.html(redoc_html)
+
+        # Register routes via monkeypatched CompiledRoute (same approach as before)
         from .controller.metadata import RouteMetadata
         from .controller.compiler import CompiledRoute
         from .patterns import parse_pattern, PatternCompiler
-        
+
         pc = PatternCompiler()
-        
+
         # OpenAPI JSON
         route_json = CompiledRoute(
             controller_class=self.__class__,
             controller_metadata=None,
             route_metadata=RouteMetadata(
                 http_method="GET",
-                path_template="/openapi.json",
-                full_path="/openapi.json",
-                handler_name="openapi_handler"
+                path_template=openapi_config.openapi_json_path,
+                full_path=openapi_config.openapi_json_path,
+                handler_name="openapi_handler",
             ),
-            compiled_pattern=pc.compile(parse_pattern("/openapi.json")),
-            full_path="/openapi.json",
+            compiled_pattern=pc.compile(parse_pattern(openapi_config.openapi_json_path)),
+            full_path=openapi_config.openapi_json_path,
             http_method="GET",
-            specificity=1000
+            specificity=1000,
         )
-        route_json.handler = openapi_handler # Monkeypatch for engine
-        
+        route_json.handler = openapi_handler
+
         # Swagger UI
         route_docs = CompiledRoute(
             controller_class=self.__class__,
             controller_metadata=None,
             route_metadata=RouteMetadata(
                 http_method="GET",
-                path_template="/docs",
-                full_path="/docs",
-                handler_name="docs_handler"
+                path_template=openapi_config.docs_path,
+                full_path=openapi_config.docs_path,
+                handler_name="docs_handler",
             ),
-            compiled_pattern=pc.compile(parse_pattern("/docs")),
-            full_path="/docs",
+            compiled_pattern=pc.compile(parse_pattern(openapi_config.docs_path)),
+            full_path=openapi_config.docs_path,
             http_method="GET",
-            specificity=1000
+            specificity=1000,
         )
         route_docs.handler = docs_handler
-        
+
+        # ReDoc
+        route_redoc = CompiledRoute(
+            controller_class=self.__class__,
+            controller_metadata=None,
+            route_metadata=RouteMetadata(
+                http_method="GET",
+                path_template=openapi_config.redoc_path,
+                full_path=openapi_config.redoc_path,
+                handler_name="redoc_handler",
+            ),
+            compiled_pattern=pc.compile(parse_pattern(openapi_config.redoc_path)),
+            full_path=openapi_config.redoc_path,
+            http_method="GET",
+            specificity=1000,
+        )
+        route_redoc.handler = redoc_handler
+
         self.controller_router.routes_by_method.setdefault("GET", []).append(route_json)
         self.controller_router.routes_by_method.setdefault("GET", []).append(route_docs)
-        self.logger.info("📡 Registered documentation routes at /docs and /openapi.json")
+        self.controller_router.routes_by_method.setdefault("GET", []).append(route_redoc)
+        self.logger.info(
+            f"📡 Registered documentation routes: "
+            f"{openapi_config.docs_path} (Swagger UI) | "
+            f"{openapi_config.redoc_path} (ReDoc) | "
+            f"{openapi_config.openapi_json_path} (JSON)"
+        )
 
     async def _load_socket_controllers(self):
         """Load and register WebSocket controllers."""
@@ -1370,7 +1459,8 @@ class AquiliaServer:
                 # Only pick up Python files that are inside a "models" directory
                 # or are themselves named "models.py" — never controllers/services/etc.
                 for pyf in search_dir.rglob("*.py"):
-                    if pyf.name.startswith("_"):
+                    # Skip private files (e.g. _helpers.py) but NOT __init__.py
+                    if pyf.name.startswith("_") and pyf.name != "__init__.py":
                         continue
                     # Accept: models.py, or any .py inside a models/ package
                     is_model_file = (
@@ -1385,12 +1475,11 @@ class AquiliaServer:
         amdl_files = [f for f in model_files if f.suffix == ".amdl"]
         py_files = [f for f in model_files if f.suffix == ".py"]
 
-        if not amdl_files and not py_files:
-            self.logger.debug("No model files found — skipping model registration")
-            return
-
         total_count = len(amdl_files) + len(py_files)
-        self.logger.info(f"Found {total_count} model file(s), registering models...")
+        if total_count > 0:
+            self.logger.info(f"Found {total_count} model file(s), registering models...")
+        else:
+            self.logger.debug("No model files discovered via scan — checking for pre-registered models...")
 
         # ── Phase 2a: Parse and register AMDL (legacy) ────────────────────
         legacy_registry = getattr(self.runtime, '_model_registry', None) or LegacyRegistry()

@@ -9,6 +9,7 @@ from aquilia.manifest import (
     FaultHandlingConfig,
     FeatureConfig,
     LifecycleConfig,
+    DatabaseConfig
 )
 
 manifest = AppManifest(
@@ -40,4 +41,9 @@ manifest = AppManifest(
         FeatureConfig(name="stock_management", enabled=True),
         FeatureConfig(name="product_images", enabled=False),
     ],
+    database=DatabaseConfig(
+        url="sqlite:///db.sqlite3",
+        auto_connect=True,
+        auto_create=True,
+    )
 )

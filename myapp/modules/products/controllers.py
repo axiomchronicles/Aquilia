@@ -14,7 +14,6 @@ from aquilia import Controller, GET, POST, PUT, DELETE, PATCH, RequestCtx, Respo
 from .services import ProductService
 from .faults import ProductNotFoundFault, InvalidProductDataFault, InsufficientStockFault
 
-
 class ProductsController(Controller):
     """
     Products API controller.
@@ -76,21 +75,21 @@ class ProductsController(Controller):
 
         return Response.json(result, status=201)
 
-    @GET("/«id:str»")
-    async def get_product(self, ctx: RequestCtx, id: str):
+    @GET("/«id:int»")
+    async def get_product(self, ctx: RequestCtx, id: int):
         """
         Get product by ID.
 
         GET /products/<id>
-        Uses «id:str» pattern for UUID string matching.
+        Uses «id:int» pattern for integer ID matching.
         """
         product = await self.service.get_product(id)
         if not product:
             raise ProductNotFoundFault(id)
         return Response.json(product)
 
-    @PUT("/«id:str»")
-    async def update_product(self, ctx: RequestCtx, id: str):
+    @PUT("/«id:int»")
+    async def update_product(self, ctx: RequestCtx, id: int):
         """
         Update product.
 
@@ -103,8 +102,8 @@ class ProductsController(Controller):
             raise ProductNotFoundFault(id)
         return Response.json(updated)
 
-    @DELETE("/«id:str»")
-    async def delete_product(self, ctx: RequestCtx, id: str):
+    @DELETE("/«id:int»")
+    async def delete_product(self, ctx: RequestCtx, id: int):
         """
         Delete product (cascades to reviews).
 
@@ -139,8 +138,8 @@ class ProductsController(Controller):
 
     # ── Stock Management ────────────────────────────────────────────────
 
-    @PATCH("/«id:str»/stock")
-    async def adjust_stock(self, ctx: RequestCtx, id: str):
+    @PATCH("/«id:int»/stock")
+    async def adjust_stock(self, ctx: RequestCtx, id: int):
         """
         Adjust product stock level.
 
@@ -168,8 +167,8 @@ class ProductsController(Controller):
 
     # ── Reviews (Nested Resource) ───────────────────────────────────────
 
-    @GET("/«id:str»/reviews")
-    async def list_reviews(self, ctx: RequestCtx, id: str):
+    @GET("/«id:int»/reviews")
+    async def list_reviews(self, ctx: RequestCtx, id: int):
         """
         List reviews for a product.
 
@@ -192,8 +191,8 @@ class ProductsController(Controller):
             ),
         })
 
-    @POST("/«id:str»/reviews")
-    async def add_review(self, ctx: RequestCtx, id: str):
+    @POST("/«id:int»/reviews")
+    async def add_review(self, ctx: RequestCtx, id: int):
         """
         Add review to a product.
 

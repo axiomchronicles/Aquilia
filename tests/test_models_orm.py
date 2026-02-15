@@ -1993,3 +1993,625 @@ class TestLookupRegistryDirect:
         sql, params = lookup.as_sql()
         assert '"status" != ?' in sql
 
+
+# ============================================================================
+# Phase 6: Deep Enhancements Tests
+# ============================================================================
+
+
+class TestOrderByExpressions:
+    """Test F().desc(), F().asc(), OrderBy, nulls_first/nulls_last."""
+
+    def test_f_desc(self):
+        from aquilia.models.expression import F, OrderBy
+        ob = F("name").desc()
+        assert isinstance(ob, OrderBy)
+        assert ob.descending is True
+        sql, params = ob.as_sql()
+        assert sql == '"name" DESC'
+        assert params == []
+
+    def test_f_asc(self):
+        from aquilia.models.expression import F, OrderBy
+        ob = F("name").asc()
+        assert isinstance(ob, OrderBy)
+        assert ob.descending is False
+        sql, params = ob.as_sql()
+        assert sql == '"name" ASC'
+
+    def test_f_desc_nulls_last(self):
+        from aquilia.models.expression import F
+        ob = F("score").desc(nulls_last=True)
+        sql, _ = ob.as_sql()
+        assert sql == '"score" DESC NULLS LAST'
+
+    def test_f_asc_nulls_first(self):
+        from aquilia.models.expression import F
+        ob = F("created_at").asc(nulls_first=True)
+        sql, _ = ob.as_sql()
+        assert sql == '"created_at" ASC NULLS FIRST'
+
+    def test_f_related_field_path(self):
+        from aquilia.models.expression import F
+        f = F("author__name")
+        sql, params = f.as_sql()
+        assert sql == '"author"."name"'
+        assert params == []
+
+    def test_order_by_repr(self):
+        from aquilia.models.expression import F
+        ob = F("name").desc()
+        assert "DESC" in repr(ob)
+        assert "OrderBy" in repr(ob)
+
+
+class TestQOrderByExpressions:
+    """Test Q.order() with F().desc() / F().asc() expressions."""
+
+    def test_order_with_orderby_expression(self):
+        from aquilia.models.expression import F
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("OrdM", attrs={"name": CharField(max_length=50)})
+        q = Q(TestM._table_name, TestM, mock_db).order(F("name").desc())
+        sql, _ = q._build_select()
+        assert '"name" DESC' in sql
+
+    def test_order_mixed_string_and_expression(self):
+        from aquilia.models.expression import F
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("OrdMix", attrs={"name": CharField(max_length=50), "age": IntegerField()})
+        q = Q(TestM._table_name, TestM, mock_db).order("-age", F("name").asc(nulls_last=True))
+        sql, _ = q._build_select()
+        assert '"age" DESC' in sql
+        assert '"name" ASC NULLS LAST' in sql
+
+    def test_order_with_raw_expression(self):
+        from aquilia.models.expression import F
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("OrdRaw", attrs={"score": IntegerField()})
+        q = Q(TestM._table_name, TestM, mock_db).order(F("score").asc())
+        assert len(q._order_clauses) == 1
+
+
+class TestFExpressionInFilter:
+    """Test F() expression as a filter value: filter(field__gt=F('other'))."""
+
+    def test_filter_with_f_expression(self):
+        from aquilia.models.expression import F
+        from aquilia.models.query import _build_filter_clause
+        sql, params = _build_filter_clause("price__gt", F("cost"))
+        assert sql == '"price" > "cost"'
+        assert params == []
+
+    def test_filter_with_f_exact(self):
+        from aquilia.models.expression import F
+        from aquilia.models.query import _build_filter_clause
+        sql, params = _build_filter_clause("backup_email__exact", F("email"))
+        assert sql == '"backup_email" = "email"'
+        assert params == []
+
+    def test_filter_with_f_gte(self):
+        from aquilia.models.expression import F
+        from aquilia.models.query import _build_filter_clause
+        sql, params = _build_filter_clause("balance__gte", F("min_balance"))
+        assert '"balance" >= "min_balance"' == sql
+
+    def test_filter_with_f_ne(self):
+        from aquilia.models.expression import F
+        from aquilia.models.query import _build_filter_clause
+        sql, params = _build_filter_clause("first_name__ne", F("last_name"))
+        assert '"first_name" != "last_name"' == sql
+        assert params == []
+
+    def test_filter_with_combined_expression(self):
+        from aquilia.models.expression import F
+        from aquilia.models.query import _build_filter_clause
+        sql, params = _build_filter_clause("total__gt", F("price") + F("tax"))
+        # Should contain combined expression
+        assert '"total" >' in sql
+
+
+class TestExcludeWithQNode:
+    """Test exclude() accepting QNode positional args."""
+
+    def test_exclude_with_qnode(self):
+        from aquilia.models.query import QNode
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("ExclQN", attrs={"role": CharField(max_length=20), "active": BooleanField(default=True)})
+        qn = QNode(role="banned")
+        q = Q(TestM._table_name, TestM, mock_db).exclude(qn)
+        assert len(q._wheres) == 1
+        assert "NOT" in q._wheres[0]
+
+    def test_exclude_with_combined_qnode(self):
+        from aquilia.models.query import QNode
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("ExclComb", attrs={"role": CharField(max_length=20)})
+        qn = QNode(role="banned") | QNode(role="suspended")
+        q = Q(TestM._table_name, TestM, mock_db).exclude(qn)
+        assert len(q._wheres) == 1
+        assert "NOT" in q._wheres[0]
+
+    def test_exclude_mixed_qnode_and_kwargs(self):
+        from aquilia.models.query import QNode
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("ExclMix", attrs={"role": CharField(max_length=20), "active": BooleanField(default=True)})
+        qn = QNode(role="banned")
+        q = Q(TestM._table_name, TestM, mock_db).exclude(qn, active=False)
+        assert len(q._wheres) == 2
+
+
+class TestSetOperations:
+    """Test union(), intersection(), difference()."""
+
+    def test_union_creates_set_operation(self):
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("SetU", attrs={"role": CharField(max_length=20)})
+        q1 = Q(TestM._table_name, TestM, mock_db).filter(role="admin")
+        q2 = Q(TestM._table_name, TestM, mock_db).filter(role="staff")
+        combined = q1.union(q2)
+        assert len(combined._set_operations) == 1
+        assert combined._set_operations[0][0] == "UNION"
+
+    def test_union_all(self):
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("SetUA", attrs={"role": CharField(max_length=20)})
+        q1 = Q(TestM._table_name, TestM, mock_db).filter(role="admin")
+        q2 = Q(TestM._table_name, TestM, mock_db).filter(role="staff")
+        combined = q1.union(q2, all=True)
+        assert combined._set_operations[0][0] == "UNION ALL"
+
+    def test_intersection(self):
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("SetI", attrs={"role": CharField(max_length=20), "active": BooleanField()})
+        q1 = Q(TestM._table_name, TestM, mock_db).filter(role="admin")
+        q2 = Q(TestM._table_name, TestM, mock_db).filter(active=True)
+        combined = q1.intersection(q2)
+        assert combined._set_operations[0][0] == "INTERSECT"
+
+    def test_difference(self):
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("SetD", attrs={"role": CharField(max_length=20)})
+        q1 = Q(TestM._table_name, TestM, mock_db).filter(active=True)
+        q2 = Q(TestM._table_name, TestM, mock_db).filter(role="admin")
+        combined = q1.difference(q2)
+        assert combined._set_operations[0][0] == "EXCEPT"
+
+    def test_union_multiple_querysets(self):
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("SetMulti", attrs={"role": CharField(max_length=20)})
+        q1 = Q(TestM._table_name, TestM, mock_db).filter(role="admin")
+        q2 = Q(TestM._table_name, TestM, mock_db).filter(role="staff")
+        q3 = Q(TestM._table_name, TestM, mock_db).filter(role="mod")
+        combined = q1.union(q2, q3)
+        assert len(combined._set_operations) == 2
+
+
+class TestStringFunctions:
+    """Test Django-style string functions: Length, Upper, Lower, Trim, Concat, etc."""
+
+    def test_length(self):
+        from aquilia.models.expression import Length, F
+        expr = Length(F("name"))
+        sql, params = expr.as_sql()
+        assert sql == 'LENGTH("name")'
+        assert params == []
+
+    def test_length_with_string_value(self):
+        from aquilia.models.expression import Length
+        # Bare string becomes a Value (parameter)
+        expr = Length("hello")
+        sql, params = expr.as_sql()
+        assert sql == 'LENGTH(?)'
+        assert params == ["hello"]
+
+    def test_upper(self):
+        from aquilia.models.expression import Upper, F
+        expr = Upper(F("name"))
+        sql, params = expr.as_sql()
+        assert sql == 'UPPER("name")'
+
+    def test_lower(self):
+        from aquilia.models.expression import Lower, F
+        expr = Lower(F("email"))
+        sql, params = expr.as_sql()
+        assert sql == 'LOWER("email")'
+
+    def test_trim(self):
+        from aquilia.models.expression import Trim, F
+        expr = Trim(F("name"))
+        sql, params = expr.as_sql()
+        assert sql == 'TRIM("name")'
+
+    def test_ltrim(self):
+        from aquilia.models.expression import LTrim, F
+        expr = LTrim(F("name"))
+        sql, _ = expr.as_sql()
+        assert sql == 'LTRIM("name")'
+
+    def test_rtrim(self):
+        from aquilia.models.expression import RTrim, F
+        expr = RTrim(F("name"))
+        sql, _ = expr.as_sql()
+        assert sql == 'RTRIM("name")'
+
+    def test_concat(self):
+        from aquilia.models.expression import Concat, F, Value
+        expr = Concat(F("first_name"), Value(" "), F("last_name"))
+        sql, params = expr.as_sql()
+        assert "||" in sql  # SQLite uses ||
+        assert params == [" "]
+
+    def test_concat_mysql(self):
+        from aquilia.models.expression import Concat, F, Value
+        expr = Concat(F("first"), Value(" "), F("last"))
+        sql, params = expr.as_sql("mysql")
+        assert "CONCAT(" in sql
+
+    def test_left(self):
+        from aquilia.models.expression import Left
+        expr = Left("name", 1)
+        sql, params = expr.as_sql()
+        assert "SUBSTR" in sql
+        assert params == [1]
+
+    def test_right(self):
+        from aquilia.models.expression import Right
+        expr = Right("domain", 3)
+        sql, params = expr.as_sql()
+        assert "SUBSTR" in sql
+
+    def test_substr(self):
+        from aquilia.models.expression import Substr
+        expr = Substr("name", 1, 3)
+        sql, params = expr.as_sql()
+        assert "SUBSTR" in sql
+
+    def test_replace(self):
+        from aquilia.models.expression import Replace
+        expr = Replace("email", "@old.com", "@new.com")
+        sql, params = expr.as_sql()
+        assert "REPLACE" in sql
+        assert "@old.com" in params
+        assert "@new.com" in params
+
+
+class TestMathFunctions:
+    """Test Django-style math functions: Abs, Round, Power."""
+
+    def test_abs(self):
+        from aquilia.models.expression import Abs, F
+        expr = Abs(F("value"))
+        sql, params = expr.as_sql()
+        assert sql == 'ABS("value")'
+
+    def test_round(self):
+        from aquilia.models.expression import Round
+        expr = Round("price", 2)
+        sql, params = expr.as_sql()
+        assert "ROUND" in sql
+        assert 2 in params
+
+    def test_round_default_precision(self):
+        from aquilia.models.expression import Round
+        expr = Round("price")
+        sql, params = expr.as_sql()
+        assert "ROUND" in sql
+        assert 0 in params
+
+    def test_power(self):
+        from aquilia.models.expression import Power
+        expr = Power("value", 2)
+        sql, params = expr.as_sql()
+        assert "POWER" in sql
+
+
+class TestNowFunction:
+    """Test Now() date function."""
+
+    def test_now_sqlite(self):
+        from aquilia.models.expression import Now
+        expr = Now()
+        sql, params = expr.as_sql("sqlite")
+        assert sql == "DATETIME('now')"
+        assert params == []
+
+    def test_now_postgresql(self):
+        from aquilia.models.expression import Now
+        sql, _ = Now().as_sql("postgresql")
+        assert sql == "NOW()"
+
+    def test_now_mysql(self):
+        from aquilia.models.expression import Now
+        sql, _ = Now().as_sql("mysql")
+        assert sql == "NOW()"
+
+    def test_now_repr(self):
+        from aquilia.models.expression import Now
+        assert repr(Now()) == "Now()"
+
+
+class TestWhenWithQNode:
+    """Test When() accepting QNode conditions."""
+
+    def test_when_with_qnode(self):
+        from aquilia.models.expression import When, Value
+        from aquilia.models.query import QNode
+
+        qn = QNode(status="active") & QNode(role="admin")
+        when = When(qn, then=Value("privileged"))
+        sql, params = when.as_sql()
+        assert "WHEN" in sql
+        assert "THEN" in sql
+        assert "privileged" in params
+
+
+class TestEnhancedSave:
+    """Test save() with update_fields, force_insert, force_update, validate."""
+
+    @pytest.mark.asyncio
+    async def test_save_update_fields(self):
+        """Test that update_fields limits which columns are updated."""
+        TestM = fresh_model("SaveUF", attrs={
+            "name": CharField(max_length=50),
+            "email": CharField(max_length=100),
+        })
+        db = AsyncMock()
+        db.fetch_one = AsyncMock(return_value={"id": 1, "name": "test", "email": "old@test.com"})
+        db.execute = AsyncMock(return_value=MagicMock(lastrowid=1, rowcount=1))
+        ModelRegistry._db = db
+
+        instance = TestM(name="new_name", email="new@test.com")
+        instance.id = 1  # simulate existing record
+
+        await instance.save(update_fields=["name"])
+
+        # Should have called execute for the update
+        assert db.execute.called
+        call_args = db.execute.call_args
+        sql = call_args[0][0]
+        # Only name should be in the SET clause
+        assert '"name"' in sql
+
+    @pytest.mark.asyncio
+    async def test_save_force_insert_and_force_update_raises(self):
+        TestM = fresh_model("SaveFF", attrs={"name": CharField(max_length=50)})
+        instance = TestM(name="test")
+        with pytest.raises(ValueError, match="Cannot use force_insert and force_update together"):
+            await instance.save(force_insert=True, force_update=True)
+
+    @pytest.mark.asyncio
+    async def test_save_force_update_no_pk_raises(self):
+        TestM = fresh_model("SaveFU", attrs={"name": CharField(max_length=50)})
+        instance = TestM(name="test")
+        with pytest.raises(ValueError, match="Cannot force_update on unsaved instance"):
+            await instance.save(force_update=True)
+
+
+class TestEnhancedToDict:
+    """Test to_dict() with fields/exclude parameters."""
+
+    def test_to_dict_with_fields_whitelist(self):
+        TestM = fresh_model("ToDictF", attrs={
+            "name": CharField(max_length=50),
+            "email": CharField(max_length=100),
+            "age": IntegerField(null=True),
+        })
+        instance = TestM(name="Alice", email="alice@test.com", age=30)
+        result = instance.to_dict(fields=["name", "email"])
+        assert "name" in result
+        assert "email" in result
+        assert "age" not in result
+
+    def test_to_dict_with_exclude(self):
+        TestM = fresh_model("ToDictE", attrs={
+            "name": CharField(max_length=50),
+            "secret": CharField(max_length=100),
+        })
+        instance = TestM(name="Alice", secret="hidden")
+        result = instance.to_dict(exclude=["secret"])
+        assert "name" in result
+        assert "secret" not in result
+
+    def test_to_dict_serialize_uuid(self):
+        TestM = fresh_model("ToDictU", attrs={
+            "uid": UUIDField(null=True),
+        })
+        uid = uuid.uuid4()
+        instance = TestM(uid=uid)
+        result = instance.to_dict()
+        assert result["uid"] == str(uid)
+
+    def test_to_dict_serialize_datetime(self):
+        TestM = fresh_model("ToDictDT", attrs={
+            "created": DateTimeField(null=True),
+        })
+        dt = datetime.datetime(2024, 1, 15, 12, 30, 0)
+        instance = TestM(created=dt)
+        result = instance.to_dict()
+        assert result["created"] == "2024-01-15T12:30:00"
+
+    def test_to_dict_serialize_decimal(self):
+        TestM = fresh_model("ToDictDec", attrs={
+            "price": DecimalField(max_digits=10, decimal_places=2, null=True),
+        })
+        instance = TestM(price=decimal.Decimal("29.99"))
+        result = instance.to_dict()
+        assert result["price"] == "29.99"
+
+    def test_serialize_value_bytes(self):
+        result = Model._serialize_value(b"\xde\xad")
+        assert result == "dead"
+
+    def test_serialize_value_timedelta(self):
+        td = datetime.timedelta(hours=2, minutes=30)
+        result = Model._serialize_value(td)
+        assert result == 9000.0
+
+    def test_serialize_value_none(self):
+        assert Model._serialize_value(None) is None
+
+    def test_serialize_value_plain(self):
+        assert Model._serialize_value(42) == 42
+
+
+class TestCachedReverseFKRefs:
+    """Test that _get_reverse_fk_refs() caches FK lookups."""
+
+    def test_caching(self):
+        TestM = fresh_model("CacheFK", attrs={"name": CharField(max_length=50)})
+        # First call populates cache
+        refs = TestM._get_reverse_fk_refs()
+        assert isinstance(refs, list)
+        # Second call returns same object (cached)
+        refs2 = TestM._get_reverse_fk_refs()
+        assert refs is refs2
+
+
+class TestRobustSend:
+    """Test Signal.robust_send() that doesn't stop on exceptions."""
+
+    @pytest.mark.asyncio
+    async def test_robust_send_continues_on_error(self):
+        from aquilia.models.signals import Signal
+
+        sig = Signal("test_robust")
+        results_log = []
+
+        def good_receiver(sender, **kwargs):
+            results_log.append("good")
+            return "ok"
+
+        def bad_receiver(sender, **kwargs):
+            raise ValueError("intentional error")
+
+        sig.connect(good_receiver)
+        sig.connect(bad_receiver)
+
+        # A third good one to ensure it runs after the bad one
+        def good2(sender, **kwargs):
+            results_log.append("good2")
+            return "ok2"
+
+        sig.connect(good2)
+
+        results = await sig.robust_send(sender=object)
+        assert len(results) == 3
+        assert results[0] == (good_receiver, "ok")
+        assert isinstance(results[1][1], ValueError)
+        assert results[2] == (good2, "ok2")
+        assert results_log == ["good", "good2"]
+
+    @pytest.mark.asyncio
+    async def test_robust_send_async_receiver(self):
+        from aquilia.models.signals import Signal
+
+        sig = Signal("test_robust_async")
+
+        async def async_receiver(sender, **kwargs):
+            return "async_ok"
+
+        sig.connect(async_receiver)
+        results = await sig.robust_send(sender=object)
+        assert results[0] == (async_receiver, "async_ok")
+
+
+class TestValuesWithAnnotations:
+    """Test that values() respects group_by, having, annotations."""
+
+    def test_values_with_group_by(self):
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("ValGB", attrs={
+            "role": CharField(max_length=20),
+            "salary": IntegerField(),
+        })
+        q = Q(TestM._table_name, TestM, mock_db).group_by("role")
+        assert q._group_by == ["role"]
+
+    def test_values_with_having(self):
+        mock_db = MagicMock()
+        ModelRegistry._db = mock_db
+        TestM = fresh_model("ValHav", attrs={
+            "role": CharField(max_length=20),
+        })
+        q = Q(TestM._table_name, TestM, mock_db).group_by("role").having("COUNT(*) > ?", 5)
+        assert len(q._having) == 1
+        assert q._having_params == [5]
+
+
+class TestManagerSetOperationForwarding:
+    """Test that manager forwards union, intersection, difference, having."""
+
+    def test_manager_has_having(self):
+        from aquilia.models.manager import BaseManager
+        assert hasattr(BaseManager, "having")
+
+    def test_manager_has_union(self):
+        from aquilia.models.manager import BaseManager
+        assert hasattr(BaseManager, "union")
+
+    def test_manager_has_intersection(self):
+        from aquilia.models.manager import BaseManager
+        assert hasattr(BaseManager, "intersection")
+
+    def test_manager_has_difference(self):
+        from aquilia.models.manager import BaseManager
+        assert hasattr(BaseManager, "difference")
+
+
+class TestExportsCompleteness:
+    """Test that __init__.py exports all new symbols."""
+
+    def test_orderby_exported(self):
+        from aquilia.models import OrderBy
+        assert OrderBy is not None
+
+    def test_length_exported(self):
+        from aquilia.models import Length
+        assert Length is not None
+
+    def test_upper_lower_exported(self):
+        from aquilia.models import Upper, Lower
+        assert Upper is not None
+        assert Lower is not None
+
+    def test_trim_exported(self):
+        from aquilia.models import Trim, LTrim, RTrim
+        assert Trim is not None
+
+    def test_concat_exported(self):
+        from aquilia.models import Concat
+        assert Concat is not None
+
+    def test_left_right_substr_exported(self):
+        from aquilia.models import Left, Right, Substr
+        assert Left is not None
+
+    def test_replace_exported(self):
+        from aquilia.models import Replace
+        assert Replace is not None
+
+    def test_math_functions_exported(self):
+        from aquilia.models import Abs, Round, Power
+        assert Abs is not None
+
+    def test_now_exported(self):
+        from aquilia.models import Now
+        assert Now is not None
+
+    def test_prefetch_exported(self):
+        from aquilia.models import Prefetch
+        assert Prefetch is not None
+

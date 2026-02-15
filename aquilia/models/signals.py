@@ -170,6 +170,33 @@ class Signal:
                 results.append(exc)
         return results
 
+    async def robust_send(self, sender: Type, **kwargs) -> List[Any]:
+        """
+        Fire the signal, catching exceptions from each receiver.
+
+        Unlike send(), this does NOT stop on exceptions — every receiver
+        runs regardless. Returns list of (receiver, response_or_exception).
+
+        Like Django's Signal.send_robust().
+        """
+        results = []
+        for receiver, filter_sender in self._receivers:
+            if filter_sender is not None and sender is not filter_sender:
+                continue
+            try:
+                if inspect.iscoroutinefunction(receiver):
+                    result = await receiver(sender=sender, **kwargs)
+                else:
+                    result = receiver(sender=sender, **kwargs)
+                results.append((receiver, result))
+            except Exception as exc:
+                logger.error(
+                    f"Signal '{self.name}' receiver {receiver.__name__} "
+                    f"raised {exc.__class__.__name__}: {exc}"
+                )
+                results.append((receiver, exc))
+        return results
+
     @property
     def receivers(self) -> List[Callable]:
         """List of connected receiver functions."""

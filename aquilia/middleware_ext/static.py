@@ -277,6 +277,7 @@ class StaticMiddleware:
         allowed_extensions: Optional[Set[str]] = None,
         index_file: Optional[str] = "index.html",
         html5_history: bool = False,
+        extra_directories: Optional[Dict[str, List[str]]] = None,
     ):
         self._trie = _RadixTrie()
         self._cache_max_age = cache_max_age
@@ -298,6 +299,27 @@ class StaticMiddleware:
                 resolved = (Path.cwd() / fs_dir).resolve()
             self._directories[url_prefix] = resolved
             self._trie.insert(url_prefix, resolved)
+
+        # Fallback directories per URL prefix (for module static dirs).
+        # When a file isn't found in the primary directory for a prefix,
+        # these are searched in order — like Django's AppDirectoriesFinder.
+        self._fallback_dirs: Dict[str, List[Path]] = {}
+        for url_prefix, fs_dirs in (extra_directories or {}).items():
+            prefix_key = "/" + url_prefix.strip("/")
+            fallbacks: List[Path] = []
+            for fs_dir in fs_dirs:
+                resolved = Path(fs_dir).resolve()
+                if not resolved.is_dir():
+                    resolved = (Path.cwd() / fs_dir).resolve()
+                if resolved.is_dir():
+                    fallbacks.append(resolved)
+            if fallbacks:
+                self._fallback_dirs[prefix_key] = fallbacks
+                # Ensure trie has an entry for this prefix even if the
+                # primary directory doesn't exist (creates a sentinel).
+                if prefix_key not in self._directories:
+                    self._trie.insert(prefix_key, fallbacks[0])
+                    self._directories[prefix_key] = fallbacks[0]
 
         # Memory cache
         self._file_cache: Optional[_LRUFileCache] = None
@@ -331,9 +353,19 @@ class StaticMiddleware:
             else:
                 return await next_handler(request, ctx)
 
+        # Try the primary directory first
         response = self._serve_file(request, directory, relative_path)
         if response is not None:
             return response
+
+        # Search fallback directories (module static dirs).
+        # Determine which prefix matched so we can look up its fallbacks.
+        matched_prefix = self._matched_prefix(request.path)
+        if matched_prefix and matched_prefix in self._fallback_dirs:
+            for fallback_dir in self._fallback_dirs[matched_prefix]:
+                response = self._serve_file(request, fallback_dir, relative_path)
+                if response is not None:
+                    return response
 
         # HTML5 history API fallback
         if self._html5_history and self._index_file:
@@ -342,6 +374,15 @@ class StaticMiddleware:
                 return response
 
         return await next_handler(request, ctx)
+
+    def _matched_prefix(self, path: str) -> Optional[str]:
+        """Return the URL prefix that matched *path*, or None."""
+        path = "/" + path.strip("/")
+        # Walk from longest registered prefix to shortest
+        for prefix in sorted(self._directories, key=len, reverse=True):
+            if path.startswith(prefix):
+                return prefix
+        return None
 
     # ── Internals ─────────────────────────────────────────────────────────
 

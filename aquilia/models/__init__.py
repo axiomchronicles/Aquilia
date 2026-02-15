@@ -45,7 +45,7 @@ from .manager import Manager, BaseManager, QuerySet
 
 # New split-module exports (available but not replacing base.py)
 from .registry import ModelRegistry as NewModelRegistry
-from .query import Q as QueryBuilder, QNode, QCombination
+from .query import Q as QueryBuilder, QNode, QCombination, Prefetch
 from .options import Options as EnhancedOptions
 
 from .fields_module import (
@@ -147,6 +147,23 @@ from .expression import (
     Greatest,
     Least,
     NullIf,
+    # Django-style string/math/date functions
+    OrderBy,
+    Length,
+    Upper,
+    Lower,
+    Trim,
+    LTrim,
+    RTrim,
+    Concat,
+    Left,
+    Right,
+    Substr,
+    Replace,
+    Abs,
+    Round,
+    Power,
+    Now,
 )
 
 from .aggregate import (
@@ -287,6 +304,7 @@ __all__ = [
     "QueryBuilder",
     "QNode",
     "QCombination",
+    "Prefetch",
     "EnhancedOptions",
     # Manager
     "Manager",
@@ -373,6 +391,23 @@ __all__ = [
     "Greatest",
     "Least",
     "NullIf",
+    # Django-style string/math/date functions
+    "OrderBy",
+    "Length",
+    "Upper",
+    "Lower",
+    "Trim",
+    "LTrim",
+    "RTrim",
+    "Concat",
+    "Left",
+    "Right",
+    "Substr",
+    "Replace",
+    "Abs",
+    "Round",
+    "Power",
+    "Now",
     "Aggregate",
     "Sum",
     "Avg",

@@ -77,6 +77,13 @@ class ControllerEngine:
         controller_class = route.controller_class
         route_metadata = route.route_metadata
         
+        # Fast path: monkeypatched handler (e.g. OpenAPI docs routes).
+        # These bypass the full controller lifecycle entirely.
+        if hasattr(route, "handler") and callable(route.handler):
+            ctx = await self._build_request_context(request, container)
+            result = await route.handler(request, ctx)
+            return self._to_response(result)
+        
         # Initialize controller lifecycle hooks if needed
         # Only for Singleton controllers or if we want to support startup hooks generally?
         # Docs say on_startup is singleton only.

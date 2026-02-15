@@ -54,6 +54,12 @@ from .compiler import (
     CompiledController,
 )
 from .router import ControllerRouter
+from .openapi import (
+    OpenAPIGenerator,
+    OpenAPIConfig,
+    generate_swagger_html,
+    generate_redoc_html,
+)
 
 __all__ = [
     # Base
@@ -85,4 +91,10 @@ __all__ = [
     
     # Routing
     "ControllerRouter",
+    
+    # OpenAPI
+    "OpenAPIGenerator",
+    "OpenAPIConfig",
+    "generate_swagger_html",
+    "generate_redoc_html",
 ]

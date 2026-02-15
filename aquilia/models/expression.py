@@ -42,6 +42,23 @@ __all__ = [
     "Greatest",
     "Least",
     "NullIf",
+    # Django-style string/math functions
+    "Length",
+    "Upper",
+    "Lower",
+    "Trim",
+    "LTrim",
+    "RTrim",
+    "Concat",
+    "Left",
+    "Right",
+    "Substr",
+    "Replace",
+    "Abs",
+    "Round",
+    "Power",
+    "Now",
+    "OrderBy",
 ]
 
 
@@ -116,21 +133,72 @@ class Expression(Combinable):
         return self
 
 
+class OrderBy:
+    """
+    Ordering directive — wraps an expression with ASC/DESC.
+
+    Created by F("field").asc() or F("field").desc().
+    Can be passed to .order() when expression-based ordering is needed.
+    """
+
+    def __init__(self, expression: Expression, descending: bool = False, nulls_first: Optional[bool] = None):
+        self.expression = expression
+        self.descending = descending
+        self.nulls_first = nulls_first
+
+    def as_sql(self, dialect: str = "sqlite") -> Tuple[str, List[Any]]:
+        expr_sql, params = self.expression.as_sql(dialect)
+        direction = "DESC" if self.descending else "ASC"
+        sql = f"{expr_sql} {direction}"
+        if self.nulls_first is True:
+            sql += " NULLS FIRST"
+        elif self.nulls_first is False:
+            sql += " NULLS LAST"
+        return sql, params
+
+    def __repr__(self) -> str:
+        d = "DESC" if self.descending else "ASC"
+        return f"OrderBy({self.expression!r}, {d})"
+
+
 class F(Expression):
     """
     Reference to a model field in an expression context.
 
     Usage:
-        F("price")         → "price"
-        F("price") + 10    → "price" + ?  [10]
-        F("views") + 1     → "views" + ?  [1]
+        F("price")            → "price"
+        F("price") + 10       → "price" + ?  [10]
+        F("views") + 1        → "views" + ?  [1]
+        F("name").desc()      → "name" DESC  (for ordering)
+        F("name").asc()       → "name" ASC
+        F("email").desc(nulls_last=True)  → "email" DESC NULLS LAST
     """
 
     def __init__(self, name: str):
         self.name = name
 
     def as_sql(self, dialect: str = "sqlite") -> Tuple[str, List[Any]]:
+        # Support double-underscore related field paths
+        # e.g. F("author__name") → "author"."name" (for JOINed queries)
+        if "__" in self.name:
+            parts = self.name.split("__")
+            if len(parts) == 2:
+                return f'"{parts[0]}"."{parts[1]}"', []
         return f'"{self.name}"', []
+
+    def asc(self, *, nulls_first: Optional[bool] = None, nulls_last: Optional[bool] = None) -> OrderBy:
+        """Create ascending ORDER BY directive."""
+        nf = nulls_first
+        if nulls_last is True:
+            nf = False
+        return OrderBy(self, descending=False, nulls_first=nf)
+
+    def desc(self, *, nulls_first: Optional[bool] = None, nulls_last: Optional[bool] = None) -> OrderBy:
+        """Create descending ORDER BY directive."""
+        nf = nulls_first
+        if nulls_last is True:
+            nf = False
+        return OrderBy(self, descending=True, nulls_first=nf)
 
     def __repr__(self) -> str:
         return f"F({self.name!r})"
@@ -539,3 +607,253 @@ class NullIf(Expression):
 
     def __repr__(self) -> str:
         return f"NullIf({self.expr1!r}, {self.expr2!r})"
+
+
+# ── Django-style String Functions ────────────────────────────────────────────
+
+
+class Length(Func):
+    """
+    SQL LENGTH() — return string length.
+
+    Usage:
+        User.objects.annotate(name_len=Length("name"))
+    """
+    def __init__(self, expression: Any):
+        super().__init__("LENGTH", expression)
+
+
+class Upper(Func):
+    """
+    SQL UPPER() — convert to uppercase.
+
+    Usage:
+        User.objects.annotate(upper_name=Upper("name"))
+    """
+    def __init__(self, expression: Any):
+        super().__init__("UPPER", expression)
+
+
+class Lower(Func):
+    """
+    SQL LOWER() — convert to lowercase.
+
+    Usage:
+        User.objects.annotate(lower_email=Lower("email"))
+    """
+    def __init__(self, expression: Any):
+        super().__init__("LOWER", expression)
+
+
+class Trim(Func):
+    """
+    SQL TRIM() — remove leading and trailing whitespace.
+
+    Usage:
+        User.objects.annotate(clean_name=Trim("name"))
+    """
+    def __init__(self, expression: Any):
+        super().__init__("TRIM", expression)
+
+
+class LTrim(Func):
+    """
+    SQL LTRIM() — remove leading whitespace.
+
+    Usage:
+        User.objects.annotate(left_trimmed=LTrim("name"))
+    """
+    def __init__(self, expression: Any):
+        super().__init__("LTRIM", expression)
+
+
+class RTrim(Func):
+    """
+    SQL RTRIM() — remove trailing whitespace.
+
+    Usage:
+        User.objects.annotate(right_trimmed=RTrim("name"))
+    """
+    def __init__(self, expression: Any):
+        super().__init__("RTRIM", expression)
+
+
+class Concat(Expression):
+    """
+    SQL concatenation — dialect-aware (|| for SQLite/PG, CONCAT for MySQL).
+
+    Usage:
+        Concat(F("first_name"), Value(" "), F("last_name"))
+    """
+    def __init__(self, *expressions: Any):
+        self.expressions = [
+            e if isinstance(e, Expression) else Value(e) for e in expressions
+        ]
+
+    def as_sql(self, dialect: str = "sqlite") -> Tuple[str, List[Any]]:
+        parts: List[str] = []
+        params: List[Any] = []
+        for expr in self.expressions:
+            sql, p = expr.as_sql(dialect)
+            parts.append(sql)
+            params.extend(p)
+        if dialect == "mysql":
+            return f"CONCAT({', '.join(parts)})", params
+        # SQLite / PostgreSQL use ||
+        return f"({' || '.join(parts)})", params
+
+    def __repr__(self) -> str:
+        return f"Concat({self.expressions!r})"
+
+
+class Left(Expression):
+    """
+    SQL LEFT() / SUBSTR() — extract leftmost characters.
+
+    Usage:
+        User.objects.annotate(initials=Left("name", 1))
+    """
+    def __init__(self, expression: Any, length: int):
+        self.expression = expression if isinstance(expression, Expression) else F(expression) if isinstance(expression, str) else Value(expression)
+        self.length = length
+
+    def as_sql(self, dialect: str = "sqlite") -> Tuple[str, List[Any]]:
+        expr_sql, params = self.expression.as_sql(dialect)
+        if dialect in ("sqlite", "postgresql"):
+            return f"SUBSTR({expr_sql}, 1, ?)", params + [self.length]
+        return f"LEFT({expr_sql}, ?)", params + [self.length]
+
+    def __repr__(self) -> str:
+        return f"Left({self.expression!r}, {self.length})"
+
+
+class Right(Expression):
+    """
+    SQL RIGHT() / SUBSTR() — extract rightmost characters.
+
+    Usage:
+        User.objects.annotate(suffix=Right("domain", 3))
+    """
+    def __init__(self, expression: Any, length: int):
+        self.expression = expression if isinstance(expression, Expression) else F(expression) if isinstance(expression, str) else Value(expression)
+        self.length = length
+
+    def as_sql(self, dialect: str = "sqlite") -> Tuple[str, List[Any]]:
+        expr_sql, params = self.expression.as_sql(dialect)
+        if dialect in ("sqlite", "postgresql"):
+            return f"SUBSTR({expr_sql}, -{self.length})", params
+        return f"RIGHT({expr_sql}, ?)", params + [self.length]
+
+    def __repr__(self) -> str:
+        return f"Right({self.expression!r}, {self.length})"
+
+
+class Substr(Func):
+    """
+    SQL SUBSTR() — extract substring.
+
+    Usage:
+        Substr("name", 1, 3)  → SUBSTR("name", 1, 3)
+    """
+    def __init__(self, expression: Any, pos: int, length: Optional[int] = None):
+        self.pos = pos
+        self.length = length
+        expr = expression if isinstance(expression, Expression) else F(expression) if isinstance(expression, str) else Value(expression)
+        if length is not None:
+            super().__init__("SUBSTR", expr, Value(pos), Value(length))
+        else:
+            super().__init__("SUBSTR", expr, Value(pos))
+
+
+class Replace(Func):
+    """
+    SQL REPLACE() — replace occurrences in a string.
+
+    Usage:
+        Replace("email", Value("@old.com"), Value("@new.com"))
+    """
+    def __init__(self, expression: Any, old: Any, new: Any):
+        expr = expression if isinstance(expression, Expression) else F(expression) if isinstance(expression, str) else Value(expression)
+        old_v = old if isinstance(old, Expression) else Value(old)
+        new_v = new if isinstance(new, Expression) else Value(new)
+        super().__init__("REPLACE", expr, old_v, new_v)
+
+
+# ── Django-style Math Functions ──────────────────────────────────────────────
+
+
+class Abs(Func):
+    """
+    SQL ABS() — absolute value.
+
+    Usage:
+        Product.objects.annotate(abs_diff=Abs(F("price") - F("cost")))
+    """
+    def __init__(self, expression: Any):
+        super().__init__("ABS", expression)
+
+
+class Round(Expression):
+    """
+    SQL ROUND() — round to specified decimal places.
+
+    Usage:
+        Product.objects.annotate(rounded_price=Round("price", 2))
+    """
+    def __init__(self, expression: Any, precision: int = 0):
+        self.expression = expression if isinstance(expression, Expression) else F(expression) if isinstance(expression, str) else Value(expression)
+        self.precision = precision
+
+    def as_sql(self, dialect: str = "sqlite") -> Tuple[str, List[Any]]:
+        expr_sql, params = self.expression.as_sql(dialect)
+        return f"ROUND({expr_sql}, ?)", params + [self.precision]
+
+    def __repr__(self) -> str:
+        return f"Round({self.expression!r}, {self.precision})"
+
+
+class Power(Expression):
+    """
+    SQL POWER() — raise to a power.
+
+    Usage:
+        Product.objects.annotate(squared=Power("value", 2))
+    """
+    def __init__(self, expression: Any, exponent: Any):
+        self.expression = expression if isinstance(expression, Expression) else F(expression) if isinstance(expression, str) else Value(expression)
+        self.exponent = exponent if isinstance(exponent, Expression) else Value(exponent)
+
+    def as_sql(self, dialect: str = "sqlite") -> Tuple[str, List[Any]]:
+        expr_sql, expr_params = self.expression.as_sql(dialect)
+        exp_sql, exp_params = self.exponent.as_sql(dialect)
+        if dialect == "sqlite":
+            # SQLite doesn't have POWER(), use math extension or manual
+            return f"POWER({expr_sql}, {exp_sql})", expr_params + exp_params
+        return f"POWER({expr_sql}, {exp_sql})", expr_params + exp_params
+
+    def __repr__(self) -> str:
+        return f"Power({self.expression!r}, {self.exponent!r})"
+
+
+# ── Django-style Date Functions ──────────────────────────────────────────────
+
+
+class Now(Expression):
+    """
+    SQL current timestamp — dialect-aware.
+
+    Usage:
+        User.objects.filter(expires_at__lt=Now())
+        User.objects.update(last_seen=Now())
+    """
+
+    def as_sql(self, dialect: str = "sqlite") -> Tuple[str, List[Any]]:
+        if dialect == "sqlite":
+            return "DATETIME('now')", []
+        elif dialect == "mysql":
+            return "NOW()", []
+        else:  # postgresql
+            return "NOW()", []
+
+    def __repr__(self) -> str:
+        return "Now()"

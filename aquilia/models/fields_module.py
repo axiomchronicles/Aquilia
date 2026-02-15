@@ -178,7 +178,10 @@ class Field:
         Override in subclasses for type-specific validation.
         """
         if value is None:
-            if not self.null:
+            # blank=True means field can be empty (validated before save)
+            # null=True means field can be NULL in database
+            # If blank=True, allow None during validation (will be set by auto_now/default)
+            if not self.blank and not self.null:
                 raise FieldValidationError(self.name, "Cannot be null")
             return None
 
@@ -726,6 +729,9 @@ class DateField(Field):
     def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, **kwargs):
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
+        # auto_now and auto_now_add fields should be blank=True (auto-populated)
+        if auto_now or auto_now_add:
+            kwargs.setdefault("blank", True)
         if auto_now_add:
             kwargs.setdefault("default", datetime.date.today)
         super().__init__(**kwargs)
@@ -782,6 +788,9 @@ class TimeField(Field):
     def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, **kwargs):
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
+        # auto_now and auto_now_add fields should be blank=True (auto-populated)
+        if auto_now or auto_now_add:
+            kwargs.setdefault("blank", True)
         super().__init__(**kwargs)
 
     def validate(self, value: Any) -> Any:
@@ -826,6 +835,9 @@ class DateTimeField(Field):
     def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, **kwargs):
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
+        # auto_now and auto_now_add fields should be blank=True (auto-populated)
+        if auto_now or auto_now_add:
+            kwargs.setdefault("blank", True)
         if auto_now_add:
             kwargs.setdefault("default", lambda: datetime.datetime.now(datetime.timezone.utc))
         super().__init__(**kwargs)

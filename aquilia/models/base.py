@@ -1,5 +1,8 @@
 """
-Aquilia Model Base — Pure Python, metaclass-driven ORM.
+Aquilia Model Base — Pure Python, metaclass-driven, async-first ORM.
+
+Inspired by Django's model architecture but with Aquilia's unique
+async-first, chainable query syntax.
 
 Usage:
     from aquilia.models import Model
@@ -18,6 +21,12 @@ Usage:
             indexes = [
                 Index(fields=["email", "name"]),
             ]
+
+    # Aquilia QuerySet API (async-terminal)
+    users = await User.objects.filter(active=True).order("-created_at").all()
+    user  = await User.objects.get(pk=1)
+    count = await User.objects.filter(age__gt=18).count()
+    await User.objects.filter(pk=1).update(name="Bob")
 """
 
 from __future__ import annotations
@@ -95,622 +104,109 @@ if TYPE_CHECKING:
 logger = logging.getLogger("aquilia.models")
 
 
-# ── Model Options (parsed from Meta class) ───────────────────────────────────
+# ── Model Options — delegate to options.py ───────────────────────────────────
+# Keep this import for backward compatibility; the canonical Options is
+# in options.py (imported by metaclass.py).
+
+from .options import Options
 
 
-class Options:
+# ── Model Registry — delegate to registry.py ────────────────────────────────
+# Keep ModelRegistry importable from base.py for backward compat, but the
+# canonical implementation lives in registry.py.
+
+from .registry import ModelRegistry as _CanonicalRegistry
+
+
+class _ModelRegistryMeta(type):
+    """Metaclass for ModelRegistry that forwards attribute access to the canonical registry."""
+
+    @property
+    def _models(cls) -> Dict[str, Type[Model]]:
+        return _CanonicalRegistry._models
+
+    @_models.setter
+    def _models(cls, value):
+        _CanonicalRegistry._models = value
+
+    @property
+    def _db(cls):
+        return _CanonicalRegistry._db
+
+    @_db.setter
+    def _db(cls, value):
+        _CanonicalRegistry._db = value
+
+    @property
+    def _app_models(cls):
+        return _CanonicalRegistry._app_models
+
+    @_app_models.setter
+    def _app_models(cls, value):
+        _CanonicalRegistry._app_models = value
+
+
+class ModelRegistry(metaclass=_ModelRegistryMeta):
     """
-    Parsed model options from inner Meta class.
+    Backward-compatible wrapper around registry.ModelRegistry.
 
-    Attributes:
-        table_name: Database table name
-        ordering: Default query ordering
-        indexes: Composite indexes
-        constraints: Unique constraints
-        abstract: Whether model is abstract (no table)
-        verbose_name: Human-readable model name
-        verbose_name_plural: Human-readable plural
-        app_label: Owning module name
+    All calls are forwarded to the canonical registry in registry.py.
+    Class attributes (_models, _db) are live properties that always
+    reflect the canonical registry's state.
     """
-
-    __slots__ = (
-        "table_name",
-        "ordering",
-        "indexes",
-        "constraints",
-        "abstract",
-        "verbose_name",
-        "verbose_name_plural",
-        "app_label",
-        "unique_together",
-    )
-
-    def __init__(
-        self,
-        model_name: str,
-        meta: Optional[type] = None,
-        table_attr: Optional[str] = None,
-    ):
-        self.table_name = table_attr or (
-            getattr(meta, "table", None) or getattr(meta, "table_name", None)
-            if meta else None
-        ) or model_name.lower()
-        self.ordering: List[str] = getattr(meta, "ordering", []) if meta else []
-        self.indexes: List[Index] = getattr(meta, "indexes", []) if meta else []
-        self.constraints: List[UniqueConstraint] = getattr(meta, "constraints", []) if meta else []
-        self.abstract: bool = getattr(meta, "abstract", False) if meta else False
-        self.verbose_name: str = getattr(meta, "verbose_name", model_name) if meta else model_name
-        self.verbose_name_plural: str = getattr(
-            meta, "verbose_name_plural", f"{self.verbose_name}s"
-        ) if meta else f"{model_name}s"
-        self.app_label: str = getattr(meta, "app_label", "") if meta else ""
-        self.unique_together: List[Tuple[str, ...]] = (
-            getattr(meta, "unique_together", []) if meta else []
-        )
-
-
-# ── Model Registry ───────────────────────────────────────────────────────────
-
-
-class ModelRegistry:
-    """
-    Global registry for all Model subclasses.
-
-    Replaces the old AMDL-based ModelRegistry.
-    Tracks all concrete models and resolves forward references.
-    """
-
-    _models: Dict[str, Type[Model]] = {}
-    _db: Optional[AquiliaDatabase] = None
 
     @classmethod
     def register(cls, model_cls: Type[Model]) -> None:
-        """Register a model class."""
-        name = model_cls.__name__
-        cls._models[name] = model_cls
-        # Resolve any pending forward FK references
-        cls._resolve_relations()
+        _CanonicalRegistry.register(model_cls)
 
     @classmethod
     def get(cls, name: str) -> Optional[Type[Model]]:
-        """Get model class by name."""
-        return cls._models.get(name)
+        return _CanonicalRegistry.get(name)
 
     @classmethod
     def all_models(cls) -> Dict[str, Type[Model]]:
-        """Get all registered models."""
-        return dict(cls._models)
+        return _CanonicalRegistry.all_models()
 
     @classmethod
     def set_database(cls, db: AquiliaDatabase) -> None:
-        """Set global database for all models."""
-        cls._db = db
-        for model_cls in cls._models.values():
-            model_cls._db = db
+        _CanonicalRegistry.set_database(db)
 
     @classmethod
     def get_database(cls) -> Optional[AquiliaDatabase]:
-        return cls._db
+        return _CanonicalRegistry.get_database()
 
     @classmethod
     def _resolve_relations(cls) -> None:
-        """Resolve forward-referenced model names in FK/M2M fields."""
-        for model_cls in cls._models.values():
-            for field in model_cls._fields.values():
-                if isinstance(field, RelationField) and isinstance(field.to, str):
-                    field.resolve_model(cls._models)
+        _CanonicalRegistry._resolve_relations()
 
     @classmethod
     async def create_tables(cls, db: Optional[AquiliaDatabase] = None) -> List[str]:
-        """Create tables for all registered models."""
-        target_db = db or cls._db
-        if not target_db:
-            raise RuntimeError("No database configured for ModelRegistry")
-
-        statements: List[str] = []
-        for model_cls in cls._models.values():
-            if model_cls._meta.abstract:
-                continue
-
-            # Create main table
-            sql = model_cls.generate_create_table_sql()
-            await target_db.execute(sql)
-            statements.append(sql)
-
-            # Create indexes
-            for idx_sql in model_cls.generate_index_sql():
-                await target_db.execute(idx_sql)
-                statements.append(idx_sql)
-
-            # Create M2M junction tables
-            for m2m_sql in model_cls.generate_m2m_sql():
-                await target_db.execute(m2m_sql)
-                statements.append(m2m_sql)
-
-        return statements
+        return await _CanonicalRegistry.create_tables(db)
 
     @classmethod
     def reset(cls) -> None:
-        """Clear registry (for testing)."""
-        cls._models.clear()
-        cls._db = None
+        _CanonicalRegistry.reset()
 
     # ── Lifecycle hooks (DI compatibility) ───────────────────────────
 
     async def on_startup(self) -> None:
-        if ModelRegistry._models:
-            await ModelRegistry.create_tables()
+        if _CanonicalRegistry._models:
+            await _CanonicalRegistry.create_tables()
 
     async def on_shutdown(self) -> None:
         pass
 
 
-# ── Model Metaclass ──────────────────────────────────────────────────────────
+# ── Model Metaclass — delegate to metaclass.py ──────────────────────────────
+# Import the canonical ModelMeta for backward compatibility.
 
+from .metaclass import ModelMeta
 
-class ModelMeta(type):
-    """
-    Metaclass for Aquilia models.
 
-    Handles:
-    - Field collection and ordering
-    - Auto-PK injection (BigAutoField)
-    - Meta class parsing
-    - Model registration
-    """
+# ── Q (Query Builder) — delegate to query.py ─────────────────────────────────
+# The canonical Q class lives in query.py. Import it here for backward compat.
 
-    def __new__(
-        mcs,
-        name: str,
-        bases: Tuple[type, ...],
-        namespace: Dict[str, Any],
-        **kwargs,
-    ) -> ModelMeta:
-        # Don't process the base Model class itself
-        parents = [b for b in bases if isinstance(b, ModelMeta)]
-        if not parents:
-            return super().__new__(mcs, name, bases, namespace)
-
-        # Extract Meta class
-        meta_class = namespace.pop("Meta", None)
-
-        # Extract `table = "..."` or `table_name = "..."` attribute
-        table_attr = namespace.pop("table", None) or namespace.pop("table_name", None)
-
-        # Collect fields from current class
-        fields: Dict[str, Field] = {}
-        m2m_fields: Dict[str, ManyToManyField] = {}
-
-        # Inherit fields from parents
-        for parent in bases:
-            if hasattr(parent, "_fields"):
-                fields.update(parent._fields)
-            if hasattr(parent, "_m2m_fields"):
-                m2m_fields.update(parent._m2m_fields)
-
-        # Collect new fields
-        new_fields: Dict[str, Field] = {}
-        for key, value in list(namespace.items()):
-            if isinstance(value, ManyToManyField):
-                m2m_fields[key] = value
-                new_fields[key] = value
-            elif isinstance(value, Field):
-                fields[key] = value
-                new_fields[key] = value
-
-        # Parse options
-        opts = Options(name, meta_class, table_attr)
-
-        # Auto-inject PK if no primary key defined (and not abstract)
-        if not opts.abstract:
-            has_pk = any(f.primary_key for f in fields.values())
-            if not has_pk:
-                pk_field = BigAutoField()
-                pk_field.__set_name__(None, "id")
-                fields["id"] = pk_field
-                namespace["id"] = pk_field
-
-        # Create class
-        cls = super().__new__(mcs, name, bases, namespace)
-
-        # Attach metadata
-        cls._fields = fields
-        cls._m2m_fields = m2m_fields
-        cls._meta = opts
-        cls._table_name = opts.table_name
-        cls._db = None
-
-        # Determine PK
-        cls._pk_name = "id"
-        for fname, field in fields.items():
-            if field.primary_key:
-                cls._pk_name = field.column_name
-                cls._pk_attr = fname
-                break
-
-        # Set name on all fields
-        for fname, field in new_fields.items():
-            field.__set_name__(cls, fname)
-            field.model = cls
-
-        # Collect column names (excludes M2M)
-        cls._column_names = [
-            f.column_name for f in fields.values()
-            if not isinstance(f, ManyToManyField)
-        ]
-
-        # Collect attr names (excludes M2M)
-        cls._attr_names = [
-            fname for fname, f in fields.items()
-            if not isinstance(f, ManyToManyField)
-        ]
-
-        # Auto-inject default Manager if none declared
-        if not opts.abstract and not any(
-            isinstance(v, BaseManager) for v in namespace.values()
-        ):
-            mgr = Manager()
-            mgr.__set_name__(cls, "objects")
-            cls.objects = mgr
-
-        # Register in global registry (skip abstract)
-        if not opts.abstract:
-            ModelRegistry.register(cls)
-
-            # Signal: class_prepared (fired after model class is fully created)
-            class_prepared.send_sync(sender=cls)
-
-        return cls
-
-
-# ── Q (Query Builder) ────────────────────────────────────────────────────────
-
-
-class Q:
-    """
-    Aquilia Query builder — chainable, async-terminal.
-
-    Usage:
-        users = await User.query().where("active = ?", True).order("-id").limit(10).all()
-        count = await User.query().where("age > ?", 18).count()
-        result = await User.query().aggregate(avg_age=Avg("age"))
-    """
-
-    __slots__ = (
-        "_table",
-        "_model_cls",
-        "_wheres",
-        "_params",
-        "_order_clauses",
-        "_limit_val",
-        "_offset_val",
-        "_db",
-        "_annotations",
-        "_group_by",
-        "_having",
-        "_having_params",
-        "_distinct",
-        "_select_related",
-    )
-
-    def __init__(self, table: str, model_cls: Type[Model], db: AquiliaDatabase):
-        self._table = table
-        self._model_cls = model_cls
-        self._wheres: List[str] = []
-        self._params: List[Any] = []
-        self._order_clauses: List[str] = []
-        self._limit_val: Optional[int] = None
-        self._offset_val: Optional[int] = None
-        self._db = db
-        self._annotations: Dict[str, Any] = {}
-        self._group_by: List[str] = []
-        self._having: List[str] = []
-        self._having_params: List[Any] = []
-        self._distinct: bool = False
-        self._select_related: List[str] = []
-
-    def where(self, clause: str, *args: Any, **kwargs: Any) -> Q:
-        """
-        Add WHERE clause.
-
-        Supports positional (?) and named (:name) parameters.
-        """
-        new = self._clone()
-        if kwargs:
-            processed = clause
-            param_values: List[Any] = []
-            for key, val in kwargs.items():
-                processed = processed.replace(f":{key}", "?")
-                param_values.append(val)
-            new._wheres.append(processed)
-            new._params.extend(param_values)
-        else:
-            new._wheres.append(clause)
-            new._params.extend(args)
-        return new
-
-    def filter(self, **kwargs: Any) -> Q:
-        """
-        Django-style filter: User.query().filter(name="John", active=True)
-
-        Supports all lookups: exact, gt, gte, lt, lte, ne, like, ilike,
-        in, isnull, contains, icontains, startswith, istartswith,
-        endswith, iendswith, range, regex.
-        """
-        from .query import _build_filter_clause
-        new = self._clone()
-        for key, value in kwargs.items():
-            clause, params = _build_filter_clause(key, value)
-            new._wheres.append(clause)
-            new._params.extend(params)
-        return new
-
-    def exclude(self, **kwargs: Any) -> Q:
-        """
-        Exclude matching records: User.query().exclude(active=False)
-        """
-        from .query import _build_filter_clause
-        new = self._clone()
-        for key, value in kwargs.items():
-            clause, params = _build_filter_clause(key, value)
-            new._wheres.append(f"NOT ({clause})")
-            new._params.extend(params)
-        return new
-
-    def order(self, *fields: str) -> Q:
-        """
-        ORDER BY — prefix with '-' for DESC.
-        """
-        new = self._clone()
-        for f in fields:
-            if f.startswith("-"):
-                new._order_clauses.append(f'"{f[1:]}" DESC')
-            else:
-                new._order_clauses.append(f'"{f}" ASC')
-        return new
-
-    def limit(self, n: int) -> Q:
-        new = self._clone()
-        new._limit_val = n
-        return new
-
-    def offset(self, n: int) -> Q:
-        new = self._clone()
-        new._offset_val = n
-        return new
-
-    def distinct(self) -> Q:
-        """Apply SELECT DISTINCT."""
-        new = self._clone()
-        new._distinct = True
-        return new
-
-    def annotate(self, **expressions: Any) -> Q:
-        """
-        Add aggregate/expression annotations.
-
-        Usage:
-            from aquilia.models.aggregate import Avg, Count
-            qs = User.query().annotate(avg_age=Avg("age"), num=Count("id"))
-        """
-        new = self._clone()
-        new._annotations.update(expressions)
-        return new
-
-    def group_by(self, *fields: str) -> Q:
-        """GROUP BY clause."""
-        new = self._clone()
-        new._group_by.extend(fields)
-        return new
-
-    def having(self, clause: str, *args: Any) -> Q:
-        """HAVING clause (use after group_by)."""
-        new = self._clone()
-        new._having.append(clause)
-        new._having_params.extend(args)
-        return new
-
-    def select_related(self, *fields: str) -> Q:
-        """
-        Hint for eager loading related objects.
-
-        Currently stores the relation names; actual JOIN-based loading
-        is applied when executing the query.
-        """
-        new = self._clone()
-        new._select_related.extend(fields)
-        return new
-
-    async def aggregate(self, **expressions: Any) -> Dict[str, Any]:
-        """
-        Compute aggregates and return a dict.
-
-        Usage:
-            result = await User.query().aggregate(avg_age=Avg("age"), total=Count("id"))
-            # result == {"avg_age": 25.5, "total": 100}
-        """
-        from .aggregate import Aggregate
-
-        select_parts = []
-        params: List[Any] = []
-        for alias, expr in expressions.items():
-            if isinstance(expr, Aggregate):
-                sql_fragment, expr_params = expr.as_sql("sqlite")
-                select_parts.append(f"{sql_fragment} AS \"{alias}\"")
-                params.extend(expr_params)
-            else:
-                select_parts.append(f"{expr} AS \"{alias}\"")
-
-        sql = f'SELECT {", ".join(select_parts)} FROM "{self._table}"'
-        if self._wheres:
-            sql += " WHERE " + " AND ".join(f"({w})" for w in self._wheres)
-            params.extend(self._params)
-
-        row = await self._db.fetch_one(sql, params)
-        return dict(row) if row else {alias: None for alias in expressions}
-
-    def _clone(self) -> Q:
-        c = Q(self._table, self._model_cls, self._db)
-        c._wheres = self._wheres.copy()
-        c._params = self._params.copy()
-        c._order_clauses = self._order_clauses.copy()
-        c._limit_val = self._limit_val
-        c._offset_val = self._offset_val
-        c._annotations = self._annotations.copy()
-        c._group_by = self._group_by.copy()
-        c._having = self._having.copy()
-        c._having_params = self._having_params.copy()
-        c._distinct = self._distinct
-        c._select_related = self._select_related.copy()
-        return c
-
-    def _build_select(self, count: bool = False) -> Tuple[str, List[Any]]:
-        from .aggregate import Aggregate
-        from .expression import Expression
-
-        params = self._params.copy()
-
-        if count:
-            col = "COUNT(*)"
-        elif self._annotations:
-            parts = ["*"]
-            for alias, expr in self._annotations.items():
-                if isinstance(expr, (Aggregate, Expression)):
-                    sql_frag, expr_params = expr.as_sql("sqlite")
-                    parts.append(f'{sql_frag} AS "{alias}"')
-                    params = list(expr_params) + params
-                else:
-                    parts.append(f'{expr} AS "{alias}"')
-            col = ", ".join(parts)
-        else:
-            col = "*"
-
-        distinct = "DISTINCT " if self._distinct and not count else ""
-        sql = f'SELECT {distinct}{col} FROM "{self._table}"'
-
-        if self._wheres:
-            sql += " WHERE " + " AND ".join(f"({w})" for w in self._wheres)
-
-        if self._group_by:
-            sql += " GROUP BY " + ", ".join(f'"{g}"' for g in self._group_by)
-
-        if self._having:
-            sql += " HAVING " + " AND ".join(f"({h})" for h in self._having)
-            params.extend(self._having_params)
-
-        # Apply ordering: explicit order_clauses first, then Meta.ordering default
-        order = self._order_clauses
-        if not count and not order and hasattr(self._model_cls, '_meta'):
-            meta_ordering = getattr(self._model_cls._meta, 'ordering', [])
-            if meta_ordering:
-                order = []
-                for f in meta_ordering:
-                    if f.startswith("-"):
-                        order.append(f'"{f[1:]}" DESC')
-                    else:
-                        order.append(f'"{f}" ASC')
-
-        if not count and order:
-            sql += " ORDER BY " + ", ".join(order)
-        if not count and self._limit_val is not None:
-            sql += f" LIMIT {self._limit_val}"
-        if not count and self._offset_val is not None:
-            sql += f" OFFSET {self._offset_val}"
-
-        return sql, params
-
-    async def all(self) -> List[Model]:
-        """Execute and return all matching rows."""
-        sql, params = self._build_select()
-        rows = await self._db.fetch_all(sql, params)
-        return [self._model_cls.from_row(row) for row in rows]
-
-    async def one(self) -> Model:
-        """Return exactly one row. Raises if 0 or >1."""
-        from ..faults.domains import ModelNotFoundFault, QueryFault
-        sql, params = self._build_select()
-        sql += " LIMIT 2"
-        rows = await self._db.fetch_all(sql, params)
-        if len(rows) == 0:
-            raise ModelNotFoundFault(model_name=self._model_cls.__name__)
-        if len(rows) > 1:
-            raise QueryFault(
-                model=self._model_cls.__name__,
-                operation="one",
-                reason=f"Multiple rows found, expected one",
-            )
-        return self._model_cls.from_row(rows[0])
-
-    async def first(self) -> Optional[Model]:
-        """Return first matching row or None."""
-        sql, params = self._build_select()
-        sql += " LIMIT 1"
-        rows = await self._db.fetch_all(sql, params)
-        if not rows:
-            return None
-        return self._model_cls.from_row(rows[0])
-
-    async def count(self) -> int:
-        sql, params = self._build_select(count=True)
-        val = await self._db.fetch_val(sql, params)
-        return int(val) if val else 0
-
-    async def exists(self) -> bool:
-        """Check if any matching rows exist."""
-        return (await self.count()) > 0
-
-    async def update(self, values: Dict[str, Any] = None, **kwargs) -> int:
-        """Update matching rows."""
-        data = {**(values or {}), **kwargs}
-        set_parts = [f'"{k}" = ?' for k in data]
-        set_params = list(data.values())
-
-        sql = f'UPDATE "{self._table}" SET {", ".join(set_parts)}'
-        params = set_params.copy()
-
-        if self._wheres:
-            sql += " WHERE " + " AND ".join(f"({w})" for w in self._wheres)
-            params.extend(self._params)
-
-        cursor = await self._db.execute(sql, params)
-        return cursor.rowcount
-
-    async def delete(self) -> int:
-        """Delete matching rows."""
-        sql = f'DELETE FROM "{self._table}"'
-        params = self._params.copy()
-
-        if self._wheres:
-            sql += " WHERE " + " AND ".join(f"({w})" for w in self._wheres)
-
-        cursor = await self._db.execute(sql, params)
-        return cursor.rowcount
-
-    async def values(self, *fields: str) -> List[Dict[str, Any]]:
-        """Return only specific field values as dicts."""
-        if fields:
-            cols = ", ".join(f'"{f}"' for f in fields)
-        else:
-            cols = "*"
-        sql = f'SELECT {cols} FROM "{self._table}"'
-        params = self._params.copy()
-
-        if self._wheres:
-            sql += " WHERE " + " AND ".join(f"({w})" for w in self._wheres)
-        if self._order_clauses:
-            sql += " ORDER BY " + ", ".join(self._order_clauses)
-        if self._limit_val is not None:
-            sql += f" LIMIT {self._limit_val}"
-
-        rows = await self._db.fetch_all(sql, params)
-        return rows
-
-    async def values_list(self, *fields: str, flat: bool = False) -> List[Any]:
-        """Return field values as tuples (or flat list if single field + flat=True)."""
-        rows = await self.values(*fields)
-        if flat and len(fields) == 1:
-            return [row[fields[0]] for row in rows]
-        return [tuple(row.values()) for row in rows]
+from .query import Q
 
 
 # ── Model Base Class ─────────────────────────────────────────────────────────
@@ -719,6 +215,9 @@ class Q:
 class Model(metaclass=ModelMeta):
     """
     Aquilia Model base class — pure Python, async-first ORM.
+
+    Inspired by Django's Model class but with Aquilia's unique async-first
+    syntax and chainable query API.
 
     Define models by subclassing and declaring fields:
 
@@ -730,16 +229,26 @@ class Model(metaclass=ModelMeta):
             active = BooleanField(default=True)
             created_at = DateTimeField(auto_now_add=True)
 
-    API:
-        user = await User.create(name="Alice", email="alice@test.com")
-        user = await User.get(pk=1)
-        users = await User.query().filter(active=True).order("-created_at").all()
-        await User.query().filter(pk=1).update(name="Bob")
-        await User.query().filter(pk=1).delete()
+            class Meta:
+                ordering = ["-created_at"]
+                get_latest_by = "created_at"
 
-        # Relationships
-        posts = await user.related("posts")  # reverse FK
-        await post.related("author")         # forward FK
+    API — Django-style via objects Manager:
+        user  = await User.objects.create(name="Alice", email="alice@test.com")
+        user  = await User.objects.get(pk=1)
+        users = await User.objects.filter(active=True).order("-created_at").all()
+        await User.objects.filter(pk=1).update(name="Bob")
+        await User.objects.filter(pk=1).delete()
+
+    API — Aquilia shorthand (class-level convenience):
+        user  = await User.create(name="Alice", email="alice@test.com")
+        user  = await User.get(pk=1)
+        users = await User.query().filter(active=True).all()
+
+    Relationships:
+        posts  = await user.related("posts")   # reverse FK
+        author = await post.related("author")   # forward FK
+        tags   = await post.related("tags")     # M2M
     """
 
     # Class-level attributes set by metaclass
@@ -752,6 +261,7 @@ class Model(metaclass=ModelMeta):
     _column_names: ClassVar[List[str]] = []
     _attr_names: ClassVar[List[str]] = []
     _db: ClassVar[Optional[AquiliaDatabase]] = None
+    _using_db: Optional[str] = None  # per-instance DB alias
 
     def __init__(self, **kwargs: Any):
         """Create a model instance (in-memory, not persisted)."""
@@ -773,6 +283,19 @@ class Model(metaclass=ModelMeta):
         pk_val = getattr(self, self._pk_attr, "?")
         return f"<{self.__class__.__name__} pk={pk_val}>"
 
+    def __str__(self) -> str:
+        """
+        Human-readable representation. Override in subclass for custom display.
+
+        Default: tries the first CharField value, then falls back to repr.
+        """
+        for attr_name, field in self._fields.items():
+            if isinstance(field, CharField) and not field.primary_key:
+                val = getattr(self, attr_name, None)
+                if val is not None:
+                    return str(val)
+        return repr(self)
+
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return False
@@ -780,6 +303,18 @@ class Model(metaclass=ModelMeta):
 
     def __hash__(self) -> int:
         return hash((self.__class__.__name__, getattr(self, self._pk_attr, None)))
+
+    # ── pk property (Django-style shortcut) ──────────────────────────
+
+    @property
+    def pk(self) -> Any:
+        """Shortcut for accessing the primary key value (Django-style)."""
+        return getattr(self, self._pk_attr, None)
+
+    @pk.setter
+    def pk(self, value: Any) -> None:
+        """Set the primary key value."""
+        setattr(self, self._pk_attr, value)
 
     # ── Class-level DB ───────────────────────────────────────────────
 
@@ -935,13 +470,135 @@ class Model(metaclass=ModelMeta):
         return instance, True
 
     @classmethod
-    async def bulk_create(cls, instances: List[Dict[str, Any]]) -> List[Model]:
-        """Create multiple records efficiently."""
-        results = []
-        for data in instances:
-            obj = await cls.create(**data)
-            results.append(obj)
+    async def bulk_create(
+        cls,
+        instances: List[Dict[str, Any]],
+        *,
+        batch_size: Optional[int] = None,
+        ignore_conflicts: bool = False,
+    ) -> List[Model]:
+        """
+        Create multiple records efficiently using batched inserts.
+
+        Like Django's bulk_create — faster than individual create() calls.
+
+        Note: Signals (pre_save/post_save) are NOT fired for bulk_create
+        (same behavior as Django). Use individual create() if you need signals.
+
+        Usage:
+            users = await User.bulk_create([
+                {"name": "Alice", "email": "alice@test.com"},
+                {"name": "Bob", "email": "bob@test.com"},
+            ], batch_size=100)
+
+        Args:
+            instances: List of dicts with field data
+            batch_size: Number of records per INSERT batch (None = all at once)
+            ignore_conflicts: If True, use INSERT OR IGNORE (SQLite)
+        """
+        if not instances:
+            return []
+
+        db = cls._get_db()
+        results: List[Model] = []
+
+        # Process in batches
+        effective_batch = batch_size or len(instances)
+        for i in range(0, len(instances), effective_batch):
+            batch = instances[i : i + effective_batch]
+            for data in batch:
+                obj = cls(**data)
+
+                # Process fields
+                final_data: Dict[str, Any] = {}
+                for attr_name, field in cls._fields.items():
+                    if isinstance(field, ManyToManyField):
+                        continue
+                    value = getattr(obj, attr_name, None)
+                    if field.primary_key and isinstance(field, (AutoField, BigAutoField)) and value is None:
+                        continue
+                    if hasattr(field, "pre_save"):
+                        value = field.pre_save(obj, is_create=True)
+                        if value is not None:
+                            setattr(obj, attr_name, value)
+                    if value is None and field.has_default():
+                        value = field.get_default()
+                        setattr(obj, attr_name, value)
+                    if value is not None:
+                        final_data[field.column_name] = field.to_db(value)
+
+                if final_data:
+                    builder = InsertBuilder(cls._table_name).from_dict(final_data)
+                    sql, values = builder.build()
+                    if ignore_conflicts:
+                        sql = sql.replace("INSERT INTO", "INSERT OR IGNORE INTO", 1)
+                    cursor = await db.execute(sql, values)
+                    if cursor.lastrowid:
+                        setattr(obj, cls._pk_attr, cursor.lastrowid)
+                results.append(obj)
+
         return results
+
+    @classmethod
+    async def bulk_update(
+        cls,
+        instances: List[Model],
+        fields: List[str],
+        *,
+        batch_size: Optional[int] = None,
+    ) -> int:
+        """
+        Update specific fields on multiple model instances efficiently.
+
+        Like Django's bulk_update — updates only specified fields.
+
+        Note: Signals are NOT fired (same as Django). Auto-now fields
+        are NOT updated automatically.
+
+        Usage:
+            for user in users:
+                user.name = user.name.upper()
+            await User.bulk_update(users, fields=["name"])
+
+        Args:
+            instances: List of Model instances with updated attributes
+            fields: List of field names to update
+            batch_size: Records per batch (None = all)
+
+        Returns:
+            Total number of rows updated
+        """
+        if not instances or not fields:
+            return 0
+
+        db = cls._get_db()
+        total_updated = 0
+        effective_batch = batch_size or len(instances)
+
+        for i in range(0, len(instances), effective_batch):
+            batch = instances[i : i + effective_batch]
+            for obj in batch:
+                pk_val = getattr(obj, cls._pk_attr)
+                if pk_val is None:
+                    continue
+                data: Dict[str, Any] = {}
+                for fname in fields:
+                    field = cls._fields.get(fname)
+                    if field is None or isinstance(field, ManyToManyField):
+                        continue
+                    value = getattr(obj, fname, None)
+                    if value is not None:
+                        data[field.column_name] = field.to_db(value)
+                    else:
+                        data[field.column_name] = None
+                if data:
+                    builder = UpdateBuilder(cls._table_name).set_dict(data)
+                    builder.where(f'"{cls._pk_name}" = ?', pk_val)
+                    sql, params = builder.build()
+                    cursor = await db.execute(sql, params)
+                    total_updated += cursor.rowcount
+
+        return total_updated
 
     @classmethod
     def query(cls) -> Q:
@@ -963,26 +620,141 @@ class Model(metaclass=ModelMeta):
         """Shortcut: count all records."""
         return await cls.query().count()
 
+    @classmethod
+    async def latest(cls, field_name: Optional[str] = None) -> Model:
+        """
+        Return the latest record by date field (Django-style).
+
+        Uses Meta.get_latest_by if field_name is not provided.
+
+        Usage:
+            latest_user = await User.latest()           # uses Meta.get_latest_by
+            latest_user = await User.latest("created_at")
+        """
+        field = field_name or getattr(cls._meta, "get_latest_by", None)
+        if not field:
+            raise ValueError(
+                f"{cls.__name__}.latest() requires 'field_name' argument or "
+                f"Meta.get_latest_by to be set"
+            )
+        result = await cls.query().order(f"-{field}").first()
+        if result is None:
+            from ..faults.domains import ModelNotFoundFault
+            raise ModelNotFoundFault(model_name=cls.__name__)
+        return result
+
+    @classmethod
+    async def earliest(cls, field_name: Optional[str] = None) -> Model:
+        """
+        Return the earliest record by date field (Django-style).
+
+        Uses Meta.get_latest_by if field_name is not provided.
+
+        Usage:
+            first_user = await User.earliest()
+            first_user = await User.earliest("created_at")
+        """
+        field = field_name or getattr(cls._meta, "get_latest_by", None)
+        if not field:
+            raise ValueError(
+                f"{cls.__name__}.earliest() requires 'field_name' argument or "
+                f"Meta.get_latest_by to be set"
+            )
+        result = await cls.query().order(field).first()
+        if result is None:
+            from ..faults.domains import ModelNotFoundFault
+            raise ModelNotFoundFault(model_name=cls.__name__)
+        return result
+
+    @classmethod
+    async def raw(cls, sql: str, params: Optional[List[Any]] = None) -> List[Model]:
+        """
+        Execute raw SQL and return model instances (Django-style).
+
+        The SQL must return columns matching the model's fields.
+
+        Usage:
+            users = await User.raw(
+                "SELECT * FROM users WHERE age > ? ORDER BY name",
+                [18]
+            )
+
+        ⚠️ Use parameterized queries to prevent SQL injection.
+        """
+        db = cls._get_db()
+        rows = await db.fetch_all(sql, params or [])
+        return [cls.from_row(row) for row in rows]
+
+    @classmethod
+    def using(cls, db_alias: str) -> Q:
+        """
+        Target a specific database for this query (Django-style).
+
+        Usage:
+            users = await User.using("replica").filter(active=True).all()
+        """
+        # For now, returns a standard query. Multi-DB routing support
+        # will resolve the alias to an actual connection.
+        qs = cls.query()
+        qs._db_alias = db_alias
+        return qs
+
     # ── Instance methods ─────────────────────────────────────────────
 
-    async def save(self) -> Model:
+    async def save(
+        self,
+        *,
+        update_fields: Optional[List[str]] = None,
+        force_insert: bool = False,
+        force_update: bool = False,
+        validate: bool = False,
+    ) -> Model:
         """
         Save instance (insert or update).
 
         If PK is set, updates. Otherwise, inserts.
+
+        Args:
+            update_fields: Only update these specific fields (Django-style).
+                          More efficient — generates SET for only these columns.
+            force_insert: Force INSERT even if PK is set.
+            force_update: Force UPDATE even if PK is None (raises if no PK).
+            validate: Run full_clean() before saving (default False for perf).
+
+        Usage:
+            user.name = "Updated"
+            await user.save(update_fields=["name"])  # only updates name column
+            await user.save(validate=True)            # validates before saving
         """
+        if force_insert and force_update:
+            raise ValueError("Cannot use force_insert and force_update together")
+
         pk_val = getattr(self, self._pk_attr, None)
+
+        if force_update and pk_val is None:
+            raise ValueError("Cannot force_update on unsaved instance (no PK)")
+
         db = self._get_db()
-        is_create = pk_val is None
+        is_create = pk_val is None or force_insert
+
+        # Optional validation
+        if validate:
+            self.full_clean()
 
         # Signal: pre_save
         await pre_save.send(sender=self.__class__, instance=self, created=is_create)
 
-        if pk_val is not None:
+        if not is_create:
             # Update
             data: Dict[str, Any] = {}
-            for attr_name, field in self._fields.items():
-                if isinstance(field, ManyToManyField):
+            target_fields = update_fields or [
+                attr for attr in self._attr_names
+                if not self._fields[attr].primary_key
+            ]
+
+            for attr_name in target_fields:
+                field = self._fields.get(attr_name)
+                if field is None or isinstance(field, ManyToManyField):
                     continue
                 if field.primary_key:
                     continue
@@ -996,26 +768,52 @@ class Model(metaclass=ModelMeta):
                     data[field.column_name] = None
 
             if data:
-                # Use UpdateBuilder from sql_builder for safe SQL
                 builder = UpdateBuilder(self._table_name).set_dict(data)
                 builder.where(f'"{self._pk_name}" = ?', pk_val)
                 sql, params = builder.build()
                 await db.execute(sql, params)
+
+            # select_on_save: re-read from DB to get computed columns
+            if self._meta.select_on_save:
+                await self.refresh()
         else:
             # Insert
-            result = await self.__class__.create(
-                **{
-                    attr: getattr(self, attr)
-                    for attr in self._attr_names
-                    if getattr(self, attr, None) is not None
-                }
-            )
+            create_data = {
+                attr: getattr(self, attr)
+                for attr in self._attr_names
+                if getattr(self, attr, None) is not None
+            }
+            # If force_insert with existing PK, include it
+            if force_insert and pk_val is not None:
+                create_data[self._pk_attr] = pk_val
+            result = await self.__class__.create(**create_data)
             setattr(self, self._pk_attr, getattr(result, self._pk_attr))
 
         # Signal: post_save
         await post_save.send(sender=self.__class__, instance=self, created=is_create)
 
         return self
+
+    @classmethod
+    def _get_reverse_fk_refs(cls) -> List[Tuple[Type[Model], str, str]]:
+        """
+        Get all (model_cls, column_name, on_delete) tuples where other models
+        have ForeignKey pointing to this model. Cached per class.
+        """
+        cache_attr = "_reverse_fk_cache"
+        if hasattr(cls, cache_attr) and cls._reverse_fk_cache is not None:
+            return cls._reverse_fk_cache
+
+        refs: List[Tuple[Type[Model], str, str]] = []
+        for model_cls in ModelRegistry.all_models().values():
+            for fname, field in model_cls._fields.items():
+                if isinstance(field, ForeignKey):
+                    target_name = field.to if isinstance(field.to, str) else field.to.__name__
+                    if target_name == cls.__name__:
+                        refs.append((model_cls, field.column_name, field.on_delete))
+
+        cls._reverse_fk_cache = refs
+        return refs
 
     async def delete_instance(self) -> int:
         """
@@ -1036,14 +834,10 @@ class Model(metaclass=ModelMeta):
 
         db = self._get_db()
 
-        # Handle on_delete for models that FK to us
-        for model_cls in ModelRegistry.all_models().values():
-            for fname, field in model_cls._fields.items():
-                if isinstance(field, ForeignKey):
-                    target_name = field.to if isinstance(field.to, str) else field.to.__name__
-                    if target_name == self.__class__.__name__:
-                        handler = OnDeleteHandler(field.on_delete)
-                        await handler.handle(db, model_cls, field.column_name, pk_val)
+        # Handle on_delete for models that FK to us (cached lookup)
+        for model_cls, col_name, on_delete_action in self._get_reverse_fk_refs():
+            handler = OnDeleteHandler(on_delete_action)
+            await handler.handle(db, model_cls, col_name, pk_val)
 
         # Delete this instance using DeleteBuilder
         builder = DeleteBuilder(self._table_name)
@@ -1255,32 +1049,61 @@ class Model(metaclass=ModelMeta):
 
     # ── Serialization ────────────────────────────────────────────────
 
-    def to_dict(self, *, exclude: Optional[List[str]] = None) -> Dict[str, Any]:
-        """Serialize model instance to dict."""
-        exclude = set(exclude or [])
+    def to_dict(
+        self,
+        *,
+        fields: Optional[List[str]] = None,
+        exclude: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Serialize model instance to dict.
+
+        Args:
+            fields: Whitelist of field names to include (all if None).
+            exclude: Blacklist of field names to exclude.
+
+        Usage:
+            user.to_dict()                         # all fields
+            user.to_dict(fields=["id", "name"])    # only id & name
+            user.to_dict(exclude=["password"])      # everything except password
+        """
+        include = set(fields) if fields else None
+        skip = set(exclude or [])
         result: Dict[str, Any] = {}
+
         for attr_name, field in self._fields.items():
             if isinstance(field, ManyToManyField):
                 continue
-            if attr_name in exclude:
+            if include is not None and attr_name not in include:
                 continue
+            if attr_name in skip:
+                continue
+
             value = getattr(self, attr_name, None)
-            if isinstance(value, datetime.datetime):
-                value = value.isoformat()
-            elif isinstance(value, datetime.date):
-                value = value.isoformat()
-            elif isinstance(value, datetime.time):
-                value = value.isoformat()
-            elif isinstance(value, datetime.timedelta):
-                value = value.total_seconds()
-            elif isinstance(value, uuid.UUID):
-                value = str(value)
-            elif isinstance(value, bytes):
-                value = value.hex()
-            elif isinstance(value, decimal.Decimal):
-                value = str(value)
+            value = self._serialize_value(value)
             result[attr_name] = value
         return result
+
+    @staticmethod
+    def _serialize_value(value: Any) -> Any:
+        """Convert a Python value to a JSON-safe representation."""
+        if value is None:
+            return None
+        if isinstance(value, datetime.datetime):
+            return value.isoformat()
+        if isinstance(value, datetime.date):
+            return value.isoformat()
+        if isinstance(value, datetime.time):
+            return value.isoformat()
+        if isinstance(value, datetime.timedelta):
+            return value.total_seconds()
+        if isinstance(value, uuid.UUID):
+            return str(value)
+        if isinstance(value, bytes):
+            return value.hex()
+        if isinstance(value, decimal.Decimal):
+            return str(value)
+        return value
 
     @classmethod
     def from_row(cls, row: Dict[str, Any]) -> Model:

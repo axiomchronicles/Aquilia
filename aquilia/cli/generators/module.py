@@ -3,6 +3,69 @@
 from pathlib import Path
 from typing import List
 import textwrap
+import re
+
+
+def _singularize(word: str) -> str:
+    """
+    Naive English singularization for resource names.
+
+    Handles common plural suffixes so that a module named "blogs"
+    gets CRUD methods like ``get_blog`` instead of ``get_blogs``.
+    Returns the word unchanged when it already looks singular.
+    """
+    if not word or len(word) < 3:
+        return word
+
+    lower = word.lower()
+
+    # Irregulars
+    _irregulars = {
+        "people": "person",
+        "children": "child",
+        "mice": "mouse",
+        "geese": "goose",
+        "teeth": "tooth",
+        "feet": "foot",
+        "men": "man",
+        "women": "woman",
+        "data": "datum",
+        "criteria": "criterion",
+        "analyses": "analysis",
+    }
+    if lower in _irregulars:
+        # Preserve original casing of first char
+        singular = _irregulars[lower]
+        return word[0] + singular[1:] if word[0].isupper() else singular
+
+    # Words that are already singular / uncountable
+    _uncountable = {
+        "news", "series", "species", "sheep", "fish", "deer",
+        "moose", "aircraft", "info", "feedback", "status",
+        "analytics", "auth", "config", "cache", "health",
+        "settings", "permissions", "cors", "bus",
+    }
+    if lower in _uncountable:
+        return word
+
+    # -ies → -y  (e.g. categories → category)
+    if lower.endswith("ies") and len(lower) > 3 and lower[-4] not in "aeiou":
+        return word[:-3] + "y"
+
+    # -ses / -xes / -zes / -ches / -shes → drop "es"
+    if re.search(r"(ss|[sxz]|ch|sh)es$", lower):
+        return word[:-2]
+
+    # -ves → -f / -fe  (e.g. wolves → wolf, knives → knife)
+    if lower.endswith("ves"):
+        # Try -f first (wolves → wolf)
+        return word[:-3] + "f"
+
+    # generic -s (but not already ending in ss, us, is)
+    if lower.endswith("s") and not re.search(r"(ss|us|is)$", lower):
+        return word[:-1]
+
+    return word
 
 
 class ModuleGenerator:
@@ -23,6 +86,8 @@ class ModuleGenerator:
         self.fault_domain = fault_domain
         self.route_prefix = route_prefix
         self.with_tests = with_tests
+        # Singular form of the module name for CRUD method names / docstrings
+        self.singular = _singularize(name)
     
     def generate(self) -> None:
         """Generate module structure."""
@@ -201,7 +266,7 @@ class ModuleGenerator:
                 @GET("/")
                 async def list_{self.name}(self, ctx: RequestCtx):
                     """
-                    Get list of {self.name}.
+                    List all {self.name}.
                     
                     Example:
                         GET {self.route_prefix}/ -> {{"items": [...], "total": 0}}
@@ -214,9 +279,9 @@ class ModuleGenerator:
                     }})
                 
                 @POST("/")
-                async def create_{self.name}(self, ctx: RequestCtx):
+                async def create_{self.singular}(self, ctx: RequestCtx):
                     """
-                    Create new {self.name}.
+                    Create a new {self.singular}.
                     
                     Example:
                         POST {self.route_prefix}/
@@ -228,9 +293,9 @@ class ModuleGenerator:
                     return Response.json(item, status=201)
                 
                 @GET("/«id:int»")
-                async def get_{self.name}(self, ctx: RequestCtx, id: int):
+                async def get_{self.singular}(self, ctx: RequestCtx, id: int):
                     """
-                    Get single {self.name} by ID.
+                    Get a {self.singular} by ID.
                     
                     Example:
                         GET {self.route_prefix}/1 -> {{"id": 1, "name": "Example"}}
@@ -242,9 +307,9 @@ class ModuleGenerator:
                     return Response.json(item)
                 
                 @PUT("/«id:int»")
-                async def update_{self.name}(self, ctx: RequestCtx, id: int):
+                async def update_{self.singular}(self, ctx: RequestCtx, id: int):
                     """
-                    Update {self.name} by ID.
+                    Update a {self.singular} by ID.
                     
                     Example:
                         PUT {self.route_prefix}/1
@@ -259,9 +324,9 @@ class ModuleGenerator:
                     return Response.json(item)
                 
                 @DELETE("/«id:int»")
-                async def delete_{self.name}(self, ctx: RequestCtx, id: int):
+                async def delete_{self.singular}(self, ctx: RequestCtx, id: int):
                     """
-                    Delete {self.name} by ID.
+                    Delete a {self.singular} by ID.
                     
                     Example:
                         DELETE {self.route_prefix}/1 -> 204 No Content
@@ -367,7 +432,7 @@ class ModuleGenerator:
             
             class {self.name.capitalize()}NotFoundFault(Fault):
                 """
-                Raised when {self.name} item is not found.
+                Raised when a {self.singular} is not found.
                 
                 Recovery: Return 404 response
                 """
@@ -380,7 +445,7 @@ class ModuleGenerator:
                     super().__init__(
                         code=self.code,
                         domain=self.domain,
-                        message=f"{self.name.capitalize()} with id {{item_id}} not found",
+                        message=f"{self.singular.capitalize()} with id {{item_id}} not found",
                         metadata={{"item_id": item_id}},
                         retryable=False,
                     )
@@ -388,7 +453,7 @@ class ModuleGenerator:
             
             class {self.name.capitalize()}ValidationFault(Fault):
                 """
-                Raised when {self.name} data validation fails.
+                Raised when {self.singular} data validation fails.
                 
                 Recovery: Return 400 response with validation errors
                 """
@@ -409,7 +474,7 @@ class ModuleGenerator:
             
             class {self.name.capitalize()}OperationFault(Fault):
                 """
-                Raised when {self.name} operation fails.
+                Raised when a {self.singular} operation fails.
                 
                 Recovery: Retry with exponential backoff
                 """
