@@ -67,6 +67,11 @@ from .domains import (
     QueryFault,
     DatabaseConnectionFault,
     SchemaFault,
+    # Serializer faults
+    SerializerFault,
+    SerializerValidationFault,
+    SerializerFieldFault,
+    SerializerConfigFault,
 )
 
 __all__ = [
@@ -106,4 +111,10 @@ __all__ = [
     "QueryFault",
     "DatabaseConnectionFault",
     "SchemaFault",
+    
+    # Serializer faults
+    "SerializerFault",
+    "SerializerValidationFault",
+    "SerializerFieldFault",
+    "SerializerConfigFault",
 ]

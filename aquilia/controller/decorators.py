@@ -31,6 +31,8 @@ class RouteDecorator:
         deprecated: bool = False,
         response_model: Optional[type] = None,
         status_code: int = 200,
+        request_serializer: Optional[type] = None,
+        response_serializer: Optional[type] = None,
     ):
         """
         Initialize route decorator.
@@ -45,6 +47,10 @@ class RouteDecorator:
             deprecated: Mark as deprecated in OpenAPI
             response_model: Response type for OpenAPI
             status_code: Default status code
+            request_serializer: Aquilia Serializer class for request body
+                                validation/deserialization
+            response_serializer: Aquilia Serializer class for response
+                                 serialization
         """
         self.path = path
         self.pipeline = pipeline or []
@@ -54,6 +60,8 @@ class RouteDecorator:
         self.deprecated = deprecated
         self.response_model = response_model
         self.status_code = status_code
+        self.request_serializer = request_serializer
+        self.response_serializer = response_serializer
         self.method: Optional[str] = None
     
     def __call__(self, func: F) -> F:
@@ -78,6 +86,8 @@ class RouteDecorator:
             'status_code': self.status_code,
             'func_name': func.__name__,
             'signature': inspect.signature(func),
+            'request_serializer': self.request_serializer,
+            'response_serializer': self.response_serializer,
         }
         
         func.__route_metadata__.append(metadata)

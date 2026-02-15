@@ -559,3 +559,128 @@ class ScopedProvider:
     async def shutdown(self) -> None:
         """Delegate to inner provider."""
         await self._inner_provider.shutdown()
+
+
+class SerializerProvider:
+    """
+    DI Provider that creates Serializer instances with request context.
+
+    When resolved, the provider:
+    1. Parses the request body (JSON or form data)
+    2. Creates the serializer with ``data=body`` and a context dict
+       containing ``request``, ``container``, and ``identity``
+    3. Returns the **serializer instance** (not yet validated)
+
+    The handler can then call ``serializer.is_valid()`` and ``serializer.save()``.
+
+    This mirrors FastAPI's ``Depends()`` pattern but for Aquilia serializers.
+
+    Usage::
+
+        from aquilia.di import Container
+        from aquilia.di.providers import SerializerProvider
+
+        container.register(
+            SerializerProvider(UserSerializer, scope="request")
+        )
+
+        # In handler:
+        async def create_user(self, ctx, serializer: UserSerializer):
+            serializer.is_valid(raise_fault=True)
+            user = await serializer.save()
+            return Response.json(UserSerializer(instance=user).data, status=201)
+    """
+
+    __slots__ = ("_meta", "_serializer_cls", "_auto_validate")
+
+    def __init__(
+        self,
+        serializer_cls: type,
+        *,
+        scope: str = "request",
+        auto_validate: bool = False,
+        tags: tuple[str, ...] = (),
+    ):
+        self._serializer_cls = serializer_cls
+        self._auto_validate = auto_validate
+
+        module = serializer_cls.__module__
+        qualname = serializer_cls.__qualname__
+        token = f"{module}.{qualname}"
+
+        try:
+            source_file = inspect.getsourcefile(serializer_cls)
+            _, line = inspect.getsourcelines(serializer_cls)
+        except (TypeError, OSError):
+            source_file = module
+            line = None
+
+        self._meta = ProviderMeta(
+            name=serializer_cls.__name__,
+            token=token,
+            scope=scope,
+            tags=tags,
+            module=module,
+            qualname=qualname,
+            line=line,
+        )
+
+    @property
+    def meta(self) -> ProviderMeta:
+        return self._meta
+
+    async def instantiate(self, ctx: ResolveCtx) -> Any:
+        """
+        Create serializer instance with request data from DI context.
+
+        The provider looks for a ``Request`` instance in the container
+        to parse the body.  If no request is available (e.g. testing),
+        the serializer is created without data.
+        """
+        container = ctx.container
+
+        # Try to resolve request from container
+        request = None
+        data = None
+        identity = None
+
+        try:
+            request = await container.resolve_async("aquilia.request.Request", optional=True)
+        except Exception:
+            pass
+
+        if request is not None:
+            try:
+                data = await request.json()
+            except Exception:
+                try:
+                    data = await request.form()
+                except Exception:
+                    data = {}
+
+            # Get identity
+            state = getattr(request, "state", None)
+            if state:
+                identity = state.get("identity") if isinstance(state, dict) else getattr(state, "identity", None)
+
+        # Build context
+        from aquilia.serializers.fields import empty
+        ser_context = {"container": container}
+        if request is not None:
+            ser_context["request"] = request
+        if identity is not None:
+            ser_context["identity"] = identity
+
+        serializer = self._serializer_cls(
+            data=data if data is not None else empty,
+            context=ser_context,
+        )
+
+        if self._auto_validate and data is not None:
+            serializer.is_valid(raise_fault=True)
+
+        return serializer
+
+    async def shutdown(self) -> None:
+        """No-op for serializer provider."""
+        pass

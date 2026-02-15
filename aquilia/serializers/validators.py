@@ -231,3 +231,158 @@ class UniqueTogetherValidator:
 
     def __repr__(self) -> str:
         return f"UniqueTogetherValidator(fields={self.fields_list!r})"
+
+
+# ============================================================================
+# Composite Validators
+# ============================================================================
+
+class RangeValidator:
+    """
+    Validate that a numeric value falls within ``[min_value, max_value]``.
+
+    Combines ``MinValueValidator`` and ``MaxValueValidator`` into one.
+
+    Usage::
+
+        age = IntegerField(validators=[RangeValidator(0, 150)])
+    """
+
+    __slots__ = ("min_value", "max_value", "message")
+
+    def __init__(
+        self,
+        min_value: float | int | Decimal,
+        max_value: float | int | Decimal,
+        message: str | None = None,
+    ):
+        self.min_value = min_value
+        self.max_value = max_value
+        self.message = message or (
+            f"Ensure this value is between {min_value} and {max_value}."
+        )
+
+    def __call__(self, value: Any) -> None:
+        if value is None:
+            return
+        if value < self.min_value or value > self.max_value:
+            raise ValueError(self.message)
+
+    def __repr__(self) -> str:
+        return f"RangeValidator({self.min_value}, {self.max_value})"
+
+
+class CompoundValidator:
+    """
+    Combine multiple validators with AND or OR logic.
+
+    Usage::
+
+        # AND (default): ALL must pass
+        CompoundValidator(
+            MaxLengthValidator(10),
+            RegexValidator(r"^[a-z]+$"),
+        )
+
+        # OR: at least ONE must pass
+        CompoundValidator(
+            RegexValidator(r"^\\d+$"),
+            RegexValidator(r"^[a-f0-9]+$"),
+            mode="or",
+        )
+    """
+
+    __slots__ = ("validators", "mode", "message")
+
+    def __init__(
+        self,
+        *validators: Callable[[Any], None],
+        mode: str = "and",
+        message: str | None = None,
+    ):
+        if mode not in ("and", "or"):
+            raise ValueError(f"CompoundValidator mode must be 'and' or 'or', got '{mode}'.")
+        self.validators = list(validators)
+        self.mode = mode
+        self.message = message
+
+    def __call__(self, value: Any) -> None:
+        if self.mode == "and":
+            errors: list[str] = []
+            for v in self.validators:
+                try:
+                    v(value)
+                except (ValueError, TypeError) as exc:
+                    errors.append(str(exc))
+            if errors:
+                raise ValueError(
+                    self.message or "; ".join(errors)
+                )
+        else:
+            # OR: at least one must pass
+            last_error = None
+            for v in self.validators:
+                try:
+                    v(value)
+                    return  # One passed — OK
+                except (ValueError, TypeError) as exc:
+                    last_error = exc
+            # None passed
+            raise ValueError(
+                self.message or str(last_error) or "None of the validators passed."
+            )
+
+    def __repr__(self) -> str:
+        return (
+            f"CompoundValidator({len(self.validators)} validators, mode={self.mode!r})"
+        )
+
+
+# ============================================================================
+# Conditional Validator
+# ============================================================================
+
+class ConditionalValidator:
+    """
+    Run a validator only when a condition is met.
+
+    The ``condition`` callable receives the full data dict and returns
+    ``True`` to activate the inner validator.
+
+    Usage::
+
+        class OrderSerializer(Serializer):
+            delivery_type = ChoiceField(choices=["pickup", "delivery"])
+            address = CharField(
+                required=False,
+                validators=[
+                    ConditionalValidator(
+                        condition=lambda data: data.get("delivery_type") == "delivery",
+                        validator=MinLengthValidator(5),
+                    ),
+                ],
+            )
+    """
+
+    __slots__ = ("condition", "validator", "message")
+
+    def __init__(
+        self,
+        *,
+        condition: Callable[[dict[str, Any]], bool],
+        validator: Callable[[Any], None],
+        message: str | None = None,
+    ):
+        self.condition = condition
+        self.validator = validator
+        self.message = message
+
+    def __call__(self, value: Any, data: dict[str, Any] | None = None) -> None:
+        if data is not None and self.condition(data):
+            try:
+                self.validator(value)
+            except (ValueError, TypeError) as exc:
+                raise ValueError(self.message or str(exc)) from exc
+
+    def __repr__(self) -> str:
+        return f"ConditionalValidator(validator={self.validator!r})"

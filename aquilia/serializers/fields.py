@@ -1117,3 +1117,170 @@ class ConstantField(SerializerField):
         schema = super().to_schema()
         schema["const"] = self._constant_value
         return schema
+
+
+# ============================================================================
+# DI-Aware Defaults — Like FastAPI Depends() for serializer fields
+# ============================================================================
+
+class _DIAwareDefault:
+    """Marker base for defaults that resolve from the DI container."""
+
+    _is_di_default: bool = True
+
+    def __call__(self) -> Any:  # pragma: no cover — resolved via DI path
+        raise RuntimeError(
+            f"{self.__class__.__name__} must be resolved through the DI "
+            f"container.  Pass `context={{'container': container}}` to "
+            f"the serializer."
+        )
+
+
+class CurrentUserDefault(_DIAwareDefault):
+    """
+    Inject the currently authenticated user from request context.
+
+    Looks up ``context["request"].state["identity"]`` or resolves
+    the ``Identity`` type from the DI container.
+
+    Usage::
+
+        class CommentSerializer(Serializer):
+            author_id = HiddenField(default=CurrentUserDefault())
+            body = CharField()
+
+    At validation time the field is automatically populated with
+    ``identity.id`` (or the full identity if ``use_id=False``).
+    """
+
+    __slots__ = ("use_id", "attr")
+
+    def __init__(self, *, use_id: bool = True, attr: str = "id"):
+        self.use_id = use_id
+        self.attr = attr
+
+    def resolve(self, context: dict[str, Any]) -> Any:
+        """Resolve current user from serializer context."""
+        # 1. Check context["request"]
+        request = context.get("request")
+        if request is not None:
+            state = getattr(request, "state", None)
+            if state is not None:
+                identity = state.get("identity") if isinstance(state, dict) else getattr(state, "identity", None)
+                if identity is not None:
+                    return getattr(identity, self.attr, identity) if self.use_id else identity
+
+        # 2. Check context["identity"]
+        identity = context.get("identity")
+        if identity is not None:
+            return getattr(identity, self.attr, identity) if self.use_id else identity
+
+        # 3. Check DI container
+        container = context.get("container")
+        if container is not None:
+            try:
+                identity = container.resolve("identity", optional=True)
+                if identity is not None:
+                    return getattr(identity, self.attr, identity) if self.use_id else identity
+            except Exception:
+                pass
+
+        return None
+
+    def __repr__(self) -> str:
+        return f"CurrentUserDefault(use_id={self.use_id}, attr={self.attr!r})"
+
+
+class CurrentRequestDefault(_DIAwareDefault):
+    """
+    Inject the current request object (or an attribute of it).
+
+    Usage::
+
+        class AuditSerializer(Serializer):
+            ip_address = HiddenField(default=CurrentRequestDefault(attr="client_ip"))
+    """
+
+    __slots__ = ("attr",)
+
+    def __init__(self, *, attr: str | None = None):
+        self.attr = attr
+
+    def resolve(self, context: dict[str, Any]) -> Any:
+        """Resolve from serializer context."""
+        request = context.get("request")
+        if request is None:
+            return None
+        if self.attr:
+            return getattr(request, self.attr, None)
+        return request
+
+    def __repr__(self) -> str:
+        return f"CurrentRequestDefault(attr={self.attr!r})"
+
+
+class InjectDefault(_DIAwareDefault):
+    """
+    Inject any service from the DI container at validation time.
+
+    This is Aquilia's equivalent of FastAPI's ``Depends()``.
+
+    Usage::
+
+        class OrderSerializer(Serializer):
+            total = HiddenField(default=InjectDefault(PricingService, method="calculate"))
+
+    Or simply resolve the service and use it::
+
+        class OrderSerializer(Serializer):
+            pricing = HiddenField(default=InjectDefault(PricingService))
+
+    Args:
+        token: The DI token (type or string) to resolve.
+        method: Optional method to call on the resolved service.
+        tag: Optional DI tag for disambiguation.
+    """
+
+    __slots__ = ("token", "method", "tag")
+
+    def __init__(
+        self,
+        token: Any,
+        *,
+        method: str | None = None,
+        tag: str | None = None,
+    ):
+        self.token = token
+        self.method = method
+        self.tag = tag
+
+    def resolve(self, context: dict[str, Any]) -> Any:
+        """Resolve service from DI container in serializer context."""
+        container = context.get("container")
+        if container is None:
+            raise RuntimeError(
+                f"InjectDefault({self.token}) requires a DI container in "
+                f"serializer context.  Pass context={{'container': container}}."
+            )
+
+        try:
+            if hasattr(container, "resolve"):
+                service = container.resolve(self.token, tag=self.tag, optional=False)
+            else:
+                raise RuntimeError("Container does not support .resolve()")
+        except Exception as exc:
+            raise RuntimeError(
+                f"Failed to resolve {self.token} from DI container: {exc}"
+            ) from exc
+
+        if self.method:
+            return getattr(service, self.method)
+        return service
+
+    def __repr__(self) -> str:
+        return f"InjectDefault(token={self.token!r}, method={self.method!r})"
+
+
+def is_di_default(default: Any) -> bool:
+    """Check if a default value is DI-aware and needs container resolution."""
+    return isinstance(default, _DIAwareDefault)

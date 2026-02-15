@@ -32,6 +32,7 @@ from .providers import (
     AliasProvider,
     LazyProxyProvider,
     ScopedProvider,
+    SerializerProvider,
 )
 
 from .scopes import (
@@ -92,6 +93,7 @@ __all__ = [
     "AliasProvider",
     "LazyProxyProvider",
     "ScopedProvider",
+    "SerializerProvider",
     
     # Scopes
     "Scope",

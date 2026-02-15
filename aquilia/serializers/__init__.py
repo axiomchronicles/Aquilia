@@ -81,6 +81,11 @@ from .fields import (
     ImageField,
     # Constant
     ConstantField,
+    # DI-aware Defaults
+    CurrentUserDefault,
+    CurrentRequestDefault,
+    InjectDefault,
+    is_di_default,
 )
 
 from .relations import (
@@ -98,6 +103,9 @@ from .validators import (
     MaxValueValidator,
     MinValueValidator,
     RegexValidator,
+    RangeValidator,
+    CompoundValidator,
+    ConditionalValidator,
 )
 
 from .exceptions import (
@@ -140,6 +148,11 @@ __all__ = [
     "FileField",
     "ImageField",
     "ConstantField",
+    # DI-aware Defaults
+    "CurrentUserDefault",
+    "CurrentRequestDefault",
+    "InjectDefault",
+    "is_di_default",
     # Relations
     "RelatedField",
     "PrimaryKeyRelatedField",
@@ -153,6 +166,9 @@ __all__ = [
     "MaxValueValidator",
     "MinValueValidator",
     "RegexValidator",
+    "RangeValidator",
+    "CompoundValidator",
+    "ConditionalValidator",
     # Faults
     "SerializationFault",
     "ValidationFault",

@@ -1,0 +1,1124 @@
+"""
+Aquilia Serializer Core — Serializer, ModelSerializer, ListSerializer.
+
+The heart of Aquilia's serialization layer.  Provides:
+
+- ``Serializer``: Declarative field-based serializer with full validation
+- ``ModelSerializer``: Auto-generates fields from an Aquilia ``Model`` class
+- ``ListSerializer``: Handles serialization/deserialization of collections
+
+Architecture:
+    SerializerMeta (metaclass)
+    └── Serializer (base)
+        ├── ModelSerializer (auto-fields from Model)
+        └── ListSerializer (many=True wrapper)
+
+Usage::
+
+    class UserSerializer(Serializer):
+        name = CharField(max_length=150)
+        email = EmailField()
+        age = IntegerField(required=False, default=0)
+
+    # Deserialize (input validation)
+    s = UserSerializer(data={"name": "Kai", "email": "kai@aq.dev"})
+    if s.is_valid():
+        user_data = s.validated_data  # {"name": "Kai", "email": "kai@aq.dev", "age": 0}
+
+    # Serialize (output rendering)
+    s = UserSerializer(instance=user_obj)
+    output = s.data  # {"name": "Kai", "email": "kai@aq.dev", "age": 25}
+"""
+
+from __future__ import annotations
+
+import copy
+import datetime
+import decimal
+import uuid
+from collections import OrderedDict
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
+
+from .fields import (
+    SerializerField,
+    BooleanField,
+    CharField,
+    DateField,
+    DateTimeField,
+    DecimalField,
+    DurationField,
+    EmailField,
+    FloatField,
+    IntegerField,
+    JSONField,
+    ListField,
+    ReadOnlyField,
+    SlugField,
+    TimeField,
+    URLField,
+    UUIDField,
+    empty,
+    is_di_default,
+)
+from .relations import PrimaryKeyRelatedField, StringRelatedField
+from .exceptions import SerializationFault, ValidationFault
+
+
+# ============================================================================
+# Metaclass
+# ============================================================================
+
+class SerializerMeta(type):
+    """
+    Metaclass for Serializer classes.
+
+    Collects declared ``SerializerField`` instances from the class body
+    and parent classes into ``_declared_fields`` (ordered dict).
+    """
+
+    def __new__(
+        mcs,
+        name: str,
+        bases: tuple[type, ...],
+        namespace: dict[str, Any],
+        **kwargs: Any,
+    ) -> SerializerMeta:
+        # Collect fields from this class
+        declared: list[tuple[str, SerializerField]] = []
+        for key, value in list(namespace.items()):
+            if isinstance(value, SerializerField):
+                declared.append((key, value))
+                namespace.pop(key)
+
+        # Sort by creation order
+        declared.sort(key=lambda pair: pair[1]._order)
+
+        # Inherit parent fields
+        parent_fields: OrderedDict[str, SerializerField] = OrderedDict()
+        for base in reversed(bases):
+            if hasattr(base, "_declared_fields"):
+                parent_fields.update(base._declared_fields)
+
+        # Merge: parent fields first, then this class's fields (override)
+        all_fields = OrderedDict(parent_fields)
+        for field_name, field_obj in declared:
+            all_fields[field_name] = field_obj
+
+        namespace["_declared_fields"] = all_fields
+
+        cls = super().__new__(mcs, name, bases, namespace, **kwargs)
+        return cls
+
+
+# ============================================================================
+# Serializer
+# ============================================================================
+
+class Serializer(metaclass=SerializerMeta):
+    """
+    Base serializer with declarative field-based validation.
+
+    Modes:
+        - **Serialization** (output): Pass ``instance=obj``, read ``.data``
+        - **Deserialization** (input): Pass ``data=dict``, call ``.is_valid()``,
+          then read ``.validated_data``
+        - **Both**: Pass both ``instance`` and ``data`` for update scenarios
+
+    Options:
+        - ``partial=True``: Allow partial updates (missing fields OK)
+        - ``many=True``: Wrap with ``ListSerializer``
+        - ``context=dict``: Extra context (e.g. request) available to fields
+    """
+
+    _declared_fields: ClassVar[OrderedDict[str, SerializerField]]
+
+    class Meta:
+        """Override in subclasses for configuration."""
+        pass
+
+    def __init__(
+        self,
+        instance: Any = None,
+        data: Any = empty,
+        *,
+        many: bool = False,
+        partial: bool = False,
+        context: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ):
+        if many:
+            # Delegate to ListSerializer — this __init__ won't run further
+            raise TypeError(
+                "Use `ListSerializer` or the classmethod `Serializer.many_init()` "
+                "for many=True.  Or use `MySerializer.many(data=[...])` shortcut."
+            )
+
+        self.instance = instance
+        self.initial_data = data
+        self.partial = partial
+        self.context = context or {}
+        self._validated_data: Any = empty
+        self._errors: dict[str, list[str]] = {}
+        self._data: Any = None
+
+        # Bind fields to this serializer instance
+        self.fields: OrderedDict[str, SerializerField] = OrderedDict()
+        for name, field in self._declared_fields.items():
+            field_copy = copy.deepcopy(field)
+            field_copy.bind(name, self)
+            self.fields[name] = field_copy
+
+    # ── DI Integration ───────────────────────────────────────────────────
+
+    @property
+    def container(self) -> Any:
+        """
+        Get the DI container from context (if available).
+
+        The container is automatically set when the serializer is resolved
+        through the DI system or when created via ``from_request()``.
+        """
+        return self.context.get("container")
+
+    @property
+    def request(self) -> Any:
+        """
+        Get the current request from context (if available).
+
+        Automatically set when the serializer is resolved through DI
+        or when created via ``from_request()``.
+        """
+        return self.context.get("request")
+
+    @classmethod
+    def from_request(
+        cls,
+        request: Any,
+        *,
+        instance: Any = None,
+        partial: bool = False,
+        context: dict[str, Any] | None = None,
+        container: Any = None,
+    ) -> "Serializer":
+        """
+        Create a serializer pre-wired with request data and DI context.
+
+        This is the primary factory for controller handlers — similar to
+        how FastAPI automatically resolves Pydantic models from request body.
+
+        Usage::
+
+            @POST("/users")
+            async def create_user(self, ctx):
+                serializer = UserSerializer.from_request(
+                    ctx.request,
+                    container=ctx.container,
+                )
+                serializer.is_valid(raise_fault=True)
+                user = await serializer.save()
+                return Response.json(serializer.data, status=201)
+
+        Args:
+            request: The HTTP request object.
+            instance: Optional model instance for updates.
+            partial: Allow partial updates.
+            context: Extra context dict.
+            container: DI container (auto-resolved from request if None).
+
+        Returns:
+            Serializer instance with request data bound.
+        """
+        import asyncio
+
+        # Build context
+        ctx = dict(context or {})
+        ctx["request"] = request
+
+        # Resolve container
+        if container is None:
+            # Try request.state
+            state = getattr(request, "state", None)
+            if state is not None:
+                container = (
+                    state.get("di_container")
+                    if isinstance(state, dict)
+                    else getattr(state, "di_container", None)
+                )
+        if container is not None:
+            ctx["container"] = container
+
+        # Parse request body
+        data = empty
+        if hasattr(request, "_body_cache"):
+            # Already parsed
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+            if loop and loop.is_running():
+                # We're in async — caller should use await
+                pass
+            else:
+                data = asyncio.run(request.json())
+        # Caller may also pass data= explicitly
+
+        return cls(
+            instance=instance,
+            data=data,
+            partial=partial,
+            context=ctx,
+        )
+
+    @classmethod
+    async def from_request_async(
+        cls,
+        request: Any,
+        *,
+        instance: Any = None,
+        partial: bool = False,
+        context: dict[str, Any] | None = None,
+        container: Any = None,
+    ) -> "Serializer":
+        """
+        Async factory — parse request body and create serializer.
+
+        Usage in controller handler::
+
+            @POST("/users")
+            async def create_user(self, ctx):
+                serializer = await UserSerializer.from_request_async(ctx.request)
+                serializer.is_valid(raise_fault=True)
+                user = await serializer.save()
+                return UserSerializer(instance=user).data
+
+        Args:
+            request: The HTTP request object.
+            instance: Optional model instance for updates.
+            partial: Allow partial updates.
+            context: Extra context dict.
+            container: DI container (auto-resolved from request if None).
+
+        Returns:
+            Serializer instance with parsed request data bound.
+        """
+        # Build context
+        ctx = dict(context or {})
+        ctx["request"] = request
+
+        # Resolve container
+        if container is None:
+            state = getattr(request, "state", None)
+            if state is not None:
+                container = (
+                    state.get("di_container")
+                    if isinstance(state, dict)
+                    else getattr(state, "di_container", None)
+                )
+        if container is not None:
+            ctx["container"] = container
+
+        # Parse request body
+        data = empty
+        try:
+            data = await request.json()
+        except Exception:
+            try:
+                data = await request.form()
+            except Exception:
+                pass
+
+        return cls(
+            instance=instance,
+            data=data,
+            partial=partial,
+            context=ctx,
+        )
+
+    # ── many=True shortcut ───────────────────────────────────────────────
+
+    @classmethod
+    def many(
+        cls,
+        instance: Any = None,
+        data: Any = empty,
+        **kwargs: Any,
+    ) -> "ListSerializer":
+        """
+        Shortcut for creating a ListSerializer wrapping this serializer.
+
+        Usage::
+
+            output = UserSerializer.many(instance=users_list).data
+        """
+        return ListSerializer(child=cls(), instance=instance, data=data, **kwargs)
+
+    # ── Serialization (output) ───────────────────────────────────────────
+
+    @property
+    def data(self) -> Any:
+        """
+        Serialized output data.
+
+        For serialization mode (``instance`` provided), renders
+        the instance through all fields' ``to_representation``.
+        For deserialization mode (after ``is_valid()``), returns
+        the validated data.
+        """
+        if self._data is not None:
+            return self._data
+
+        if self.instance is not None:
+            self._data = self.to_representation(self.instance)
+        elif self._validated_data is not empty:
+            self._data = self._validated_data
+        else:
+            self._data = {}
+        return self._data
+
+    def to_representation(self, instance: Any) -> OrderedDict:
+        """
+        Convert an object instance to an ordered dict of primitives.
+
+        Iterates all non-write-only fields, calling each field's
+        ``get_attribute`` + ``to_representation``.
+        """
+        result = OrderedDict()
+        for field_name, field in self.fields.items():
+            if field.write_only:
+                continue
+            try:
+                if field.source == "*":
+                    # SerializerMethodField / whole-object access
+                    value = instance
+                else:
+                    value = field.get_attribute(instance)
+                result[field_name] = field.to_representation(value)
+            except Exception:
+                result[field_name] = None
+        return result
+
+    # ── Deserialization (input) ──────────────────────────────────────────
+
+    def is_valid(self, *, raise_fault: bool = False) -> bool:
+        """
+        Validate the input data.
+
+        After calling, ``.validated_data`` or ``.errors`` are populated.
+
+        Args:
+            raise_fault: If True, raise ``ValidationFault`` on errors.
+
+        Returns:
+            True if data is valid, False otherwise.
+        """
+        if self.initial_data is empty:
+            raise SerializationFault(
+                code="NO_DATA",
+                message="Cannot call is_valid() without passing `data=` to the serializer.",
+            )
+
+        self._errors = {}
+        try:
+            self._validated_data = self.run_validation(self.initial_data)
+        except ValidationFault as exc:
+            self._errors = exc.errors
+            self._validated_data = empty
+
+        if self._errors and raise_fault:
+            raise ValidationFault(errors=self._errors)
+
+        return not bool(self._errors)
+
+    @property
+    def validated_data(self) -> dict[str, Any]:
+        """Return validated data (only available after ``is_valid()``)."""
+        if self._validated_data is empty:
+            raise SerializationFault(
+                code="NOT_VALIDATED",
+                message="You must call `.is_valid()` before accessing `.validated_data`.",
+            )
+        return self._validated_data
+
+    @property
+    def errors(self) -> dict[str, list[str]]:
+        """Return validation errors."""
+        return self._errors
+
+    def run_validation(self, data: Any) -> dict[str, Any]:
+        """
+        Full validation pipeline:
+        1. Check data is a dict
+        2. Per-field: to_internal_value → validate → run_validators
+        3. Cross-field: validate_{field}() hooks
+        4. Object-level: validate() hook
+        5. DI-aware defaults are resolved from container context
+        """
+        if not isinstance(data, Mapping):
+            raise ValidationFault(
+                errors={"__all__": ["Expected a dictionary of items."]},
+            )
+
+        result: dict[str, Any] = {}
+        errors: dict[str, list[str]] = {}
+
+        # --- Per-field validation ---
+        for field_name, field in self.fields.items():
+            if field.read_only:
+                continue
+
+            # Get raw value
+            if field_name in data:
+                raw = data[field_name]
+            elif field.source and field.source != field_name and field.source in data:
+                raw = data[field.source]
+            else:
+                raw = empty
+
+            # Handle missing values
+            if raw is empty:
+                if self.partial:
+                    continue  # Skip missing fields in partial updates
+                if field.required:
+                    # Check for DI-aware default before failing
+                    if is_di_default(field.default):
+                        try:
+                            result[field_name] = field.default.resolve(self.context)
+                            continue
+                        except Exception as exc:
+                            errors[field_name] = [str(exc)]
+                            continue
+                    errors[field_name] = [field.error_messages.get("required", "This field is required.")]
+                    continue
+                else:
+                    try:
+                        default = field.default
+                        if is_di_default(default):
+                            result[field_name] = default.resolve(self.context)
+                        else:
+                            result[field_name] = field.get_default()
+                    except (ValueError, RuntimeError) as exc:
+                        errors[field_name] = [str(exc)]
+                    continue
+
+            # Handle null values
+            if raw is None:
+                if not field.allow_null:
+                    errors[field_name] = [field.error_messages.get("null", "This field may not be null.")]
+                    continue
+                result[field_name] = None
+                continue
+
+            # Coerce + validate
+            try:
+                value = field.to_internal_value(raw)
+                field.run_validators(value)
+                value = field.validate(value)
+                result[field_name] = value
+            except (ValueError, TypeError) as exc:
+                errors[field_name] = [str(exc)]
+
+        if errors:
+            raise ValidationFault(errors=errors)
+
+        # --- Per-field custom validation hooks ---
+        for field_name in list(result.keys()):
+            method = getattr(self, f"validate_{field_name}", None)
+            if method:
+                try:
+                    result[field_name] = method(result[field_name])
+                except (ValueError, TypeError) as exc:
+                    errors.setdefault(field_name, []).append(str(exc))
+
+        if errors:
+            raise ValidationFault(errors=errors)
+
+        # --- Object-level validation ---
+        try:
+            result = self.validate(result)
+        except (ValueError, TypeError) as exc:
+            errors.setdefault("__all__", []).append(str(exc))
+
+        if errors:
+            raise ValidationFault(errors=errors)
+
+        return result
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        """
+        Object-level validation hook.
+
+        Override to add cross-field validation::
+
+            def validate(self, attrs):
+                if attrs.get("password") != attrs.get("confirm_password"):
+                    raise ValueError("Passwords do not match.")
+                return attrs
+        """
+        return attrs
+
+    # ── Create / Update Hooks ────────────────────────────────────────────
+
+    async def create(self, validated_data: dict[str, Any]) -> Any:
+        """
+        Create a new object from validated data.
+
+        Override in subclasses for persistence::
+
+            async def create(self, validated_data):
+                return await User.objects.create(**validated_data)
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__}.create() must be implemented."
+        )
+
+    async def update(self, instance: Any, validated_data: dict[str, Any]) -> Any:
+        """
+        Update an existing object from validated data.
+
+        Override in subclasses for persistence::
+
+            async def update(self, instance, validated_data):
+                for attr, value in validated_data.items():
+                    setattr(instance, attr, value)
+                await instance.save()
+                return instance
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__}.update() must be implemented."
+        )
+
+    async def save(self, **kwargs: Any) -> Any:
+        """
+        Persist the object using ``create()`` or ``update()``.
+
+        Args:
+            **kwargs: Extra fields to merge into validated_data.
+
+        Returns:
+            The created/updated object instance.
+        """
+        if self._validated_data is empty:
+            raise SerializationFault(
+                code="NOT_VALIDATED",
+                message="You must call `.is_valid()` before calling `.save()`.",
+            )
+
+        validated = {**self._validated_data, **kwargs}
+
+        if self.instance is not None:
+            self.instance = await self.update(self.instance, validated)
+        else:
+            self.instance = await self.create(validated)
+
+        return self.instance
+
+    # ── OpenAPI Schema Generation ────────────────────────────────────────
+
+    def to_schema(self, *, for_request: bool = False) -> Dict[str, Any]:
+        """
+        Generate OpenAPI JSON Schema for this serializer.
+
+        Args:
+            for_request: If True, exclude read_only fields (for request body).
+                         If False, exclude write_only fields (for response).
+
+        Returns:
+            JSON Schema dictionary.
+        """
+        properties: Dict[str, Any] = {}
+        required: list[str] = []
+
+        for field_name, field in self.fields.items():
+            if for_request and field.read_only:
+                continue
+            if not for_request and field.write_only:
+                continue
+
+            # Nested serializer
+            if isinstance(field, Serializer):
+                properties[field_name] = field.to_schema(for_request=for_request)
+            else:
+                properties[field_name] = field.to_schema()
+
+            if field.required and not field.read_only:
+                required.append(field_name)
+
+        schema: Dict[str, Any] = {
+            "type": "object",
+            "properties": properties,
+        }
+        if required and for_request:
+            schema["required"] = required
+
+        doc = getattr(self.__class__, "__doc__", None)
+        if doc:
+            schema["description"] = doc.strip().split("\n")[0]
+
+        return schema
+
+    # ── Representation ───────────────────────────────────────────────────
+
+    def __repr__(self) -> str:
+        cls_name = self.__class__.__name__
+        fields = ", ".join(self.fields.keys())
+        return f"<{cls_name}(fields=[{fields}])>"
+
+
+# ============================================================================
+# ListSerializer
+# ============================================================================
+
+class ListSerializer:
+    """
+    Handles serialization/deserialization of lists of objects.
+
+    Wraps a child ``Serializer`` and applies it to each item.
+
+    Usage::
+
+        s = ListSerializer(child=UserSerializer(), data=[...])
+        if s.is_valid():
+            users = s.validated_data  # list[dict]
+
+        s = ListSerializer(child=UserSerializer(), instance=[user1, user2])
+        output = s.data  # [{"name": ...}, {"name": ...}]
+    """
+
+    def __init__(
+        self,
+        *,
+        child: Serializer,
+        instance: Any = None,
+        data: Any = empty,
+        partial: bool = False,
+        context: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ):
+        self.child = child
+        self.instance = instance
+        self.initial_data = data
+        self.partial = partial
+        self.context = context or {}
+        self._validated_data: Any = empty
+        self._errors: list[dict[str, list[str]]] = []
+        self._data: Any = None
+
+    @property
+    def data(self) -> list:
+        """Serialized output: list of dicts."""
+        if self._data is not None:
+            return self._data
+        if self.instance is not None:
+            self._data = self.to_representation(self.instance)
+        elif self._validated_data is not empty:
+            self._data = self._validated_data
+        else:
+            self._data = []
+        return self._data
+
+    def to_representation(self, instances: Sequence) -> list:
+        """Convert a list of objects to a list of dicts."""
+        return [
+            self.child.to_representation(item)
+            for item in instances
+        ]
+
+    def is_valid(self, *, raise_fault: bool = False) -> bool:
+        """Validate a list of input dicts."""
+        if self.initial_data is empty:
+            raise SerializationFault(
+                code="NO_DATA",
+                message="Cannot call is_valid() without passing `data=`.",
+            )
+
+        if not isinstance(self.initial_data, (list, tuple)):
+            self._errors = [{"__all__": ["Expected a list of items."]}]
+            if raise_fault:
+                raise ValidationFault(errors={"__all__": ["Expected a list of items."]})
+            return False
+
+        results: list[dict] = []
+        errors: list[dict[str, list[str]]] = []
+        has_errors = False
+
+        for idx, item in enumerate(self.initial_data):
+            child = self.child.__class__(data=item, partial=self.partial, context=self.context)
+            if child.is_valid():
+                results.append(child.validated_data)
+                errors.append({})
+            else:
+                has_errors = True
+                results.append({})
+                errors.append(child.errors)
+
+        self._errors = errors
+        if not has_errors:
+            self._validated_data = results
+        else:
+            self._validated_data = empty
+
+        if has_errors and raise_fault:
+            raise ValidationFault(
+                errors={"__all__": [f"Item {i}: {e}" for i, e in enumerate(errors) if e]},
+            )
+
+        return not has_errors
+
+    @property
+    def validated_data(self) -> list[dict[str, Any]]:
+        if self._validated_data is empty:
+            raise SerializationFault(
+                code="NOT_VALIDATED",
+                message="You must call `.is_valid()` before accessing `.validated_data`.",
+            )
+        return self._validated_data
+
+    @property
+    def errors(self) -> list[dict[str, list[str]]]:
+        return self._errors
+
+    async def create(self, validated_data: list[dict[str, Any]]) -> list[Any]:
+        """Create multiple objects."""
+        results = []
+        for item_data in validated_data:
+            child = self.child.__class__(data=item_data, context=self.context)
+            child.is_valid(raise_fault=True)
+            obj = await child.create(child.validated_data)
+            results.append(obj)
+        return results
+
+    async def save(self, **kwargs: Any) -> list[Any]:
+        """Persist all validated items."""
+        if self._validated_data is empty:
+            raise SerializationFault(
+                code="NOT_VALIDATED",
+                message="You must call `.is_valid()` before calling `.save()`.",
+            )
+        return await self.create(self._validated_data)
+
+    def to_schema(self, *, for_request: bool = False) -> Dict[str, Any]:
+        """Generate OpenAPI schema for list."""
+        return {
+            "type": "array",
+            "items": self.child.to_schema(for_request=for_request) if isinstance(self.child, Serializer) else {},
+        }
+
+    def __repr__(self) -> str:
+        return f"<ListSerializer(child={self.child.__class__.__name__})>"
+
+
+# ============================================================================
+# Model Field Mapping
+# ============================================================================
+
+# Maps Aquilia Model field class names → Serializer field classes
+_MODEL_FIELD_MAP: Dict[str, Type[SerializerField]] = {
+    # Text
+    "CharField": CharField,
+    "TextField": CharField,
+    "SlugField": SlugField,
+    "EmailField": EmailField,
+    "URLField": URLField,
+    "UUIDField": UUIDField,
+    "FilePathField": CharField,
+    # Numeric
+    "IntegerField": IntegerField,
+    "BigIntegerField": IntegerField,
+    "SmallIntegerField": IntegerField,
+    "PositiveIntegerField": IntegerField,
+    "PositiveSmallIntegerField": IntegerField,
+    "FloatField": FloatField,
+    "DecimalField": DecimalField,
+    "AutoField": IntegerField,
+    "BigAutoField": IntegerField,
+    # Boolean
+    "BooleanField": BooleanField,
+    # Date/Time
+    "DateField": DateField,
+    "TimeField": TimeField,
+    "DateTimeField": DateTimeField,
+    "DurationField": DurationField,
+    # Binary / Special
+    "BinaryField": CharField,
+    "JSONField": JSONField,
+    # IP
+    "GenericIPAddressField": CharField,
+    "InetAddressField": CharField,
+    # Files
+    "FileField": CharField,
+    "ImageField": CharField,
+    # Arrays / PostgreSQL
+    "ArrayField": ListField,
+    "HStoreField": JSONField,
+    "RangeField": CharField,
+    "GeneratedField": ReadOnlyField,
+}
+
+
+def _build_serializer_field(
+    model_field: Any,
+    read_only: bool = False,
+    extra_kwargs: dict[str, Any] | None = None,
+) -> SerializerField:
+    """
+    Convert an Aquilia Model field into a Serializer field.
+
+    Args:
+        model_field: An Aquilia ``Field`` instance from the model.
+        read_only: Force the serializer field to be read-only.
+        extra_kwargs: Extra keyword arguments for the serializer field.
+
+    Returns:
+        A configured ``SerializerField`` instance.
+    """
+    field_cls_name = type(model_field).__name__
+    serializer_cls = _MODEL_FIELD_MAP.get(field_cls_name, CharField)
+
+    kwargs: dict[str, Any] = {}
+
+    # Transfer common attrs
+    if getattr(model_field, "null", False):
+        kwargs["allow_null"] = True
+    if getattr(model_field, "blank", False):
+        kwargs["allow_blank"] = True
+    if getattr(model_field, "help_text", ""):
+        kwargs["help_text"] = model_field.help_text
+
+    # Default value
+    from .fields import empty as _empty
+    field_default = getattr(model_field, "default", _empty)
+    _UNSET = None
+    try:
+        from ..models.fields_module import UNSET
+        _UNSET = UNSET
+    except ImportError:
+        pass
+    if field_default is not _UNSET and field_default is not _empty:
+        if not callable(field_default):
+            kwargs["default"] = field_default
+        else:
+            kwargs["default"] = field_default
+
+    # Choices
+    if getattr(model_field, "choices", None):
+        return ChoiceField(
+            choices=model_field.choices,
+            read_only=read_only,
+            **kwargs,
+            **(extra_kwargs or {}),
+        )
+
+    # String length
+    if hasattr(model_field, "max_length") and model_field.max_length and serializer_cls in (CharField, SlugField, EmailField, URLField):
+        kwargs["max_length"] = model_field.max_length
+
+    # Decimal precision
+    if field_cls_name == "DecimalField":
+        if hasattr(model_field, "max_digits") and model_field.max_digits:
+            kwargs["max_digits"] = model_field.max_digits
+        if hasattr(model_field, "decimal_places") and model_field.decimal_places is not None:
+            kwargs["decimal_places"] = model_field.decimal_places
+
+    # Numeric constraints
+    if hasattr(model_field, "min_value") and model_field.min_value is not None:
+        kwargs["min_value"] = model_field.min_value
+    if hasattr(model_field, "max_value") and model_field.max_value is not None:
+        kwargs["max_value"] = model_field.max_value
+
+    # Read-only / auto fields
+    if read_only or getattr(model_field, "primary_key", False):
+        kwargs["read_only"] = True
+    if not getattr(model_field, "editable", True):
+        kwargs["read_only"] = True
+
+    # Auto-now fields are always read-only
+    if getattr(model_field, "auto_now", False) or getattr(model_field, "auto_now_add", False):
+        kwargs["read_only"] = True
+
+    # Required
+    if not kwargs.get("read_only", False):
+        has_default = getattr(model_field, "has_default", lambda: False)
+        if callable(has_default):
+            has_default = has_default()
+        if getattr(model_field, "null", False) or getattr(model_field, "blank", False) or has_default:
+            kwargs["required"] = False
+
+    if extra_kwargs:
+        kwargs.update(extra_kwargs)
+
+    return serializer_cls(**kwargs)
+
+
+# Import ChoiceField here to avoid circular import at top
+from .fields import ChoiceField
+
+
+# ============================================================================
+# ModelSerializer
+# ============================================================================
+
+class ModelSerializer(Serializer):
+    """
+    Automatically generates serializer fields from an Aquilia ``Model``.
+
+    Configuration via inner ``Meta`` class::
+
+        class ProductSerializer(ModelSerializer):
+            class Meta:
+                model = Product
+                fields = "__all__"                  # or ["name", "price", ...]
+                exclude = ["internal_notes"]        # fields to skip
+                read_only_fields = ["id", "created_at"]
+                extra_kwargs = {
+                    "price": {"min_value": 0},
+                }
+                depth = 1                           # nested relation depth
+                validators = []                     # object-level validators
+
+    Meta options:
+        model:            The Aquilia Model class
+        fields:           ``"__all__"`` or list of field names
+        exclude:          List of field names to exclude
+        read_only_fields: List of field names to force read-only
+        write_only_fields: List of field names to force write-only
+        extra_kwargs:     Dict of {field_name: {kwargs}} to override
+        depth:            Depth for nested relations (0 = PK only)
+        validators:       Object-level validators
+    """
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+
+        # Auto-generate fields from Meta.model if they weren't declared
+        meta = getattr(self.__class__, "Meta", None)
+        if meta and hasattr(meta, "model"):
+            self._apply_model_fields(meta)
+
+    def _apply_model_fields(self, meta: type) -> None:
+        """Generate serializer fields from the model."""
+        model = meta.model
+        if model is None:
+            return
+
+        fields_option = getattr(meta, "fields", None)
+        exclude_option = set(getattr(meta, "exclude", []) or [])
+        read_only_fields = set(getattr(meta, "read_only_fields", []) or [])
+        write_only_fields = set(getattr(meta, "write_only_fields", []) or [])
+        extra_kwargs = getattr(meta, "extra_kwargs", {}) or {}
+        depth = getattr(meta, "depth", 0)
+
+        # Get model fields
+        model_fields = self._get_model_fields(model)
+
+        # Determine which fields to include
+        if fields_option == "__all__":
+            field_names = [f.attr_name or f.name for f in model_fields]
+        elif fields_option:
+            field_names = list(fields_option)
+        else:
+            field_names = [f.attr_name or f.name for f in model_fields]
+
+        # Apply exclude
+        field_names = [f for f in field_names if f not in exclude_option]
+
+        # Build field map
+        model_field_map = {}
+        for mf in model_fields:
+            name = mf.attr_name or mf.name
+            model_field_map[name] = mf
+
+        # Generate serializer fields (don't override declared fields)
+        for name in field_names:
+            if name in self._declared_fields:
+                # Use declared field as-is
+                if name not in self.fields:
+                    field_copy = copy.deepcopy(self._declared_fields[name])
+                    field_copy.bind(name, self)
+                    self.fields[name] = field_copy
+                continue
+
+            if name in model_field_map:
+                mf = model_field_map[name]
+                ro = name in read_only_fields
+                extra = extra_kwargs.get(name, {})
+
+                # Handle FK / Relations
+                field_type_name = type(mf).__name__
+                if field_type_name in ("ForeignKey", "OneToOneField"):
+                    if depth > 0:
+                        # Nested representation — use a ReadOnlyField for now
+                        ser_field = ReadOnlyField()
+                    else:
+                        ser_field = PrimaryKeyRelatedField(read_only=ro, **extra)
+                elif field_type_name == "ManyToManyField":
+                    ser_field = PrimaryKeyRelatedField(many=True, read_only=True)
+                else:
+                    ser_field = _build_serializer_field(mf, read_only=ro, extra_kwargs=extra)
+
+                # Apply write_only
+                if name in write_only_fields:
+                    ser_field.write_only = True
+
+                ser_field.bind(name, self)
+                self.fields[name] = ser_field
+
+    def _get_model_fields(self, model: type) -> list:
+        """Extract field objects from an Aquilia Model class."""
+        # Aquilia models store fields in _meta.fields or via __dict__
+        meta = getattr(model, "_meta", None)
+        if meta and hasattr(meta, "fields"):
+            return list(meta.fields)
+
+        # Fallback: scan class for Field instances
+        from ..models.fields_module import Field as ModelField
+        fields = []
+        for attr_name in dir(model):
+            if attr_name.startswith("_"):
+                continue
+            val = getattr(model, attr_name, None)
+            if isinstance(val, ModelField):
+                fields.append(val)
+        return sorted(fields, key=lambda f: getattr(f, "_order", 0))
+
+    # ── CRUD Hooks ───────────────────────────────────────────────────────
+
+    async def create(self, validated_data: dict[str, Any]) -> Any:
+        """Create a model instance from validated data."""
+        meta = getattr(self.__class__, "Meta", None)
+        if meta and hasattr(meta, "model"):
+            model = meta.model
+            instance = model(**validated_data)
+            await instance.save()
+            return instance
+        raise SerializationFault(
+            code="NO_MODEL",
+            message="ModelSerializer.create() requires Meta.model to be set.",
+        )
+
+    async def update(self, instance: Any, validated_data: dict[str, Any]) -> Any:
+        """Update a model instance from validated data."""
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        await instance.save(update_fields=list(validated_data.keys()))
+        return instance
+
+    # ── Schema Generation ────────────────────────────────────────────────
+
+    def to_schema(self, *, for_request: bool = False) -> Dict[str, Any]:
+        """Generate OpenAPI schema from model + field info."""
+        schema = super().to_schema(for_request=for_request)
+        meta = getattr(self.__class__, "Meta", None)
+        if meta and hasattr(meta, "model"):
+            schema["title"] = meta.model.__name__
+        return schema

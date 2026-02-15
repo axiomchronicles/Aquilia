@@ -44,6 +44,7 @@ class ModuleConfig:
     middlewares: List[str] = field(default_factory=list)
     socket_controllers: List[str] = field(default_factory=list)
     models: List[str] = field(default_factory=list)
+    serializers: List[str] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
     
     # Database configuration (per-module override)
@@ -68,6 +69,7 @@ class ModuleConfig:
             "middlewares": self.middlewares,
             "socket_controllers": self.socket_controllers,
             "models": self.models,
+            "serializers": self.serializers,
             "tags": self.tags,
             "auto_discover": self.auto_discover,
         }
@@ -162,6 +164,25 @@ class Module:
                      E.g. "models/user.py", "models/*.py", "models/legacy.amdl"
         """
         self._config.models.extend(models)
+        return self
+    
+    def register_serializers(self, *serializers: str) -> "Module":
+        """
+        Register explicit serializer classes for this module.
+        
+        Args:
+            *serializers: Import paths in ``"module.path:ClassName"`` format.
+                          E.g. ``"modules.users.serializers:UserSerializer"``
+        
+        Example::
+        
+            Module("users")
+                .register_serializers(
+                    "modules.users.serializers:UserSerializer",
+                    "modules.users.serializers:UserCreateSerializer",
+                )
+        """
+        self._config.serializers.extend(serializers)
         return self
     
     def database(
@@ -864,6 +885,58 @@ class Integration:
             "external_docs_description": external_docs_description,
             "swagger_ui_theme": swagger_ui_theme,
             "swagger_ui_config": swagger_ui_config or {},
+            **kwargs,
+        }
+
+    @staticmethod
+    def serializers(
+        *,
+        auto_discover: bool = True,
+        strict_validation: bool = True,
+        raise_on_error: bool = False,
+        date_format: str = "iso-8601",
+        datetime_format: str = "iso-8601",
+        coerce_decimal_to_string: bool = True,
+        compact_json: bool = True,
+        enabled: bool = True,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure global serializer settings.
+
+        Args:
+            auto_discover: Auto-discover serializers in modules.
+            strict_validation: Reject unknown fields in input.
+            raise_on_error: Raise ``ValidationFault`` instead of
+                            returning errors dict.
+            date_format: Default output format for DateField.
+            datetime_format: Default output format for DateTimeField.
+            coerce_decimal_to_string: Render Decimal as string (default).
+            compact_json: Use compact JSON output (no indent).
+            enabled: Enable/disable the serializer integration.
+            **kwargs: Additional serializer configuration.
+
+        Returns:
+            Serializer integration configuration dictionary.
+
+        Example::
+
+            .integrate(Integration.serializers(
+                strict_validation=True,
+                raise_on_error=True,
+                coerce_decimal_to_string=False,
+            ))
+        """
+        return {
+            "_integration_type": "serializers",
+            "enabled": enabled,
+            "auto_discover": auto_discover,
+            "strict_validation": strict_validation,
+            "raise_on_error": raise_on_error,
+            "date_format": date_format,
+            "datetime_format": datetime_format,
+            "coerce_decimal_to_string": coerce_decimal_to_string,
+            "compact_json": compact_json,
             **kwargs,
         }
 

@@ -300,6 +300,7 @@ class AppManifest:
     controllers: List[str] = field(default_factory=list)  # "path:ClassName" format
     socket_controllers: List[str] = field(default_factory=list)  # "path:ClassName" format (WebSockets)
     models: List[str] = field(default_factory=list)  # .amdl file paths or glob patterns
+    serializers: List[str] = field(default_factory=list)  # "path:ClassName" serializer classes
     
     # Middleware configuration
     middleware: List[MiddlewareConfig] = field(default_factory=list)
@@ -375,6 +376,7 @@ class AppManifest:
             "controllers": self.controllers,
             "socket_controllers": self.socket_controllers,
             "models": self.models,
+            "serializers": self.serializers,
             "services": [s.to_dict() for s in self.services],
             "depends_on": self.depends_on,
             "middleware": [m.to_dict() for m in self.middleware],

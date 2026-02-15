@@ -623,3 +623,72 @@ class SchemaFault(ModelFault):
             severity=Severity.FATAL,
             metadata={"table": table, "reason": reason, **kwargs.get("metadata", {})},
         )
+
+
+# ============================================================================
+# SERIALIZATION Faults
+# ============================================================================
+
+class SerializerFault(Fault):
+    """Base class for serializer faults."""
+    
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: Severity = Severity.WARN,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            code=code,
+            message=message,
+            domain=FaultDomain.SERIALIZATION,
+            severity=severity,
+            retryable=False,
+            public=True,
+            metadata=metadata,
+        )
+
+
+class SerializerValidationFault(SerializerFault):
+    """Serializer validation failed with structured field errors."""
+    
+    def __init__(self, errors: dict[str, list[str]], **kwargs):
+        self.errors = errors
+        error_summary = "; ".join(
+            f"{k}: {', '.join(v)}" for k, v in errors.items()
+        )
+        super().__init__(
+            code="SERIALIZER_VALIDATION_FAILED",
+            message=f"Validation failed: {error_summary}",
+            metadata={"errors": errors, **kwargs.get("metadata", {})},
+        )
+    
+    def to_dict(self) -> dict[str, Any]:
+        base = super().to_dict()
+        base["errors"] = self.errors
+        return base
+
+
+class SerializerFieldFault(SerializerFault):
+    """A specific serializer field failed validation or coercion."""
+    
+    def __init__(self, field_name: str, messages: list[str], **kwargs):
+        super().__init__(
+            code="SERIALIZER_FIELD_FAULT",
+            message=f"Field '{field_name}': {'; '.join(messages)}",
+            metadata={"field": field_name, "messages": messages, **kwargs.get("metadata", {})},
+        )
+
+
+class SerializerConfigFault(SerializerFault):
+    """Serializer is misconfigured (e.g. missing Meta.model)."""
+    
+    def __init__(self, serializer_name: str, reason: str, **kwargs):
+        super().__init__(
+            code="SERIALIZER_CONFIG_ERROR",
+            message=f"Serializer '{serializer_name}' misconfigured: {reason}",
+            severity=Severity.ERROR,
+            metadata={"serializer": serializer_name, "reason": reason, **kwargs.get("metadata", {})},
+        )

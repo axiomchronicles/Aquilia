@@ -209,6 +209,11 @@ from .faults import (
     QueryFault,
     DatabaseConnectionFault,
     SchemaFault,
+    # Serializer faults
+    SerializerFault,
+    SerializerValidationFault,
+    SerializerFieldFault,
+    SerializerConfigFault,
 )
 
 # ============================================================================
@@ -296,6 +301,54 @@ from .patterns import (
 # ============================================================================
 
 from .discovery import PackageScanner
+
+# ============================================================================
+# Serializers (DRF-inspired)
+# ============================================================================
+
+from .serializers import (
+    Serializer,
+    ModelSerializer,
+    ListSerializer,
+    # Fields
+    SerializerField,
+    BooleanField as SerializerBooleanField,
+    CharField as SerializerCharField,
+    EmailField as SerializerEmailField,
+    IntegerField as SerializerIntegerField,
+    FloatField as SerializerFloatField,
+    DecimalField as SerializerDecimalField,
+    DateField as SerializerDateField,
+    DateTimeField as SerializerDateTimeField,
+    ListField as SerializerListField,
+    DictField as SerializerDictField,
+    JSONField as SerializerJSONField,
+    ReadOnlyField,
+    HiddenField,
+    SerializerMethodField,
+    ChoiceField as SerializerChoiceField,
+    FileField as SerializerFileField,
+    ConstantField,
+    # DI-aware Defaults
+    CurrentUserDefault,
+    CurrentRequestDefault,
+    InjectDefault,
+    # Relations
+    RelatedField,
+    PrimaryKeyRelatedField,
+    SlugRelatedField,
+    StringRelatedField,
+    # Validators
+    UniqueValidator,
+    UniqueTogetherValidator,
+    RangeValidator,
+    CompoundValidator,
+    ConditionalValidator,
+    # Faults (also in .faults)
+    SerializationFault,
+    ValidationFault,
+    FieldValidationFault,
+)
 
 # ============================================================================
 # Lifecycle
@@ -509,6 +562,12 @@ __all__ = [
     "DatabaseConnectionFault",
     "SchemaFault",
     
+    # Serializer faults
+    "SerializerFault",
+    "SerializerValidationFault",
+    "SerializerFieldFault",
+    "SerializerConfigFault",
+    
     # Middleware
     "Middleware",
     "Handler",
@@ -557,6 +616,44 @@ __all__ = [
     
     # Discovery
     "PackageScanner",
+    
+    # Serializers
+    "Serializer",
+    "ModelSerializer",
+    "ListSerializer",
+    "SerializerField",
+    "SerializerBooleanField",
+    "SerializerCharField",
+    "SerializerEmailField",
+    "SerializerIntegerField",
+    "SerializerFloatField",
+    "SerializerDecimalField",
+    "SerializerDateField",
+    "SerializerDateTimeField",
+    "SerializerListField",
+    "SerializerDictField",
+    "SerializerJSONField",
+    "ReadOnlyField",
+    "HiddenField",
+    "SerializerMethodField",
+    "SerializerChoiceField",
+    "SerializerFileField",
+    "ConstantField",
+    "CurrentUserDefault",
+    "CurrentRequestDefault",
+    "InjectDefault",
+    "RelatedField",
+    "PrimaryKeyRelatedField",
+    "SlugRelatedField",
+    "StringRelatedField",
+    "UniqueValidator",
+    "UniqueTogetherValidator",
+    "RangeValidator",
+    "CompoundValidator",
+    "ConditionalValidator",
+    "SerializationFault",
+    "ValidationFault",
+    "FieldValidationFault",
     
     # Lifecycle
     "LifecycleCoordinator",

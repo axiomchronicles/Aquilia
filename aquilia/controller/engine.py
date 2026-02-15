@@ -149,6 +149,9 @@ class ControllerEngine:
             # Execute handler
             result = await self._safe_call(handler_method, ctx, **kwargs)
             
+            # Auto-serialize response if response_serializer is set
+            result = self._apply_response_serializer(result, route_metadata, ctx)
+            
             # Convert result to Response if needed
             response = self._to_response(result)
             
@@ -323,14 +326,103 @@ class ControllerEngine:
         - Request body (JSON/form)
         - DI container
         - Special: ctx, request
+        - **Serializer subclasses**: Auto-parsed from request body (FastAPI-style)
+
+        When a parameter is typed as a ``Serializer`` subclass, the engine
+        will:
+        1. Parse the request body (JSON or form)
+        2. Create the serializer with ``data=body, context={request, container}``
+        3. Call ``is_valid(raise_fault=True)``
+        4. Inject ``serializer.validated_data`` as the parameter value
+
+        If the parameter name is ``serializer`` or ends with ``_serializer``,
+        the full serializer instance is injected instead of just the
+        validated data.  This gives the handler access to ``.save()``,
+        ``.errors``, etc.
+
+        Similarly, if a ``request_serializer`` is declared on the route
+        decorator, it takes precedence and is used for body parsing.
         """
         kwargs = {}
+        
+        # Check for request_serializer from decorator metadata
+        decorator_request_serializer = getattr(route_metadata, 'request_serializer', None)
+        if decorator_request_serializer is None:
+            raw_meta = getattr(route_metadata, '_raw_metadata', None)
+            if raw_meta and isinstance(raw_meta, dict):
+                decorator_request_serializer = raw_meta.get('request_serializer')
+        
+        # Track if body has been consumed by a serializer
+        _body_consumed = False
+        _body_cache = None
+        
+        async def _get_body():
+            nonlocal _body_cache
+            if _body_cache is not None:
+                return _body_cache
+            try:
+                _body_cache = await request.json()
+            except Exception:
+                try:
+                    _body_cache = await request.form()
+                except Exception:
+                    _body_cache = {}
+            return _body_cache
         
         for param in route_metadata.parameters:
             param_name = param.name
             
             # Skip ctx (already handled)
             if param_name == "ctx":
+                continue
+            
+            # ── FastAPI-style Serializer injection ───────────────────────
+            # If the parameter type is a Serializer subclass, auto-parse
+            # the request body through it.
+            param_is_serializer = self._is_serializer_class(param.type)
+            
+            # Also check for decorator-level request_serializer
+            use_serializer = None
+            if param_is_serializer:
+                use_serializer = param.type
+            elif (
+                decorator_request_serializer
+                and self._is_serializer_class(decorator_request_serializer)
+                and param.source == "body"
+                and not _body_consumed
+            ):
+                use_serializer = decorator_request_serializer
+            
+            if use_serializer is not None and not _body_consumed:
+                body = await _get_body()
+                _body_consumed = True
+                
+                # Build context with request + container for DI defaults
+                ser_context = {"request": request}
+                if container:
+                    ser_context["container"] = container
+                if ctx.identity:
+                    ser_context["identity"] = ctx.identity
+                
+                serializer = use_serializer(
+                    data=body,
+                    context=ser_context,
+                )
+                serializer.is_valid(raise_fault=True)
+                
+                # If param name suggests they want the serializer instance,
+                # inject the full serializer (access to .save(), .errors, etc.)
+                # Otherwise inject just the validated_data dict.
+                inject_instance = (
+                    param_name == "serializer"
+                    or param_name.endswith("_serializer")
+                    or param_name.endswith("_ser")
+                )
+                
+                if inject_instance:
+                    kwargs[param_name] = serializer
+                else:
+                    kwargs[param_name] = serializer.validated_data
                 continue
             
             # Path parameters
@@ -434,6 +526,70 @@ class ControllerEngine:
             return value.lower() in ("true", "1", "yes")
         else:
             return value
+    
+    def _is_serializer_class(self, annotation: Any) -> bool:
+        """Check if annotation is a Serializer subclass (FastAPI-style detection)."""
+        try:
+            from aquilia.serializers.base import Serializer
+            return (
+                isinstance(annotation, type)
+                and issubclass(annotation, Serializer)
+                and annotation is not Serializer
+            )
+        except ImportError:
+            return False
+    
+    def _apply_response_serializer(
+        self,
+        result: Any,
+        route_metadata: Any,
+        ctx: RequestCtx,
+    ) -> Any:
+        """
+        Auto-serialize handler return value via response_serializer.
+
+        If the route has a ``response_serializer`` in its metadata (set via
+        ``@POST("/", response_serializer=MySerializer)``), the return value
+        is passed through the serializer's ``to_representation()`` before
+        being converted to a ``Response``.
+
+        Supports:
+        - Single instance → ``Serializer(instance=result).data``
+        - List/tuple → ``Serializer.many(instance=result).data``
+        - Already a Response → passthrough (no serialization)
+        - Already a dict → passthrough (assume pre-serialized)
+        """
+        # Get response serializer from route metadata
+        response_serializer = getattr(route_metadata, 'response_serializer', None)
+        if response_serializer is None:
+            # Check raw metadata dict (from decorator)
+            raw_meta = getattr(route_metadata, '_raw_metadata', None)
+            if raw_meta and isinstance(raw_meta, dict):
+                response_serializer = raw_meta.get('response_serializer')
+        
+        if response_serializer is None or not self._is_serializer_class(response_serializer):
+            return result
+        
+        # Don't re-serialize Response objects
+        if isinstance(result, Response):
+            return result
+        
+        # Build context for the serializer
+        ser_context = {"request": ctx.request}
+        if ctx.container:
+            ser_context["container"] = ctx.container
+        
+        try:
+            if isinstance(result, (list, tuple)):
+                serializer = response_serializer.many(instance=result, context=ser_context)
+            else:
+                serializer = response_serializer(instance=result, context=ser_context)
+            return serializer.data
+        except Exception as e:
+            self.logger.warning(
+                f"Response serialization failed: {e}. Returning raw result."
+            )
+            return result
     
     async def _safe_call(self, func: Any, *args, **kwargs) -> Any:
         """Safely call function (sync or async)."""
