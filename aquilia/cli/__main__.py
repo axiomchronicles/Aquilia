@@ -935,6 +935,27 @@ def db_status(ctx, database_url: str):
         sys.exit(1)
 
 
+# ============================================================================
+# MLOps commands
+# ============================================================================
+
+from .commands.mlops_cmds import (
+    pack_group,
+    model_group,
+    deploy_group,
+    observe_group,
+    export_group,
+    plugin_group,
+)
+
+cli.add_command(pack_group)
+cli.add_command(model_group)
+cli.add_command(deploy_group)
+cli.add_command(observe_group)
+cli.add_command(export_group)
+cli.add_command(plugin_group)
+
+
 def main():
     """Entry point for `aq` command."""
     cli(obj={})

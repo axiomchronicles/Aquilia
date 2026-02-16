@@ -982,6 +982,117 @@ class Integration:
         }
 
     @staticmethod
+    def mlops(
+        *,
+        enabled: bool = True,
+        registry_db: str = "registry.db",
+        blob_root: str = ".aquilia-store",
+        storage_backend: str = "filesystem",
+        drift_method: str = "psi",
+        drift_threshold: float = 0.2,
+        drift_num_bins: int = 10,
+        max_batch_size: int = 16,
+        max_latency_ms: float = 50.0,
+        batching_strategy: str = "hybrid",
+        sample_rate: float = 0.01,
+        log_dir: str = "prediction_logs",
+        hmac_secret: Optional[str] = None,
+        signing_private_key: Optional[str] = None,
+        signing_public_key: Optional[str] = None,
+        encryption_key: Optional[Any] = None,
+        plugin_auto_discover: bool = True,
+        scaling_policy: Optional[Dict[str, Any]] = None,
+        rollout_default_strategy: str = "canary",
+        auto_rollback: bool = True,
+        metrics_model_name: str = "",
+        metrics_model_version: str = "",
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure MLOps platform integration.
+
+        Wires model packaging, registry, serving, observability, release
+        management, scheduling, security, and plugins into the Aquilia
+        framework via DI, lifecycle hooks, and middleware.
+
+        Args:
+            enabled: Enable/disable MLOps integration.
+            registry_db: Path to the registry SQLite database.
+            blob_root: Root directory for blob storage.
+            storage_backend: ``"filesystem"`` or ``"s3"``.
+            drift_method: ``"psi"``, ``"ks_test"``, or ``"distribution"``.
+            drift_threshold: Drift score threshold for alerts.
+            drift_num_bins: Number of histogram bins for PSI.
+            max_batch_size: Dynamic batcher max batch size.
+            max_latency_ms: Dynamic batcher max wait time (ms).
+            batching_strategy: ``"size"``, ``"time"``, or ``"hybrid"``.
+            sample_rate: Prediction logging sampling rate (0.0–1.0).
+            log_dir: Directory for prediction log files.
+            hmac_secret: HMAC secret for artifact signing.
+            signing_private_key: Path to RSA private key for signing.
+            signing_public_key: Path to RSA public key for verification.
+            encryption_key: Fernet key for blob encryption at rest.
+            plugin_auto_discover: Scan entry points for plugins.
+            scaling_policy: Autoscaler policy dict.
+            rollout_default_strategy: Default rollout strategy.
+            auto_rollback: Enable automatic rollback on metric degradation.
+            metrics_model_name: Default model name for metrics labels.
+            metrics_model_version: Default model version for metrics labels.
+            **kwargs: Additional MLOps configuration.
+
+        Returns:
+            MLOps configuration dictionary.
+
+        Example::
+
+            .integrate(Integration.mlops(
+                registry_db="registry.db",
+                drift_method="psi",
+                drift_threshold=0.25,
+                max_batch_size=32,
+                plugin_auto_discover=True,
+            ))
+        """
+        return {
+            "_integration_type": "mlops",
+            "enabled": enabled,
+            "registry": {
+                "db_path": registry_db,
+                "blob_root": blob_root,
+                "storage_backend": storage_backend,
+            },
+            "serving": {
+                "max_batch_size": max_batch_size,
+                "max_latency_ms": max_latency_ms,
+                "batching_strategy": batching_strategy,
+            },
+            "observe": {
+                "drift_method": drift_method,
+                "drift_threshold": drift_threshold,
+                "drift_num_bins": drift_num_bins,
+                "sample_rate": sample_rate,
+                "log_dir": log_dir,
+                "metrics_model_name": metrics_model_name,
+                "metrics_model_version": metrics_model_version,
+            },
+            "release": {
+                "rollout_default_strategy": rollout_default_strategy,
+                "auto_rollback": auto_rollback,
+            },
+            "security": {
+                "hmac_secret": hmac_secret,
+                "signing_private_key": signing_private_key,
+                "signing_public_key": signing_public_key,
+                "encryption_key": encryption_key,
+            },
+            "plugins": {
+                "auto_discover": plugin_auto_discover,
+            },
+            "scaling_policy": scaling_policy,
+            **kwargs,
+        }
+
+    @staticmethod
     def serializers(
         *,
         auto_discover: bool = True,
@@ -1049,6 +1160,7 @@ class Workspace:
         self._telemetry_config: Optional[Dict[str, Any]] = None
         self._database_config: Optional[Dict[str, Any]] = None
         self._mail_config: Optional[Dict[str, Any]] = None
+        self._mlops_config: Optional[Dict[str, Any]] = None
     
     def runtime(
         self,
@@ -1101,6 +1213,9 @@ class Workspace:
             elif integration_type == "mail":
                 self._integrations["mail"] = integration
                 self._mail_config = integration
+            elif integration_type == "mlops":
+                self._integrations["mlops"] = integration
+                self._mlops_config = integration
             return self
 
         # Determine integration type from keys (legacy detection)
@@ -1253,6 +1368,60 @@ class Workspace:
         }
         return self
     
+    def mlops(
+        self,
+        enabled: bool = True,
+        registry_db: str = "registry.db",
+        blob_root: str = ".aquilia-store",
+        drift_method: str = "psi",
+        drift_threshold: float = 0.2,
+        max_batch_size: int = 16,
+        max_latency_ms: float = 50.0,
+        plugin_auto_discover: bool = True,
+        **kwargs,
+    ) -> "Workspace":
+        """
+        Configure MLOps platform for this workspace.
+
+        Shorthand for ``.integrate(Integration.mlops(...))``.
+
+        Args:
+            enabled: Enable MLOps subsystem.
+            registry_db: Path to registry database.
+            blob_root: Root directory for blob storage.
+            drift_method: Drift detection method.
+            drift_threshold: Drift alert threshold.
+            max_batch_size: Dynamic batcher max batch size.
+            max_latency_ms: Dynamic batcher max wait (ms).
+            plugin_auto_discover: Auto-discover plugins.
+            **kwargs: Additional MLOps configuration.
+
+        Example::
+
+            workspace = (
+                Workspace("ml-app")
+                .mlops(
+                    registry_db="models.db",
+                    drift_method="psi",
+                    max_batch_size=32,
+                )
+            )
+        """
+        config = Integration.mlops(
+            enabled=enabled,
+            registry_db=registry_db,
+            blob_root=blob_root,
+            drift_method=drift_method,
+            drift_threshold=drift_threshold,
+            max_batch_size=max_batch_size,
+            max_latency_ms=max_latency_ms,
+            plugin_auto_discover=plugin_auto_discover,
+            **kwargs,
+        )
+        self._mlops_config = config
+        self._integrations["mlops"] = config
+        return self
+    
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert workspace to dictionary format compatible with ConfigLoader.
@@ -1295,6 +1464,9 @@ class Workspace:
         if self._mail_config:
             config["mail"] = self._mail_config
             config["integrations"]["mail"] = self._mail_config
+        if self._mlops_config:
+            config["mlops"] = self._mlops_config
+            config["integrations"]["mlops"] = self._mlops_config
         
         return config
     

@@ -80,6 +80,16 @@ workspace = (
             "modules.chat.sockets:NotificationSocket"
         ))
 
+    .module(Module("mlops", version="0.1.0", description="Mlops module")
+        .route_prefix("/mlops")
+        .tags("mlops", "core")
+        .register_controllers(
+            "modules.mlops.controllers:MlopsController"
+        )
+        .register_services(
+            "modules.mlops.services:MlopsService"
+        ))
+
     .module(Module("sessions", version="0.1.0", description="Session management showcase: cart, preferences, wizard, and lifecycle")
         .route_prefix("/sessions")
         .tags("sessions", "cart", "preferences", "wizard")

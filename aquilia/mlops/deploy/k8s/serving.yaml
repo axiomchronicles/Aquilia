@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aquilia-model-server
+  namespace: ml
+  labels:
+    app: aquilia-mlops
+    component: serving
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aquilia-mlops
+      component: serving
+  template:
+    metadata:
+      labels:
+        app: aquilia-mlops
+        component: serving
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: model-server
+          image: ghcr.io/YOUR_ORG/aquilia-model:latest
+          ports:
+            - name: http
+              containerPort: 9000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: AQUILIA_ENV
+              value: production
+            - name: AQUILIA_LOG_LEVEL
+              value: info
+            - name: AQUILIA_MODEL_DIR
+              value: /models
+            - name: AQUILIA_BATCH_SIZE
+              value: "8"
+            - name: AQUILIA_BATCH_LATENCY_MS
+              value: "50"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+              # nvidia.com/gpu: "1"  # Uncomment for GPU workloads
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+              readOnly: true
+      volumes:
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: model-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aquilia-model-server
+  namespace: ml
+  labels:
+    app: aquilia-mlops
+    component: serving
+spec:
+  selector:
+    app: aquilia-mlops
+    component: serving
+  ports:
+    - name: http
+      port: 9000
+      targetPort: http
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: aquilia-model-server-hpa
+  namespace: ml
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: aquilia-model-server
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: aquilia_inference_rps
+        target:
+          type: AverageValue
+          averageValue: "100"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120

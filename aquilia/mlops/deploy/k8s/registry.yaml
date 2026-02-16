@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aquilia-model-registry
+  namespace: ml
+  labels:
+    app: aquilia-mlops
+    component: registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aquilia-mlops
+      component: registry
+  template:
+    metadata:
+      labels:
+        app: aquilia-mlops
+        component: registry
+    spec:
+      containers:
+        - name: registry
+          image: ghcr.io/YOUR_ORG/aquilia-registry:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: AQUILIA_REGISTRY_DB
+              value: /data/registry.db
+            - name: AQUILIA_STORAGE_BACKEND
+              value: filesystem  # or "s3"
+            - name: AQUILIA_STORAGE_ROOT
+              value: /data/blobs
+            # S3 config (if AQUILIA_STORAGE_BACKEND=s3)
+            # - name: AWS_ACCESS_KEY_ID
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: s3-creds
+            #       key: access-key
+            # - name: AWS_SECRET_ACCESS_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: s3-creds
+            #       key: secret-key
+            # - name: AQUILIA_S3_BUCKET
+            #   value: my-model-registry
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          volumeMounts:
+            - name: registry-data
+              mountPath: /data
+      volumes:
+        - name: registry-data
+          persistentVolumeClaim:
+            claimName: registry-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aquilia-model-registry
+  namespace: ml
+spec:
+  selector:
+    app: aquilia-mlops
+    component: registry
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: registry-pvc
+  namespace: ml
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-pvc
+  namespace: ml
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 20Gi

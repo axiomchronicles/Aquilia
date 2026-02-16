@@ -45,6 +45,34 @@ dev = [
     "aiosqlite>=0.19.0",
 ]
 
+# MLOps optional dependency groups — install with: pip install aquilia[mlops]
+mlops = [
+    "numpy>=1.24.0",
+]
+mlops-onnx = [
+    "onnxruntime>=1.16.0",
+    "onnx>=1.14.0",
+]
+mlops-torch = [
+    "torch>=2.0.0",
+]
+mlops-s3 = [
+    "boto3>=1.28.0",
+]
+mlops-explain = [
+    "shap>=0.42.0",
+    "lime>=0.2.0",
+]
+mlops-all = [
+    "numpy>=1.24.0",
+    "onnxruntime>=1.16.0",
+    "onnx>=1.14.0",
+    "torch>=2.0.0",
+    "boto3>=1.28.0",
+    "shap>=0.42.0",
+    "lime>=0.2.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/yourusername/aquilia"
 Documentation = "https://github.com/yourusername/aquilia/docs"

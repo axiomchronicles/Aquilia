@@ -1,0 +1,176 @@
+{
+  "timestamp": "2026-02-16T22:08:02.419693",
+  "workspace": "myapp",
+  "summary": {
+    "total_modules": 8,
+    "with_services": 8,
+    "with_controllers": 8,
+    "with_middleware": 2,
+    "with_dependencies": 0,
+    "with_tags": 8
+  },
+  "modules": {
+    "blogs": {
+      "version": "0.1.0",
+      "maturity": "beta",
+      "components": [
+        "services",
+        "controllers",
+        "middleware"
+      ],
+      "complexity": "moderate",
+      "dependency_count": 0,
+      "has_author": true,
+      "tags_count": 2
+    },
+    "tasks": {
+      "version": "0.1.0",
+      "maturity": "beta",
+      "components": [
+        "services",
+        "controllers"
+      ],
+      "complexity": "moderate",
+      "dependency_count": 0,
+      "has_author": true,
+      "tags_count": 3
+    },
+    "products": {
+      "version": "0.1.0",
+      "maturity": "beta",
+      "components": [
+        "services",
+        "controllers"
+      ],
+      "complexity": "moderate",
+      "dependency_count": 0,
+      "has_author": true,
+      "tags_count": 3
+    },
+    "chat": {
+      "version": "0.1.0",
+      "maturity": "beta",
+      "components": [
+        "services",
+        "controllers"
+      ],
+      "complexity": "moderate",
+      "dependency_count": 0,
+      "has_author": true,
+      "tags_count": 3
+    },
+    "mlops": {
+      "version": "0.1.0",
+      "maturity": "beta",
+      "components": [
+        "services",
+        "controllers",
+        "middleware"
+      ],
+      "complexity": "moderate",
+      "dependency_count": 0,
+      "has_author": true,
+      "tags_count": 2
+    },
+    "sessions": {
+      "version": "0.1.0",
+      "maturity": "beta",
+      "components": [
+        "services",
+        "controllers"
+      ],
+      "complexity": "moderate",
+      "dependency_count": 0,
+      "has_author": true,
+      "tags_count": 4
+    },
+    "users": {
+      "version": "0.1.0",
+      "maturity": "beta",
+      "components": [
+        "services",
+        "controllers"
+      ],
+      "complexity": "moderate",
+      "dependency_count": 0,
+      "has_author": true,
+      "tags_count": 3
+    },
+    "pages": {
+      "version": "0.1.0",
+      "maturity": "beta",
+      "components": [
+        "services",
+        "controllers"
+      ],
+      "complexity": "moderate",
+      "dependency_count": 0,
+      "has_author": true,
+      "tags_count": 3
+    }
+  },
+  "dependencies": {
+    "dependency_graph": {
+      "blogs": {
+        "depends_on": [],
+        "depth": 1
+      },
+      "tasks": {
+        "depends_on": [],
+        "depth": 1
+      },
+      "products": {
+        "depends_on": [],
+        "depth": 1
+      },
+      "chat": {
+        "depends_on": [],
+        "depth": 1
+      },
+      "mlops": {
+        "depends_on": [],
+        "depth": 1
+      },
+      "sessions": {
+        "depends_on": [],
+        "depth": 1
+      },
+      "users": {
+        "depends_on": [],
+        "depth": 1
+      },
+      "pages": {
+        "depends_on": [],
+        "depth": 1
+      }
+    },
+    "max_depth": 0,
+    "cyclic_dependencies": false,
+    "load_order": [
+      "blogs",
+      "tasks",
+      "products",
+      "chat",
+      "mlops",
+      "sessions",
+      "users",
+      "pages"
+    ]
+  },
+  "metrics": {
+    "health_score": 100,
+    "validation_errors": 0,
+    "validation_warnings": 0,
+    "module_cohesion": 0
+  },
+  "recommendations": [
+    "Module 'blogs': Consider versioning (current: 0.1.0)",
+    "Module 'tasks': Consider versioning (current: 0.1.0)",
+    "Module 'products': Consider versioning (current: 0.1.0)",
+    "Module 'chat': Consider versioning (current: 0.1.0)",
+    "Module 'mlops': Consider versioning (current: 0.1.0)",
+    "Module 'sessions': Consider versioning (current: 0.1.0)",
+    "Module 'users': Consider versioning (current: 0.1.0)",
+    "Module 'pages': Consider versioning (current: 0.1.0)"
+  ]
+}
