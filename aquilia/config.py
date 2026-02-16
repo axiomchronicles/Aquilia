@@ -602,4 +602,57 @@ class ConfigLoader:
 
         return merged
 
+    def get_mail_config(self) -> dict:
+        """
+        Get mail configuration with defaults.
+
+        Returns:
+            Mail configuration dictionary
+        """
+        default_mail_config = {
+            "enabled": False,
+            "default_from": "noreply@localhost",
+            "default_reply_to": None,
+            "subject_prefix": "",
+            "providers": [],
+            "console_backend": False,
+            "preview_mode": False,
+            "templates": {
+                "template_dirs": ["mail_templates"],
+                "auto_escape": True,
+                "cache_compiled": True,
+                "strict_mode": False,
+            },
+            "retry": {
+                "max_attempts": 5,
+                "base_delay": 1.0,
+                "max_delay": 3600.0,
+                "jitter": True,
+            },
+            "rate_limit": {
+                "global_per_minute": 1000,
+                "per_domain_per_minute": 100,
+            },
+            "security": {
+                "dkim_enabled": False,
+                "require_tls": True,
+                "pii_redaction_enabled": False,
+            },
+            "metrics_enabled": True,
+            "tracing_enabled": False,
+        }
+
+        # Get user-provided mail config
+        user_config = self.get("mail", {})
+        if not user_config:
+            user_config = self.get("integrations.mail", {})
+
+        # Merge with defaults
+        merged = default_mail_config.copy()
+        if user_config:
+            merged["enabled"] = user_config.get("enabled", True)
+            self._merge_dict(merged, user_config)
+
+        return merged
+
 

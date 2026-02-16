@@ -427,6 +427,9 @@ class AquiliaServer:
             )
             self.logger.info("✅ Template engine initialized and middleware registered")
 
+        # ── Mail subsystem ───────────────────────────────────────────────
+        self._setup_mail()
+
         # ── Security & Infrastructure Middleware ──────────────────────────
         self._setup_security_middleware()
 
@@ -798,6 +801,60 @@ class AquiliaServer:
             return True
         return False
     
+    def _setup_mail(self):
+        """
+        Initialize AquilaMail subsystem from workspace config.
+
+        Reads ``Integration.mail()`` configuration, creates :class:`MailService`,
+        registers it in DI containers (with MailConfig and MailProviderRegistry),
+        and sets the module-level singleton so ``send_mail``/``asend_mail`` just work.
+
+        Uses the mail DI providers module for proper wiring:
+        - MailConfig is validated through Serializers and registered in DI
+        - MailService is registered in DI via ValueProvider
+        - MailProviderRegistry auto-discovers IMailProvider implementations
+          using Aquilia's PackageScanner (discovery system)
+
+        The actual provider connections happen during :meth:`startup` (async).
+        """
+        mail_config = self.config.get_mail_config()
+        if not mail_config.get("enabled", False):
+            self._mail_service = None
+            self.logger.debug("Mail subsystem disabled")
+            return
+
+        self.logger.info("📧 Initializing mail subsystem...")
+
+        from .mail.di_providers import register_mail_providers
+        from .mail.service import set_mail_service
+
+        # Register in every DI container via the DI providers module
+        svc = None
+        for container in self.runtime.di_containers.values():
+            svc = register_mail_providers(
+                container=container,
+                config_data=mail_config,
+                discover_providers=True,
+            )
+
+        # If no containers existed, still create the service
+        if svc is None:
+            from .mail.config import MailConfig
+            from .mail.service import MailService
+            config_obj = MailConfig.from_dict(mail_config)
+            svc = MailService(config=config_obj)
+
+        # Install module-level singleton for convenience API
+        set_mail_service(svc)
+        self._mail_service = svc
+
+        self.logger.info(
+            f"📧 Mail configured "
+            f"(from={svc.config.default_from!r}, "
+            f"providers={len(svc.config.providers)}, "
+            f"console={svc.config.console_backend})"
+        )
+
     def _create_session_engine(self, session_config: dict):
         """
         Create SessionEngine from configuration.
@@ -1820,6 +1877,14 @@ class AquiliaServer:
         # Step 3.1: Register AMDL models from apps (if any .amdl files exist)
         await self._register_amdl_models()
         
+        # Step 3.2: Start mail subsystem (connect providers)
+        if hasattr(self, '_mail_service') and self._mail_service is not None:
+            try:
+                await self._mail_service.on_startup()
+            except Exception as e:
+                self.logger.error(f"Mail startup failed: {e}")
+                # Non-fatal — app can run without mail
+
         # Step 3.5: Register effects from manifests and initialize providers
         self.logger.info("Registering and initializing effect providers...")
         self.runtime._register_effects()
@@ -1886,6 +1951,14 @@ class AquiliaServer:
         # Run lifecycle shutdown hooks
         await self.coordinator.shutdown()
         
+        # Shutdown mail subsystem
+        if hasattr(self, '_mail_service') and self._mail_service is not None:
+            try:
+                await self._mail_service.on_shutdown()
+                self.logger.info("Mail subsystem shut down")
+            except Exception as e:
+                self.logger.warning(f"Error shutting down mail subsystem: {e}")
+
         # Cleanup DI containers
         for app_name, container in self.runtime.di_containers.items():
             try:

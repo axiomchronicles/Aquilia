@@ -889,6 +889,99 @@ class Integration:
         }
 
     @staticmethod
+    def mail(
+        default_from: str = "noreply@localhost",
+        default_reply_to: Optional[str] = None,
+        subject_prefix: str = "",
+        providers: Optional[List[Dict[str, Any]]] = None,
+        console_backend: bool = False,
+        preview_mode: bool = False,
+        template_dirs: Optional[List[str]] = None,
+        retry_max_attempts: int = 5,
+        retry_base_delay: float = 1.0,
+        rate_limit_global: int = 1000,
+        rate_limit_per_domain: int = 100,
+        dkim_enabled: bool = False,
+        dkim_domain: Optional[str] = None,
+        dkim_selector: str = "aquilia",
+        require_tls: bool = True,
+        pii_redaction: bool = False,
+        metrics_enabled: bool = True,
+        tracing_enabled: bool = False,
+        enabled: bool = True,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure AquilaMail — the production-ready async mail subsystem.
+
+        Args:
+            default_from: Default sender address.
+            default_reply_to: Default reply-to address.
+            subject_prefix: Prefix prepended to all subjects.
+            providers: List of provider config dicts.
+            console_backend: Print mail to console instead of sending.
+            preview_mode: Render-only, no delivery.
+            template_dirs: ATS template search paths.
+            retry_max_attempts: Max retry attempts for transient failures.
+            retry_base_delay: Base delay (seconds) for exponential backoff.
+            rate_limit_global: Global rate limit (messages/minute).
+            rate_limit_per_domain: Per-domain rate limit (messages/minute).
+            dkim_enabled: Enable DKIM signing.
+            dkim_domain: DKIM signing domain.
+            dkim_selector: DKIM selector.
+            require_tls: Require TLS for SMTP connections.
+            pii_redaction: Redact PII in logs.
+            metrics_enabled: Enable mail metrics.
+            tracing_enabled: Enable distributed tracing.
+            enabled: Enable/disable the mail subsystem.
+            **kwargs: Additional mail configuration.
+
+        Returns:
+            Mail configuration dictionary.
+
+        Example::
+
+            .integrate(Integration.mail(
+                default_from="noreply@myapp.com",
+                console_backend=True,  # dev mode
+                providers=[
+                    {"name": "smtp", "type": "smtp", "host": "smtp.example.com", "port": 587},
+                ],
+            ))
+        """
+        return {
+            "_integration_type": "mail",
+            "enabled": enabled,
+            "default_from": default_from,
+            "default_reply_to": default_reply_to,
+            "subject_prefix": subject_prefix,
+            "providers": providers or [],
+            "console_backend": console_backend,
+            "preview_mode": preview_mode,
+            "templates": {
+                "template_dirs": template_dirs or ["mail_templates"],
+            },
+            "retry": {
+                "max_attempts": retry_max_attempts,
+                "base_delay": retry_base_delay,
+            },
+            "rate_limit": {
+                "global_per_minute": rate_limit_global,
+                "per_domain_per_minute": rate_limit_per_domain,
+            },
+            "security": {
+                "dkim_enabled": dkim_enabled,
+                "dkim_domain": dkim_domain,
+                "dkim_selector": dkim_selector,
+                "require_tls": require_tls,
+                "pii_redaction_enabled": pii_redaction,
+            },
+            "metrics_enabled": metrics_enabled,
+            "tracing_enabled": tracing_enabled,
+            **kwargs,
+        }
+
+    @staticmethod
     def serializers(
         *,
         auto_discover: bool = True,
@@ -955,6 +1048,7 @@ class Workspace:
         self._security_config: Optional[Dict[str, Any]] = None
         self._telemetry_config: Optional[Dict[str, Any]] = None
         self._database_config: Optional[Dict[str, Any]] = None
+        self._mail_config: Optional[Dict[str, Any]] = None
     
     def runtime(
         self,
@@ -1004,6 +1098,9 @@ class Workspace:
                 self._integrations["static_files"] = integration
             elif integration_type == "openapi":
                 self._integrations["openapi"] = integration
+            elif integration_type == "mail":
+                self._integrations["mail"] = integration
+                self._mail_config = integration
             return self
 
         # Determine integration type from keys (legacy detection)
@@ -1195,6 +1292,9 @@ class Workspace:
             config["database"] = self._database_config
             # Also add to integrations for compatibility
             config["integrations"]["database"] = self._database_config
+        if self._mail_config:
+            config["mail"] = self._mail_config
+            config["integrations"]["mail"] = self._mail_config
         
         return config
     

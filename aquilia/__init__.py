@@ -286,6 +286,40 @@ from .templates import (
 )
 
 # ============================================================================
+# Mail (AquilaMail)
+# ============================================================================
+
+from .mail import (
+    # Message types
+    EmailMessage,
+    EmailMultiAlternatives,
+    TemplateMessage,
+    # Convenience API
+    send_mail,
+    asend_mail,
+    # Envelope
+    MailEnvelope,
+    EnvelopeStatus,
+    Priority,
+    # Config
+    MailConfig,
+    # Providers
+    IMailProvider,
+    ProviderResult,
+    ProviderResultStatus,
+    # Faults
+    MailFault,
+    MailSendFault,
+    MailTemplateFault,
+    MailConfigFault,
+    MailSuppressedFault,
+    MailRateLimitFault,
+    MailValidationFault,
+)
+
+from .mail.service import MailService
+
+# ============================================================================
 # Patterns
 # ============================================================================
 
@@ -607,6 +641,28 @@ __all__ = [
     # Templates
     "TemplateEngine",
     "TemplateMiddleware",
+    
+    # Mail (AquilaMail)
+    "EmailMessage",
+    "EmailMultiAlternatives",
+    "TemplateMessage",
+    "send_mail",
+    "asend_mail",
+    "MailEnvelope",
+    "EnvelopeStatus",
+    "Priority",
+    "MailConfig",
+    "MailService",
+    "IMailProvider",
+    "ProviderResult",
+    "ProviderResultStatus",
+    "MailFault",
+    "MailSendFault",
+    "MailTemplateFault",
+    "MailConfigFault",
+    "MailSuppressedFault",
+    "MailRateLimitFault",
+    "MailValidationFault",
     
     # Patterns
     "PatternCompiler",

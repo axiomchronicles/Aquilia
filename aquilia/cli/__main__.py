@@ -638,6 +638,79 @@ def analytics(ctx, path: Optional[str]):
 
 
 # ============================================================================
+# Mail
+# ============================================================================
+
+@cli.group()
+def mail():
+    """AquilaMail commands — test, inspect, and validate mail configuration."""
+    pass
+
+
+@mail.command('check')
+@click.pass_context
+def mail_check(ctx):
+    """
+    Validate mail configuration and report issues.
+
+    Examples:
+      aq mail check
+    """
+    from .commands.mail import cmd_mail_check
+
+    try:
+        cmd_mail_check(verbose=ctx.obj['verbose'])
+    except Exception as e:
+        error(f"✗ mail check failed: {e}")
+        sys.exit(1)
+
+
+@mail.command('send-test')
+@click.argument('to')
+@click.option('--subject', type=str, default=None, help='Email subject')
+@click.option('--body', type=str, default=None, help='Email body')
+@click.pass_context
+def mail_send_test(ctx, to: str, subject: Optional[str], body: Optional[str]):
+    """
+    Send a test email to verify mail provider configuration.
+
+    Examples:
+      aq mail send-test user@example.com
+      aq mail send-test user@example.com --subject="Hello"
+    """
+    from .commands.mail import cmd_mail_send_test
+
+    try:
+        cmd_mail_send_test(
+            to=to,
+            subject=subject,
+            body=body,
+            verbose=ctx.obj['verbose'],
+        )
+    except Exception as e:
+        error(f"✗ mail send-test failed: {e}")
+        sys.exit(1)
+
+
+@mail.command('inspect')
+@click.pass_context
+def mail_inspect(ctx):
+    """
+    Display current mail configuration as JSON.
+
+    Examples:
+      aq mail inspect
+    """
+    from .commands.mail import cmd_mail_inspect
+
+    try:
+        cmd_mail_inspect(verbose=ctx.obj['verbose'])
+    except Exception as e:
+        error(f"✗ mail inspect failed: {e}")
+        sys.exit(1)
+
+
+# ============================================================================
 # Database / Models
 # ============================================================================
 
