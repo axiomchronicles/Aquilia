@@ -563,6 +563,21 @@ from .trace import (
 )
 
 # ============================================================================
+# Testing Framework (Django-style test infrastructure)
+# ============================================================================
+
+from .testing import (
+    TestClient,
+    TestServer,
+    create_test_server,
+    override_settings,
+    AquiliaTestCase,
+    SimpleTestCase,
+    TransactionTestCase,
+    LiveServerTestCase,
+)
+
+# ============================================================================
 # Exports
 # ============================================================================
 
@@ -941,4 +956,13 @@ __all__ = [
     "TraceLifecycleJournal",
     "TraceConfigSnapshot",
     "TraceDiagnostics",
+
+    # Testing Framework
+    "TestClient",
+    "TestServer",
+    "AquiliaTestCase",
+    "SimpleTestCase",
+    "TransactionTestCase",
+    "LiveServerTestCase",
+    "override_settings",
 ]

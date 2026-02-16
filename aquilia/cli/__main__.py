@@ -109,16 +109,21 @@ def add():
 @click.option('--fault-domain', type=str, help='Custom fault domain')
 @click.option('--route-prefix', type=str, help='Route prefix (default: /name)')
 @click.option('--with-tests', is_flag=True, help='Generate test routes')
+@click.option('--no-docker', is_flag=True, help='Skip auto-generating Docker files')
 @click.pass_context
-def add_module(ctx, name: str, depends_on: tuple, fault_domain: Optional[str], route_prefix: Optional[str], with_tests: bool):
+def add_module(ctx, name: str, depends_on: tuple, fault_domain: Optional[str], route_prefix: Optional[str], with_tests: bool, no_docker: bool):
     """
     Add a new module to the workspace.
+    
+    By default also generates Dockerfile and docker-compose.yml if they
+    don't exist yet.  Use --no-docker to skip.
     
     Examples:
       aq add module users
       aq add module products --depends-on=users
       aq add module admin --fault-domain=ADMIN --route-prefix=/api/admin
       aq add module test --with-tests
+      aq add module api --no-docker
     """
     from .commands.add import add_module as _add_module
     
@@ -141,6 +146,7 @@ def add_module(ctx, name: str, depends_on: tuple, fault_domain: Optional[str], r
             info(f"  1. Implement controllers in modules/{name}/controllers.py")
             info(f"  2. Implement services in modules/{name}/services.py")
             info(f"  3. Run: aq run")
+            info(f"  4. Deploy: aq deploy all")
     
     except Exception as e:
         error(f"✗ Failed to add module: {e}")
@@ -1050,12 +1056,62 @@ cli.add_command(artifact_group)
 
 
 # ============================================================================
+# Deploy / Production file generators
+# ============================================================================
+
+from .commands.deploy_gen import deploy_gen_group
+
+cli.add_command(deploy_gen_group)
+
+
+# ============================================================================
 # Trace commands (.aquilia/ directory)
 # ============================================================================
 
 from .commands.trace import trace_group
 
 cli.add_command(trace_group)
+
+
+# ============================================================================
+# Test command
+# ============================================================================
+
+@cli.command('test')
+@click.argument('paths', nargs=-1, type=click.Path())
+@click.option('-k', '--pattern', type=str, default=None, help='Only run tests matching pattern')
+@click.option('-m', '--markers', type=str, default=None, help='Only run tests matching markers')
+@click.option('--coverage', is_flag=True, help='Collect coverage')
+@click.option('--coverage-html', is_flag=True, help='Generate HTML coverage report')
+@click.option('--failfast', '-x', is_flag=True, help='Stop on first failure')
+@click.pass_context
+def test(ctx, paths: tuple, pattern: Optional[str], markers: Optional[str],
+         coverage: bool, coverage_html: bool, failfast: bool):
+    """
+    Run the test suite with Aquilia-aware defaults.
+
+    Sets AQUILIA_ENV=test, auto-discovers test directories,
+    and configures pytest-asyncio.
+
+    Examples:
+      aq test
+      aq test tests/test_users.py
+      aq test -k "test_login"
+      aq test --coverage
+      aq test --failfast -v
+    """
+    from .commands.test import run_tests
+
+    exit_code = run_tests(
+        paths=list(paths) if paths else None,
+        pattern=pattern,
+        verbose=ctx.obj.get('verbose', False),
+        coverage=coverage,
+        coverage_html=coverage_html,
+        failfast=failfast,
+        markers=markers,
+    )
+    sys.exit(exit_code)
 
 
 def main():

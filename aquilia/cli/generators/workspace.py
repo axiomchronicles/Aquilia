@@ -38,6 +38,7 @@ class WorkspaceGenerator:
         if not self.minimal:
             self._create_gitignore()
             self._create_readme()
+            self._create_deployment_files()
     
     def _create_directories(self) -> None:
         """Create workspace directories."""
@@ -836,6 +837,10 @@ class WorkspaceGenerator:
             - `aq inspect routes` - Inspect compiled routes
             - `aq sessions list` - List active sessions
             - `aq doctor` - Diagnose issues
+            - `aq deploy all` - Generate all deployment files
+            - `aq deploy dockerfile` - Generate Dockerfiles
+            - `aq deploy compose` - Generate docker-compose.yml
+            - `aq deploy kubernetes` - Generate Kubernetes manifests
             
             ## Documentation
             
@@ -843,3 +848,27 @@ class WorkspaceGenerator:
         """).strip()
         
         (self.path / 'README.md').write_text(content)
+
+    def _create_deployment_files(self) -> None:
+        """Create default Docker and docker-compose files for the workspace.
+
+        These are generated as part of ``aq init workspace`` so that new
+        workspaces are immediately deployable.
+        """
+        from .deployment import (
+            WorkspaceIntrospector,
+            DockerfileGenerator,
+            ComposeGenerator,
+        )
+
+        try:
+            wctx = WorkspaceIntrospector(self.path).introspect()
+            docker_gen = DockerfileGenerator(wctx)
+            compose_gen = ComposeGenerator(wctx)
+
+            (self.path / 'Dockerfile').write_text(docker_gen.generate_dockerfile())
+            (self.path / '.dockerignore').write_text(docker_gen.generate_dockerignore())
+            (self.path / 'docker-compose.yml').write_text(compose_gen.generate_compose())
+        except Exception:
+            # Non-fatal — the workspace is still usable without these files
+            pass

@@ -13,6 +13,25 @@ from aquilia.di.core import Container
 from aquilia.auth.core import Identity, IdentityType, IdentityStatus
 from aquilia.sessions.core import Session, SessionID
 
+# Register Aquilia testing framework fixtures
+from aquilia.testing.fixtures import aquilia_fixtures
+aquilia_fixtures()
+
+# Import fixtures so pytest can discover them
+from aquilia.testing.fixtures import (  # noqa: F401
+    test_config,
+    fault_engine,
+    effect_registry,
+    cache_backend,
+    di_container,
+    identity_factory,
+    mail_outbox,
+    test_request,
+    test_scope,
+    test_server,
+    test_client,
+)
+
 
 # ============================================================================
 # Request Helpers

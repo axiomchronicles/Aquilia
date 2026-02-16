@@ -3,9 +3,49 @@
 from pathlib import Path
 from typing import Optional, List
 
-from ..utils.colors import info, dim
+from ..utils.colors import info, dim, success
 from ..generators import ModuleGenerator
 from ..generators.workspace import WorkspaceGenerator
+
+
+def _ensure_docker_files(workspace_root: Path, verbose: bool = False) -> None:
+    """
+    Ensure Dockerfile and docker-compose.yml exist in the workspace.
+
+    Called automatically by ``aq add module`` to keep deployment
+    files in sync with the workspace structure.  Only generates files
+    that do not already exist — existing files are never overwritten.
+    """
+    from ..generators.deployment import (
+        WorkspaceIntrospector,
+        DockerfileGenerator,
+        ComposeGenerator,
+    )
+
+    wctx = WorkspaceIntrospector(workspace_root).introspect()
+
+    docker_gen = DockerfileGenerator(wctx)
+    compose_gen = ComposeGenerator(wctx)
+
+    generated: List[str] = []
+
+    dockerfile = workspace_root / "Dockerfile"
+    if not dockerfile.exists():
+        dockerfile.write_text(docker_gen.generate_dockerfile())
+        generated.append("Dockerfile")
+
+    dockerignore = workspace_root / ".dockerignore"
+    if not dockerignore.exists():
+        dockerignore.write_text(docker_gen.generate_dockerignore())
+        generated.append(".dockerignore")
+
+    compose_file = workspace_root / "docker-compose.yml"
+    if not compose_file.exists():
+        compose_file.write_text(compose_gen.generate_compose())
+        generated.append("docker-compose.yml")
+
+    if generated and verbose:
+        info(f"  🐳 Auto-generated deployment files: {', '.join(generated)}")
 
 
 def add_module(
@@ -118,5 +158,12 @@ def add_module(
             dim(f"    test_routes.py")
         dim(f"    __init__.py")
     
+    # Auto-generate Docker/Compose files if they don't exist yet
+    try:
+        _ensure_docker_files(workspace_root, verbose=verbose)
+    except Exception:
+        # Non-fatal — deployment files are a convenience
+        pass
+
     return module_path
 

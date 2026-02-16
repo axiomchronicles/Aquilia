@@ -16,6 +16,7 @@ from . import (
     discover,
     ws,
     model_cmds,
+    deploy_gen,
 )
 
 __all__ = [
@@ -34,4 +35,5 @@ __all__ = [
     'discover',
     'ws',
     'model_cmds',
+    'deploy_gen',
 ]
