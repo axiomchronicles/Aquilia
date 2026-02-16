@@ -1,7 +1,9 @@
 """
 Aquilia Model Signals — pre/post save, delete, init hooks.
 
-Provides a lightweight signal/event system for model lifecycle events.
+Provides a lightweight signal/event system for model lifecycle events,
+with support for weak references, priority ordering, sender filtering,
+and temporary connections.
 
 Usage:
     from aquilia.models.signals import pre_save, post_save, pre_delete, post_delete
@@ -20,8 +22,10 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import inspect
 import logging
+import weakref
 from typing import Any, Callable, Dict, List, Optional, Type
 
 logger = logging.getLogger("aquilia.models.signals")
@@ -42,6 +46,11 @@ __all__ = [
 ]
 
 
+class _DeadRef:
+    """Sentinel indicating a weak reference that has been garbage-collected."""
+    pass
+
+
 class Signal:
     """
     A signal that can be connected to receiver functions.
@@ -50,6 +59,12 @@ class Signal:
         sender   — the Model class
         instance — the model instance (if applicable)
         **kwargs — signal-specific keyword arguments
+
+    Features:
+        - Sender-based filtering
+        - Priority ordering (lower runs first)
+        - Weak references (auto-disconnect when receiver is GC'd)
+        - Temporary connections via context manager
 
     Usage:
         my_signal = Signal("my_signal")
@@ -66,36 +81,94 @@ class Signal:
 
         # Fire
         await my_signal.send(MyModel, instance=obj, created=True)
+
+        # Temporary connection
+        async with my_signal.connected(handler):
+            await my_signal.send(MyModel, instance=obj)
+        # handler is automatically disconnected here
     """
 
     def __init__(self, name: str):
         self.name = name
-        self._receivers: List[Callable] = []
+        # Each entry: (receiver_or_weakref, sender_filter, priority)
+        self._receivers: List[tuple] = []
 
-    def connect(self, receiver: Callable = None, *, sender: Optional[Type] = None):
+    def connect(
+        self,
+        receiver: Callable = None,
+        *,
+        sender: Optional[Type] = None,
+        weak: bool = False,
+        priority: int = 100,
+    ):
         """
         Connect a receiver function. Can be used as a decorator.
 
         Args:
             receiver: Callable to invoke when signal fires
             sender: Optional sender class to filter on
+            weak: If True, store a weak reference (auto-cleanup on GC)
+            priority: Lower values run first (default: 100)
         """
         def _decorator(fn: Callable) -> Callable:
-            entry = (fn, sender)
-            if entry not in self._receivers:
-                self._receivers.append(entry)
+            self._add_receiver(fn, sender, weak, priority)
             return fn
 
         if receiver is not None:
             # Called as @signal.connect (without parentheses)
             if callable(receiver):
-                entry = (receiver, sender)
-                if entry not in self._receivers:
-                    self._receivers.append(entry)
+                self._add_receiver(receiver, sender, weak, priority)
                 return receiver
             # Called as @signal.connect(sender=MyModel)
             return _decorator
         return _decorator
+
+    def _add_receiver(
+        self,
+        fn: Callable,
+        sender: Optional[Type],
+        weak: bool,
+        priority: int,
+    ) -> None:
+        """Internal: add a receiver with deduplication."""
+        # Store weak reference if requested
+        if weak:
+            try:
+                ref = weakref.ref(fn, self._make_cleanup(fn, sender))
+            except TypeError:
+                # Built-in functions can't be weakly referenced
+                ref = fn
+        else:
+            ref = fn
+
+        # Check for duplicates (by identity)
+        for existing_ref, existing_sender, _ in self._receivers:
+            resolved = self._resolve_ref(existing_ref)
+            if resolved is fn and existing_sender is sender:
+                return  # Already connected
+
+        self._receivers.append((ref, sender, priority))
+        # Sort by priority (stable sort preserves insertion order for ties)
+        self._receivers.sort(key=lambda x: x[2])
+
+    def _make_cleanup(self, fn: Callable, sender: Optional[Type]) -> Callable:
+        """Create a weak-reference finalizer that removes dead entries."""
+        def cleanup(ref):
+            self._receivers = [
+                (r, s, p) for r, s, p in self._receivers
+                if self._resolve_ref(r) is not _DeadRef
+            ]
+        return cleanup
+
+    @staticmethod
+    def _resolve_ref(ref: Any) -> Any:
+        """Resolve a receiver — dereference weakrefs."""
+        if isinstance(ref, weakref.ref):
+            obj = ref()
+            if obj is None:
+                return _DeadRef
+            return obj
+        return ref
 
     def disconnect(self, receiver: Callable, *, sender: Optional[Type] = None) -> bool:
         """
@@ -103,17 +176,18 @@ class Signal:
 
         Returns True if the receiver was found and removed.
         """
-        entry = (receiver, sender)
-        try:
-            self._receivers.remove(entry)
-            return True
-        except ValueError:
-            # Try removing without sender filter
-            for i, (fn, s) in enumerate(self._receivers):
-                if fn is receiver:
-                    self._receivers.pop(i)
-                    return True
-            return False
+        for i, (ref, s, p) in enumerate(self._receivers):
+            resolved = self._resolve_ref(ref)
+            if resolved is receiver and s is sender:
+                self._receivers.pop(i)
+                return True
+        # Try removing without sender filter
+        for i, (ref, s, p) in enumerate(self._receivers):
+            resolved = self._resolve_ref(ref)
+            if resolved is receiver:
+                self._receivers.pop(i)
+                return True
+        return False
 
     async def send(self, sender: Type, **kwargs) -> List[Any]:
         """
@@ -127,7 +201,10 @@ class Signal:
             List of return values from receivers
         """
         results = []
-        for receiver, filter_sender in self._receivers:
+        for ref, filter_sender, _ in self._receivers:
+            receiver = self._resolve_ref(ref)
+            if receiver is _DeadRef:
+                continue
             # Skip if sender filter doesn't match
             if filter_sender is not None and sender is not filter_sender:
                 continue
@@ -150,7 +227,10 @@ class Signal:
         Fire the signal synchronously (for sync receivers only).
         """
         results = []
-        for receiver, filter_sender in self._receivers:
+        for ref, filter_sender, _ in self._receivers:
+            receiver = self._resolve_ref(ref)
+            if receiver is _DeadRef:
+                continue
             if filter_sender is not None and sender is not filter_sender:
                 continue
             if inspect.iscoroutinefunction(receiver):
@@ -180,7 +260,10 @@ class Signal:
         Like Django's Signal.send_robust().
         """
         results = []
-        for receiver, filter_sender in self._receivers:
+        for ref, filter_sender, _ in self._receivers:
+            receiver = self._resolve_ref(ref)
+            if receiver is _DeadRef:
+                continue
             if filter_sender is not None and sender is not filter_sender:
                 continue
             try:
@@ -199,24 +282,52 @@ class Signal:
 
     @property
     def receivers(self) -> List[Callable]:
-        """List of connected receiver functions."""
-        return [fn for fn, _ in self._receivers]
+        """List of connected receiver functions (resolved, alive only)."""
+        result = []
+        for ref, _, _ in self._receivers:
+            resolved = self._resolve_ref(ref)
+            if resolved is not _DeadRef:
+                result.append(resolved)
+        return result
 
     def has_listeners(self, sender: Optional[Type] = None) -> bool:
-        """Check if any receivers are connected."""
+        """Check if any receivers are connected (optionally for a sender)."""
         if sender is None:
-            return len(self._receivers) > 0
+            return any(
+                self._resolve_ref(ref) is not _DeadRef
+                for ref, _, _ in self._receivers
+            )
         return any(
-            s is None or s is sender
-            for _, s in self._receivers
+            self._resolve_ref(ref) is not _DeadRef
+            and (s is None or s is sender)
+            for ref, s, _ in self._receivers
         )
+
+    @contextlib.contextmanager
+    def connected(self, fn: Callable, *, sender: Optional[Type] = None, priority: int = 100):
+        """
+        Context manager for temporary signal connection.
+
+        The receiver is automatically disconnected on exit.
+
+        Usage:
+            with pre_save.connected(my_handler, sender=User):
+                await user.save()
+            # my_handler is disconnected here
+        """
+        self._add_receiver(fn, sender, weak=False, priority=priority)
+        try:
+            yield
+        finally:
+            self.disconnect(fn, sender=sender)
 
     def clear(self) -> None:
         """Remove all receivers (useful for testing)."""
         self._receivers.clear()
 
     def __repr__(self) -> str:
-        return f"<Signal '{self.name}' receivers={len(self._receivers)}>"
+        alive = sum(1 for ref, _, _ in self._receivers if self._resolve_ref(ref) is not _DeadRef)
+        return f"<Signal '{self.name}' receivers={alive}>"
 
 
 # ── Built-in signals ─────────────────────────────────────────────────────────

@@ -406,103 +406,6 @@ class WebAuthnProvider:
 
         return True
 
-
-# ============================================================================
-# SMS Provider (Simple mock)
-# ============================================================================
-
-
-class SMSProvider:
-    """
-    SMS-based OTP provider.
-
-    Note: Requires integration with SMS gateway (Twilio, AWS SNS, etc.)
-    """
-
-    def __init__(self, sender_id: str = "Aquilia"):
-        self.sender_id = sender_id
-
-    def generate_otp(self, length: int = 6) -> str:
-        """Generate numeric OTP code."""
-        return "".join([str(secrets.randbelow(10)) for _ in range(length)])
-
-    async def send_otp(
-        self, phone_number: str, otp: str, expires_in: int = 300
-    ) -> bool:
-        """
-        Send OTP via SMS.
-
-        Args:
-            phone_number: Recipient phone number
-            otp: OTP code
-            expires_in: Expiration time in seconds
-
-        Returns:
-            True if sent successfully
-
-        Note: Implement actual SMS sending here
-        """
-        # Mock implementation - integrate with Twilio/SNS in production
-        message = f"Your {self.sender_id} verification code is: {otp}. Valid for {expires_in // 60} minutes."
-
-        # TODO: Integrate with SMS gateway
-        print(f"[SMS] To: {phone_number}, Message: {message}")
-
-        return True
-
-
-# ============================================================================
-# Email Provider (Simple mock)
-# ============================================================================
-
-
-class EmailProvider:
-    """
-    Email-based OTP provider.
-
-    Note: Requires integration with email service (SendGrid, AWS SES, etc.)
-    """
-
-    def __init__(self, sender_email: str, sender_name: str = "Aquilia"):
-        self.sender_email = sender_email
-        self.sender_name = sender_name
-
-    def generate_otp(self, length: int = 6) -> str:
-        """Generate numeric OTP code."""
-        return "".join([str(secrets.randbelow(10)) for _ in range(length)])
-
-    async def send_otp(
-        self, email: str, otp: str, expires_in: int = 300
-    ) -> bool:
-        """
-        Send OTP via email.
-
-        Args:
-            email: Recipient email
-            otp: OTP code
-            expires_in: Expiration time in seconds
-
-        Returns:
-            True if sent successfully
-
-        Note: Implement actual email sending here
-        """
-        # Mock implementation - integrate with SendGrid/SES in production
-        subject = f"Your {self.sender_name} verification code"
-        body = f"""
-        Your verification code is: {otp}
-        
-        This code will expire in {expires_in // 60} minutes.
-        
-        If you didn't request this code, please ignore this email.
-        """
-
-        # TODO: Integrate with email service
-        print(f"[EMAIL] To: {email}, Subject: {subject}, Body: {body}")
-
-        return True
-
-
 # ============================================================================
 # MFA Manager
 # ============================================================================
@@ -516,14 +419,10 @@ class MFAManager:
     def __init__(
         self,
         totp_provider: TOTPProvider | None = None,
-        webauthn_provider: WebAuthnProvider | None = None,
-        sms_provider: SMSProvider | None = None,
-        email_provider: EmailProvider | None = None,
+        webauthn_provider: WebAuthnProvider | None = None
     ):
         self.totp = totp_provider or TOTPProvider()
         self.webauthn = webauthn_provider
-        self.sms = sms_provider
-        self.email = email_provider
 
     async def enroll_totp(self, user_id: str, account_name: str) -> dict[str, Any]:
         """

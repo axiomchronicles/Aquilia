@@ -305,6 +305,27 @@ class CombinedExpression(Expression):
         return f"CombinedExpression({self.lhs!r} {self.connector} {self.rhs!r})"
 
 
+# ── Expression Coercion ──────────────────────────────────────────────────────
+
+
+def _coerce_expression(value: Any) -> Expression:
+    """
+    Coerce a value into an Expression.
+
+    - Expression subclasses pass through unchanged
+    - Strings are treated as field references → F(value)
+    - Everything else becomes a Value(value)
+
+    This is used by Func and its subclasses so that e.g.
+    Length("name") is equivalent to Length(F("name")).
+    """
+    if isinstance(value, Expression):
+        return value
+    if isinstance(value, str):
+        return F(value)
+    return Value(value)
+
+
 # ── Advanced Expression Types ────────────────────────────────────────────────
 
 
@@ -485,6 +506,9 @@ class ExpressionWrapper(Expression):
 class Func(Expression):
     """
     Generic SQL function call.
+
+    Arguments are treated as literal values unless they are Expression instances.
+    To reference a field, wrap in F("field_name").
 
     Usage:
         Func("UPPER", F("name"))           → UPPER("name")

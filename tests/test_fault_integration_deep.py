@@ -81,16 +81,9 @@ class TestDatabaseFaults:
 
     @pytest.mark.asyncio
     async def test_connect_raises_connection_fault_for_postgres(self):
-        """Connecting to unimplemented drivers raises DatabaseConnectionFault."""
-        db = AquiliaDatabase.__new__(AquiliaDatabase)
-        db._url = "postgresql://localhost/test"
-        db._driver = "postgresql"
-        db._connected = False
-        db._lock = __import__("asyncio").Lock()
-        db._connection = None
-        db._options = {}
-        db._in_transaction = False
-        with pytest.raises(DatabaseConnectionFault, match="not yet implemented"):
+        """Connecting to unreachable PostgreSQL raises DatabaseConnectionFault or ImportError."""
+        db = AquiliaDatabase("postgresql://localhost:59999/nonexistent_test_db")
+        with pytest.raises((DatabaseConnectionFault, ImportError)):
             await db.connect()
 
     @pytest.mark.asyncio

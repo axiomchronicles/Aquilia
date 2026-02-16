@@ -63,6 +63,7 @@ from .fields_module import (
     SmallIntegerField,
     PositiveIntegerField,
     PositiveSmallIntegerField,
+    PositiveBigIntegerField,
     FloatField,
     DecimalField,
     # Text
@@ -216,6 +217,7 @@ from .deletion import (
     SET,
     ProtectedError,
     RestrictedError,
+    normalize_on_delete,
 )
 
 # ── Enums / Choices ──────────────────────────────────────────────────────────
@@ -224,7 +226,15 @@ from .enums import Choices, TextChoices, IntegerChoices
 
 # ── SQL Builder ──────────────────────────────────────────────────────────────
 
-from .sql_builder import SQLBuilder, InsertBuilder, UpdateBuilder, DeleteBuilder, CreateTableBuilder
+from .sql_builder import (
+    SQLBuilder,
+    InsertBuilder,
+    UpdateBuilder,
+    DeleteBuilder,
+    CreateTableBuilder,
+    AlterTableBuilder,
+    UpsertBuilder,
+)
 
 # ── Constraints & Indexes ────────────────────────────────────────────────────
 
@@ -323,6 +333,7 @@ __all__ = [
     "SmallIntegerField",
     "PositiveIntegerField",
     "PositiveSmallIntegerField",
+    "PositiveBigIntegerField",
     "FloatField",
     "DecimalField",
     "CharField",

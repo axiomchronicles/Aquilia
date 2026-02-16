@@ -310,6 +310,20 @@ class Q:
         self._is_none: bool = False
         self._set_operations: List[Tuple[str, Q]] = []
 
+    # ── Dialect helper ───────────────────────────────────────────────
+
+    def _get_dialect(self) -> str:
+        """Resolve the SQL dialect from the database driver."""
+        if hasattr(self._db, 'dialect'):
+            return self._db.dialect
+        if hasattr(self._db, 'driver'):
+            drv = self._db.driver
+            if drv in ('postgresql', 'postgres', 'asyncpg'):
+                return 'postgresql'
+            if drv in ('mysql', 'mariadb', 'aiomysql'):
+                return 'mysql'
+        return 'sqlite'
+
     # ── Chain methods (return new Q) ─────────────────────────────────
 
     def where(self, clause: str, *args: Any, **kwargs: Any) -> Q:
@@ -413,9 +427,10 @@ class Q:
         """
         from .expression import OrderBy
         new = self._clone()
+        dialect = new._get_dialect()
         for f in fields:
             if isinstance(f, OrderBy):
-                sql, _ = f.as_sql("sqlite")
+                sql, _ = f.as_sql(dialect)
                 new._order_clauses.append(sql)
             elif isinstance(f, str):
                 if f == "?":
@@ -427,7 +442,7 @@ class Q:
             else:
                 # Other expression types
                 if hasattr(f, 'as_sql'):
-                    sql, _ = f.as_sql("sqlite")
+                    sql, _ = f.as_sql(dialect)
                     new._order_clauses.append(sql)
         return new
 
@@ -695,6 +710,7 @@ class Q:
         from .aggregate import Aggregate
         from .expression import Expression
 
+        dialect = self._get_dialect()
         params = self._params.copy()
 
         if count:
@@ -712,10 +728,10 @@ class Q:
                         if field:
                             parts.append(f'"{field.column_name}"')
             else:
-                parts.append("*")
+                parts.append(f'"{self._table}".*')
             for alias, expr in self._annotations.items():
                 if isinstance(expr, (Aggregate, Expression)):
-                    sql_frag, expr_params = expr.as_sql("sqlite")
+                    sql_frag, expr_params = expr.as_sql(dialect)
                     parts.append(f'{sql_frag} AS "{alias}"')
                     params = list(expr_params) + params
                 else:
@@ -733,10 +749,31 @@ class Q:
                         selected.append(f'"{field.column_name}"')
             col = ", ".join(selected) if selected else "*"
         else:
-            col = "*"
+            col = "*" if not self._select_related else f'"{self._table}".*'
 
         distinct = "DISTINCT " if self._distinct and not count else ""
         sql = f'SELECT {distinct}{col} FROM "{self._table}"'
+
+        # ── select_related: generate LEFT JOINs for FK fields ────────
+        if self._select_related and not count:
+            from .fields_module import ForeignKey, OneToOneField
+            for rel_name in self._select_related:
+                field = self._model_cls._fields.get(rel_name)
+                if isinstance(field, (ForeignKey, OneToOneField)):
+                    related_model = field.related_model
+                    if related_model is None:
+                        # Try resolving from registry
+                        from .registry import ModelRegistry as _Reg
+                        target_name = field.to if isinstance(field.to, str) else field.to.__name__
+                        related_model = _Reg.get(target_name)
+                    if related_model is not None:
+                        rtable = related_model._table_name
+                        rpk = related_model._pk_name
+                        fk_col = field.column_name
+                        sql += (
+                            f' LEFT JOIN "{rtable}" ON '
+                            f'"{self._table}"."{fk_col}" = "{rtable}"."{rpk}"'
+                        )
 
         if self._wheres:
             sql += " WHERE " + " AND ".join(f"({w})" for w in self._wheres)
@@ -789,7 +826,142 @@ class Q:
                 params.extend(other_params)
 
         rows = await self._db.fetch_all(sql, params)
-        return [self._model_cls.from_row(row) for row in rows]
+        instances = [self._model_cls.from_row(row) for row in rows]
+
+        # ── prefetch_related: execute separate queries for related objects ──
+        if self._prefetch_related and instances:
+            await self._execute_prefetch(instances)
+
+        return instances
+
+    async def _execute_prefetch(self, instances: List[Model]) -> None:
+        """
+        Execute prefetch_related queries and attach results to instances.
+
+        For each prefetch lookup:
+        - If it's a ForeignKey: fetch related objects by collected FK IDs
+        - If it's a M2M: fetch via junction table
+        - If it's a Prefetch object: use its custom queryset
+        """
+        from .fields_module import ForeignKey, OneToOneField, ManyToManyField
+        from .registry import ModelRegistry as _Reg
+
+        for lookup in self._prefetch_related:
+            if isinstance(lookup, Prefetch):
+                attr_name = lookup.lookup
+                to_attr = lookup.to_attr
+                custom_qs = lookup.queryset
+            else:
+                attr_name = lookup
+                to_attr = lookup
+                custom_qs = None
+
+            field = self._model_cls._fields.get(attr_name)
+
+            if isinstance(field, (ForeignKey, OneToOneField)):
+                # Forward FK prefetch
+                related_model = field.related_model
+                if related_model is None:
+                    target_name = field.to if isinstance(field.to, str) else field.to.__name__
+                    related_model = _Reg.get(target_name)
+                if related_model is None:
+                    continue
+
+                # Collect FK values from instances
+                fk_values = set()
+                for inst in instances:
+                    fk_val = getattr(inst, attr_name, None)
+                    if fk_val is not None:
+                        fk_values.add(fk_val)
+
+                if not fk_values:
+                    for inst in instances:
+                        setattr(inst, to_attr, None)
+                    continue
+
+                # Fetch related objects
+                if custom_qs is not None:
+                    related_objects = await custom_qs.filter(
+                        **{f"{related_model._pk_attr}__in": list(fk_values)}
+                    ).all()
+                else:
+                    related_objects = await related_model.query().filter(
+                        **{f"{related_model._pk_attr}__in": list(fk_values)}
+                    ).all()
+
+                # Index by PK
+                related_map = {
+                    getattr(obj, related_model._pk_attr): obj
+                    for obj in related_objects
+                }
+
+                # Attach to instances
+                for inst in instances:
+                    fk_val = getattr(inst, attr_name, None)
+                    setattr(inst, to_attr, related_map.get(fk_val))
+
+            elif attr_name in self._model_cls._m2m_fields:
+                # M2M prefetch
+                m2m = self._model_cls._m2m_fields[attr_name]
+                related_model = m2m.related_model
+                if related_model is None:
+                    target_name = m2m.to if isinstance(m2m.to, str) else m2m.to.__name__
+                    related_model = _Reg.get(target_name)
+                if related_model is None:
+                    continue
+
+                jt = m2m.junction_table_name(self._model_cls)
+                src_col, tgt_col = m2m.junction_columns(self._model_cls)
+                pk_attr = self._model_cls._pk_attr
+
+                # Collect PKs
+                pk_values = [getattr(inst, pk_attr) for inst in instances]
+                if not pk_values:
+                    continue
+
+                placeholders = ", ".join("?" for _ in pk_values)
+                junction_sql = (
+                    f'SELECT "{src_col}", "{tgt_col}" FROM "{jt}" '
+                    f'WHERE "{src_col}" IN ({placeholders})'
+                )
+                junction_rows = await self._db.fetch_all(junction_sql, pk_values)
+
+                # Collect target IDs
+                target_ids = set()
+                src_to_targets = {}  # source_pk -> [target_pk, ...]
+                for row in junction_rows:
+                    src_pk = row[src_col]
+                    tgt_pk = row[tgt_col]
+                    target_ids.add(tgt_pk)
+                    src_to_targets.setdefault(src_pk, []).append(tgt_pk)
+
+                # Fetch target objects
+                if target_ids:
+                    target_pk_name = related_model._pk_attr
+                    if custom_qs is not None:
+                        related_objects = await custom_qs.filter(
+                            **{f"{target_pk_name}__in": list(target_ids)}
+                        ).all()
+                    else:
+                        related_objects = await related_model.query().filter(
+                            **{f"{target_pk_name}__in": list(target_ids)}
+                        ).all()
+                    target_map = {
+                        getattr(obj, target_pk_name): obj
+                        for obj in related_objects
+                    }
+                else:
+                    target_map = {}
+
+                # Attach to instances
+                for inst in instances:
+                    inst_pk = getattr(inst, pk_attr)
+                    tgt_pks = src_to_targets.get(inst_pk, [])
+                    setattr(
+                        inst,
+                        to_attr,
+                        [target_map[pk] for pk in tgt_pks if pk in target_map],
+                    )
 
     async def one(self) -> Model:
         """
@@ -909,16 +1081,21 @@ class Q:
         if self._is_none:
             return 0
         from .expression import Expression
+        dialect = self._get_dialect()
         data = {**(values or {}), **kwargs}
         set_parts = []
         set_params = []
 
         for k, v in data.items():
             if isinstance(v, Expression):
-                expr_sql, expr_params = v.as_sql("sqlite")
+                expr_sql, expr_params = v.as_sql(dialect)
                 set_parts.append(f'"{k}" = {expr_sql}')
                 set_params.extend(expr_params)
             else:
+                # Apply field.to_db() conversion if the field exists
+                field = self._model_cls._fields.get(k) if hasattr(self._model_cls, '_fields') else None
+                if field is not None:
+                    v = field.to_db(v)
                 set_parts.append(f'"{k}" = ?')
                 set_params.append(v)
 
@@ -966,6 +1143,7 @@ class Q:
         from .aggregate import Aggregate
         from .expression import Expression
 
+        dialect = self._get_dialect()
         params = self._params.copy()
 
         if fields:
@@ -975,7 +1153,7 @@ class Q:
                 if f in self._annotations:
                     expr = self._annotations[f]
                     if isinstance(expr, (Aggregate, Expression)):
-                        sql_frag, expr_params = expr.as_sql("sqlite")
+                        sql_frag, expr_params = expr.as_sql(dialect)
                         col_parts.append(f'{sql_frag} AS "{f}"')
                         params = list(expr_params) + params
                     else:
@@ -1063,11 +1241,12 @@ class Q:
         from .aggregate import Aggregate
         from .expression import Expression
 
+        dialect = self._get_dialect()
         select_parts = []
         params: List[Any] = []
         for alias, expr in expressions.items():
             if isinstance(expr, (Aggregate, Expression)):
-                sql_fragment, expr_params = expr.as_sql("sqlite")
+                sql_fragment, expr_params = expr.as_sql(dialect)
                 select_parts.append(f'{sql_fragment} AS "{alias}"')
                 params.extend(expr_params)
             else:

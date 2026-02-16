@@ -137,9 +137,6 @@ class ModelMeta(type):
         if not opts.abstract:
             from .registry import ModelRegistry as _NewRegistry
             _NewRegistry.register(cls)
-            # Also register in base.py's ModelRegistry for compatibility
-            from .base import ModelRegistry
-            ModelRegistry.register(cls)
 
             # Signal: class_prepared (fired after model class is fully created)
             from .signals import class_prepared

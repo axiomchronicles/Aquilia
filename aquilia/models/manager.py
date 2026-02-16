@@ -463,9 +463,10 @@ class Manager(BaseManager):
             if callable(attr) and attr_name not in dir(cls):
                 def _make_proxy(method_name: str):
                     def _proxy(self_mgr, *args, **kwargs):
-                        qs_instance = queryset_class()
-                        qs_instance._model_cls = self_mgr._model_cls
-                        return getattr(qs_instance, method_name)(*args, **kwargs)
+                        # Get the base queryset through get_queryset() to preserve
+                        # any manager-level filtering (e.g., PublishedManager)
+                        qs = self_mgr.get_queryset()
+                        return getattr(qs, method_name)(*args, **kwargs)
                     _proxy.__name__ = method_name
                     _proxy.__qualname__ = f"{class_name}.{method_name}"
                     return _proxy

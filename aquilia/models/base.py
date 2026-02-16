@@ -340,13 +340,12 @@ class Model(metaclass=ModelMeta):
         db = cls._get_db()
         instance = cls(**data)
 
-        # Validate all fields before persisting (like Django)
-        instance.full_clean()
-
         # Signal: pre_save (created=True)
         await pre_save.send(sender=cls, instance=instance, created=True)
 
-        # Process fields: defaults, auto_now_add, validation
+        # Process fields: defaults, auto_now_add, pre_save hooks
+        # Apply defaults and pre_save BEFORE validation so auto fields
+        # (auto_now_add, defaults) are populated before full_clean()
         final_data: Dict[str, Any] = {}
         for attr_name, field in cls._fields.items():
             if isinstance(field, ManyToManyField):
@@ -358,7 +357,7 @@ class Model(metaclass=ModelMeta):
             if field.primary_key and isinstance(field, (AutoField, BigAutoField)) and value is None:
                 continue
 
-            # pre_save hook
+            # pre_save hook (auto_now_add, etc.)
             if hasattr(field, "pre_save"):
                 value = field.pre_save(instance, is_create=True)
                 if value is not None:
@@ -377,6 +376,9 @@ class Model(metaclass=ModelMeta):
                 # Required field with no value
                 if not field.has_default():
                     final_data[field.column_name] = None  # Let DB handle
+
+        # Validate AFTER defaults and auto-fields are applied
+        instance.full_clean()
 
         if not final_data:
             from ..faults.domains import QueryFault
@@ -777,17 +779,40 @@ class Model(metaclass=ModelMeta):
             if self._meta.select_on_save:
                 await self.refresh()
         else:
-            # Insert
-            create_data = {
-                attr: getattr(self, attr)
-                for attr in self._attr_names
-                if getattr(self, attr, None) is not None
-            }
-            # If force_insert with existing PK, include it
-            if force_insert and pk_val is not None:
-                create_data[self._pk_attr] = pk_val
-            result = await self.__class__.create(**create_data)
-            setattr(self, self._pk_attr, getattr(result, self._pk_attr))
+            # Insert — build and execute directly to avoid
+            # double signal firing from cls.create()
+            final_data: Dict[str, Any] = {}
+            for attr_name, field in self._fields.items():
+                if isinstance(field, ManyToManyField):
+                    continue
+                value = getattr(self, attr_name, None)
+
+                # Skip auto-PKs unless force_insert with explicit PK
+                if field.primary_key and isinstance(field, (AutoField, BigAutoField)):
+                    if force_insert and pk_val is not None:
+                        final_data[field.column_name] = pk_val
+                    continue
+
+                # pre_save hook
+                if hasattr(field, "pre_save"):
+                    value = field.pre_save(self, is_create=True)
+                    if value is not None:
+                        setattr(self, attr_name, value)
+
+                # Apply default if still None
+                if value is None and field.has_default():
+                    value = field.get_default()
+                    setattr(self, attr_name, value)
+
+                if value is not None:
+                    final_data[field.column_name] = field.to_db(value)
+
+            if final_data:
+                builder = InsertBuilder(self._table_name).from_dict(final_data)
+                sql, params = builder.build()
+                cursor = await db.execute(sql, params)
+                if cursor.lastrowid:
+                    setattr(self, self._pk_attr, cursor.lastrowid)
 
         # Signal: post_save
         await post_save.send(sender=self.__class__, instance=self, created=is_create)

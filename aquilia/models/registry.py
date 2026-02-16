@@ -84,13 +84,20 @@ class ModelRegistry:
 
     @classmethod
     async def create_tables(cls, db: Optional[AquiliaDatabase] = None) -> List[str]:
-        """Create tables for all registered models."""
+        """
+        Create tables for all registered models in topological order.
+
+        FK target tables are created before tables that reference them.
+        """
         target_db = db or cls._db
         if not target_db:
             raise RuntimeError("No database configured for ModelRegistry")
 
+        # Build dependency graph and topologically sort
+        ordered = cls._topological_sort()
+
         statements: List[str] = []
-        for model_cls in cls._models.values():
+        for model_cls in ordered:
             if model_cls._meta.abstract:
                 continue
             if not model_cls._meta.managed:
@@ -112,6 +119,68 @@ class ModelRegistry:
                 statements.append(m2m_sql)
 
         return statements
+
+    @classmethod
+    def _topological_sort(cls) -> List[Type[Model]]:
+        """
+        Sort registered models in topological order based on FK dependencies.
+
+        Models with no FK dependencies come first. Models that reference
+        other models come after their targets.
+        """
+        from .fields_module import ForeignKey, OneToOneField
+
+        # Build adjacency: model_name -> set of dependency model names
+        deps: Dict[str, set] = {}
+        name_to_cls: Dict[str, Type[Model]] = {}
+
+        for name, model_cls in cls._models.items():
+            if model_cls._meta.abstract or not model_cls._meta.managed:
+                continue
+            name_to_cls[name] = model_cls
+            deps[name] = set()
+            for field in model_cls._fields.values():
+                if isinstance(field, (ForeignKey, OneToOneField)):
+                    target = field.to if isinstance(field.to, str) else field.to.__name__
+                    # Only add dependency if target is a registered model
+                    # and not a self-reference
+                    if target != name and target in cls._models:
+                        deps[name].add(target)
+
+        # Kahn's algorithm for topological sort
+        in_degree: Dict[str, int] = {n: 0 for n in deps}
+        for node, node_deps in deps.items():
+            for dep in node_deps:
+                if dep in in_degree:
+                    in_degree[dep] = in_degree.get(dep, 0)
+
+        # Count incoming edges
+        reverse_adj: Dict[str, List[str]] = {n: [] for n in deps}
+        for node, node_deps in deps.items():
+            for dep in node_deps:
+                if dep in reverse_adj:
+                    reverse_adj[dep].append(node)
+
+        in_degree = {n: len(d) for n, d in deps.items()}
+
+        queue = [n for n, deg in in_degree.items() if deg == 0]
+        ordered: List[Type[Model]] = []
+
+        while queue:
+            node = queue.pop(0)
+            if node in name_to_cls:
+                ordered.append(name_to_cls[node])
+            for dependent in reverse_adj.get(node, []):
+                in_degree[dependent] -= 1
+                if in_degree[dependent] == 0:
+                    queue.append(dependent)
+
+        # Add any remaining models (circular FK — nullable breaks the cycle)
+        for name, model_cls in name_to_cls.items():
+            if model_cls not in ordered:
+                ordered.append(model_cls)
+
+        return ordered
 
     @classmethod
     async def drop_tables(cls, db: Optional[AquiliaDatabase] = None) -> List[str]:

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from typing import Any, Dict, List, Optional, Sequence
 
 from .base import (
@@ -27,6 +28,9 @@ logger = logging.getLogger("aquilia.db.backends.sqlite")
 
 __all__ = ["SQLiteAdapter"]
 
+# Savepoint name validation — prevent SQL injection
+_SP_NAME_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
 
 class SQLiteAdapter(DatabaseAdapter):
     """
@@ -37,6 +41,7 @@ class SQLiteAdapter(DatabaseAdapter):
     - Foreign key enforcement
     - Full introspection support
     - Savepoint-based nested transactions
+    - SQL injection prevention on savepoint names
     """
 
     capabilities = AdapterCapabilities(
@@ -160,13 +165,19 @@ class SQLiteAdapter(DatabaseAdapter):
         self._in_transaction = False
 
     async def savepoint(self, name: str) -> None:
-        await self._connection.execute(f"SAVEPOINT {name}")
+        if not _SP_NAME_RE.match(name):
+            raise ValueError(f"Invalid savepoint name: {name!r}")
+        await self._connection.execute(f'SAVEPOINT "{name}"')
 
     async def release_savepoint(self, name: str) -> None:
-        await self._connection.execute(f"RELEASE SAVEPOINT {name}")
+        if not _SP_NAME_RE.match(name):
+            raise ValueError(f"Invalid savepoint name: {name!r}")
+        await self._connection.execute(f'RELEASE SAVEPOINT "{name}"')
 
     async def rollback_to_savepoint(self, name: str) -> None:
-        await self._connection.execute(f"ROLLBACK TO SAVEPOINT {name}")
+        if not _SP_NAME_RE.match(name):
+            raise ValueError(f"Invalid savepoint name: {name!r}")
+        await self._connection.execute(f'ROLLBACK TO SAVEPOINT "{name}"')
 
     # ── Introspection ────────────────────────────────────────────────
 

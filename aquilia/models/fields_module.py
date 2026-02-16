@@ -446,6 +446,33 @@ class PositiveSmallIntegerField(Field):
         return "INTEGER"
 
 
+class PositiveBigIntegerField(Field):
+    """Positive 64-bit integer field (0 to 9223372036854775807)."""
+
+    _field_type = "POSBIGINT"
+    _python_type = int
+
+    def validate(self, value: Any) -> Any:
+        value = super().validate(value)
+        if value is None:
+            return None
+        if not isinstance(value, int):
+            try:
+                value = int(value)
+            except (TypeError, ValueError):
+                raise FieldValidationError(self.name, f"Expected integer, got {type(value).__name__}")
+        if value < 0:
+            raise FieldValidationError(self.name, f"Value must be >= 0, got {value}")
+        if value > 9_223_372_036_854_775_807:
+            raise FieldValidationError(self.name, f"Value {value} exceeds maximum (9223372036854775807)")
+        return value
+
+    def sql_type(self, dialect: str = "sqlite") -> str:
+        if dialect == "postgresql":
+            return "BIGINT"
+        return "INTEGER"
+
+
 class FloatField(Field):
     """Double-precision floating-point field."""
 
@@ -490,15 +517,35 @@ class DecimalField(Field):
             except (TypeError, ValueError, decimal.InvalidOperation):
                 raise FieldValidationError(self.name, f"Expected decimal, got {type(value).__name__}")
 
-        # Check digits
+        # Check digits — correctly count whole and decimal parts
         sign, digits, exponent = value.as_tuple()
-        num_digits = len(digits)
-        whole_digits = num_digits + exponent if exponent < 0 else num_digits
+        if exponent >= 0:
+            # No decimal places — e.g. Decimal('123') has exponent=0, digits=(1,2,3)
+            whole_digits = len(digits) + exponent
+            dec_digits = 0
+        else:
+            # Negative exponent — e.g. Decimal('12.34') has exponent=-2
+            dec_digits = abs(exponent)
+            whole_digits = max(0, len(digits) - dec_digits)
+
         if whole_digits > (self.max_digits - self.decimal_places):
             raise FieldValidationError(
                 self.name,
-                f"Ensure total digits <= {self.max_digits} "
-                f"({whole_digits} whole digits found)"
+                f"Ensure that there are no more than "
+                f"{self.max_digits - self.decimal_places} digits before the decimal point "
+                f"({whole_digits} found)",
+            )
+        if dec_digits > self.decimal_places:
+            raise FieldValidationError(
+                self.name,
+                f"Ensure that there are no more than "
+                f"{self.decimal_places} decimal places ({dec_digits} found)",
+            )
+        if len(digits) > self.max_digits:
+            raise FieldValidationError(
+                self.name,
+                f"Ensure that there are no more than "
+                f"{self.max_digits} digits in total ({len(digits)} found)",
             )
         return value
 
@@ -543,7 +590,9 @@ class CharField(Field):
             return None
         if not isinstance(value, str):
             value = str(value)
-        if not self.blank and not value.strip():
+        # blank=True allows empty/whitespace-only strings;
+        # blank=False rejects them (like Django)
+        if not value.strip() and not self.blank:
             raise FieldValidationError(self.name, "Cannot be blank")
         if len(value) > self.max_length:
             raise FieldValidationError(
@@ -573,7 +622,7 @@ class TextField(Field):
             return None
         if not isinstance(value, str):
             value = str(value)
-        if not self.blank and not value.strip():
+        if not value.strip() and not self.blank:
             raise FieldValidationError(self.name, "Cannot be blank")
         return value
 
@@ -824,6 +873,14 @@ class TimeField(Field):
 
     def sql_type(self, dialect: str = "sqlite") -> str:
         return "TIME"
+
+    def pre_save(self, instance: Any, is_create: bool) -> Any:
+        """Auto-set time value before save."""
+        if self.auto_now:
+            return datetime.datetime.now(datetime.timezone.utc).time()
+        if self.auto_now_add and is_create:
+            return datetime.datetime.now(datetime.timezone.utc).time()
+        return getattr(instance, self.attr_name, None)
 
 
 class DateTimeField(Field):

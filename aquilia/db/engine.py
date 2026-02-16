@@ -1,20 +1,23 @@
 """
-Aquilia Database Engine — async-first, SQLite-by-default.
+Aquilia Database Engine — async-first, multi-backend, production-ready.
 
 Provides:
-- AquiliaDatabase: async connection manager with transaction support
-- SQLite driver via aiosqlite
+- AquiliaDatabase: async connection manager delegating to backend adapters
+- SQLite (aiosqlite), PostgreSQL (asyncpg), MySQL (aiomysql) backends
 - Full integration with AquilaFaults and DI container
 - Lifecycle hooks for startup/shutdown
-- Planned: Postgres (asyncpg), MySQL (aiomysql)
+- Connection health checks and reconnection
+- Multi-database routing support
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import re
+import time
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict, List, Optional, Sequence, Tuple
+from typing import Any, AsyncIterator, Dict, List, Optional, Sequence, Tuple, Type
 
 from ..faults.domains import (
     DatabaseConnectionFault,
@@ -22,19 +25,45 @@ from ..faults.domains import (
     SchemaFault,
 )
 from ..di.decorators import service
-
-try:
-    import aiosqlite
-except ImportError:
-    aiosqlite = None  # type: ignore[assignment]
+from .backends.base import DatabaseAdapter, AdapterCapabilities, ColumnInfo, TableInfo
 
 logger = logging.getLogger("aquilia.db")
 
 
 # ── Backward-compatible alias ────────────────────────────────────────────────
-# Legacy code that catches ``DatabaseError`` will still work because
-# ``DatabaseConnectionFault`` is a ``Fault`` (and thus an ``Exception``).
 DatabaseError = DatabaseConnectionFault
+
+# Sanitize savepoint names to prevent SQL injection
+_SP_NAME_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
+
+def _sanitize_savepoint(name: str) -> str:
+    """Validate savepoint names — only alphanumeric + underscore allowed."""
+    if not _SP_NAME_RE.match(name):
+        raise QueryFault(
+            model="<transaction>",
+            operation="savepoint",
+            reason=f"Invalid savepoint name: {name!r}. Use alphanumeric + underscore only.",
+        )
+    return name
+
+
+def _create_adapter(driver: str) -> DatabaseAdapter:
+    """Factory — instantiate the correct backend adapter."""
+    if driver == "sqlite":
+        from .backends.sqlite import SQLiteAdapter
+        return SQLiteAdapter()
+    elif driver == "postgresql":
+        from .backends.postgres import PostgresAdapter
+        return PostgresAdapter()
+    elif driver == "mysql":
+        from .backends.mysql import MySQLAdapter
+        return MySQLAdapter()
+    else:
+        raise DatabaseConnectionFault(
+            url=f"<{driver}>",
+            reason=f"No adapter registered for driver: {driver}",
+        )
 
 
 @service(scope="app", name="AquiliaDatabase")
@@ -42,8 +71,10 @@ class AquiliaDatabase:
     """
     Async database engine for Aquilia.
 
-    SQLite-first implementation using aiosqlite.
-    All operations are async and use parameterized queries.
+    Delegates all operations to the appropriate backend adapter
+    (SQLite, PostgreSQL, or MySQL). All operations are async and
+    use parameterized queries with ``?`` placeholders — the adapter
+    translates to the backend's native param style automatically.
 
     Integrates with:
     - **AquilaFaults**: raises ``DatabaseConnectionFault``, ``QueryFault``,
@@ -58,37 +89,53 @@ class AquiliaDatabase:
         await db.connect()
         rows = await db.fetch_all("SELECT * FROM users WHERE active = ?", [True])
         await db.disconnect()
+
+        # PostgreSQL:
+        db = AquiliaDatabase("postgresql://user:pass@localhost/mydb")
+        await db.connect()
+
+        # MySQL:
+        db = AquiliaDatabase("mysql://user:pass@localhost/mydb")
+        await db.connect()
     """
 
     __slots__ = (
         "_url",
         "_driver",
-        "_connection",
+        "_adapter",
         "_connected",
         "_lock",
         "_options",
         "_in_transaction",
+        "_last_activity",
+        "_connect_retries",
+        "_connect_retry_delay",
     )
 
     def __init__(self, url: str = "sqlite:///db.sqlite3", **options: Any):
         """
-        Initialize database.
+        Initialize database engine.
 
         Args:
             url: Database URL. Supported schemes:
                  - sqlite:///path/to/db.sqlite3
                  - sqlite:///:memory:
-                 - (future) postgresql://user:pass@host/db
-                 - (future) mysql://user:pass@host/db
-            **options: Driver-specific options
+                 - postgresql://user:pass@host/db
+                 - mysql://user:pass@host/db
+            **options: Driver-specific options passed to the backend adapter.
+                connect_retries (int): Number of connection retries (default 3).
+                connect_retry_delay (float): Seconds between retries (default 0.5).
         """
         self._url = url
         self._driver = self._detect_driver(url)
-        self._connection: Any = None
+        self._adapter: DatabaseAdapter = _create_adapter(self._driver)
         self._connected = False
         self._lock = asyncio.Lock()
         self._options = options
         self._in_transaction = False
+        self._last_activity: float = 0.0
+        self._connect_retries = int(options.pop("connect_retries", 3))
+        self._connect_retry_delay = float(options.pop("connect_retry_delay", 0.5))
 
     @staticmethod
     def _detect_driver(url: str) -> str:
@@ -105,19 +152,6 @@ class AquiliaDatabase:
                 reason=f"Unsupported database URL scheme: {url}",
             )
 
-    def _parse_sqlite_path(self) -> str:
-        """Extract file path from sqlite URL."""
-        # sqlite:///path → path
-        # sqlite:///:memory: → :memory:
-        prefix = "sqlite:///"
-        if self._url.startswith(prefix):
-            return self._url[len(prefix):]
-        prefix2 = "sqlite://"
-        if self._url.startswith(prefix2):
-            path = self._url[len(prefix2):]
-            return path if path else ":memory:"
-        return self._url.replace("sqlite:", "").lstrip("/")
-
     # ── Lifecycle hooks ──────────────────────────────────────────────
 
     async def on_startup(self) -> None:
@@ -131,7 +165,7 @@ class AquiliaDatabase:
     # ── Connection management ────────────────────────────────────────
 
     async def connect(self) -> None:
-        """Open database connection."""
+        """Open database connection with retry logic."""
         if self._connected:
             return
 
@@ -139,50 +173,29 @@ class AquiliaDatabase:
             if self._connected:
                 return
 
-            try:
-                if self._driver == "sqlite":
-                    if aiosqlite is None:
-                        raise DatabaseConnectionFault(
-                            url=self._url,
-                            reason=(
-                                "aiosqlite is required for SQLite support. "
-                                "Install it: pip install aiosqlite"
-                            ),
+            last_exc: Optional[Exception] = None
+            for attempt in range(1, self._connect_retries + 1):
+                try:
+                    await self._adapter.connect(self._url, **self._options)
+                    self._connected = True
+                    self._last_activity = time.monotonic()
+                    logger.info(f"Database connected ({self._driver}), attempt {attempt}")
+                    return
+                except (DatabaseConnectionFault, ImportError):
+                    raise
+                except Exception as exc:
+                    last_exc = exc
+                    if attempt < self._connect_retries:
+                        logger.warning(
+                            f"Connection attempt {attempt} failed: {exc}, "
+                            f"retrying in {self._connect_retry_delay}s..."
                         )
-                    db_path = self._parse_sqlite_path()
-                    self._connection = await aiosqlite.connect(db_path)
-                    # Enable WAL mode for better concurrent read performance
-                    await self._connection.execute("PRAGMA journal_mode=WAL")
-                    # Enable foreign keys
-                    await self._connection.execute("PRAGMA foreign_keys=ON")
-                    self._connection.row_factory = aiosqlite.Row
-                    logger.info(f"Connected to SQLite: {db_path}")
+                        await asyncio.sleep(self._connect_retry_delay)
 
-                elif self._driver == "postgresql":
-                    raise DatabaseConnectionFault(
-                        url=self._url,
-                        reason=(
-                            "PostgreSQL support planned but not yet implemented. "
-                            "Use SQLite for now."
-                        ),
-                    )
-                elif self._driver == "mysql":
-                    raise DatabaseConnectionFault(
-                        url=self._url,
-                        reason=(
-                            "MySQL support planned but not yet implemented. "
-                            "Use SQLite for now."
-                        ),
-                    )
-
-                self._connected = True
-            except DatabaseConnectionFault:
-                raise
-            except Exception as exc:
-                raise DatabaseConnectionFault(
-                    url=self._url,
-                    reason=str(exc),
-                ) from exc
+            raise DatabaseConnectionFault(
+                url=self._url,
+                reason=f"Failed after {self._connect_retries} attempts: {last_exc}",
+            )
 
     async def disconnect(self) -> None:
         """Close database connection."""
@@ -192,70 +205,91 @@ class AquiliaDatabase:
             if not self._connected:
                 return
             try:
-                if self._connection:
-                    await self._connection.close()
-                    self._connection = None
+                await self._adapter.disconnect()
                 self._connected = False
                 logger.info("Database disconnected")
             except Exception as exc:
+                self._connected = False
                 raise DatabaseConnectionFault(
                     url=self._url,
                     reason=f"Disconnect failed: {exc}",
                 ) from exc
+
+    async def ensure_connected(self) -> None:
+        """Ensure a live connection exists, reconnecting if needed."""
+        if not self._connected:
+            await self.connect()
+        elif not self._adapter.is_connected:
+            self._connected = False
+            await self.connect()
 
     @asynccontextmanager
     async def transaction(self) -> AsyncIterator[None]:
         """
         Async context manager for transactions.
 
+        Delegates to the backend adapter's transaction management.
+
         Usage:
             async with db.transaction():
                 await db.execute("INSERT INTO ...")
                 await db.execute("UPDATE ...")
         """
-        if not self._connected:
-            await self.connect()
+        await self.ensure_connected()
 
-        if self._driver == "sqlite":
-            # SQLite: use BEGIN/COMMIT/ROLLBACK
-            await self._connection.execute("BEGIN")
-            self._in_transaction = True
-            try:
-                yield
-                await self._connection.commit()
-            except Exception:
-                await self._connection.rollback()
-                raise
-            finally:
-                self._in_transaction = False
-        else:
-            # Future: PostgreSQL/MySQL transaction
+        await self._adapter.begin()
+        self._in_transaction = True
+        try:
             yield
+            await self._adapter.commit()
+        except Exception:
+            await self._adapter.rollback()
+            raise
+        finally:
+            self._in_transaction = False
+
+    async def savepoint(self, name: str) -> None:
+        """Create a named savepoint within a transaction."""
+        name = _sanitize_savepoint(name)
+        await self.ensure_connected()
+        await self._adapter.savepoint(name)
+
+    async def release_savepoint(self, name: str) -> None:
+        """Release (commit) a named savepoint."""
+        name = _sanitize_savepoint(name)
+        await self.ensure_connected()
+        await self._adapter.release_savepoint(name)
+
+    async def rollback_to_savepoint(self, name: str) -> None:
+        """Roll back to a named savepoint."""
+        name = _sanitize_savepoint(name)
+        await self.ensure_connected()
+        await self._adapter.rollback_to_savepoint(name)
+
+    # ── Query execution ──────────────────────────────────────────────
 
     async def execute(self, sql: str, params: Optional[Sequence[Any]] = None) -> Any:
         """
         Execute a SQL statement.
 
         Args:
-            sql: SQL query with ? placeholders
+            sql: SQL query with ? placeholders (auto-adapted per backend)
             params: Parameter values
 
         Returns:
-            Cursor for INSERT/UPDATE/DELETE (exposes lastrowid, rowcount)
+            Cursor-like object (exposes lastrowid, rowcount)
 
         Raises:
             QueryFault: When query execution fails
         """
-        if not self._connected:
-            await self.connect()
+        await self.ensure_connected()
 
         if params is None:
             params = []
         try:
-            cursor = await self._connection.execute(sql, params)
-            if not self._in_transaction:
-                await self._connection.commit()
-            return cursor
+            self._last_activity = time.monotonic()
+            result = await self._adapter.execute(sql, params)
+            return result
         except (DatabaseConnectionFault, QueryFault, SchemaFault):
             raise
         except Exception as exc:
@@ -268,12 +302,10 @@ class AquiliaDatabase:
 
     async def execute_many(self, sql: str, params_list: Sequence[Sequence[Any]]) -> None:
         """Execute a SQL statement with multiple parameter sets."""
-        if not self._connected:
-            await self.connect()
+        await self.ensure_connected()
         try:
-            await self._connection.executemany(sql, params_list)
-            if not self._in_transaction:
-                await self._connection.commit()
+            self._last_activity = time.monotonic()
+            await self._adapter.execute_many(sql, params_list)
         except (DatabaseConnectionFault, QueryFault, SchemaFault):
             raise
         except Exception as exc:
@@ -291,7 +323,7 @@ class AquiliaDatabase:
         Execute query and return all rows as dicts.
 
         Args:
-            sql: SELECT query
+            sql: SELECT query with ? placeholders
             params: Parameter values
 
         Returns:
@@ -300,21 +332,13 @@ class AquiliaDatabase:
         Raises:
             QueryFault: When query execution fails
         """
-        if not self._connected:
-            await self.connect()
+        await self.ensure_connected()
 
         if params is None:
             params = []
         try:
-            cursor = await self._connection.execute(sql, params)
-            rows = await cursor.fetchall()
-            if rows and hasattr(rows[0], "keys"):
-                return [dict(row) for row in rows]
-            # Fallback: use cursor.description
-            if cursor.description and rows:
-                cols = [d[0] for d in cursor.description]
-                return [dict(zip(cols, row)) for row in rows]
-            return []
+            self._last_activity = time.monotonic()
+            return await self._adapter.fetch_all(sql, params)
         except (DatabaseConnectionFault, QueryFault, SchemaFault):
             raise
         except Exception as exc:
@@ -334,22 +358,13 @@ class AquiliaDatabase:
         Raises:
             QueryFault: When query execution fails
         """
-        if not self._connected:
-            await self.connect()
+        await self.ensure_connected()
 
         if params is None:
             params = []
         try:
-            cursor = await self._connection.execute(sql, params)
-            row = await cursor.fetchone()
-            if row is None:
-                return None
-            if hasattr(row, "keys"):
-                return dict(row)
-            if cursor.description:
-                cols = [d[0] for d in cursor.description]
-                return dict(zip(cols, row))
-            return None
+            self._last_activity = time.monotonic()
+            return await self._adapter.fetch_one(sql, params)
         except (DatabaseConnectionFault, QueryFault, SchemaFault):
             raise
         except Exception as exc:
@@ -369,19 +384,13 @@ class AquiliaDatabase:
         Raises:
             QueryFault: When query execution fails
         """
-        if not self._connected:
-            await self.connect()
+        await self.ensure_connected()
 
         if params is None:
             params = []
         try:
-            cursor = await self._connection.execute(sql, params)
-            row = await cursor.fetchone()
-            if row is None:
-                return None
-            if isinstance(row, dict):
-                return next(iter(row.values()))
-            return row[0]
+            self._last_activity = time.monotonic()
+            return await self._adapter.fetch_val(sql, params)
         except (DatabaseConnectionFault, QueryFault, SchemaFault):
             raise
         except Exception as exc:
@@ -392,19 +401,28 @@ class AquiliaDatabase:
                 metadata={"sql": sql[:200]},
             ) from exc
 
+    # ── Introspection (delegated to adapter) ─────────────────────────
+
     async def table_exists(self, table_name: str) -> bool:
-        """Check if a table exists."""
-        if self._driver == "sqlite":
-            row = await self.fetch_one(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-                [table_name],
-            )
-            return row is not None
-        return False
+        """Check if a table exists in the database."""
+        await self.ensure_connected()
+        return await self._adapter.table_exists(table_name)
+
+    async def get_tables(self) -> List[str]:
+        """List all table names in the database."""
+        await self.ensure_connected()
+        return await self._adapter.get_tables()
+
+    async def get_columns(self, table_name: str) -> List[ColumnInfo]:
+        """Get column metadata for a table."""
+        await self.ensure_connected()
+        return await self._adapter.get_columns(table_name)
+
+    # ── Properties ───────────────────────────────────────────────────
 
     @property
     def is_connected(self) -> bool:
-        return self._connected
+        return self._connected and self._adapter.is_connected
 
     @property
     def url(self) -> str:
@@ -414,14 +432,53 @@ class AquiliaDatabase:
     def driver(self) -> str:
         return self._driver
 
+    @property
+    def dialect(self) -> str:
+        """Return the SQL dialect name (sqlite, postgresql, mysql)."""
+        return self._adapter.dialect
+
+    @property
+    def capabilities(self) -> AdapterCapabilities:
+        """Return backend capabilities."""
+        return self._adapter.capabilities
+
+    @property
+    def adapter(self) -> DatabaseAdapter:
+        """Direct access to the underlying adapter (advanced use)."""
+        return self._adapter
+
+    @property
+    def in_transaction(self) -> bool:
+        return self._in_transaction
+
 
 # ── Module-level singleton accessor ─────────────────────────────────────────
 
 _default_database: Optional[AquiliaDatabase] = None
+_database_registry: Dict[str, AquiliaDatabase] = {}
 
 
-def get_database() -> AquiliaDatabase:
-    """Get the default database instance."""
+def get_database(alias: Optional[str] = None) -> AquiliaDatabase:
+    """
+    Get a database instance by alias, or the default.
+
+    Args:
+        alias: Optional database alias for multi-database setups.
+               Use "default" or None for the primary database.
+
+    Raises:
+        DatabaseConnectionFault: If no database is configured.
+    """
+    if alias and alias != "default":
+        db = _database_registry.get(alias)
+        if db is None:
+            raise DatabaseConnectionFault(
+                url=f"<alias:{alias}>",
+                reason=f"No database configured with alias '{alias}'. "
+                       f"Available: {list(_database_registry.keys())}",
+            )
+        return db
+
     global _default_database
     if _default_database is None:
         raise DatabaseConnectionFault(
@@ -434,23 +491,41 @@ def get_database() -> AquiliaDatabase:
     return _default_database
 
 
-def configure_database(url: str = "sqlite:///db.sqlite3", **options: Any) -> AquiliaDatabase:
+def configure_database(
+    url: str = "sqlite:///db.sqlite3",
+    *,
+    alias: str = "default",
+    **options: Any,
+) -> AquiliaDatabase:
     """
-    Configure and return the default database.
+    Configure and return a database instance.
 
     Args:
         url: Database connection URL
+        alias: Database alias for multi-database setups (default "default")
         **options: Driver-specific options
 
     Returns:
         AquiliaDatabase instance
     """
-    global _default_database
-    _default_database = AquiliaDatabase(url, **options)
-    return _default_database
+    db = AquiliaDatabase(url, **options)
+    _database_registry[alias] = db
+
+    if alias == "default":
+        global _default_database
+        _default_database = db
+
+    return db
 
 
-def set_database(db: AquiliaDatabase) -> None:
-    """Set an externally-created database as the default."""
-    global _default_database
-    _default_database = db
+def set_database(db: AquiliaDatabase, *, alias: str = "default") -> None:
+    """Set an externally-created database as the default or by alias."""
+    _database_registry[alias] = db
+    if alias == "default":
+        global _default_database
+        _default_database = db
+
+
+def get_all_databases() -> Dict[str, AquiliaDatabase]:
+    """Return all configured database instances."""
+    return dict(_database_registry)
