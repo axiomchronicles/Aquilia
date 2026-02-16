@@ -72,6 +72,9 @@ class TraceDiagnostics:
         # Mail service
         data["mail"] = self._capture_mail(server)
 
+        # Cache subsystem
+        data["cache"] = self._capture_cache(server)
+
         # Database
         data["database"] = self._capture_database(server)
 
@@ -214,6 +217,29 @@ class TraceDiagnostics:
         }
 
     @staticmethod
+    def _capture_cache(server: Any) -> Dict[str, Any]:
+        """Capture cache subsystem status and statistics."""
+        svc = getattr(server, "_cache_service", None)
+        if svc is None:
+            return {"active": False}
+        result: Dict[str, Any] = {
+            "active": True,
+            "service": type(svc).__name__,
+        }
+        try:
+            backend = getattr(svc, "_backend", None) or getattr(svc, "backend", None)
+            if backend is not None:
+                result["backend"] = type(backend).__name__
+            config = getattr(svc, "_config", None) or getattr(svc, "config", None)
+            if config is not None:
+                result["default_ttl"] = getattr(config, "default_ttl", None)
+                result["max_size"] = getattr(config, "max_size", None)
+                result["eviction_policy"] = str(getattr(config, "eviction_policy", "unknown"))
+        except Exception:
+            pass
+        return result
+
+    @staticmethod
     def _capture_database(server: Any) -> Dict[str, Any]:
         """Capture database connection status."""
         db = getattr(server, "_amdl_database", None)
@@ -267,6 +293,9 @@ class TraceDiagnostics:
     def mail(self) -> Dict[str, Any]:
         return self.read().get("mail", {})
 
+    def cache(self) -> Dict[str, Any]:
+        return self.read().get("cache", {})
+
     def database(self) -> Dict[str, Any]:
         return self.read().get("database", {})
 
@@ -289,5 +318,5 @@ class TraceDiagnostics:
             return {}
         return {
             key: data.get(key, {}).get("active", False)
-            for key in ("faults", "websockets", "effects", "sessions", "auth", "templates", "mail", "database")
+            for key in ("faults", "websockets", "effects", "sessions", "auth", "templates", "mail", "cache", "database")
         }

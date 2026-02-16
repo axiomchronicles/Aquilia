@@ -144,24 +144,64 @@ class DBTxProvider(EffectProvider):
 
 
 class CacheProvider(EffectProvider):
-    """Example cache provider."""
-    
-    def __init__(self, backend: str = "memory"):
+    """
+    Cache effect provider backed by the real CacheService.
+
+    If a :class:`~aquilia.cache.service.CacheService` is provided it is used
+    for all acquire/release operations; otherwise falls back to a simple
+    in-memory dict (useful in tests or when the cache subsystem is disabled).
+    """
+
+    def __init__(self, backend: str = "memory", *, cache_service: Any = None):
         self.backend = backend
-        self.cache = {}
-    
+        self._svc = cache_service  # Optional CacheService
+        self._fallback: dict = {}
+
     async def initialize(self):
         """Initialize cache backend."""
-        pass
-    
+        if self._svc is not None:
+            try:
+                await self._svc.initialize()
+            except Exception:
+                pass  # CacheService.initialize is idempotent
+
     async def acquire(self, mode: Optional[str] = None):
-        """Get cache instance for namespace."""
+        """Get cache handle for namespace."""
         namespace = mode or "default"
-        return CacheHandle(self.cache, namespace)
-    
+        if self._svc is not None:
+            return CacheServiceHandle(self._svc, namespace)
+        return CacheHandle(self._fallback, namespace)
+
     async def release(self, resource: Any, success: bool = True):
         """Nothing to release for cache."""
         pass
+
+    async def finalize(self):
+        """Shutdown underlying cache service."""
+        if self._svc is not None:
+            try:
+                await self._svc.shutdown()
+            except Exception:
+                pass
+
+
+class CacheServiceHandle:
+    """Handle wrapping real CacheService for a given namespace."""
+
+    __slots__ = ("_svc", "_ns")
+
+    def __init__(self, svc: Any, namespace: str):
+        self._svc = svc
+        self._ns = namespace
+
+    async def get(self, key: str) -> Optional[Any]:
+        return await self._svc.get(key, namespace=self._ns)
+
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None):
+        await self._svc.set(key, value, ttl=ttl, namespace=self._ns)
+
+    async def delete(self, key: str):
+        await self._svc.delete(key, namespace=self._ns)
 
 
 class CacheHandle:

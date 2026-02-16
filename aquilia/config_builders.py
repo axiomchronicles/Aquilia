@@ -592,6 +592,92 @@ class Integration:
             return cls.Builder()
 
     @staticmethod
+    def cache(
+        backend: str = "memory",
+        default_ttl: int = 300,
+        max_size: int = 10000,
+        eviction_policy: str = "lru",
+        namespace: str = "default",
+        key_prefix: str = "aq:",
+        serializer: str = "json",
+        redis_url: str = "redis://localhost:6379/0",
+        redis_max_connections: int = 10,
+        l1_max_size: int = 1000,
+        l1_ttl: int = 60,
+        l2_backend: str = "redis",
+        middleware_enabled: bool = False,
+        middleware_default_ttl: int = 60,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure the caching subsystem.
+
+        Supports memory (LRU/LFU), Redis, composite (L1+L2), and null
+        backends with pluggable serialization and middleware.
+
+        Args:
+            backend: Backend type — ``"memory"``, ``"redis"``,
+                     ``"composite"``, or ``"null"``.
+            default_ttl: Default time-to-live in seconds.
+            max_size: Maximum entries for memory backend.
+            eviction_policy: ``"lru"``, ``"lfu"``, ``"fifo"``, ``"ttl"``,
+                             or ``"random"``.
+            namespace: Default namespace for key isolation.
+            key_prefix: Global key prefix.
+            serializer: ``"json"``, ``"pickle"``, or ``"msgpack"``.
+            redis_url: Redis connection URL.
+            redis_max_connections: Redis connection pool size.
+            l1_max_size: L1 (memory) size for composite backend.
+            l1_ttl: L1 TTL for composite backend.
+            l2_backend: L2 backend for composite (``"redis"``).
+            middleware_enabled: Enable HTTP response caching middleware.
+            middleware_default_ttl: Response cache TTL.
+            **kwargs: Additional overrides.
+
+        Returns:
+            Cache configuration dictionary.
+
+        Examples::
+
+            # Simple in-memory LRU cache
+            .integrate(Integration.cache())
+
+            # Redis backend
+            .integrate(Integration.cache(
+                backend="redis",
+                redis_url="redis://cache.internal:6379/0",
+                default_ttl=600,
+            ))
+
+            # Two-level composite cache
+            .integrate(Integration.cache(
+                backend="composite",
+                l1_max_size=500,
+                l1_ttl=30,
+                redis_url="redis://localhost:6379/0",
+            ))
+        """
+        return {
+            "_integration_type": "cache",
+            "enabled": True,
+            "backend": backend,
+            "default_ttl": default_ttl,
+            "max_size": max_size,
+            "eviction_policy": eviction_policy,
+            "namespace": namespace,
+            "key_prefix": key_prefix,
+            "serializer": serializer,
+            "redis_url": redis_url,
+            "redis_max_connections": redis_max_connections,
+            "l1_max_size": l1_max_size,
+            "l1_ttl": l1_ttl,
+            "l2_backend": l2_backend,
+            "middleware_enabled": middleware_enabled,
+            "middleware_default_ttl": middleware_default_ttl,
+            **kwargs,
+        }
+
+    @staticmethod
     def patterns(**kwargs) -> Dict[str, Any]:
         """Configure patterns."""
         return {
@@ -889,6 +975,156 @@ class Integration:
         }
 
     @staticmethod
+    def csrf(
+        secret_key: str = "",
+        token_length: int = 32,
+        header_name: str = "X-CSRF-Token",
+        field_name: str = "_csrf_token",
+        cookie_name: str = "_csrf_cookie",
+        cookie_path: str = "/",
+        cookie_domain: Optional[str] = None,
+        cookie_secure: bool = True,
+        cookie_samesite: str = "Lax",
+        cookie_httponly: bool = False,
+        cookie_max_age: int = 3600,
+        safe_methods: Optional[List[str]] = None,
+        exempt_paths: Optional[List[str]] = None,
+        exempt_content_types: Optional[List[str]] = None,
+        trust_ajax: bool = True,
+        rotate_token: bool = False,
+        failure_status: int = 403,
+        enabled: bool = True,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure CSRF (Cross-Site Request Forgery) protection integration.
+
+        Produces a config dict consumed by ``CSRFMiddleware`` in
+        ``aquilia.middleware_ext.security``.
+
+        Args:
+            secret_key: HMAC key for cookie-based token signing.
+            token_length: Length of generated CSRF tokens in bytes.
+            header_name: HTTP header name for token submission.
+            field_name: Form field name for token submission.
+            cookie_name: Cookie name for double-submit fallback.
+            cookie_path: Cookie path attribute.
+            cookie_domain: Cookie domain attribute (None = current domain).
+            cookie_secure: Set Secure flag on cookie.
+            cookie_samesite: SameSite attribute (Strict, Lax, None).
+            cookie_httponly: Set HttpOnly flag on cookie.
+            cookie_max_age: Cookie max-age in seconds.
+            safe_methods: HTTP methods that skip CSRF validation.
+            exempt_paths: URL paths exempt from CSRF checks.
+            exempt_content_types: Content types exempt from CSRF checks.
+            trust_ajax: Trust X-Requested-With header for AJAX requests.
+            rotate_token: Generate new token after each successful validation.
+            failure_status: HTTP status code returned on CSRF failure.
+            enabled: Enable/disable CSRF protection.
+            **kwargs: Extra config passed through.
+
+        Returns:
+            Config dict with ``_integration_type: "csrf"``.
+
+        Example::
+
+            app = Aquilia(
+                integrations=[Integration.csrf(
+                    secret_key="my-secret-key",
+                    exempt_paths=["/api/webhooks", "/health"],
+                    cookie_secure=True,
+                    cookie_samesite="Strict",
+                )]
+            )
+        """
+        return {
+            "_integration_type": "csrf",
+            "enabled": enabled,
+            "secret_key": secret_key,
+            "token_length": token_length,
+            "header_name": header_name,
+            "field_name": field_name,
+            "cookie_name": cookie_name,
+            "cookie_path": cookie_path,
+            "cookie_domain": cookie_domain,
+            "cookie_secure": cookie_secure,
+            "cookie_samesite": cookie_samesite,
+            "cookie_httponly": cookie_httponly,
+            "cookie_max_age": cookie_max_age,
+            "safe_methods": safe_methods or ["GET", "HEAD", "OPTIONS", "TRACE"],
+            "exempt_paths": exempt_paths or [],
+            "exempt_content_types": exempt_content_types or [],
+            "trust_ajax": trust_ajax,
+            "rotate_token": rotate_token,
+            "failure_status": failure_status,
+            **kwargs,
+        }
+
+    @staticmethod
+    def logging(
+        format: str = "%(method)s %(path)s %(status)s %(duration_ms).1fms",
+        level: str = "INFO",
+        slow_threshold_ms: float = 1000.0,
+        skip_paths: Optional[List[str]] = None,
+        include_headers: bool = False,
+        include_query: bool = True,
+        include_user_agent: bool = False,
+        log_request_body: bool = False,
+        log_response_body: bool = False,
+        colorize: bool = True,
+        enabled: bool = True,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Configure request/response logging integration.
+
+        Produces a config dict consumed by ``LoggingMiddleware`` in
+        ``aquilia.middleware_ext.logging``.
+
+        Args:
+            format: Log message format string.
+            level: Default log level for normal requests.
+            slow_threshold_ms: Threshold (ms) above which requests are flagged slow.
+            skip_paths: URL paths to skip logging for (e.g. health checks).
+            include_headers: Include request headers in log output.
+            include_query: Include query string in log output.
+            include_user_agent: Include User-Agent header in log output.
+            log_request_body: Log request body (use with caution).
+            log_response_body: Log response body (use with caution).
+            colorize: Colorize log output (for development).
+            enabled: Enable/disable request logging.
+            **kwargs: Extra config passed through.
+
+        Returns:
+            Config dict with ``_integration_type: "logging"``.
+
+        Example::
+
+            app = Aquilia(
+                integrations=[Integration.logging(
+                    slow_threshold_ms=500,
+                    skip_paths=["/health", "/metrics"],
+                    include_headers=True,
+                )]
+            )
+        """
+        return {
+            "_integration_type": "logging",
+            "enabled": enabled,
+            "format": format,
+            "level": level,
+            "slow_threshold_ms": slow_threshold_ms,
+            "skip_paths": skip_paths or ["/health", "/healthz", "/ready", "/metrics"],
+            "include_headers": include_headers,
+            "include_query": include_query,
+            "include_user_agent": include_user_agent,
+            "log_request_body": log_request_body,
+            "log_response_body": log_response_body,
+            "colorize": colorize,
+            **kwargs,
+        }
+
+    @staticmethod
     def mail(
         default_from: str = "noreply@localhost",
         default_reply_to: Optional[str] = None,
@@ -1161,6 +1397,7 @@ class Workspace:
         self._database_config: Optional[Dict[str, Any]] = None
         self._mail_config: Optional[Dict[str, Any]] = None
         self._mlops_config: Optional[Dict[str, Any]] = None
+        self._cache_config: Optional[Dict[str, Any]] = None
     
     def runtime(
         self,
@@ -1216,6 +1453,9 @@ class Workspace:
             elif integration_type == "mlops":
                 self._integrations["mlops"] = integration
                 self._mlops_config = integration
+            elif integration_type == "cache":
+                self._integrations["cache"] = integration
+                self._cache_config = integration
             return self
 
         # Determine integration type from keys (legacy detection)
@@ -1467,6 +1707,9 @@ class Workspace:
         if self._mlops_config:
             config["mlops"] = self._mlops_config
             config["integrations"]["mlops"] = self._mlops_config
+        if self._cache_config:
+            config["cache"] = self._cache_config
+            config["integrations"]["cache"] = self._cache_config
         
         return config
     

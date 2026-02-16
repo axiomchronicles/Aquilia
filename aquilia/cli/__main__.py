@@ -711,6 +711,90 @@ def mail_inspect(ctx):
 
 
 # ============================================================================
+# Cache
+# ============================================================================
+
+@cli.group()
+def cache():
+    """AquilaCache commands — check, inspect, clear, and view cache stats."""
+    pass
+
+
+@cache.command('check')
+@click.pass_context
+def cache_check(ctx):
+    """
+    Validate cache configuration and test backend connectivity.
+
+    Examples:
+      aq cache check
+    """
+    from .commands.cache import cmd_cache_check
+
+    try:
+        cmd_cache_check(verbose=ctx.obj['verbose'])
+    except Exception as e:
+        error(f"✗ cache check failed: {e}")
+        sys.exit(1)
+
+
+@cache.command('inspect')
+@click.pass_context
+def cache_inspect(ctx):
+    """
+    Display current cache configuration as JSON.
+
+    Examples:
+      aq cache inspect
+    """
+    from .commands.cache import cmd_cache_inspect
+
+    try:
+        cmd_cache_inspect(verbose=ctx.obj['verbose'])
+    except Exception as e:
+        error(f"✗ cache inspect failed: {e}")
+        sys.exit(1)
+
+
+@cache.command('stats')
+@click.pass_context
+def cache_stats(ctx):
+    """
+    Display cache statistics from trace diagnostics.
+
+    Examples:
+      aq cache stats
+    """
+    from .commands.cache import cmd_cache_stats
+
+    try:
+        cmd_cache_stats(verbose=ctx.obj['verbose'])
+    except Exception as e:
+        error(f"✗ cache stats failed: {e}")
+        sys.exit(1)
+
+
+@cache.command('clear')
+@click.option('--namespace', '-n', type=str, default=None, help='Clear only this namespace')
+@click.pass_context
+def cache_clear(ctx, namespace: Optional[str]):
+    """
+    Clear all or namespace-scoped cache entries.
+
+    Examples:
+      aq cache clear
+      aq cache clear --namespace http
+    """
+    from .commands.cache import cmd_cache_clear
+
+    try:
+        cmd_cache_clear(namespace=namespace, verbose=ctx.obj['verbose'])
+    except Exception as e:
+        error(f"✗ cache clear failed: {e}")
+        sys.exit(1)
+
+
+# ============================================================================
 # Database / Models
 # ============================================================================
 

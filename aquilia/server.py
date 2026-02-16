@@ -449,6 +449,9 @@ class AquiliaServer:
         # ── Mail subsystem ───────────────────────────────────────────────
         self._setup_mail()
 
+        # ── Cache subsystem ──────────────────────────────────────────────
+        self._setup_cache()
+
         # ── Security & Infrastructure Middleware ──────────────────────────
         self._setup_security_middleware()
 
@@ -637,6 +640,7 @@ class AquiliaServer:
             7  - SecurityHeadersMiddleware (helmet)
             8  - HSTSMiddleware
             9  - CSPMiddleware
+            10 - CSRFMiddleware  (after session, before route handlers)
             11 - CORSMiddleware
             12 - RateLimitMiddleware
         """
@@ -777,6 +781,38 @@ class AquiliaServer:
             self.middleware_stack.add(mw, scope="global", priority=11, name="cors")
             self.logger.info("🌐 CORS middleware enabled")
 
+        # ── CSRF Protection (priority 10) ────────────────────────────────
+        # Must run AFTER session middleware (priority 15) so session is available,
+        # but BEFORE route handlers. Priority 10 places it between CSP and CORS.
+        if security_config.get("csrf_protection"):
+            from .middleware_ext.security import CSRFMiddleware, csrf_token_func as _csrf_token_func
+            csrf_cfg = security_config.get("csrf_config", {})
+            if isinstance(csrf_cfg, bool):
+                csrf_cfg = {}
+            mw = CSRFMiddleware(
+                secret_key=csrf_cfg.get("secret_key"),
+                token_length=csrf_cfg.get("token_length", 32),
+                header_name=csrf_cfg.get("header_name", "X-CSRF-Token"),
+                field_name=csrf_cfg.get("field_name", "_csrf_token"),
+                cookie_name=csrf_cfg.get("cookie_name", "_csrf_cookie"),
+                cookie_path=csrf_cfg.get("cookie_path", "/"),
+                cookie_domain=csrf_cfg.get("cookie_domain"),
+                cookie_secure=csrf_cfg.get("cookie_secure", False),
+                cookie_samesite=csrf_cfg.get("cookie_samesite", "Lax"),
+                cookie_httponly=csrf_cfg.get("cookie_httponly", False),
+                cookie_max_age=csrf_cfg.get("cookie_max_age", 3600),
+                exempt_paths=csrf_cfg.get("exempt_paths"),
+                exempt_content_types=csrf_cfg.get("exempt_content_types"),
+                trust_ajax=csrf_cfg.get("trust_ajax", True),
+                rotate_token=csrf_cfg.get("rotate_token", False),
+                failure_status=csrf_cfg.get("failure_status", 403),
+            )
+            self.middleware_stack.add(mw, scope="global", priority=10, name="csrf")
+            self.logger.info("🛡️ CSRF protection middleware enabled")
+
+            # Wire CSRF token function into TemplateMiddleware if present
+            self._csrf_token_func = _csrf_token_func
+
         # ── Rate Limiting (priority 12) ──────────────────────────────────
         rl_config = security_config.get("rate_limit") or integrations.get("rate_limit", {})
         if security_config.get("rate_limiting") or (rl_config and rl_config.get("enabled")):
@@ -873,6 +909,72 @@ class AquiliaServer:
             f"providers={len(svc.config.providers)}, "
             f"console={svc.config.console_backend})"
         )
+
+    def _setup_cache(self):
+        """
+        Initialize cache subsystem from workspace config.
+
+        Reads ``Integration.cache()`` configuration, creates the appropriate
+        :class:`CacheBackend` and wraps it in a :class:`CacheService`, then
+        registers both in every DI container so controllers / services can
+        inject ``CacheService`` or ``CacheBackend``.
+
+        If cache middleware is enabled the ``CacheMiddleware`` layer is pushed
+        onto the middleware stack (priority 26, right after templates).
+
+        Actual backend connections (e.g. Redis ``ping``) happen lazily or
+        during :meth:`startup` where ``CacheService.initialize()`` is called.
+        """
+        cache_config = self.config.get_cache_config()
+        if not cache_config.get("enabled", False):
+            self._cache_service = None
+            self.logger.debug("Cache subsystem disabled")
+            return
+
+        self.logger.info("🗄️  Initializing cache subsystem...")
+
+        try:
+            from .cache.di_providers import (
+                build_cache_config,
+                create_cache_service,
+                register_cache_providers,
+            )
+
+            config_obj = build_cache_config(cache_config)
+            svc = create_cache_service(config_obj)
+
+            # Register in every DI container
+            for container in self.runtime.di_containers.values():
+                register_cache_providers(container, svc)
+
+            self._cache_service = svc
+
+            # Optionally add HTTP response-cache middleware
+            mw_cfg = cache_config.get("middleware", {})
+            if mw_cfg.get("enabled", False):
+                from .cache.middleware import CacheMiddleware
+
+                self.middleware_stack.add(
+                    CacheMiddleware(
+                        cache_service=svc,
+                        ttl=mw_cfg.get("ttl", 300),
+                        namespace=mw_cfg.get("namespace", "http"),
+                    ),
+                    scope="global",
+                    priority=26,
+                    name="cache",
+                )
+                self.logger.info("🗄️  Cache middleware enabled")
+
+            backend_name = cache_config.get("backend", "memory")
+            self.logger.info(
+                f"🗄️  Cache configured (backend={backend_name}, "
+                f"default_ttl={config_obj.default_ttl}s, "
+                f"max_size={config_obj.max_size})"
+            )
+        except Exception as e:
+            self._cache_service = None
+            self.logger.error(f"Cache subsystem init failed (non-fatal): {e}", exc_info=True)
 
     def _create_session_engine(self, session_config: dict):
         """
@@ -1981,6 +2083,25 @@ class AquiliaServer:
                 detail="none",
             )
         
+        # Step 3.6: Initialize cache subsystem (connect backend)
+        if hasattr(self, '_cache_service') and self._cache_service is not None:
+            _t0 = _time.monotonic()
+            try:
+                await self._cache_service.initialize()
+                self.logger.info("🗄️  Cache backend connected")
+                self.trace.journal.record_phase(
+                    "cache_started",
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
+            except Exception as e:
+                self.logger.error(f"Cache startup failed: {e}")
+                self.trace.journal.record_phase(
+                    "cache_started",
+                    error=str(e),
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
+                # Non-fatal — app can run without cache
+
         # Step 4: Log registered routes
         routes = self.controller_router.get_routes()
         if routes:
@@ -2055,6 +2176,24 @@ class AquiliaServer:
                 self.logger.warning(f"Error shutting down mail subsystem: {e}")
                 self.trace.journal.record_phase(
                     "mail_shutdown",
+                    error=str(e),
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
+
+        # Shutdown cache subsystem
+        if hasattr(self, '_cache_service') and self._cache_service is not None:
+            _t0 = _time.monotonic()
+            try:
+                await self._cache_service.shutdown()
+                self.logger.info("🗄️  Cache subsystem shut down")
+                self.trace.journal.record_phase(
+                    "cache_shutdown",
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
+            except Exception as e:
+                self.logger.warning(f"Error shutting down cache subsystem: {e}")
+                self.trace.journal.record_phase(
+                    "cache_shutdown",
                     error=str(e),
                     duration_ms=(_time.monotonic() - _t0) * 1000,
                 )

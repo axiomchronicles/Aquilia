@@ -72,6 +72,14 @@ from .domains import (
     SerializerValidationFault,
     SerializerFieldFault,
     SerializerConfigFault,
+    # Security faults
+    SecurityFault,
+    AuthenticationFault,
+    AuthorizationFault,
+    CSRFViolationFault,
+    CORSViolationFault,
+    RateLimitExceededFault,
+    CSPViolationFault,
 )
 
 __all__ = [
@@ -117,4 +125,13 @@ __all__ = [
     "SerializerValidationFault",
     "SerializerFieldFault",
     "SerializerConfigFault",
+    
+    # Security faults
+    "SecurityFault",
+    "AuthenticationFault",
+    "AuthorizationFault",
+    "CSRFViolationFault",
+    "CORSViolationFault",
+    "RateLimitExceededFault",
+    "CSPViolationFault",
 ]

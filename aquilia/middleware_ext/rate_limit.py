@@ -23,7 +23,6 @@ from __future__ import annotations
 import math
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
 from typing import (
     Any,
     Awaitable,
@@ -37,6 +36,7 @@ from typing import (
 
 from aquilia.request import Request
 from aquilia.response import Response
+from aquilia.faults.domains import RateLimitExceededFault
 
 if TYPE_CHECKING:
     from aquilia.controller.base import RequestCtx
@@ -258,10 +258,14 @@ class _BucketStore:
 
 # ─── Rate Limit Configuration ────────────────────────────────────────────────
 
-@dataclass
 class RateLimitRule:
     """
     A single rate-limit rule.
+
+    Ecosystem Integration:
+    - Configurable via Integration.rate_limit() config builder
+    - RateLimitExceededFault raised through Aquilia fault system
+    - Key extractors integrate with DI (user identity) and ProxyFixMiddleware (client IP)
 
     Attributes:
         limit: Maximum requests per window.
@@ -274,13 +278,25 @@ class RateLimitRule:
         methods: HTTP methods this rule applies to (empty = all).
     """
 
-    limit: int = 100
-    window: float = 60.0
-    algorithm: str = "sliding_window"
-    key_func: Callable[[Request], Optional[str]] = field(default_factory=lambda: ip_key_extractor)
-    burst: Optional[int] = None
-    scope: str = "*"
-    methods: List[str] = field(default_factory=list)
+    __slots__ = ("limit", "window", "algorithm", "key_func", "burst", "scope", "methods")
+
+    def __init__(
+        self,
+        limit: int = 100,
+        window: float = 60.0,
+        algorithm: str = "sliding_window",
+        key_func: Optional[Callable[[Request], Optional[str]]] = None,
+        burst: Optional[int] = None,
+        scope: str = "*",
+        methods: Optional[List[str]] = None,
+    ):
+        self.limit = limit
+        self.window = window
+        self.algorithm = algorithm
+        self.key_func = key_func or ip_key_extractor
+        self.burst = burst
+        self.scope = scope
+        self.methods = methods or []
 
     def matches(self, request: Request) -> bool:
         """Check if this rule applies to the given request."""
@@ -407,31 +423,46 @@ class RateLimitMiddleware:
     def _rate_limited_response(
         self, rule: RateLimitRule, bucket: Any, retry_after: float
     ) -> Response:
+        # Create a RateLimitExceededFault for ecosystem integration.
+        # The fault is attached to the response but NOT raised — the middleware
+        # returns a 429 response directly to avoid interrupting the pipeline.
+        fault = RateLimitExceededFault(
+            limit=rule.limit,
+            window=rule.window,
+            retry_after=retry_after,
+        )
+
         headers = {
             "retry-after": str(int(math.ceil(retry_after))),
             "x-ratelimit-limit": str(rule.limit),
             "x-ratelimit-remaining": "0",
+            "x-fault-code": fault.code,
         }
 
         if hasattr(bucket, "reset_time"):
             headers["x-ratelimit-reset"] = str(int(bucket.reset_time))
 
         if self._response_format == "json":
-            return Response.json(
+            resp = Response.json(
                 {
                     "error": "Too Many Requests",
-                    "message": f"Rate limit exceeded. Try again in {int(retry_after)} seconds.",
+                    "code": fault.code,
+                    "message": fault.message,
                     "retry_after": int(math.ceil(retry_after)),
                 },
                 status=429,
                 headers=headers,
             )
         else:
-            return Response(
+            resp = Response(
                 b"Rate limit exceeded",
                 status=429,
                 headers={**headers, "content-type": "text/plain"},
             )
+
+        # Attach fault to response for observability / fault-engine integration
+        resp._fault = fault
+        return resp
 
     def _apply_headers(
         self, response: Response, rule: RateLimitRule, bucket: Any

@@ -101,6 +101,9 @@ class TemplateMiddleware:
         
         if self.csrf_token_func:
             request.state["template_csrf_token"] = self.csrf_token_func(request)
+        elif request.state.get("csrf_token"):
+            # Auto-detect: CSRFMiddleware already injected the token
+            request.state["template_csrf_token"] = request.state["csrf_token"]
         
         # Call next middleware/handler
         response = await next_handler(request, ctx)

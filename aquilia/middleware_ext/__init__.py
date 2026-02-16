@@ -11,6 +11,7 @@ Core:
 Security:
 - CORSMiddleware: Full RFC 6454/7231 CORS with regex/glob origin matching
 - CSPMiddleware: Content-Security-Policy with per-request nonce
+- CSRFMiddleware: Cross-Site Request Forgery protection (Synchronizer Token + Double Submit Cookie)
 - HSTSMiddleware: HTTP Strict Transport Security
 - HTTPSRedirectMiddleware: Force HTTPS with configurable exemptions
 - ProxyFixMiddleware: Trusted-proxy X-Forwarded-* header correction
@@ -32,10 +33,14 @@ from .security import (
     CORSMiddleware,
     CSPMiddleware,
     CSPPolicy,
+    CSRFError,
+    CSRFMiddleware,
     HSTSMiddleware,
     HTTPSRedirectMiddleware,
     ProxyFixMiddleware,
     SecurityHeadersMiddleware,
+    csrf_exempt,
+    csrf_token_func,
 )
 from .rate_limit import (
     RateLimitMiddleware,
@@ -61,10 +66,14 @@ __all__ = [
     "CORSMiddleware",
     "CSPMiddleware",
     "CSPPolicy",
+    "CSRFError",
+    "CSRFMiddleware",
     "HSTSMiddleware",
     "HTTPSRedirectMiddleware",
     "ProxyFixMiddleware",
     "SecurityHeadersMiddleware",
+    "csrf_exempt",
+    "csrf_token_func",
     # Rate Limiting
     "RateLimitMiddleware",
     "RateLimitRule",

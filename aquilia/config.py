@@ -601,6 +601,53 @@ class ConfigLoader:
 
         return merged
 
+    def get_cache_config(self) -> dict:
+        """
+        Get cache configuration with defaults.
+
+        Returns:
+            Cache configuration dictionary
+        """
+        default_cache_config = {
+            "enabled": False,
+            "backend": "memory",
+            "default_ttl": 300,
+            "max_size": 10000,
+            "eviction_policy": "lru",
+            "namespace": "default",
+            "key_prefix": "aq:",
+            "serializer": "json",
+            "redis_url": "redis://localhost:6379/0",
+            "redis_max_connections": 10,
+            "redis_socket_timeout": 5.0,
+            "redis_socket_connect_timeout": 5.0,
+            "redis_retry_on_timeout": True,
+            "redis_decode_responses": True,
+            "l1_max_size": 1000,
+            "l1_ttl": 60,
+            "l2_backend": "redis",
+            "middleware_enabled": False,
+            "middleware_cacheable_methods": ["GET", "HEAD"],
+            "middleware_default_ttl": 60,
+            "middleware_vary_headers": ["Accept", "Accept-Encoding"],
+            "trace_enabled": True,
+            "metrics_enabled": True,
+            "log_level": "WARNING",
+        }
+
+        # Get user-provided cache config
+        user_config = self.get("cache", {})
+        if not user_config:
+            user_config = self.get("integrations.cache", {})
+
+        # Merge with defaults
+        merged = default_cache_config.copy()
+        if user_config:
+            merged["enabled"] = user_config.get("enabled", True)
+            self._merge_dict(merged, user_config)
+
+        return merged
+
     def get_mail_config(self) -> dict:
         """
         Get mail configuration with defaults.

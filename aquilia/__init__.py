@@ -190,6 +190,50 @@ from .auth.integration.middleware import (
 # )
 
 # ============================================================================
+# Cache System
+# ============================================================================
+
+from .cache import (
+    # Core types
+    CacheBackend,
+    CacheEntry,
+    CacheStats,
+    CacheConfig,
+    EvictionPolicy,
+    # Backends
+    MemoryBackend,
+    RedisBackend,
+    CompositeBackend,
+    NullBackend,
+    # Service
+    CacheService,
+    # Decorators
+    cached,
+    cache_aside,
+    invalidate,
+    set_default_cache_service,
+    get_default_cache_service,
+    # Faults
+    CacheFault,
+    CacheMissFault,
+    CacheConnectionFault,
+    CacheSerializationFault,
+    CacheCapacityFault,
+    CacheBackendFault,
+    CacheConfigFault,
+    CacheStampedeFault,
+    CacheHealthFault,
+    # Middleware
+    CacheMiddleware,
+    # Key builders
+    DefaultKeyBuilder,
+    HashKeyBuilder,
+    # Serializers
+    JsonCacheSerializer,
+    PickleCacheSerializer,
+)
+
+# ============================================================================
 # Faults System
 # ============================================================================
 
@@ -233,10 +277,14 @@ from .middleware_ext.security import (
     CORSMiddleware,
     CSPMiddleware,
     CSPPolicy,
+    CSRFError,
+    CSRFMiddleware,
     HSTSMiddleware,
     HTTPSRedirectMiddleware,
     ProxyFixMiddleware,
     SecurityHeadersMiddleware,
+    csrf_exempt,
+    csrf_token_func,
 )
 from .middleware_ext.rate_limit import (
     RateLimitMiddleware,
@@ -623,6 +671,37 @@ __all__ = [
     "AquilAuthMiddleware",
     "create_auth_middleware_stack",
     
+    # Cache
+    "CacheBackend",
+    "CacheEntry",
+    "CacheStats",
+    "CacheConfig",
+    "EvictionPolicy",
+    "MemoryBackend",
+    "RedisBackend",
+    "CompositeBackend",
+    "NullBackend",
+    "CacheService",
+    "cached",
+    "cache_aside",
+    "invalidate",
+    "set_default_cache_service",
+    "get_default_cache_service",
+    "CacheFault",
+    "CacheMissFault",
+    "CacheConnectionFault",
+    "CacheSerializationFault",
+    "CacheCapacityFault",
+    "CacheBackendFault",
+    "CacheConfigFault",
+    "CacheStampedeFault",
+    "CacheHealthFault",
+    "CacheMiddleware",
+    "DefaultKeyBuilder",
+    "HashKeyBuilder",
+    "JsonCacheSerializer",
+    "PickleCacheSerializer",
+    
     # Faults
     "Fault",
     "FaultContext",
@@ -652,10 +731,14 @@ __all__ = [
     "CORSMiddleware",
     "CSPMiddleware",
     "CSPPolicy",
+    "CSRFError",
+    "CSRFMiddleware",
     "HSTSMiddleware",
     "HTTPSRedirectMiddleware",
     "ProxyFixMiddleware",
     "SecurityHeadersMiddleware",
+    "csrf_exempt",
+    "csrf_token_func",
     "RateLimitMiddleware",
     "RateLimitRule",
     "StaticMiddleware",

@@ -454,6 +454,68 @@ class AuthorizationFault(SecurityFault):
         )
 
 
+class CSRFViolationFault(SecurityFault):
+    """CSRF token validation failed."""
+    
+    def __init__(self, reason: str = "CSRF validation failed", **kwargs):
+        self.reason = reason
+        super().__init__(
+            code="CSRF_VIOLATION",
+            message=reason,
+            severity=Severity.WARN,
+            public=True,
+            metadata={"reason": reason, **kwargs.get("metadata", {})},
+        )
+
+
+class CORSViolationFault(SecurityFault):
+    """CORS origin not allowed."""
+    
+    def __init__(self, origin: str, **kwargs):
+        super().__init__(
+            code="CORS_VIOLATION",
+            message=f"Origin '{origin}' is not allowed by CORS policy",
+            severity=Severity.WARN,
+            public=True,
+            metadata={"origin": origin, **kwargs.get("metadata", {})},
+        )
+
+
+class RateLimitExceededFault(SecurityFault):
+    """Rate limit exceeded for client."""
+    
+    def __init__(self, limit: int, window: float, retry_after: float, **kwargs):
+        super().__init__(
+            code="RATE_LIMIT_EXCEEDED",
+            message=f"Rate limit exceeded ({limit} requests per {window}s). Retry after {int(retry_after)}s",
+            severity=Severity.WARN,
+            public=True,
+            metadata={
+                "limit": limit,
+                "window": window,
+                "retry_after": retry_after,
+                **kwargs.get("metadata", {}),
+            },
+        )
+
+
+class CSPViolationFault(SecurityFault):
+    """Content Security Policy violation reported."""
+    
+    def __init__(self, directive: str, blocked_uri: str = "", **kwargs):
+        super().__init__(
+            code="CSP_VIOLATION",
+            message=f"CSP violation: directive '{directive}' blocked '{blocked_uri}'",
+            severity=Severity.WARN,
+            public=False,
+            metadata={
+                "directive": directive,
+                "blocked_uri": blocked_uri,
+                **kwargs.get("metadata", {}),
+            },
+        )
+
+
 # ============================================================================
 # SYSTEM Faults
 # ============================================================================
