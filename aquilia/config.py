@@ -30,16 +30,14 @@ class NestedNamespace:
             return NestedNamespace(value)
         return value
     
-    def __hasattr__(self, name: str) -> bool:
-        return name in self._data
-    
     def __getitem__(self, key: str) -> Any:
         return self._data[key]
     
     def __contains__(self, key: str) -> bool:
         return key in self._data
     
-    def __dict__(self) -> dict:
+    def to_dict(self) -> dict:
+        """Return the underlying data dictionary."""
         return self._data
     
     def get(self, key: str, default: Any = None) -> Any:
@@ -388,9 +386,10 @@ class ConfigLoader:
     
     def _check_type(self, value: Any, expected_type: Type) -> bool:
         """Basic type checking."""
-        # Handle Optional types
+        # Handle Optional types (Optional[X] is Union[X, None])
+        import types
         origin = get_origin(expected_type)
-        if origin is type(Optional):
+        if origin is types.UnionType or str(origin) == 'typing.Union':
             args = get_args(expected_type)
             if value is None:
                 return True

@@ -956,6 +956,24 @@ cli.add_command(export_group)
 cli.add_command(plugin_group)
 
 
+# ============================================================================
+# Artifact commands
+# ============================================================================
+
+from .commands.artifacts import artifact_group
+
+cli.add_command(artifact_group)
+
+
+# ============================================================================
+# Trace commands (.aquilia/ directory)
+# ============================================================================
+
+from .commands.trace import trace_group
+
+cli.add_command(trace_group)
+
+
 def main():
     """Entry point for `aq` command."""
     cli(obj={})

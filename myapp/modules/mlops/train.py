@@ -86,6 +86,9 @@ def train_iris_model(
         output_dict=True,
     )
 
+    # Convert any non-string keys to strings (sklearn may use int keys)
+    report = {str(k): v for k, v in report.items()}
+
     metrics = {
         "accuracy": float(accuracy),
         "f1_weighted": float(f1),

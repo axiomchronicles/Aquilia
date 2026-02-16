@@ -9,6 +9,7 @@ and rollback capabilities.
 from typing import Any, Callable, List, Optional, Dict
 from dataclasses import dataclass
 import asyncio
+import inspect
 import logging
 from enum import Enum
 
@@ -155,7 +156,7 @@ class LifecycleCoordinator:
             
             # Call startup hook
             hook = ctx.on_startup
-            if asyncio.iscoroutinefunction(hook):
+            if inspect.iscoroutinefunction(hook):
                 await hook(config_ns, di_container)
             else:
                 hook(config_ns, di_container)
@@ -220,7 +221,7 @@ class LifecycleCoordinator:
             
             # Call shutdown hook
             hook = ctx.on_shutdown
-            if asyncio.iscoroutinefunction(hook):
+            if inspect.iscoroutinefunction(hook):
                 await hook(config_ns, di_container)
             else:
                 hook(config_ns, di_container)

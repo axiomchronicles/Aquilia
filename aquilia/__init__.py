@@ -390,6 +390,7 @@ from .serializers import (
 
 from .lifecycle import (
     LifecycleCoordinator,
+    LifecycleManager,
     LifecyclePhase,
     LifecycleError,
 )
@@ -469,6 +470,48 @@ from .db import (
     get_database,
     set_database,
     DatabaseError,
+)
+
+# ============================================================================
+# Artifact System
+# ============================================================================
+
+from .artifacts import (
+    Artifact,
+    ArtifactEnvelope,
+    ArtifactKind,
+    ArtifactProvenance,
+    ArtifactIntegrity,
+    register_artifact_kind,
+    ArtifactBuilder,
+    ArtifactStore,
+    MemoryArtifactStore,
+    FilesystemArtifactStore,
+    ArtifactReader,
+    CodeArtifact,
+    ModelArtifact,
+    ConfigArtifact,
+    TemplateArtifact,
+    MigrationArtifact,
+    RegistryArtifact,
+    RouteArtifact,
+    DIGraphArtifact,
+    BundleArtifact,
+)
+
+# ============================================================================
+# Trace System (.aquilia/ directory)
+# ============================================================================
+
+from .trace import (
+    AquiliaTrace,
+    TraceManifest,
+    TraceRouteMap,
+    TraceDIGraph,
+    TraceSchemaLedger,
+    TraceLifecycleJournal,
+    TraceConfigSnapshot,
+    TraceDiagnostics,
 )
 
 # ============================================================================
@@ -713,6 +756,7 @@ __all__ = [
     
     # Lifecycle
     "LifecycleCoordinator",
+    "LifecycleManager",
     
     # Model System (Pure Python ORM)
     "Model",
@@ -782,4 +826,36 @@ __all__ = [
     "get_database",
     "set_database",
     "DatabaseError",
+    
+    # Artifacts
+    "Artifact",
+    "ArtifactEnvelope",
+    "ArtifactKind",
+    "ArtifactProvenance",
+    "ArtifactIntegrity",
+    "register_artifact_kind",
+    "ArtifactBuilder",
+    "ArtifactStore",
+    "MemoryArtifactStore",
+    "FilesystemArtifactStore",
+    "ArtifactReader",
+    "CodeArtifact",
+    "ModelArtifact",
+    "ConfigArtifact",
+    "TemplateArtifact",
+    "MigrationArtifact",
+    "RegistryArtifact",
+    "RouteArtifact",
+    "DIGraphArtifact",
+    "BundleArtifact",
+
+    # Trace System
+    "AquiliaTrace",
+    "TraceManifest",
+    "TraceRouteMap",
+    "TraceDIGraph",
+    "TraceSchemaLedger",
+    "TraceLifecycleJournal",
+    "TraceConfigSnapshot",
+    "TraceDiagnostics",
 ]

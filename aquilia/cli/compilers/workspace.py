@@ -1,4 +1,8 @@
-"""Workspace compiler - converts manifests to artifacts."""
+"""Workspace compiler - converts manifests to artifacts.
+
+Uses the unified ``aquilia.artifacts`` system to produce typed,
+content-addressed, provenance-tracked artifacts.
+"""
 
 from pathlib import Path
 from typing import List, Any, Optional
@@ -6,9 +10,21 @@ import json
 import importlib.util
 import sys
 
+from aquilia.artifacts import (
+    ArtifactBuilder,
+    ArtifactStore,
+    FilesystemArtifactStore,
+    CodeArtifact,
+    RegistryArtifact,
+    RouteArtifact,
+    DIGraphArtifact,
+    ConfigArtifact,
+)
+from aquilia.artifacts.core import Artifact
+
 
 class WorkspaceCompiler:
-    """Compile workspace manifests to .crous artifacts."""
+    """Compile workspace manifests to artifacts via the unified artifact system."""
     
     def __init__(
         self,
@@ -19,6 +35,7 @@ class WorkspaceCompiler:
         self.workspace_root = workspace_root
         self.output_dir = output_dir
         self.verbose = verbose
+        self._store = FilesystemArtifactStore(str(output_dir))
 
         # Ensure workspace root is on sys.path so module imports resolve
         ws_abs = str(self.workspace_root.resolve())
@@ -129,23 +146,31 @@ class WorkspaceCompiler:
         return artifacts
     
     def _compile_workspace_metadata(self, manifest) -> Path:
-        """Compile workspace metadata to aquilia.crous."""
-        artifact = {
-            'type': 'workspace_metadata',
-            'name': manifest.name,
-            'version': manifest.version,
-            'description': manifest.description,
-            'modules': manifest.modules,
-            'runtime': manifest.runtime,
-            'integrations': manifest.integrations,
-        }
+        """Compile workspace metadata to a proper artifact."""
+        artifact = (
+            ArtifactBuilder(manifest.name, kind="workspace", version=manifest.version)
+            .set_payload({
+                "type": "workspace_metadata",
+                "name": manifest.name,
+                "version": manifest.version,
+                "description": manifest.description,
+                "modules": manifest.modules,
+                "runtime": manifest.runtime,
+                "integrations": manifest.integrations,
+            })
+            .auto_provenance(source_path="workspace.py")
+            .tag("artifact_type", "workspace")
+            .build()
+        )
         
         output_path = self.output_dir / 'aquilia.crous'
-        self._write_artifact(output_path, artifact)
+        self._write_artifact(output_path, artifact.to_dict())
+        # Also save as .aq.json via the store
+        self._store.save(artifact)
         return output_path
     
     def _compile_registry(self, manifest) -> Path:
-        """Compile module registry to registry.crous."""
+        """Compile module registry to a proper artifact."""
         modules = []
         
         for module_name in manifest.modules:
@@ -173,17 +198,19 @@ class WorkspaceCompiler:
                     'depends_on': [],
                 })
         
-        artifact = {
-            'type': 'registry',
-            'modules': modules,
-        }
+        artifact = RegistryArtifact.build(
+            name="registry",
+            version=manifest.version,
+            modules=modules,
+        )
         
         output_path = self.output_dir / 'registry.crous'
-        self._write_artifact(output_path, artifact)
+        self._write_artifact(output_path, artifact.to_dict())
+        self._store.save(artifact)
         return output_path
     
     def _compile_module(self, module_name: str) -> List[Path]:
-        """Compile module to module-specific artifacts."""
+        """Compile module to a typed CodeArtifact."""
         module_manifest = self._load_module_manifest(module_name)
         
         if not module_manifest:
@@ -214,25 +241,26 @@ class WorkspaceCompiler:
             else:
                 controllers_serialized.append(str(c))
 
-        artifact = {
-            'type': 'module',
-            'name': getattr(module_manifest, 'name', module_name),
-            'version': getattr(module_manifest, 'version', '0.1.0'),
-            'description': getattr(module_manifest, 'description', ''),
-            'route_prefix': getattr(module_manifest, 'route_prefix', '/'),
-            'fault_domain': default_domain,
-            'depends_on': getattr(module_manifest, 'depends_on', []),
-            'services': services_serialized,
-            'controllers': controllers_serialized,
-        }
+        mod_version = getattr(module_manifest, 'version', '0.1.0')
+        artifact = CodeArtifact.build(
+            name=module_name,
+            version=mod_version,
+            controllers=controllers_serialized,
+            services=services_serialized,
+            route_prefix=getattr(module_manifest, 'route_prefix', '/'),
+            fault_domain=default_domain,
+            depends_on=getattr(module_manifest, 'depends_on', []),
+            description=getattr(module_manifest, 'description', ''),
+        )
         
         output_path = self.output_dir / f'{module_name}.crous'
-        self._write_artifact(output_path, artifact)
+        self._write_artifact(output_path, artifact.to_dict())
+        self._store.save(artifact)
         
         return [output_path]
     
     def _compile_routes(self, manifest) -> Path:
-        """Compile routing table to routes.crous."""
+        """Compile routing table to a typed RouteArtifact."""
         routes = []
         
         for module_name in manifest.modules:
@@ -256,17 +284,21 @@ class WorkspaceCompiler:
                     'prefix': route_prefix,
                 })
         
-        artifact = {
-            'type': 'routes',
-            'routes': routes,
-        }
+        ws_name = getattr(manifest, 'name', 'workspace')
+        ws_version = getattr(manifest, 'version', '0.1.0')
+        artifact = RouteArtifact.build(
+            name=f'{ws_name}-routes',
+            version=ws_version,
+            routes=routes,
+        )
         
         output_path = self.output_dir / 'routes.crous'
-        self._write_artifact(output_path, artifact)
+        self._write_artifact(output_path, artifact.to_dict())
+        self._store.save(artifact)
         return output_path
     
     def _compile_di_graph(self, manifest) -> Path:
-        """Compile DI graph to di.crous."""
+        """Compile DI graph to a typed DIGraphArtifact."""
         providers = []
         
         for module_name in manifest.modules:
@@ -296,13 +328,17 @@ class WorkspaceCompiler:
                         'scope': scope_val,
                     })
         
-        artifact = {
-            'type': 'di_graph',
-            'providers': providers,
-        }
+        ws_name = getattr(manifest, 'name', 'workspace')
+        ws_version = getattr(manifest, 'version', '0.1.0')
+        artifact = DIGraphArtifact.build(
+            name=f'{ws_name}-di',
+            version=ws_version,
+            providers=providers,
+        )
         
         output_path = self.output_dir / 'di.crous'
-        self._write_artifact(output_path, artifact)
+        self._write_artifact(output_path, artifact.to_dict())
+        self._store.save(artifact)
         return output_path
     
     def _write_artifact(self, path: Path, data: dict) -> None:

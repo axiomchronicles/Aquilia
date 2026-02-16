@@ -23,6 +23,9 @@ import inspect
 import asyncio
 from contextvars import ContextVar
 
+# Use inspect.iscoroutinefunction (asyncio version deprecated in 3.16)
+_is_coroutine = inspect.iscoroutinefunction
+
 
 T = TypeVar("T")
 
@@ -391,14 +394,14 @@ class Container:
         if hasattr(instance, "on_startup"):
             hook = instance.on_startup
             self._lifecycle.on_startup(
-                hook if asyncio.iscoroutinefunction(hook) else lambda: asyncio.to_thread(hook),
+                hook if _is_coroutine(hook) else lambda: asyncio.to_thread(hook),
                 name=f"{name}.on_startup"
             )
         
         if hasattr(instance, "on_shutdown"):
             hook = instance.on_shutdown
             self._lifecycle.on_shutdown(
-                hook if asyncio.iscoroutinefunction(hook) else lambda: asyncio.to_thread(hook),
+                hook if _is_coroutine(hook) else lambda: asyncio.to_thread(hook),
                 name=f"{name}.on_shutdown"
             )
 

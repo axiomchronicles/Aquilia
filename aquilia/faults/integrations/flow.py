@@ -10,6 +10,7 @@ This module provides flow integration utilities and middleware.
 """
 
 import asyncio
+import inspect
 from typing import Any, Optional, Callable, Awaitable
 from aquilia.faults import (
     FaultEngine,
@@ -212,7 +213,7 @@ def fault_aware_handler(handler: Callable):
     Returns:
         Wrapped handler
     """
-    if asyncio.iscoroutinefunction(handler):
+    if inspect.iscoroutinefunction(handler):
         async def async_wrapper(*args, **kwargs):
             try:
                 result = await handler(*args, **kwargs)

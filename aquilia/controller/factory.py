@@ -100,7 +100,7 @@ class ControllerFactory:
         # Call on_startup hook once
         if controller_class not in self._startup_called:
             if hasattr(instance, 'on_startup'):
-                if asyncio.iscoroutinefunction(instance.on_startup):
+                if inspect.iscoroutinefunction(instance.on_startup):
                     await instance.on_startup(ctx)
                 else:
                     instance.on_startup(ctx)
@@ -279,7 +279,7 @@ class ControllerFactory:
         for controller_class, instance in self._singletons.items():
             if hasattr(instance, 'on_shutdown'):
                 try:
-                    if asyncio.iscoroutinefunction(instance.on_shutdown):
+                    if inspect.iscoroutinefunction(instance.on_shutdown):
                         await instance.on_shutdown(None)
                     else:
                         instance.on_shutdown(None)

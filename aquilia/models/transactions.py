@@ -33,6 +33,7 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 import uuid
 import weakref
@@ -166,7 +167,7 @@ class Atomic:
         """Execute a list of hooks, catching exceptions."""
         for hook in hooks:
             try:
-                if asyncio.iscoroutinefunction(hook):
+                if inspect.iscoroutinefunction(hook):
                     await hook()
                 else:
                     hook()

@@ -194,7 +194,7 @@ class FactoryProvider:
         name: Optional[str] = None,
     ):
         self._factory = factory
-        self._is_async = asyncio.iscoroutinefunction(factory)
+        self._is_async = inspect.iscoroutinefunction(factory)
         self._dependencies = self._extract_dependencies(factory)
         
         # Build metadata

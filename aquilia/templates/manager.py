@@ -220,6 +220,25 @@ class TemplateManager:
         # Persist bytecode cache
         if hasattr(self.engine.bytecode_cache, "save"):
             self.engine.bytecode_cache.save()
+
+        # ── Produce a typed TemplateArtifact alongside the .crous ────
+        try:
+            from aquilia.artifacts import TemplateArtifact, FilesystemArtifactStore
+
+            template_artifact = TemplateArtifact.build(
+                name="templates",
+                version=fingerprint[:12],
+                templates={
+                    name: meta.to_dict()
+                    for name, meta in templates_metadata.items()
+                },
+                fingerprint=fingerprint,
+            )
+            aq_dir = output_file.parent / ".aq"
+            store = FilesystemArtifactStore(str(aq_dir))
+            store.save(template_artifact)
+        except Exception:
+            pass  # non-critical
         
         return {
             "fingerprint": fingerprint,

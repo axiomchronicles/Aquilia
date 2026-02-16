@@ -37,10 +37,12 @@ workspace = (
         .route_prefix("/blogs")
         .tags("blogs", "core")
         .register_controllers(
-            "modules.blogs.controllers:BlogsController"
+            "modules.blogs.controllers:BlogsController",
+            "modules.blogs.examples_advanced:AdvancedController"
         )
         .register_services(
-            "modules.blogs.services:BlogsService"
+            "modules.blogs.services:BlogsService",
+            "modules.blogs.examples_advanced:ModerationService"
         ))
 
     .module(Module("tasks", version="0.1.0", description="Task management with structured faults, validation, and state machines")

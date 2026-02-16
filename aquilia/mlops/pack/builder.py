@@ -235,6 +235,36 @@ class ModelpackBuilder:
             tar.addfile(pinfo, io.BytesIO(prov_data))
 
         logger.info("Built modelpack: %s (%d bytes)", archive_path, archive_path.stat().st_size)
+
+        # ── Produce a typed ModelArtifact alongside the archive ─────────
+        try:
+            from aquilia.artifacts import ModelArtifact, FilesystemArtifactStore
+
+            file_refs = [
+                {"path": b.path, "digest": b.digest, "size": b.size}
+                for b in blobs
+            ]
+            model_artifact = ModelArtifact.build(
+                name=self.name,
+                version=self.version,
+                framework=self.framework,
+                entrypoint=self._entrypoint,
+                accuracy=self._metadata.get("accuracy", 0.0),
+                files=file_refs,
+                archive_path=str(archive_path.resolve()),
+                signed_by=self.signed_by,
+            )
+            artifact_dir = output_path / ".aq"
+            store = FilesystemArtifactStore(str(artifact_dir))
+            store.save(model_artifact)
+            logger.info(
+                "ModelArtifact written: %s [%s]",
+                model_artifact.qualified_name,
+                model_artifact.digest,
+            )
+        except Exception as exc:
+            logger.debug("Skipped ModelArtifact creation: %s", exc)
+
         return str(archive_path.resolve())
 
     # ── Unpack ──────────────────────────────────────────────────────────

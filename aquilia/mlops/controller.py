@@ -338,3 +338,51 @@ class MLOpsController:
         if self._metrics and hasattr(self._metrics, "hot_models"):
             return {"hot_models": self._metrics.hot_models(k)}
         return {"hot_models": []}
+
+    # ── Artifacts ────────────────────────────────────────────────────
+
+    async def list_artifacts(
+        self,
+        kind: str = "",
+        store_dir: str = "artifacts",
+    ) -> Dict[str, Any]:
+        """List artifacts — ``GET /mlops/artifacts``."""
+        try:
+            from aquilia.artifacts import FilesystemArtifactStore
+
+            store = FilesystemArtifactStore(store_dir)
+            artifacts = store.list_artifacts(kind=kind)
+            return {
+                "total": len(artifacts),
+                "artifacts": [
+                    {
+                        "name": a.name,
+                        "version": a.version,
+                        "kind": a.kind,
+                        "digest": a.digest,
+                        "created_at": a.created_at,
+                    }
+                    for a in artifacts
+                ],
+            }
+        except Exception as exc:
+            return {"error": str(exc), "artifacts": []}
+
+    async def inspect_artifact(
+        self,
+        name: str,
+        version: str = "",
+        store_dir: str = "artifacts",
+    ) -> Dict[str, Any]:
+        """Inspect artifact — ``GET /mlops/artifacts/{name}``."""
+        try:
+            from aquilia.artifacts import FilesystemArtifactStore, ArtifactReader
+
+            store = FilesystemArtifactStore(store_dir)
+            reader = ArtifactReader(store)
+            artifact = reader.load_or_fail(name, version=version)
+            return reader.inspect(artifact)
+        except FileNotFoundError:
+            return {"error": f"Artifact not found: {name}"}
+        except Exception as exc:
+            return {"error": str(exc)}

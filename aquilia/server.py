@@ -124,6 +124,21 @@ class AquiliaServer:
                     f"app={event.app_name}, error={event.error}"
                 )
         self.coordinator.on_event(_lifecycle_fault_observer)
+
+        # Connect lifecycle events to trace journal
+        def _lifecycle_trace_observer(event):
+            try:
+                phase_name = event.phase.value if event.phase else "unknown"
+                error_str = str(event.error) if event.error else None
+                self.trace.journal.record_phase(
+                    f"lifecycle:{phase_name}",
+                    app_name=event.app_name or "",
+                    error=error_str,
+                    detail=event.message,
+                )
+            except Exception:
+                pass  # Trace is non-fatal
+        self.coordinator.on_event(_lifecycle_trace_observer)
         
         # Initialize controller router and middleware
         self.controller_router = ControllerRouter()
@@ -147,6 +162,10 @@ class AquiliaServer:
         )
         self.controller_compiler = ControllerCompiler()
         
+        # Trace directory (.aquilia/)
+        from .trace import AquiliaTrace
+        self.trace = AquiliaTrace()
+
         # Track startup state
         self._startup_complete = False
         self._startup_lock = None  # Will be created in async context
@@ -1832,6 +1851,8 @@ class AquiliaServer:
         
         This method is idempotent and thread-safe.
         """
+        import time as _time
+
         # Prevent duplicate startup
         if self._startup_complete:
             return
@@ -1846,6 +1867,8 @@ class AquiliaServer:
             if self._startup_complete:
                 return
             
+            _boot_t0 = _time.monotonic()
+
             self.logger.info("Starting Aquilia server with Aquilary registry...")
             
             # Log registry information
@@ -1855,38 +1878,79 @@ class AquiliaServer:
             
             # Step 0: Perform runtime auto-discovery
             self.logger.info("Performing runtime auto-discovery...")
+            _t0 = _time.monotonic()
             self.runtime.perform_autodiscovery()
+            self.trace.journal.record_phase(
+                "autodiscovery",
+                duration_ms=(_time.monotonic() - _t0) * 1000,
+            )
             
             # Step 1: Load and compile controllers
             self.logger.info("Loading controllers from manifests...")
+            _t0 = _time.monotonic()
             await self._load_controllers()
+            self.trace.journal.record_phase(
+                "controllers_loaded",
+                duration_ms=(_time.monotonic() - _t0) * 1000,
+            )
         
         # Step 2: Compile routes (includes service registration and handler wrapping)
         self.logger.info("Compiling routes with DI integration...")
+        _t0 = _time.monotonic()
         self.runtime.compile_routes()
+        self.trace.journal.record_phase(
+            "routes_compiled",
+            duration_ms=(_time.monotonic() - _t0) * 1000,
+        )
         
         # Step 3: Start lifecycle (runs app startup hooks in dependency order)
         self.logger.info("Starting app lifecycle hooks...")
+        _t0 = _time.monotonic()
         try:
             await self.coordinator.startup()
+            self.trace.journal.record_phase(
+                "lifecycle_started",
+                duration_ms=(_time.monotonic() - _t0) * 1000,
+            )
         except Exception as e:
             from .lifecycle import LifecycleError
             self.logger.error(f"Lifecycle startup failed: {e}")
+            self.trace.journal.record_phase(
+                "lifecycle_started",
+                error=str(e),
+                duration_ms=(_time.monotonic() - _t0) * 1000,
+            )
             raise LifecycleError(f"Startup failed: {e}") from e
         
         # Step 3.1: Register AMDL models from apps (if any .amdl files exist)
+        _t0 = _time.monotonic()
         await self._register_amdl_models()
+        self.trace.journal.record_phase(
+            "models_registered",
+            duration_ms=(_time.monotonic() - _t0) * 1000,
+        )
         
         # Step 3.2: Start mail subsystem (connect providers)
         if hasattr(self, '_mail_service') and self._mail_service is not None:
+            _t0 = _time.monotonic()
             try:
                 await self._mail_service.on_startup()
+                self.trace.journal.record_phase(
+                    "mail_started",
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
             except Exception as e:
                 self.logger.error(f"Mail startup failed: {e}")
+                self.trace.journal.record_phase(
+                    "mail_started",
+                    error=str(e),
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
                 # Non-fatal — app can run without mail
 
         # Step 3.5: Register effects from manifests and initialize providers
         self.logger.info("Registering and initializing effect providers...")
+        _t0 = _time.monotonic()
         self.runtime._register_effects()
         try:
             from .effects import EffectRegistry
@@ -1903,9 +1967,19 @@ class AquiliaServer:
             await effect_registry.initialize_all()
             self._effect_registry = effect_registry
             self.logger.info(f"Effect providers initialized ({len(effect_registry.providers)} registered)")
+            self.trace.journal.record_phase(
+                "effects_initialized",
+                duration_ms=(_time.monotonic() - _t0) * 1000,
+                detail=f"{len(effect_registry.providers)} providers",
+            )
         except Exception as e:
             self._effect_registry = None
             self.logger.debug(f"No effect providers to initialize: {e}")
+            self.trace.journal.record_phase(
+                "effects_initialized",
+                duration_ms=(_time.monotonic() - _t0) * 1000,
+                detail="none",
+            )
         
         # Step 4: Log registered routes
         routes = self.controller_router.get_routes()
@@ -1929,7 +2003,16 @@ class AquiliaServer:
         
         # Mark startup complete
         self._startup_complete = True
-        self.logger.info(f"✅ Server ready with {len(self.runtime.meta.app_contexts)} apps")
+
+        # Step 5: Trace snapshot — write .aquilia/ directory
+        _startup_ms = (_time.monotonic() - _boot_t0) * 1000
+        try:
+            self.trace.snapshot(self, startup_duration_ms=_startup_ms)
+            self.logger.info(f"📋 Trace snapshot written to {self.trace.root}")
+        except Exception as e:
+            self.logger.warning(f"Trace snapshot failed (non-fatal): {e}")
+
+        self.logger.info(f"✅ Server ready with {len(self.runtime.meta.app_contexts)} apps ({_startup_ms:.0f}ms)")
     
     async def shutdown(self):
         """
@@ -1943,53 +2026,117 @@ class AquiliaServer:
         
         This method is idempotent and safe to call multiple times.
         """
+        import time as _time
+
         if not self._startup_complete:
             return  # Nothing to shut down
         
         self.logger.info("Shutting down Aquilia server...")
         
         # Run lifecycle shutdown hooks
+        _t0 = _time.monotonic()
         await self.coordinator.shutdown()
+        self.trace.journal.record_phase(
+            "lifecycle_shutdown",
+            duration_ms=(_time.monotonic() - _t0) * 1000,
+        )
         
         # Shutdown mail subsystem
         if hasattr(self, '_mail_service') and self._mail_service is not None:
+            _t0 = _time.monotonic()
             try:
                 await self._mail_service.on_shutdown()
                 self.logger.info("Mail subsystem shut down")
+                self.trace.journal.record_phase(
+                    "mail_shutdown",
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
             except Exception as e:
                 self.logger.warning(f"Error shutting down mail subsystem: {e}")
+                self.trace.journal.record_phase(
+                    "mail_shutdown",
+                    error=str(e),
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
 
         # Cleanup DI containers
+        _t0 = _time.monotonic()
         for app_name, container in self.runtime.di_containers.items():
             try:
                 await container.shutdown()
                 self.logger.debug(f"Cleaned up DI container for app '{app_name}'")
             except Exception as e:
                 self.logger.warning(f"Error cleaning up container for '{app_name}': {e}")
+                self.trace.journal.record_warning(
+                    f"DI cleanup error for '{app_name}': {e}",
+                    context="di_cleanup",
+                )
+        self.trace.journal.record_phase(
+            "di_cleanup",
+            duration_ms=(_time.monotonic() - _t0) * 1000,
+        )
         
         # Finalize effect providers
         if hasattr(self, '_effect_registry') and self._effect_registry:
+            _t0 = _time.monotonic()
             try:
                 await self._effect_registry.finalize_all()
                 self.logger.info("Effect providers finalized")
+                self.trace.journal.record_phase(
+                    "effects_finalized",
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
             except Exception as e:
                 self.logger.warning(f"Error finalizing effect providers: {e}")
+                self.trace.journal.record_phase(
+                    "effects_finalized",
+                    error=str(e),
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
         
         # Shutdown WebSocket runtime
         if hasattr(self, 'aquila_sockets') and self.aquila_sockets:
+            _t0 = _time.monotonic()
             try:
                 await self.aquila_sockets.shutdown()
                 self.logger.info("WebSocket runtime shut down")
+                self.trace.journal.record_phase(
+                    "websocket_shutdown",
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
             except Exception as e:
                 self.logger.warning(f"Error shutting down WebSocket runtime: {e}")
+                self.trace.journal.record_phase(
+                    "websocket_shutdown",
+                    error=str(e),
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
 
         # Disconnect AMDL database if connected
         if hasattr(self, '_amdl_database') and self._amdl_database:
+            _t0 = _time.monotonic()
             try:
                 await self._amdl_database.disconnect()
                 self.logger.info("AMDL database disconnected")
+                self.trace.journal.record_phase(
+                    "db_disconnect",
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
             except Exception as e:
                 self.logger.warning(f"Error disconnecting AMDL database: {e}")
+                self.trace.journal.record_phase(
+                    "db_disconnect",
+                    error=str(e),
+                    duration_ms=(_time.monotonic() - _t0) * 1000,
+                )
+
+        # Trace shutdown snapshot
+        if hasattr(self, 'trace'):
+            try:
+                self.trace.snapshot_shutdown(self)
+                self.logger.info("📋 Trace shutdown snapshot written")
+            except Exception as e:
+                self.logger.warning(f"Trace shutdown snapshot failed (non-fatal): {e}")
         
         # Reset startup state
         self._startup_complete = False
