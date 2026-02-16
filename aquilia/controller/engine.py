@@ -93,15 +93,16 @@ class ControllerEngine:
             await self._init_controller_lifecycle(controller_class, container)
             self._lifecycle_initialized.add(controller_class)
         
+        # Build RequestCtx before controller instantiation so it's available for on_request hook
+        ctx = await self._build_request_context(request, container)
+        
         # Instantiate controller
         controller = await self.factory.create(
             controller_class,
             mode=InstantiationMode.PER_REQUEST,
             request_container=container,
+            ctx=ctx,
         )
-        
-        # Build RequestCtx
-        ctx = await self._build_request_context(request, container)
         
         # Execute class-level pipeline
         if route.controller_metadata.pipeline:
