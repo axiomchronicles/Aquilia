@@ -11,6 +11,10 @@ import sys
 from pathlib import Path
 from typing import Optional
 from aquilia.cli.generators.workspace import WorkspaceGenerator
+from ..utils.colors import (
+    success, error, info, warning, dim, bold,
+    section, kv, rule, table, banner, _CHECK, _CROSS,
+)
 
 
 class DiscoveryInspector:
@@ -43,69 +47,68 @@ class DiscoveryInspector:
     
     def _print_summary(self, discovered: dict, validation: dict, sorted_names: list) -> None:
         """Print summary of discovered modules."""
-        print(f"\n📦 Module Discovery Report")
-        print(f"{'='*60}")
-        print(f"Workspace: {self.workspace_name}")
-        print(f"Path: {self.workspace_path}")
-        print(f"Modules Found: {len(discovered)}")
-        print()
-        
-        # Module list
-        print(f"{'Module':<20} {'Version':<12} {'Route':<20}")
-        print(f"{'-'*20} {'-'*12} {'-'*20}")
-        
-        for mod_name in sorted_names:
-            mod = discovered[mod_name]
-            version = mod['version']
-            route = mod['route_prefix']
-            print(f"{mod_name:<20} {version:<12} {route:<20}")
-        
-        print()
-        
+        banner("Module Discovery Report")
+        kv("Workspace", self.workspace_name)
+        kv("Path", str(self.workspace_path))
+        kv("Modules Found", str(len(discovered)))
+
+        import click
+        click.echo()
+        table(
+            headers=["Module", "Version", "Route"],
+            rows=[
+                (mod_name, discovered[mod_name]['version'], discovered[mod_name]['route_prefix'])
+                for mod_name in sorted_names
+            ],
+            col_widths=[20, 12, 20],
+        )
+        click.echo()
+
         # Validation results
         if validation['warnings']:
-            print(f"⚠️  Warnings ({len(validation['warnings'])}):")
-            for warning in validation['warnings']:
-                print(f"  - {warning}")
+            warning(f"  Warnings ({len(validation['warnings'])}):") 
+            for w in validation['warnings']:
+                dim(f"    - {w}")
         
         if validation['errors']:
-            print(f"❌ Errors ({len(validation['errors'])}):")
-            for error in validation['errors']:
-                print(f"  - {error}")
+            error(f"  {_CROSS} Errors ({len(validation['errors'])}):") 
+            for e in validation['errors']:
+                dim(f"    - {e}")
         elif not validation['warnings']:
-            print(f"✓ All modules valid - no issues detected")
-        
-        print()
-    
+            success(f"  {_CHECK} All modules valid - no issues detected")
+
+        import click
+        click.echo()
+
     def _print_detailed_info(self, discovered: dict, sorted_names: list) -> None:
         """Print detailed information about each module."""
-        print(f"\n{'='*60}")
-        print(f"Detailed Module Information")
-        print(f"{'='*60}\n")
-        
+        import click
+        click.echo()
+        section("Detailed Module Information")
+        click.echo()
+
         for mod_name in sorted_names:
             mod = discovered[mod_name]
             self._print_module_details(mod)
-    
+
     def _print_module_details(self, mod: dict) -> None:
         """Print detailed information about a single module."""
-        print(f"📌 {mod['name']}")
-        print(f"   Version: {mod['version']}")
-        print(f"   Description: {mod['description']}")
-        print(f"   Route Prefix: {mod['route_prefix']}")
-        print(f"   Base Path: {mod['base_path']}")
-        
+        import click
+        bold(f"  {mod['name']}")
+        kv("Version", mod['version'], key_width=16)
+        kv("Description", mod['description'], key_width=16)
+        kv("Route Prefix", mod['route_prefix'], key_width=16)
+        kv("Base Path", str(mod['base_path']), key_width=16)
+
         if mod.get('author'):
-            print(f"   Author: {mod['author']}")
-        
+            kv("Author", mod['author'], key_width=16)
+
         if mod.get('tags'):
-            tags = ", ".join(mod['tags'])
-            print(f"   Tags: {tags}")
-        
+            kv("Tags", ", ".join(mod['tags']), key_width=16)
+
         if mod.get('depends_on'):
-            deps = ", ".join(mod['depends_on'])
-            print(f"   Dependencies: {deps}")
-        
+            kv("Dependencies", ", ".join(mod['depends_on']), key_width=16)
+
         # Module structure
         structure = []
         if mod['has_services']:
@@ -114,11 +117,11 @@ class DiscoveryInspector:
             structure.append("controllers")
         if mod['has_middleware']:
             structure.append("middleware")
-        
+
         if structure:
-            print(f"   Components: {', '.join(structure)}")
-        
-        print()
+            kv("Components", ", ".join(structure), key_width=16)
+
+        click.echo()
 
 
 def main():

@@ -246,31 +246,42 @@ class DiscoveryAnalytics:
 
 def print_analysis_report(analysis: Dict) -> None:
     """Pretty print analysis report."""
-    print(f"\n🔍 Module Discovery Analytics Report")
-    print(f"{'='*70}")
-    
+    from ..utils.colors import (
+        banner, section, kv, rule, step, bullet, dim, info, warning, success,
+        _CHECK, _CROSS,
+    )
+    import click
+
+    banner("Module Discovery Analytics")
+    click.echo()
+
     summary = analysis['summary']
-    print(f"\n📊 Summary")
-    print(f"  Total Modules: {summary['total_modules']}")
-    print(f"  With Services: {summary['with_services']}")
-    print(f"  With Controllers: {summary['with_controllers']}")
-    print(f"  With Middleware: {summary['with_middleware']}")
-    print(f"  With Dependencies: {summary['with_dependencies']}")
-    
+    section("Summary")
+    kv("Total Modules", str(summary['total_modules']))
+    kv("With Services", str(summary['with_services']))
+    kv("With Controllers", str(summary['with_controllers']))
+    kv("With Middleware", str(summary['with_middleware']))
+    kv("With Dependencies", str(summary['with_dependencies']))
+    click.echo()
+
     metrics = analysis['metrics']
-    print(f"\n💪 Health Metrics")
-    print(f"  Health Score: {metrics['health_score']:.1f}/100")
-    print(f"  Validation Errors: {metrics['validation_errors']}")
-    print(f"  Validation Warnings: {metrics['validation_warnings']}")
-    
+    section("Health Metrics")
+    kv("Health Score", f"{metrics['health_score']:.1f}/100")
+    kv("Validation Errors", str(metrics['validation_errors']))
+    kv("Validation Warnings", str(metrics['validation_warnings']))
+    click.echo()
+
     if analysis['dependencies']['max_depth'] > 0:
-        print(f"\n🔗 Dependencies")
-        print(f"  Max Dependency Depth: {analysis['dependencies']['max_depth']}")
-        print(f"  Cyclic Dependencies: {'Detected ⚠️' if analysis['dependencies']['cyclic_detected'] else 'None'}")
-    
+        section("Dependencies")
+        kv("Max Depth", str(analysis['dependencies']['max_depth']))
+        cyclic = analysis['dependencies']['cyclic_detected']
+        kv("Cyclic Dependencies", "Detected" if cyclic else "None")
+        click.echo()
+
     if analysis['recommendations']:
-        print(f"\n💡 Recommendations")
+        section("Recommendations")
         for i, rec in enumerate(analysis['recommendations'], 1):
-            print(f"  {i}. {rec}")
-    
-    print(f"\n{'='*70}\n")
+            step(i, rec)
+        click.echo()
+
+    rule()

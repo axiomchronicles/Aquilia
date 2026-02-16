@@ -61,7 +61,7 @@ def serve_production(
     app_module = _create_workspace_app(workspace_root, mode='prod', verbose=verbose)
 
     if verbose:
-        print(f"🚀 Starting Aquilia production server")
+        print(f"  Starting Aquilia production server")
         print(f"  Bind:    {host}:{port}")
         print(f"  Workers: {workers}")
         print(f"  App:     {app_module}")

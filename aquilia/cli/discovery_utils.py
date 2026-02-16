@@ -290,7 +290,7 @@ class EnhancedDiscovery:
                         
         except Exception as e:
             if self.verbose:
-                print(f"    ⚠️  Static discovery error: {e}")
+                print(f"    !  Static discovery error: {e}")
 
         # Fallback to runtime scanning for standard packages if nothing found (backward compat)
         if not seen_paths:
@@ -375,7 +375,7 @@ class EnhancedDiscovery:
                 # Check for dead link
                 if not self._verify_path_exists(p, module_dir):
                     if self.verbose:
-                        print(f"    ⚠️  Removing dead link: {p}")
+                        print(f"    !  Removing dead link: {p}")
                     continue
                 
                 # Check for redundancy: If item is a string but already covered by a ServiceConfig
@@ -389,7 +389,7 @@ class EnhancedDiscovery:
                     # But we need to be careful not to remove ALL if only strings exist.
                     # Since we only added to service_registry from DICTs (ServiceConfig), this is safe.
                     if self.verbose:
-                        print(f"    ⚠️  Removing redundant registration: {p} (already registered via ServiceConfig or alias)")
+                        print(f"    !  Removing redundant registration: {p} (already registered via ServiceConfig or alias)")
                     continue
 
                 valid_services_raw.append(item)
@@ -401,7 +401,7 @@ class EnhancedDiscovery:
                 if self._verify_path_exists(p, module_dir):
                     valid_controllers_raw.append(item)
                 elif self.verbose:
-                    print(f"    ⚠️  Removing dead link: {p}")
+                    print(f"    !  Removing dead link: {p}")
             current_controllers_raw = valid_controllers_raw
 
         # 2. Merger & Metadata Upgrade

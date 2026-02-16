@@ -129,7 +129,7 @@ def update_manifest(module_name: str, workspace_root: Path, check: bool = False,
                     
     except Exception as scan_error:
         if verbose:
-            print(f"  ⚠️  Enhanced individual file scan failed for {module_name}: {scan_error}")
+            print(f"  !  Enhanced individual file scan failed for {module_name}: {scan_error}")
     
     # Deduplicate results
     unique_controllers = {}

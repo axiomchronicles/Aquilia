@@ -73,7 +73,7 @@ def cmd_mail_check(verbose: bool = False) -> None:
         if config.get("console_backend"):
             click.echo(click.style("\n  ✓ Console backend will be auto-created", fg="green"))
         else:
-            click.echo(click.style("\n  ⚠ No providers configured", fg="yellow"))
+            click.echo(click.style("\n  ! No providers configured", fg="yellow"))
 
     # Security
     security = config.get("security", {})
@@ -92,7 +92,7 @@ def cmd_mail_check(verbose: bool = False) -> None:
     if issues:
         click.echo(click.style(f"\n  Warnings ({len(issues)}):", fg="yellow"))
         for issue in issues:
-            click.echo(f"    ⚠ {issue}")
+            click.echo(f"    ! {issue}")
     else:
         click.echo(click.style("\n  ✓ Configuration looks good!", fg="green"))
 

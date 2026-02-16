@@ -1,33 +1,29 @@
-"""Color utilities for CLI output."""
+"""Aquilia CLI — UI utilities (re-exports from colors module)."""
 
-import click
-
-
-def success(message: str) -> None:
-    """Print success message in green."""
-    click.echo(click.style(message, fg='green'))
-
-
-def error(message: str) -> None:
-    """Print error message in red."""
-    click.echo(click.style(message, fg='red'))
-
-
-def warning(message: str) -> None:
-    """Print warning message in yellow."""
-    click.echo(click.style(message, fg='yellow'))
-
-
-def info(message: str) -> None:
-    """Print info message in blue."""
-    click.echo(click.style(message, fg='blue'))
-
-
-def dim(message: str) -> None:
-    """Print dimmed message."""
-    click.echo(click.style(message, dim=True))
-
-
-def bold(message: str) -> str:
-    """Return bold text."""
-    return click.style(message, bold=True)
+from .colors import (  # noqa: F401
+    # Basic output
+    success,
+    error,
+    warning,
+    info,
+    dim,
+    bold,
+    accent,
+    # Structural
+    banner,
+    section,
+    rule,
+    kv,
+    badge,
+    tree_item,
+    bullet,
+    step,
+    indent_echo,
+    table,
+    panel,
+    # File-operation helpers
+    file_written,
+    file_skipped,
+    file_dry,
+    next_steps,
+)

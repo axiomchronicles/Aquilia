@@ -30,7 +30,9 @@ def diagnose_workspace(verbose: bool = False) -> List[str]:
     workspace_root = Path.cwd()
     issues: List[str] = []
 
-    # ── 1. Workspace file ────────────────────────────────────────────────
+    from ..utils.colors import _CHECK
+
+    # -- 1. Workspace file ----
     from ..utils.workspace import get_workspace_file
     ws_file = get_workspace_file(workspace_root)
     if not ws_file:
@@ -38,7 +40,7 @@ def diagnose_workspace(verbose: bool = False) -> List[str]:
         return issues
 
     if verbose:
-        print(f"  ✓ Workspace file: {ws_file.name}")
+        print(f"  {_CHECK} Workspace file: {ws_file.name}")
 
     # ── 2. Required directories ──────────────────────────────────────────
     for dir_name in ('modules', 'config'):
@@ -66,7 +68,7 @@ def diagnose_workspace(verbose: bool = False) -> List[str]:
         return issues
 
     if verbose:
-        print(f"  ✓ Registered modules: {', '.join(registered_modules)}")
+        print(f"  {_CHECK} Registered modules: {', '.join(registered_modules)}")
 
     # ── 5. Module-level checks ───────────────────────────────────────────
     modules_dir = workspace_root / 'modules'
@@ -116,7 +118,7 @@ def diagnose_workspace(verbose: bool = False) -> List[str]:
                 continue
 
             if verbose:
-                print(f"  ✓ Module '{mod_name}' manifest loaded")
+                print(f"  {_CHECK} Module '{mod_name}' manifest loaded")
 
         except Exception as e:
             issues.append(f"Module '{mod_name}' manifest.py import error: {str(e)[:80]}")
@@ -174,6 +176,6 @@ def diagnose_workspace(verbose: bool = False) -> List[str]:
                 )
 
     if verbose and not issues:
-        print("  ✓ All checks passed")
+        print(f"  {_CHECK} All checks passed")
 
     return issues

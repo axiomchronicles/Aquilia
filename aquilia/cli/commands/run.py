@@ -186,7 +186,7 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
         base_package = f"modules.{module_name}"
         
         if verbose:
-            print(f"\n  🔍 Discovering module: {module_name}")
+            print(f"\n  Discovering module: {module_name}")
         
         try:
             # Use enhanced discovery to get properly classified controllers, services, and socket controllers
@@ -202,11 +202,11 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
             
             if verbose:
                 if discovered_controllers:
-                    print(f"    ✅ Found {len(discovered_controllers)} controller(s)")
+                    print(f"    + Found {len(discovered_controllers)} controller(s)")
                 if discovered_services:
-                    print(f"    ✅ Found {len(discovered_services)} service(s)")
+                    print(f"    + Found {len(discovered_services)} service(s)")
                 if discovered_sockets:
-                    print(f"    ✅ Found {len(discovered_sockets)} socket controller(s)")
+                    print(f"    + Found {len(discovered_sockets)} socket controller(s)")
             
             total_controllers += len(discovered_controllers)
             total_services += len(discovered_services)
@@ -216,7 +216,7 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
                 manifest_content = manifest_path.read_text()
             except (OSError, IOError) as e:
                 if verbose:
-                    print(f"    ⚠️  Cannot read manifest: {str(e)[:60]}")
+                    print(f"    !  Cannot read manifest: {str(e)[:60]}")
                 continue
             
             # Clean and update manifest with properly classified items
@@ -230,7 +230,7 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
                 )
             except Exception as e:
                 if verbose:
-                    print(f"    ⚠️  Error cleaning manifest: {str(e)[:60]}")
+                    print(f"    !  Error cleaning manifest: {str(e)[:60]}")
                 continue
             
             # Write updated manifest if there were changes
@@ -240,16 +240,16 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
                     modules_updated += 1
                     if verbose:
                         total_changes = services_added + controllers_added
-                        print(f"    ✅ Updated manifest: {services_added} service(s), {controllers_added} controller(s) added")
+                        print(f"    + Updated manifest: {services_added} service(s), {controllers_added} controller(s) added")
                 except (OSError, IOError) as e:
                     if verbose:
-                        print(f"    ⚠️  Cannot write manifest: {str(e)[:60]}")
+                        print(f"    !  Cannot write manifest: {str(e)[:60]}")
             elif verbose:
-                print(f"    ✓ Manifest already up-to-date")
+                print(f"    . Manifest already up-to-date")
                 
         except Exception as e:
             if verbose:
-                print(f"    ⚠️  Unexpected error processing {module_name}: {str(e)[:80]}")
+                print(f"    !  Unexpected error processing {module_name}: {str(e)[:80]}")
     
     # After updating all manifests, update workspace.py with discovered configs
     try:
@@ -270,7 +270,7 @@ def _discover_and_update_manifests(workspace_root: Path, verbose: bool = False) 
     
     except Exception as e:
         if verbose:
-            print(f"⚠️  Failed to update workspace.py: {str(e)[:80]}")
+            print(f"  !  Failed to update workspace.py: {str(e)[:80]}")
 
 
 def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) -> None:
@@ -355,15 +355,15 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
             }
             
             if verbose:
-                print(f"\n🔍 Enhanced discovery for module: {module_name}")
+                print(f"\n  Discovering module: {module_name}")
                 if discovered_controllers:
-                    print(f"  ✅ Found {len(discovered_controllers)} controller(s)")
+                    print(f"  + Found {len(discovered_controllers)} controller(s)")
                 if discovered_services:
-                    print(f"  ✅ Found {len(discovered_services)} service(s)")
+                    print(f"  + Found {len(discovered_services)} service(s)")
             
         except Exception as e:
             if verbose:
-                print(f"  ⚠️  Error discovering {module_name}: {str(e)[:80]}")
+                print(f"  !  Error discovering {module_name}: {str(e)[:80]}")
     
     if not discovered_modules:
         return
@@ -383,7 +383,7 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
         sorted_names = sorted(discovered_modules.keys())
         validation = {'valid': True, 'warnings': [], 'errors': []}
     
-    print("\n📍 Discovered Routes & Modules")
+    print("\n  Discovered Routes & Modules")
     print("=" * 70)
     
     # Display module table with controller details
@@ -403,7 +403,7 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
     # Show detailed controller information
     total_controllers = sum(mod.get('controllers_count', 0) for mod in discovered_modules.values())
     if total_controllers > 0:
-        print(f"\n🎯 Controller Details:")
+        print(f"\n  Controller Details:")
         for mod_name in sorted_names:
             if mod_name not in discovered_modules:
                 continue
@@ -422,7 +422,7 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
     # Show WebSocket controller details
     total_sockets = sum(mod.get('sockets_count', 0) for mod in discovered_modules.values())
     if total_sockets > 0:
-        print(f"\n🔌 WebSocket Controllers:")
+        print(f"\n  WebSocket Controllers:")
         for mod_name in sorted_names:
             if mod_name not in discovered_modules:
                 continue
@@ -438,14 +438,14 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
                     else:
                         sock_class = sock_path.split('.')[-1]
                     if namespace:
-                        print(f"    ⚡ {sock_class} → {namespace}")
+                        print(f"    -> {sock_class} -> {namespace}")
                     else:
-                        print(f"    ⚡ {sock_class}")
+                        print(f"    -> {sock_class}")
     
     print()
     
     # Summary
-    print(f"\n📊 Summary:")
+    print(f"\n  Summary:")
     with_services = sum(1 for m in discovered_modules.values() if m['has_services'])
     with_controllers = sum(1 for m in discovered_modules.values() if m['has_controllers'])
     with_sockets = sum(1 for m in discovered_modules.values() if m.get('has_sockets', False))
@@ -462,15 +462,15 @@ def _discover_and_display_routes(workspace_root: Path, verbose: bool = False) ->
     
     # Validation status
     if validation['errors']:
-        print(f"\n⚠️  Validation Errors: {len(validation['errors'])}")
+        print(f"\n  Validation Errors: {len(validation['errors'])}")
         for error in validation['errors']:
             print(f"    - {error}")
     elif validation['warnings']:
-        print(f"\n⚠️  Validation Warnings: {len(validation['warnings'])}")
+        print(f"\n  Validation Warnings: {len(validation['warnings'])}")
         for warning in validation['warnings'][:3]:
             print(f"    - {warning}")
     else:
-        print(f"\n✅ All modules validated!")
+        print(f"\n  All modules validated!")
     
     print(f"{'='*70}\n")
 
@@ -487,7 +487,7 @@ def _write_discovery_report(workspace_root: Path, discovered: Dict, sorted_names
     """
     try:
         report_lines = [
-            "# 📍 Auto-Discovered Routes & Modules\n",
+            "# Auto-Discovered Routes & Modules\n",
             f"*Generated: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n",
             "\n## Module Routes\n",
         ]
@@ -540,15 +540,15 @@ def _write_discovery_report(workspace_root: Path, discovered: Dict, sorted_names
         # Validation section
         report_lines.append("\n## Validation\n\n")
         if validation['errors']:
-            report_lines.append(f"❌ **Errors**: {len(validation['errors'])}\n\n")
+            report_lines.append(f"**Errors**: {len(validation['errors'])}\n\n")
             for error in validation['errors']:
                 report_lines.append(f"- {error}\n")
         elif validation['warnings']:
-            report_lines.append(f"⚠️ **Warnings**: {len(validation['warnings'])}\n\n")
+            report_lines.append(f"**Warnings**: {len(validation['warnings'])}\n\n")
             for warning in validation['warnings']:
                 report_lines.append(f"- {warning}\n")
         else:
-            report_lines.append("✅ **Status**: All modules validated!\n")
+            report_lines.append("**Status**: All modules validated!\n")
         
         # Write report
         report_file = workspace_root / "ROUTES.md"
@@ -598,16 +598,16 @@ def run_dev_server(
     
     # ===== AUTO-DISCOVER & UPDATE MANIFESTS FIRST =====
     # This must happen BEFORE creating the app so that workspace.py is up-to-date
-    print("🔍 Auto-discovering controllers and services...")
+    print("  Auto-discovering controllers and services...")
     _discover_and_update_manifests(workspace_root, verbose)
     
     # VALIDATE WORKSPACE CONFIGURATION BEFORE PROCEEDING
-    print("🔍 Validating workspace configuration...")
+    print("  Validating workspace configuration...")
     validation_errors = _validate_workspace_config(workspace_root, verbose)
     if validation_errors:
-        print("\n❌ Workspace validation failed! Fix these issues before starting the server:\n")
+        print("\n  Workspace validation failed! Fix these issues before starting the server:\n")
         for error in validation_errors:
-            print(f"  ❌ {error}")
+            print(f"    - {error}")
         print()
         return
     
@@ -615,7 +615,7 @@ def run_dev_server(
     workspace_config = workspace_root / "workspace.py"
     if workspace_config.exists():
         if verbose:
-            print("✓ Found workspace configuration: workspace.py")
+            print("  Found workspace configuration: workspace.py")
         
         # Create a runtime app loader
         app_module = _create_workspace_app(workspace_root, mode, verbose)
@@ -649,7 +649,7 @@ def run_dev_server(
             )
     
     if verbose:
-        print(f"\n🚀 Starting Aquilia development server...")
+        print(f"\n  Starting Aquilia development server...")
         print(f"  Mode: {mode}")
         print(f"  Host: {host}:{port}")
         print(f"  Reload: {reload}")

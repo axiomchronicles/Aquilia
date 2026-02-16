@@ -50,13 +50,13 @@ class DiscoveryCLI:
             print()
             
             if validation['errors']:
-                print(f"❌ Errors ({len(validation['errors'])}):")
+                print(f"  Errors ({len(validation['errors'])}):") 
                 for error in validation['errors']:
                     print(f"  - {error}")
                 print()
             
             if validation['warnings']:
-                print(f"⚠️  Warnings ({len(validation['warnings'])}):")
+                print(f"  Warnings ({len(validation['warnings'])}):") 
                 for warning in validation['warnings']:
                     print(f"  - {warning}")
                 print()
@@ -80,7 +80,7 @@ class DiscoveryCLI:
             discovered = generator._discover_modules()
             sorted_mods = generator._resolve_dependencies(discovered)
             
-            print(f"\n📊 Module Dependency Graph")
+            print(f"\n  Module Dependency Graph")
             print(f"{'='*60}")
             print(f"Workspace: {workspace}")
             print(f"Load Order:")

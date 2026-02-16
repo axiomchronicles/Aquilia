@@ -54,21 +54,23 @@ def trace_status(workspace: str, json_output: bool):
         click.echo("Run the server to generate the trace.")
         return
 
-    click.secho("╭─ .aquilia/ Trace Status ─╮", fg="cyan", bold=True)
-    click.echo(f"  Root:       {summary['root']}")
-    click.echo(f"  Locked:     {'🔒 Yes' if summary['locked'] else '🔓 No'}")
-    click.echo(f"  Files:      {', '.join(summary['files'])}")
+    from ..utils.colors import section, kv, rule, _CHECK, _CROSS
+
+    section(".aquilia/ Trace Status")
+    kv("Root", str(summary['root']))
+    kv("Locked", "Yes" if summary['locked'] else "No")
+    kv("Files", ", ".join(summary['files']))
 
     manifest = summary.get("manifest", {})
     if manifest:
-        click.echo(f"  Mode:       {manifest.get('mode', '?')}")
-        click.echo(f"  Apps:       {manifest.get('app_count', '?')}")
-        click.echo(f"  Fingerprint:{manifest.get('fingerprint', '?')[:16]}…")
+        kv("Mode", str(manifest.get('mode', '?')))
+        kv("Apps", str(manifest.get('app_count', '?')))
+        kv("Fingerprint", str(manifest.get('fingerprint', '?')[:16]))
 
-    click.echo(f"  Routes:     {summary.get('route_count', 0)}")
-    click.echo(f"  Providers:  {summary.get('provider_count', 0)}")
-    click.echo(f"  Models:     {summary.get('schema_count', 0)}")
-    click.echo(f"  Events:     {summary.get('journal_events', 0)}")
+    kv("Routes", str(summary.get('route_count', 0)))
+    kv("Providers", str(summary.get('provider_count', 0)))
+    kv("Models", str(summary.get('schema_count', 0)))
+    kv("Events", str(summary.get('journal_events', 0)))
 
     # Last boot info
     last_boot_ts = summary.get("last_boot_ts")
@@ -76,27 +78,28 @@ def trace_status(workspace: str, json_output: bool):
         boot_str = str(last_boot_ts)[:19]
         dur = summary.get("last_boot_duration_ms")
         dur_str = f" ({dur:.0f}ms)" if dur is not None else ""
-        click.echo(f"  Last boot:  {boot_str}{dur_str}")
+        kv("Last boot", f"{boot_str}{dur_str}")
 
     # Last shutdown / uptime
     last_shutdown_ts = summary.get("last_shutdown_ts")
     if last_shutdown_ts:
         uptime = summary.get("last_uptime_s")
         uptime_str = f" (uptime {uptime:.1f}s)" if uptime is not None else ""
-        click.echo(f"  Last stop:  {str(last_shutdown_ts)[:19]}{uptime_str}")
+        kv("Last stop", f"{str(last_shutdown_ts)[:19]}{uptime_str}")
 
     # Health
     healthy = summary.get("healthy")
     if healthy is not None:
-        health_icon = "✅" if healthy else "❌"
-        click.echo(f"  Health:     {health_icon} {'Healthy' if healthy else 'Unhealthy'}")
+        health_sym = _CHECK if healthy else _CROSS
+        health_label = "Healthy" if healthy else "Unhealthy"
+        kv("Health", f"{health_sym} {health_label}")
 
     # Active subsystems
     active_subs = summary.get("active_subsystems", [])
     if active_subs:
-        click.echo(f"  Subsystems: {', '.join(active_subs)}")
+        kv("Subsystems", ", ".join(active_subs))
 
-    click.secho("╰────────────────────────────╯", fg="cyan")
+    rule()
 
 
 # ── inspect ──────────────────────────────────────────────────────────────
@@ -250,7 +253,8 @@ def trace_clean(workspace: str, force: bool):
         click.confirm("Delete all trace files?", abort=True)
 
     count = trace.clean()
-    click.secho(f"✓ Cleaned {count} trace files.", fg="green")
+    from ..utils.colors import _CHECK
+    click.secho(f"  {_CHECK} Cleaned {count} trace files.", fg="green")
 
 
 # ── diff ─────────────────────────────────────────────────────────────────

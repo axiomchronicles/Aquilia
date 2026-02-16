@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Optional, List
 
-from ..utils.colors import info, dim, success
+from ..utils.colors import info, dim, success, _CHECK
 from ..generators import ModuleGenerator
 from ..generators.workspace import WorkspaceGenerator
 
@@ -45,7 +45,7 @@ def _ensure_docker_files(workspace_root: Path, verbose: bool = False) -> None:
         generated.append("docker-compose.yml")
 
     if generated and verbose:
-        info(f"  🐳 Auto-generated deployment files: {', '.join(generated)}")
+        info(f"  {_CHECK} Auto-generated deployment files: {', '.join(generated)}")
 
 
 def add_module(
@@ -139,11 +139,11 @@ def add_module(
         workspace_generator.update_workspace_config(workspace_path, discovered)
         
         if verbose:
-            info(f"✓ Updated workspace.py with auto-discovery")
+            info(f"{_CHECK} Updated workspace.py with auto-discovery")
     except Exception as e:
         if verbose:
             warning = __import__('aquilia.cli.utils.colors', fromlist=['warning']).warning
-            warning(f"⚠ Could not regenerate workspace.py: {e}")
+            warning(f"  Could not regenerate workspace.py: {e}")
             info(f"  Module was created, but workspace.py may need manual update")
     
     

@@ -81,7 +81,7 @@ class WorkspaceCompiler:
             return None
         except Exception as exc:
             if self.verbose:
-                print(f"  ⚠  Could not load manifest for '{module_name}': {exc}")
+                print(f"  !  Could not load manifest for '{module_name}': {exc}")
             return None
 
     def compile(self) -> List[Path]:

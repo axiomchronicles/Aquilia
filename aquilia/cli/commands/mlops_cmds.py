@@ -345,13 +345,13 @@ def observe_drift(reference_csv, current_csv, method, threshold):
     alerts = []
     for col in sorted(common):
         report = detector.check(ref_cols[col], cur_cols[col], feature_name=col)
-        status = "🔴 DRIFT" if report.is_drifted else "🟢 OK"
+        status = click.style("DRIFT", fg="red") if report.is_drifted else click.style("OK", fg="green")
         click.echo(f"  {col:30s}  score={report.score:.4f}  {status}")
         if report.is_drifted:
             alerts.append(col)
 
     if alerts:
-        click.echo(click.style(f"\n⚠  Drift detected in: {', '.join(alerts)}", fg="yellow"))
+        click.echo(click.style(f"\n  ! Drift detected in: {', '.join(alerts)}", fg="yellow"))
     else:
         click.echo(click.style("\n✓ No drift detected", fg="green"))
 

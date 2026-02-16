@@ -81,7 +81,7 @@ def inspect_routes(verbose: bool = False) -> None:
         print("No modules registered in workspace.")
         return
 
-    print(f"\n📍 Route Inspection")
+    print(f"\n  Route Inspection")
     print("=" * 70)
 
     total_routes = 0
@@ -89,14 +89,14 @@ def inspect_routes(verbose: bool = False) -> None:
     for module_name in sorted(modules):
         manifest = _load_manifest_instance(workspace_root, module_name)
         if not manifest:
-            print(f"\n  ⚠  Module '{module_name}': manifest not loadable")
+            print(f"\n  !  Module '{module_name}': manifest not loadable")
             continue
 
         route_prefix = getattr(manifest, 'route_prefix', f'/{module_name}')
         controllers = getattr(manifest, 'controllers', []) or []
         name = getattr(manifest, 'name', module_name)
 
-        print(f"\n  📦 {name}  (prefix: {route_prefix})")
+        print(f"\n  {name}  (prefix: {route_prefix})")
 
         if not controllers:
             print("     No controllers registered.")
@@ -184,7 +184,7 @@ def inspect_di(verbose: bool = False) -> None:
         print("No modules registered in workspace.")
         return
 
-    print(f"\n🔧 DI / Service Inspection")
+    print(f"\n  DI / Service Inspection")
     print("=" * 70)
 
     total_services = 0
@@ -192,13 +192,13 @@ def inspect_di(verbose: bool = False) -> None:
     for module_name in sorted(modules):
         manifest = _load_manifest_instance(workspace_root, module_name)
         if not manifest:
-            print(f"\n  ⚠  Module '{module_name}': manifest not loadable")
+            print(f"\n  !  Module '{module_name}': manifest not loadable")
             continue
 
         services = getattr(manifest, 'services', []) or []
         name = getattr(manifest, 'name', module_name)
 
-        print(f"\n  📦 {name}")
+        print(f"\n  {name}")
 
         if not services:
             print("     No services registered.")
@@ -256,7 +256,7 @@ def inspect_modules(verbose: bool = False) -> None:
         print("No modules registered in workspace.")
         return
 
-    print(f"\n📦 Module Inspection")
+    print(f"\n  Module Inspection")
     print("=" * 70)
 
     print(f"\n  {'Module':<20} {'Version':<10} {'Route':<20} {'Controllers':<12} {'Services':<10}")
@@ -289,7 +289,7 @@ def inspect_modules(verbose: bool = False) -> None:
             tags = getattr(manifest, 'tags', [])
             depends = getattr(manifest, 'depends_on', [])
 
-            print(f"\n  📌 {name}")
+            print(f"\n  {name}")
             if description:
                 print(f"     Description: {description}")
             if author:
@@ -317,19 +317,19 @@ def inspect_faults(verbose: bool = False) -> None:
         print("No modules registered in workspace.")
         return
 
-    print(f"\n⚡ Fault Domain Inspection")
+    print(f"\n  Fault Domain Inspection")
     print("=" * 70)
 
     for module_name in sorted(modules):
         manifest = _load_manifest_instance(workspace_root, module_name)
         if not manifest:
-            print(f"\n  ⚠  Module '{module_name}': manifest not loadable")
+            print(f"\n  !  Module '{module_name}': manifest not loadable")
             continue
 
         name = getattr(manifest, 'name', module_name)
         faults_config = getattr(manifest, 'faults', None)
 
-        print(f"\n  📦 {name}")
+        print(f"\n  {name}")
 
         if not faults_config:
             print("     No fault configuration defined.")
@@ -364,7 +364,7 @@ def inspect_config(verbose: bool = False) -> None:
     """Show resolved configuration from workspace + config files."""
     workspace_root = _ensure_workspace_root()
 
-    print(f"\n⚙  Configuration Inspection")
+    print(f"\n  Configuration Inspection")
     print("=" * 70)
 
     ws_file = get_workspace_file(workspace_root)

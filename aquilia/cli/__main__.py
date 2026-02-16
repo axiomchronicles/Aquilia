@@ -24,21 +24,65 @@ from typing import Optional
 import click
 
 from . import __version__, __cli_name__
-from .utils.colors import success, error, info, warning
+from .utils.colors import (
+    success, error, info, warning, dim, bold,
+    banner, section, kv, rule, step, bullet, panel, table, next_steps,
+    file_written, file_skipped,
+    _CHECK, _CROSS,
+)
 
 
-@click.group()
+# ═══════════════════════════════════════════════════════════════════════════
+# Custom Click help formatter
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class AquiliaGroup(click.Group):
+    """Click group subclass with branded help output."""
+
+    def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
+        """Override to add Aquilia branding to the top-level help."""
+        # Only show the full banner for the root group
+        if ctx.parent is None:
+            banner("Aquilia", subtitle=f"v{__version__}  {_CHECK}  manifest-driven framework CLI")
+            click.echo()
+
+        super().format_help(ctx, formatter)
+
+    def format_commands(
+        self, ctx: click.Context, formatter: click.HelpFormatter
+    ) -> None:
+        """Format command listing with aligned columns."""
+        commands = []
+        for subcommand in self.list_commands(ctx):
+            cmd = self.get_command(ctx, subcommand)
+            if cmd is None or cmd.hidden:
+                continue
+            help_text = cmd.get_short_help_str(limit=48)
+            commands.append((subcommand, help_text))
+
+        if commands:
+            with formatter.section(
+                click.style("Commands", fg="cyan", bold=True)
+            ):
+                # Find max command name width for alignment
+                max_len = max(len(c[0]) for c in commands) + 2
+                for name, help_text in commands:
+                    padded = name.ljust(max_len)
+                    styled_name = click.style(padded, fg="green")
+                    formatter.write(f"  {styled_name} {help_text}\n")
+
+
+@click.group(cls=AquiliaGroup)
 @click.version_option(version=__version__, prog_name=__cli_name__)
 @click.option('--verbose', '-v', is_flag=True, help='Verbose output')
 @click.option('--quiet', '-q', is_flag=True, help='Minimal output')
 @click.pass_context
 def cli(ctx, verbose: bool, quiet: bool):
-    """
-    Aquilate - Aquilia Native CLI.
-    
-    Manifest-driven, artifact-first project orchestration.
-    
-    Examples:
+    """Manifest-driven, artifact-first project orchestration.
+
+    \b
+    Quick start:
       aq init workspace my-api
       aq add module users
       aq validate
@@ -54,7 +98,7 @@ def cli(ctx, verbose: bool, quiet: bool):
 # Commands
 # ============================================================================
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def init():
     """Initialize new workspace or module."""
     pass
@@ -85,19 +129,22 @@ def init_workspace(ctx, name: str, minimal: bool, template: Optional[str]):
         )
         
         if not ctx.obj['quiet']:
-            success(f"✓ Created workspace '{name}'")
-            info(f"  Location: {workspace_path}")
-            info(f"\nNext steps:")
-            info(f"  cd {name}")
-            info(f"  aq add module <module_name>")
-            info(f"  aq run")
+            click.echo()
+            success(f"  {_CHECK} Created workspace '{name}'")
+            kv("Location", str(workspace_path))
+            click.echo()
+            next_steps([
+                f"cd {name}",
+                "aq add module <module_name>",
+                "aq run",
+            ])
     
     except Exception as e:
-        error(f"✗ Failed to create workspace: {e}")
+        error(f"  {_CROSS} Failed to create workspace: {e}")
         sys.exit(1)
 
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def add():
     """Add module to workspace."""
     pass
@@ -138,22 +185,25 @@ def add_module(ctx, name: str, depends_on: tuple, fault_domain: Optional[str], r
         )
         
         if not ctx.obj['quiet']:
-            success(f"✓ Added module '{name}'")
-            info(f"  Location: {module_path}")
+            click.echo()
+            success(f"  {_CHECK} Added module '{name}'")
+            kv("Location", str(module_path))
             if depends_on:
-                info(f"  Dependencies: {', '.join(depends_on)}")
-            info(f"\nNext steps:")
-            info(f"  1. Implement controllers in modules/{name}/controllers.py")
-            info(f"  2. Implement services in modules/{name}/services.py")
-            info(f"  3. Run: aq run")
-            info(f"  4. Deploy: aq deploy all")
+                kv("Dependencies", ", ".join(depends_on))
+            click.echo()
+            next_steps([
+                f"Implement controllers in modules/{name}/controllers.py",
+                f"Implement services in modules/{name}/services.py",
+                "Run: aq run",
+                "Deploy: aq deploy all",
+            ])
     
     except Exception as e:
-        error(f"✗ Failed to add module: {e}")
+        error(f"  {_CROSS} Failed to add module: {e}")
         sys.exit(1)
 
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def generate():
     """Generate code from templates."""
     pass
@@ -194,19 +244,22 @@ def generate_controller(ctx, name: str, prefix: Optional[str], resource: Optiona
         )
         
         if not ctx.obj['quiet']:
-            success(f"✓ Generated controller '{name}'")
-            info(f"  Location: {file_path}")
+            click.echo()
+            success(f"  {_CHECK} Generated controller '{name}'")
+            kv("Location", str(file_path))
             if with_lifecycle:
-                info(f"  Includes: Lifecycle hooks (on_startup, on_request, on_response)")
+                kv("Includes", "Lifecycle hooks (on_startup, on_request, on_response)")
             if test:
-                info(f"  Type: Test/Demo controller")
-            info(f"\nNext steps:")
-            info(f"  1. Add to manifest: controllers = ['{file_path.parent.name}.{file_path.stem}:{name}Controller']")
-            info(f"  2. Implement your business logic")
-            info(f"  3. Run: aq run")
+                kv("Type", "Test/Demo controller")
+            click.echo()
+            next_steps([
+                f"Add to manifest: controllers = ['{file_path.parent.name}.{file_path.stem}:{name}Controller']",
+                "Implement your business logic",
+                "Run: aq run",
+            ])
     
     except Exception as e:
-        error(f"✗ Failed to generate controller: {e}")
+        error(f"  {_CROSS} Failed to generate controller: {e}")
         sys.exit(1)
 
 
@@ -233,19 +286,21 @@ def validate(ctx, strict: bool, module: Optional[str]):
         )
         
         if not ctx.obj['quiet']:
+            click.echo()
             if result.is_valid:
-                success(f"✓ Validation passed")
-                info(f"  Modules: {result.module_count}")
-                info(f"  Routes: {result.route_count}")
-                info(f"  DI providers: {result.provider_count}")
+                success(f"  {_CHECK} Validation passed")
+                kv("Modules", str(result.module_count))
+                kv("Routes", str(result.route_count))
+                kv("DI providers", str(result.provider_count))
             else:
-                error(f"✗ Validation failed")
+                error(f"  {_CROSS} Validation failed")
+                click.echo()
                 for fault in result.faults:
-                    error(f"  - {fault}")
+                    bullet(fault, fg="red")
                 sys.exit(1)
     
     except Exception as e:
-        error(f"✗ Validation error: {e}")
+        error(f"  {_CROSS} Validation error: {e}")
         sys.exit(1)
 
 
@@ -272,13 +327,14 @@ def compile(ctx, watch: bool, output: Optional[str]):
         )
         
         if not ctx.obj['quiet']:
-            success(f"✓ Compilation complete")
-            info(f"  Artifacts: {len(artifacts)}")
+            click.echo()
+            success(f"  {_CHECK} Compilation complete")
+            kv("Artifacts", str(len(artifacts)))
             for artifact in artifacts:
-                info(f"    - {artifact}")
+                bullet(str(artifact))
     
     except Exception as e:
-        error(f"✗ Compilation failed: {e}")
+        error(f"  {_CROSS} Compilation failed: {e}")
         sys.exit(1)
 
 
@@ -340,9 +396,10 @@ def serve(ctx, workers: int, bind: str):
     
     except KeyboardInterrupt:
         if not ctx.obj['quiet']:
-            info("\n✓ Server stopped")
+            click.echo()
+            info(f"  {_CHECK} Server stopped")
     except Exception as e:
-        error(f"✗ Server error: {e}")
+        error(f"  {_CROSS} Server error: {e}")
         sys.exit(1)
 
 
@@ -369,15 +426,16 @@ def freeze(ctx, output: Optional[str], sign: bool):
         )
         
         if not ctx.obj['quiet']:
-            success(f"✓ Artifacts frozen")
-            info(f"  Fingerprint: {fingerprint}")
+            click.echo()
+            success(f"  {_CHECK} Artifacts frozen")
+            kv("Fingerprint", fingerprint)
     
     except Exception as e:
-        error(f"✗ Freeze failed: {e}")
+        error(f"  {_CROSS} Freeze failed: {e}")
         sys.exit(1)
 
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def manifest():
     """Manage module manifests."""
     pass
@@ -415,14 +473,14 @@ def manifest_update(ctx, module: str, check: bool, freeze: bool):
         )
         
     except Exception as e:
-        error(f"✗ Manifest update failed: {e}")
+        error(f"  {_CROSS} Manifest update failed: {e}")
         sys.exit(1)
 
 
 # Import and register add command group
 
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def inspect():
     """Inspect compiled artifacts."""
     pass
@@ -437,7 +495,7 @@ def inspect_routes(ctx):
     try:
         _inspect_routes(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ Inspection failed: {e}")
+        error(f"  {_CROSS} Inspection failed: {e}")
         sys.exit(1)
 
 
@@ -450,7 +508,7 @@ def inspect_di(ctx):
     try:
         _inspect_di(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ Inspection failed: {e}")
+        error(f"  {_CROSS} Inspection failed: {e}")
         sys.exit(1)
 
 
@@ -463,7 +521,7 @@ def inspect_modules(ctx):
     try:
         _inspect_modules(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ Inspection failed: {e}")
+        error(f"  {_CROSS} Inspection failed: {e}")
         sys.exit(1)
 
 
@@ -476,7 +534,7 @@ def inspect_faults(ctx):
     try:
         _inspect_faults(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ Inspection failed: {e}")
+        error(f"  {_CROSS} Inspection failed: {e}")
         sys.exit(1)
 
 
@@ -489,7 +547,7 @@ def inspect_config(ctx):
     try:
         _inspect_config(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ Inspection failed: {e}")
+        error(f"  {_CROSS} Inspection failed: {e}")
         sys.exit(1)
 
 
@@ -514,16 +572,17 @@ def migrate(ctx, source: str, dry_run: bool):
         )
         
         if not ctx.obj['quiet']:
+            click.echo()
             if dry_run:
-                warning("✓ Migration preview:")
+                warning(f"  {_CHECK} Migration preview:")
             else:
-                success("✓ Migration complete:")
+                success(f"  {_CHECK} Migration complete:")
             
             for item in result.changes:
-                info(f"  {item}")
+                bullet(str(item))
     
     except Exception as e:
-        error(f"✗ Migration failed: {e}")
+        error(f"  {_CROSS} Migration failed: {e}")
         sys.exit(1)
 
 
@@ -536,15 +595,16 @@ def doctor(ctx):
     try:
         issues = diagnose_workspace(verbose=ctx.obj['verbose'])
         
+        click.echo()
         if not issues:
-            success("✓ No issues found")
+            success(f"  {_CHECK} No issues found")
         else:
-            warning(f"Found {len(issues)} issue(s):")
+            warning(f"  Found {len(issues)} issue(s):")
             for issue in issues:
-                warning(f"  - {issue}")
+                bullet(issue, fg="yellow")
     
     except Exception as e:
-        error(f"✗ Diagnosis failed: {e}")
+        error(f"  {_CROSS} Diagnosis failed: {e}")
         sys.exit(1)
 
 
@@ -552,7 +612,7 @@ def doctor(ctx):
 # WebSocket management
 # ============================================================================
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def ws():
     """WebSocket management commands."""
     pass
@@ -567,7 +627,7 @@ def ws_inspect(ctx, artifacts_dir: str):
     try:
         cmd_ws_inspect({'artifacts_dir': artifacts_dir})
     except Exception as e:
-        error(f"✗ WS inspect failed: {e}")
+        error(f"  {_CROSS} WS inspect failed: {e}")
         sys.exit(1)
 
 
@@ -583,7 +643,7 @@ def ws_broadcast(ctx, namespace: str, room: Optional[str], event: str, payload: 
     try:
         cmd_ws_broadcast({'namespace': namespace, 'room': room, 'event': event, 'payload': payload})
     except Exception as e:
-        error(f"✗ WS broadcast failed: {e}")
+        error(f"  {_CROSS} WS broadcast failed: {e}")
         sys.exit(1)
 
 
@@ -598,7 +658,7 @@ def ws_gen_client(ctx, lang: str, out: str, artifacts_dir: str):
     try:
         cmd_ws_gen_client({'lang': lang, 'out': out, 'artifacts_dir': artifacts_dir})
     except Exception as e:
-        error(f"✗ WS gen-client failed: {e}")
+        error(f"  {_CROSS} WS gen-client failed: {e}")
         sys.exit(1)
 
 
@@ -618,7 +678,7 @@ def discover(ctx, path: Optional[str]):
         inspector = DiscoveryInspector(workspace_root.name, str(workspace_root))
         inspector.inspect(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ Discovery failed: {e}")
+        error(f"  {_CROSS} Discovery failed: {e}")
         sys.exit(1)
 
 
@@ -639,7 +699,7 @@ def analytics(ctx, path: Optional[str]):
         analysis = analyser.analyze()
         print_analysis_report(analysis)
     except Exception as e:
-        error(f"✗ Analytics failed: {e}")
+        error(f"  {_CROSS} Analytics failed: {e}")
         sys.exit(1)
 
 
@@ -647,9 +707,9 @@ def analytics(ctx, path: Optional[str]):
 # Mail
 # ============================================================================
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def mail():
-    """AquilaMail commands — test, inspect, and validate mail configuration."""
+    """AquilaMail -- test, inspect, and validate mail configuration."""
     pass
 
 
@@ -667,7 +727,7 @@ def mail_check(ctx):
     try:
         cmd_mail_check(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ mail check failed: {e}")
+        error(f"  {_CROSS} mail check failed: {e}")
         sys.exit(1)
 
 
@@ -694,7 +754,7 @@ def mail_send_test(ctx, to: str, subject: Optional[str], body: Optional[str]):
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
-        error(f"✗ mail send-test failed: {e}")
+        error(f"  {_CROSS} mail send-test failed: {e}")
         sys.exit(1)
 
 
@@ -712,7 +772,7 @@ def mail_inspect(ctx):
     try:
         cmd_mail_inspect(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ mail inspect failed: {e}")
+        error(f"  {_CROSS} mail inspect failed: {e}")
         sys.exit(1)
 
 
@@ -720,9 +780,9 @@ def mail_inspect(ctx):
 # Cache
 # ============================================================================
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def cache():
-    """AquilaCache commands — check, inspect, clear, and view cache stats."""
+    """AquilaCache -- check, inspect, clear, and view cache stats."""
     pass
 
 
@@ -740,7 +800,7 @@ def cache_check(ctx):
     try:
         cmd_cache_check(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ cache check failed: {e}")
+        error(f"  {_CROSS} cache check failed: {e}")
         sys.exit(1)
 
 
@@ -758,7 +818,7 @@ def cache_inspect(ctx):
     try:
         cmd_cache_inspect(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ cache inspect failed: {e}")
+        error(f"  {_CROSS} cache inspect failed: {e}")
         sys.exit(1)
 
 
@@ -776,7 +836,7 @@ def cache_stats(ctx):
     try:
         cmd_cache_stats(verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ cache stats failed: {e}")
+        error(f"  {_CROSS} cache stats failed: {e}")
         sys.exit(1)
 
 
@@ -796,7 +856,7 @@ def cache_clear(ctx, namespace: Optional[str]):
     try:
         cmd_cache_clear(namespace=namespace, verbose=ctx.obj['verbose'])
     except Exception as e:
-        error(f"✗ cache clear failed: {e}")
+        error(f"  {_CROSS} cache clear failed: {e}")
         sys.exit(1)
 
 
@@ -804,7 +864,7 @@ def cache_clear(ctx, namespace: Optional[str]):
 # Database / Models
 # ============================================================================
 
-@cli.group()
+@cli.group(cls=AquiliaGroup)
 def db():
     """Database and model ORM commands."""
     pass
@@ -835,7 +895,7 @@ def db_makemigrations(ctx, app: Optional[str], migrations_dir: str):
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
-        error(f"✗ makemigrations failed: {e}")
+        error(f"  {_CROSS} makemigrations failed: {e}")
         sys.exit(1)
 
 
@@ -863,7 +923,7 @@ def db_migrate(ctx, migrations_dir: str, database_url: str, target: Optional[str
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
-        error(f"✗ migrate failed: {e}")
+        error(f"  {_CROSS} migrate failed: {e}")
         sys.exit(1)
 
 
@@ -889,7 +949,7 @@ def db_dump(ctx, emit: str, output_dir: Optional[str]):
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
-        error(f"✗ dump failed: {e}")
+        error(f"  {_CROSS} dump failed: {e}")
         sys.exit(1)
 
 
@@ -915,7 +975,7 @@ def db_shell(ctx, database_url: str):
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
-        error(f"✗ shell failed: {e}")
+        error(f"  {_CROSS} shell failed: {e}")
         sys.exit(1)
 
 
@@ -948,9 +1008,9 @@ def db_inspectdb(ctx, database_url: str, table: tuple, output: Optional[str]):
         if output and result:
             Path(output).parent.mkdir(parents=True, exist_ok=True)
             Path(output).write_text(result, encoding="utf-8")
-            click.echo(click.style(f"✓ Models written to {output}", fg="green"))
+            click.echo(click.style(f"  {_CHECK} Models written to {output}", fg="green"))
     except Exception as e:
-        error(f"✗ inspectdb failed: {e}")
+        error(f"  {_CROSS} inspectdb failed: {e}")
         sys.exit(1)
 
 
@@ -973,7 +1033,7 @@ def db_showmigrations(ctx, migrations_dir: str):
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
-        error(f"✗ showmigrations failed: {e}")
+        error(f"  {_CROSS} showmigrations failed: {e}")
         sys.exit(1)
 
 
@@ -998,7 +1058,7 @@ def db_sqlmigrate(ctx, migration_name: str, migrations_dir: str):
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
-        error(f"✗ sqlmigrate failed: {e}")
+        error(f"  {_CROSS} sqlmigrate failed: {e}")
         sys.exit(1)
 
 
@@ -1021,7 +1081,7 @@ def db_status(ctx, database_url: str):
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
-        error(f"✗ status failed: {e}")
+        error(f"  {_CROSS} status failed: {e}")
         sys.exit(1)
 
 

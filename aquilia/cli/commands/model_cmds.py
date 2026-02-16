@@ -207,7 +207,7 @@ def _discover_models(
         except Exception as e:
             if verbose:
                 click.echo(
-                    click.style(f"  ⚠ Failed to import {py_path}: {e}", fg="yellow")
+                    click.style(f"  ! Failed to import {py_path}: {e}", fg="yellow")
                 )
             continue
 

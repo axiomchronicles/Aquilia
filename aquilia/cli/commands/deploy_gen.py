@@ -31,7 +31,12 @@ from typing import Optional
 
 import click
 
-from ..utils.colors import success, error, info, warning, dim
+from ..utils.colors import (
+    success, error, info, warning, dim, bold,
+    section, kv, rule, step, panel, next_steps, table,
+    file_written, file_skipped, file_dry,
+    banner, _CHECK, _CROSS,
+)
 
 
 def _get_ctx(workspace_root: Path) -> dict:
@@ -54,18 +59,16 @@ def _write_file(
     Returns True if the file was written, False if skipped.
     """
     if path.exists() and not force:
-        dim(f"  ⊘ {label} (exists, use --force to overwrite)")
+        file_skipped(label, reason="exists, use --force")
         return False
 
     if dry_run:
-        info(f"  ◎ {label} (dry-run)")
+        file_dry(label)
         return True
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
-    if verbose:
-        dim(f"  → {path}")
-    success(f"  ✓ {label}")
+    file_written(label, verbose=verbose, path=str(path))
     return True
 
 
@@ -137,14 +140,13 @@ def deploy_dockerfile(ctx, dev_mode: bool, mlops_mode: bool, output: str):
         wctx = _get_ctx(workspace_root)
         gen = DockerfileGenerator(wctx)
 
-        if dry_run:
-            info(f"🐳 [DRY RUN] Dockerfiles for '{wctx['name']}':")
-        else:
-            info(f"🐳 Generating Dockerfiles for '{wctx['name']}'...")
+        action = "DRY RUN" if dry_run else "Generating"
+        section(f"{action}: Dockerfiles for '{wctx['name']}'")
 
-        info(f"  📋 Detected: {wctx.get('module_count', 0)} modules, "
-             f"db={wctx.get('db_driver', 'none')}, "
-             f"Python {wctx.get('python_version', '3.12')}")
+        kv("Modules", str(wctx.get('module_count', 0)))
+        kv("DB driver", wctx.get('db_driver', 'none'))
+        kv("Python", wctx.get('python_version', '3.12'))
+        click.echo()
 
         # Always generate production Dockerfile + .dockerignore
         if not dev_mode or mlops_mode:
@@ -169,13 +171,14 @@ def deploy_dockerfile(ctx, dev_mode: bool, mlops_mode: bool, output: str):
                         label="Dockerfile.mlops (model-serving)", verbose=verbose,
                         force=force, dry_run=dry_run)
 
-        info("")
-        info("Next steps:")
-        info("  docker build -t myapp .")
-        info("  docker run -p 8000:8000 myapp")
+        click.echo()
+        next_steps([
+            "docker build -t myapp .",
+            "docker run -p 8000:8000 myapp",
+        ])
 
     except Exception as e:
-        error(f"✗ Dockerfile generation failed: {e}")
+        error(f"  {_CROSS} Dockerfile generation failed: {e}")
         sys.exit(1)
 
 
@@ -214,10 +217,8 @@ def deploy_compose(ctx, dev_mode: bool, monitoring: bool, output: str):
         wctx = _get_ctx(workspace_root)
         gen = ComposeGenerator(wctx)
 
-        if dry_run:
-            info(f"🐳 [DRY RUN] Docker Compose for '{wctx['name']}':")
-        else:
-            info(f"🐳 Generating Docker Compose for '{wctx['name']}'...")
+        action = "DRY RUN" if dry_run else "Generating"
+        section(f"{action}: Docker Compose for '{wctx['name']}'")
 
         _write_file(out / "docker-compose.yml",
                      gen.generate_compose(include_monitoring=monitoring),
@@ -230,14 +231,15 @@ def deploy_compose(ctx, dev_mode: bool, monitoring: bool, output: str):
                          label="docker-compose.dev.yml", verbose=verbose,
                          force=force, dry_run=dry_run)
 
-        info("")
-        info("Next steps:")
-        info("  docker compose up -d")
-        info("  docker compose --profile monitoring up -d")
-        info("  docker compose logs -f app")
+        click.echo()
+        next_steps([
+            "docker compose up -d",
+            "docker compose --profile monitoring up -d",
+            "docker compose logs -f app",
+        ])
 
     except Exception as e:
-        error(f"✗ Compose generation failed: {e}")
+        error(f"  {_CROSS} Compose generation failed: {e}")
         sys.exit(1)
 
 
@@ -278,10 +280,8 @@ def deploy_kubernetes(ctx, output: str, mlops: bool):
 
         gen = KubernetesGenerator(wctx)
 
-        if dry_run:
-            info(f"☸  [DRY RUN] Kubernetes manifests for '{wctx['name']}':")
-        else:
-            info(f"☸  Generating Kubernetes manifests for '{wctx['name']}'...")
+        action = "DRY RUN" if dry_run else "Generating"
+        section(f"{action}: Kubernetes manifests for '{wctx['name']}'")
 
         manifests = gen.generate_all()
         for filename, content in manifests.items():
@@ -305,15 +305,16 @@ def deploy_kubernetes(ctx, output: str, mlops: bool):
                      label="kustomization.yaml", verbose=verbose,
                      force=force, dry_run=dry_run)
 
-        info("")
-        info(f"  📊 Generated {len(manifests)} manifests + kustomization.yaml")
-        info("")
-        info("Next steps:")
-        info(f"  kubectl apply -k {output}/")
-        info("  # Or with kustomize: kustomize build k8s/ | kubectl apply -f -")
+        click.echo()
+        kv("Manifests", str(len(manifests)))
+        click.echo()
+        next_steps([
+            f"kubectl apply -k {output}/",
+            f"kustomize build {output}/ | kubectl apply -f -",
+        ])
 
     except Exception as e:
-        error(f"✗ Kubernetes generation failed: {e}")
+        error(f"  {_CROSS} Kubernetes generation failed: {e}")
         sys.exit(1)
 
 
@@ -348,10 +349,8 @@ def deploy_nginx(ctx, output: str):
         wctx = _get_ctx(workspace_root)
         gen = NginxGenerator(wctx)
 
-        if dry_run:
-            info(f"🌐 [DRY RUN] Nginx config for '{wctx['name']}':")
-        else:
-            info(f"🌐 Generating Nginx config for '{wctx['name']}'...")
+        action = "DRY RUN" if dry_run else "Generating"
+        section(f"{action}: Nginx config for '{wctx['name']}'")
 
         _write_file(out / "nginx.conf", gen.generate_nginx_conf(),
                      label="nginx.conf", verbose=verbose,
@@ -365,13 +364,14 @@ def deploy_nginx(ctx, output: str):
                          label="ssl/.gitkeep (placeholder)", verbose=verbose,
                          force=force, dry_run=dry_run)
 
-        info("")
-        info("Next steps:")
-        info("  1. Place TLS certificates in deploy/nginx/ssl/")
-        info("  2. Uncomment HTTPS block in nginx.conf")
+        click.echo()
+        next_steps([
+            "Place TLS certificates in deploy/nginx/ssl/",
+            "Uncomment HTTPS block in nginx.conf",
+        ])
 
     except Exception as e:
-        error(f"✗ Nginx generation failed: {e}")
+        error(f"  {_CROSS} Nginx generation failed: {e}")
         sys.exit(1)
 
 
@@ -412,10 +412,8 @@ def deploy_ci(ctx, provider: str, output: Optional[str]):
         wctx = _get_ctx(workspace_root)
         gen = CIGenerator(wctx)
 
-        if dry_run:
-            info(f"⚙  [DRY RUN] CI/CD pipeline for '{wctx['name']}' ({provider}):")
-        else:
-            info(f"⚙  Generating CI/CD pipeline for '{wctx['name']}' ({provider})...")
+        action = "DRY RUN" if dry_run else "Generating"
+        section(f"{action}: CI/CD pipeline for '{wctx['name']}' ({provider})")
 
         if provider == "github":
             out_dir = Path(output) if output else workspace_root / ".github" / "workflows"
@@ -428,14 +426,15 @@ def deploy_ci(ctx, provider: str, output: Optional[str]):
                          label=".gitlab-ci.yml", verbose=verbose,
                          force=force, dry_run=dry_run)
 
-        info("")
-        info("Next steps:")
-        info("  1. Review the generated workflow")
-        info("  2. Configure secrets in repository settings")
-        info("  3. Push to trigger CI")
+        click.echo()
+        next_steps([
+            "Review the generated workflow",
+            "Configure secrets in repository settings",
+            "Push to trigger CI",
+        ])
 
     except Exception as e:
-        error(f"✗ CI generation failed: {e}")
+        error(f"  {_CROSS} CI generation failed: {e}")
         sys.exit(1)
 
 
@@ -472,10 +471,8 @@ def deploy_monitoring(ctx, output: str):
     try:
         wctx = _get_ctx(workspace_root)
 
-        if dry_run:
-            info(f"📊  [DRY RUN] Monitoring config for '{wctx['name']}':")
-        else:
-            info(f"📊  Generating monitoring config for '{wctx['name']}'...")
+        action = "DRY RUN" if dry_run else "Generating"
+        section(f"{action}: Monitoring for '{wctx['name']}'")
 
         prom_gen = PrometheusGenerator(wctx)
         _write_file(out / "prometheus" / "prometheus.yml",
@@ -493,14 +490,15 @@ def deploy_monitoring(ctx, output: str):
                      label="grafana/provisioning/dashboards/dashboards.yml", verbose=verbose,
                      force=force, dry_run=dry_run)
 
-        info("")
-        info("Next steps:")
-        info("  aq deploy compose --monitoring")
-        info("  docker compose up -d prometheus grafana")
-        info("  Open Grafana at http://localhost:3000 (admin/admin)")
+        click.echo()
+        next_steps([
+            "aq deploy compose --monitoring",
+            "docker compose up -d prometheus grafana",
+            "Open Grafana at http://localhost:3000 (admin/admin)",
+        ])
 
     except Exception as e:
-        error(f"✗ Monitoring generation failed: {e}")
+        error(f"  {_CROSS} Monitoring generation failed: {e}")
         sys.exit(1)
 
 
@@ -536,25 +534,23 @@ def deploy_env(ctx, output: str):
         wctx = _get_ctx(workspace_root)
         gen = EnvGenerator(wctx)
 
-        if dry_run:
-            info(f"📝  [DRY RUN] .env.example for '{wctx['name']}':")
-        else:
-            info(f"📝  Generating .env.example for '{wctx['name']}'...")
+        action = "DRY RUN" if dry_run else "Generating"
+        section(f"{action}: .env.example for '{wctx['name']}'")
 
         _write_file(out / ".env.example", gen.generate_env_example(),
                      label=".env.example", verbose=verbose,
                      force=force, dry_run=dry_run)
 
-        db = wctx.get("db_driver", "sqlite")
-        info("")
-        info(f"  DB driver detected: {db}")
-        info("")
-        info("Next steps:")
-        info("  cp .env.example .env")
-        info("  # Fill in real secrets — never commit .env")
+        click.echo()
+        kv("DB driver", wctx.get('db_driver', 'sqlite'))
+        click.echo()
+        next_steps([
+            "cp .env.example .env",
+            "Fill in real secrets -- never commit .env",
+        ])
 
     except Exception as e:
-        error(f"✗ Env generation failed: {e}")
+        error(f"  {_CROSS} Env generation failed: {e}")
         sys.exit(1)
 
 
@@ -604,13 +600,12 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
         wctx = _get_ctx(workspace_root)
         name = wctx["name"]
 
-        if dry_run:
-            info(f"🚀  [DRY RUN] Full deployment suite for '{name}':\n")
-        else:
-            info(f"🚀  Generating full deployment suite for '{name}'...\n")
+        action = "DRY RUN" if dry_run else "Generating"
+        banner(f"Deploy: {name}", subtitle=f"{action} full deployment suite")
+        click.echo()
 
-        # ── Dockerfiles ──
-        info("── Docker ──")
+        # -- Dockerfiles --
+        section("Docker")
         docker_gen = DockerfileGenerator(wctx)
         if _write_file(out / "Dockerfile", docker_gen.generate_dockerfile(),
                        label="Dockerfile", verbose=verbose,
@@ -630,8 +625,9 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
                            force=force, dry_run=dry_run):
                 written += 1
 
-        # ── Compose ──
-        info("\n── Docker Compose ──")
+        # -- Compose --
+        click.echo()
+        section("Docker Compose")
         compose_gen = ComposeGenerator(wctx)
         if _write_file(out / "docker-compose.yml",
                        compose_gen.generate_compose(include_monitoring=monitoring),
@@ -644,8 +640,9 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
                        force=force, dry_run=dry_run):
             written += 1
 
-        # ── Kubernetes ──
-        info("\n── Kubernetes ──")
+        # -- Kubernetes --
+        click.echo()
+        section("Kubernetes")
         k8s_gen = KubernetesGenerator(wctx)
         manifests = k8s_gen.generate_all()
         for filename, content in manifests.items():
@@ -669,8 +666,9 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
                        force=force, dry_run=dry_run):
             written += 1
 
-        # ── Nginx ──
-        info("\n── Nginx ──")
+        # -- Nginx --
+        click.echo()
+        section("Nginx")
         nginx_gen = NginxGenerator(wctx)
         if _write_file(out / "deploy" / "nginx" / "nginx.conf",
                        nginx_gen.generate_nginx_conf(),
@@ -684,8 +682,9 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
                        force=force, dry_run=dry_run):
             written += 1
 
-        # ── CI/CD ──
-        info("\n── CI/CD ──")
+        # -- CI/CD --
+        click.echo()
+        section("CI/CD")
         ci_gen = CIGenerator(wctx)
         if ci_provider in ("github", "both"):
             if _write_file(out / ".github" / "workflows" / "ci.yml",
@@ -700,9 +699,10 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
                            force=force, dry_run=dry_run):
                 written += 1
 
-        # ── Monitoring ──
+        # -- Monitoring --
         if monitoring:
-            info("\n── Monitoring ──")
+            click.echo()
+            section("Monitoring")
             prom_gen = PrometheusGenerator(wctx)
             if _write_file(out / "deploy" / "prometheus" / "prometheus.yml",
                            prom_gen.generate_prometheus_yml(),
@@ -721,57 +721,78 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
                            verbose=verbose, force=force, dry_run=dry_run):
                 written += 1
 
-        # ── Env ──
-        info("\n── Environment ──")
+        # -- Env --
+        click.echo()
+        section("Environment")
         env_gen = EnvGenerator(wctx)
         if _write_file(out / ".env.example", env_gen.generate_env_example(),
                        label=".env.example", verbose=verbose,
                        force=force, dry_run=dry_run):
             written += 1
 
-        # ── Makefile ──
-        info("\n── Makefile ──")
+        # -- Makefile --
+        click.echo()
+        section("Makefile")
         mk_gen = MakefileGenerator(wctx)
         if _write_file(out / "Makefile", mk_gen.generate_makefile(),
                        label="Makefile", verbose=verbose,
                        force=force, dry_run=dry_run):
             written += 1
 
-        # ── Summary ──
-        info("")
+        # -- Summary --
+        click.echo()
+        rule()
+        click.echo()
         if dry_run:
             info(f"  {written} file(s) would be generated")
         else:
-            success(f"✓ {written} file(s) generated for '{name}'")
-        info("")
-        info("Quick start:")
-        info("  1. cp .env.example .env && edit .env")
-        info("  2. make docker-up                (Docker Compose)")
-        info("  3. make k8s-apply                (Kubernetes)")
-        info("  4. make help                     (see all targets)")
-        info("")
-        info("Generated structure:")
-        dim(f"  Dockerfile               — Production (multi-stage, BuildKit)")
-        dim(f"  Dockerfile.dev           — Development (hot-reload)")
-        dim(f"  .dockerignore            — Build context exclusions")
+            success(f"  {_CHECK} {written} file(s) generated for '{name}'")
+        click.echo()
+
+        next_steps([
+            "cp .env.example .env && edit .env",
+            "make docker-up                (Docker Compose)",
+            "make k8s-apply                (Kubernetes)",
+            "make help                     (see all targets)",
+        ])
+
+        click.echo()
+        section("Generated structure")
+
+        # Build structure listing
+        structure = [
+            ("Dockerfile",             "Production (multi-stage, BuildKit)"),
+            ("Dockerfile.dev",         "Development (hot-reload)"),
+            (".dockerignore",          "Build context exclusions"),
+        ]
         if wctx.get("has_mlops"):
-            dim(f"  Dockerfile.mlops         — MLOps model server")
-        dim(f"  docker-compose.yml       — Full service stack (profiles)")
-        dim(f"  docker-compose.dev.yml   — Dev override")
-        dim(f"  k8s/                     — Kubernetes manifests ({len(manifests)} files)")
-        dim(f"  deploy/nginx/            — Nginx reverse-proxy (TLS-ready)")
+            structure.append(("Dockerfile.mlops", "MLOps model server"))
+        structure += [
+            ("docker-compose.yml",     "Full service stack (profiles)"),
+            ("docker-compose.dev.yml", "Dev override"),
+            (f"k8s/",                  f"Kubernetes manifests ({len(manifests)} files)"),
+            ("deploy/nginx/",          "Nginx reverse-proxy (TLS-ready)"),
+        ]
         if monitoring:
-            dim(f"  deploy/prometheus/       — Prometheus config")
-            dim(f"  deploy/grafana/          — Grafana provisioning")
+            structure.append(("deploy/prometheus/", "Prometheus config"))
+            structure.append(("deploy/grafana/",    "Grafana provisioning"))
         if ci_provider in ("github", "both"):
-            dim(f"  .github/workflows/       — GitHub Actions pipeline")
+            structure.append((".github/workflows/", "GitHub Actions pipeline"))
         if ci_provider in ("gitlab", "both"):
-            dim(f"  .gitlab-ci.yml           — GitLab CI/CD pipeline")
-        dim(f"  .env.example             — Environment template")
-        dim(f"  Makefile                 — Dev/deploy task runner")
+            structure.append((".gitlab-ci.yml",     "GitLab CI/CD pipeline"))
+        structure += [
+            (".env.example",           "Environment template"),
+            ("Makefile",               "Dev/deploy task runner"),
+        ]
+
+        table(
+            headers=["File", "Description"],
+            rows=[(f, d) for f, d in structure],
+            col_widths=[28, 40],
+        )
 
     except Exception as e:
-        error(f"✗ Full deployment generation failed: {e}")
+        error(f"  {_CROSS} Full deployment generation failed: {e}")
         sys.exit(1)
 
 
@@ -804,23 +825,21 @@ def deploy_makefile(ctx, output: str):
 
     try:
         wctx = _get_ctx(workspace_root)
-
-        if dry_run:
-            info(f"🛠  [DRY RUN] Makefile for '{wctx['name']}':")
-        else:
-            info(f"🛠  Generating Makefile for '{wctx['name']}'...")
+        action = "DRY RUN" if dry_run else "Generating"
+        section(f"{action}: Makefile for '{wctx['name']}'")
 
         gen = MakefileGenerator(wctx)
         _write_file(out / "Makefile", gen.generate_makefile(),
                      label="Makefile", verbose=verbose,
                      force=force, dry_run=dry_run)
 
-        info("")
-        info("Next steps:")
-        info("  make help          # see all available targets")
-        info("  make dev           # start dev server")
-        info("  make docker-up     # bring up compose stack")
+        click.echo()
+        next_steps([
+            "make help          # see all available targets",
+            "make dev           # start dev server",
+            "make docker-up     # bring up compose stack",
+        ])
 
     except Exception as e:
-        error(f"✗ Makefile generation failed: {e}")
+        error(f"  {_CROSS} Makefile generation failed: {e}")
         sys.exit(1)

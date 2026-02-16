@@ -2806,15 +2806,15 @@ class MakefileGenerator:
             .PHONY: migrate migrate-create db-reset
 
             migrate:  ## Apply database migrations
-            \t@echo "🗄  Running migrations..."
+            \t@echo "Running migrations..."
             \tpython -m aquilia.cli migrate --apply
 
             migrate-create:  ## Create a new migration
-            \t@echo "📝 Creating migration..."
+            \t@echo "Creating migration..."
             \tpython -m aquilia.cli migrate create $(name)
 
             db-reset:  ## Reset database (WARNING: destructive)
-            \t@echo "⚠️  Resetting database..."
+            \t@echo "Resetting database..."
             \tpython -m aquilia.cli migrate reset --confirm
             """)
 
@@ -2826,11 +2826,11 @@ class MakefileGenerator:
             .PHONY: docker-mlops docker-compose-mlops
 
             docker-mlops:  ## Build MLOps model server image
-            \t@echo "🤖 Building MLOps image..."
+            \t@echo "Building MLOps image..."
             \tdocker build -f Dockerfile.mlops -t {name}-model:latest .
 
             docker-compose-mlops:  ## Start stack with MLOps model server
-            \t@echo "🤖 Starting with MLOps..."
+            \t@echo "Starting with MLOps..."
             \tdocker compose --profile mlops up -d
             """)
 
@@ -2903,7 +2903,7 @@ class MakefileGenerator:
             .PHONY: docker-build docker-build-dev docker-up docker-down docker-logs docker-shell docker-prune
 
             docker-build:  ## Build production Docker image
-            \t@echo "🐳 Building production image..."
+            \t@echo "Building production image..."
             \tDOCKER_BUILDKIT=1 docker build \\
             \t\t--build-arg PYTHON_VERSION=$(PYTHON_VERSION) \\
             \t\t-t $(IMAGE_NAME):latest \\
@@ -2911,23 +2911,23 @@ class MakefileGenerator:
             \t\t.
 
             docker-build-dev:  ## Build development Docker image
-            \t@echo "🐳 Building development image..."
+            \t@echo "Building development image..."
             \tDOCKER_BUILDKIT=1 docker build -f Dockerfile.dev -t $(IMAGE_NAME):dev .
 
             docker-up:  ## Start Docker Compose stack
-            \t@echo "🐳 Starting Docker stack..."
+            \t@echo "Starting Docker stack..."
             \tdocker compose up -d
 
             docker-up-monitoring:  ## Start with monitoring (Prometheus + Grafana)
-            \t@echo "📊 Starting with monitoring..."
+            \t@echo "Starting with monitoring..."
             \tdocker compose --profile monitoring up -d
 
             docker-down:  ## Stop Docker Compose stack
-            \t@echo "🐳 Stopping Docker stack..."
+            \t@echo "Stopping Docker stack..."
             \tdocker compose down
 
             docker-down-clean:  ## Stop and remove volumes
-            \t@echo "⚠️  Stopping and cleaning volumes..."
+            \t@echo "Stopping and cleaning volumes..."
             \tdocker compose down -v
 
             docker-logs:  ## Follow Docker Compose logs
@@ -2943,11 +2943,11 @@ class MakefileGenerator:
             .PHONY: k8s-apply k8s-delete k8s-status k8s-logs k8s-port-forward
 
             k8s-apply:  ## Apply Kubernetes manifests
-            \t@echo "☸  Applying Kubernetes manifests..."
+            \t@echo "Applying Kubernetes manifests..."
             \tkubectl apply -k k8s/
 
             k8s-delete:  ## Delete Kubernetes resources
-            \t@echo "☸  Deleting Kubernetes resources..."
+            \t@echo "Deleting Kubernetes resources..."
             \tkubectl delete -k k8s/
 
             k8s-status:  ## Show Kubernetes resource status
@@ -2963,7 +2963,7 @@ class MakefileGenerator:
             .PHONY: deploy-gen deploy-gen-all
 
             deploy-gen:  ## Regenerate all deployment files
-            \t@echo "🔄 Regenerating deployment files..."
+            \t@echo "Regenerating deployment files..."
             \tpython -m aquilia.cli deploy all
 
             deploy-gen-all:  ## Regenerate all deployment files with monitoring
