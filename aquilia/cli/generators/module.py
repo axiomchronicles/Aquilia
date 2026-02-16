@@ -361,10 +361,15 @@ class ModuleGenerator:
                 
                 This service is automatically registered with the DI container
                 and can be injected into controllers.
+                
+                To inject dependencies, add type-annotated parameters to __init__:
+                
+                    def __init__(self, db: AquiliaDatabase, auth: AuthManager):
+                        self.db = db
+                        self.auth = auth
                 """
                 
                 def __init__(self):
-                    # TODO: Inject dependencies (e.g., repositories, external services)
                     self._storage: List[dict] = []
                     self._next_id = 1
                 

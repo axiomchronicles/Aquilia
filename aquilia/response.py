@@ -1143,13 +1143,66 @@ class Response:
         self._send_start_time = time.time()
         
         try:
-            # Handle Range requests (Phase 2 TODO)
+            # Handle Range requests (206 Partial Content)
             should_send_partial = False
             range_start, range_end = None, None
             
-            if request and hasattr(self, "_file_path"):
-                # TODO Phase 2: Parse Range header and set 206 status
-                pass
+            if request and hasattr(self, "_file_path") and hasattr(self, "_file_size"):
+                range_header = None
+                if hasattr(request, 'headers'):
+                    h = request.headers
+                    if hasattr(h, 'get'):
+                        range_header = h.get('range')
+                    elif isinstance(h, dict):
+                        range_header = h.get('range') or h.get('Range')
+                
+                if range_header and range_header.startswith('bytes='):
+                    try:
+                        range_spec = range_header[6:]  # Strip 'bytes='
+                        file_size = self._file_size
+                        
+                        if range_spec.startswith('-'):
+                            # Suffix range: bytes=-500 (last 500 bytes)
+                            suffix_len = int(range_spec[1:])
+                            range_start = max(0, file_size - suffix_len)
+                            range_end = file_size - 1
+                        elif range_spec.endswith('-'):
+                            # Open-ended range: bytes=500-
+                            range_start = int(range_spec[:-1])
+                            range_end = file_size - 1
+                        else:
+                            # Full range: bytes=200-499
+                            parts = range_spec.split('-', 1)
+                            range_start = int(parts[0])
+                            range_end = int(parts[1])
+                        
+                        # Validate range
+                        if range_start < 0 or range_start >= file_size or range_end < range_start:
+                            raise RangeNotSatisfiableError(
+                                message=f"Range not satisfiable: {range_header} (size={file_size})",
+                                details={"file_size": file_size}
+                            )
+                        
+                        # Clamp end to file size
+                        range_end = min(range_end, file_size - 1)
+                        content_length = range_end - range_start + 1
+                        
+                        # Update response for partial content
+                        self.status = 206
+                        self._headers['content-range'] = f'bytes {range_start}-{range_end}/{file_size}'
+                        self._headers['content-length'] = str(content_length)
+                        should_send_partial = True
+                        
+                    except (ValueError, IndexError):
+                        # Malformed range header - ignore and send full response
+                        pass
+            
+            # If we're sending a partial response, replace the content stream
+            # with a range-aware file stream
+            if should_send_partial and range_start is not None and range_end is not None:
+                self._content = self._create_range_stream(
+                    self._file_path, range_start, range_end
+                )
             
             # Prepare headers for ASGI
             headers_list = self._prepare_headers()
@@ -1195,6 +1248,47 @@ class Response:
                     f"bytes={self._bytes_sent} duration={duration:.3f}s"
                 )
     
+    @staticmethod
+    def _create_range_stream(
+        file_path: Path, start: int, end: int, chunk_size: int = 64 * 1024
+    ) -> AsyncIterator[bytes]:
+        """Create an async iterator that streams a byte range of a file.
+        
+        Args:
+            file_path: Path to the file
+            start: Start byte offset (inclusive)
+            end: End byte offset (inclusive)
+            chunk_size: Size of each chunk to read
+            
+        Yields:
+            Chunks of bytes from the specified range
+        """
+        async def _range_stream():
+            remaining = end - start + 1
+            if AIOFILES_AVAILABLE:
+                async with aiofiles.open(file_path, "rb") as f:
+                    await f.seek(start)
+                    while remaining > 0:
+                        read_size = min(chunk_size, remaining)
+                        chunk = await f.read(read_size)
+                        if not chunk:
+                            break
+                        remaining -= len(chunk)
+                        yield chunk
+            else:
+                import asyncio as _aio
+                loop = _aio.get_event_loop()
+                with open(file_path, "rb") as f:
+                    f.seek(start)
+                    while remaining > 0:
+                        read_size = min(chunk_size, remaining)
+                        chunk = await loop.run_in_executor(None, f.read, read_size)
+                        if not chunk:
+                            break
+                        remaining -= len(chunk)
+                        yield chunk
+        return _range_stream()
+
     def _prepare_headers(self) -> List[tuple]:
         """Prepare headers for ASGI (convert to list of byte tuples)."""
         headers_list = []

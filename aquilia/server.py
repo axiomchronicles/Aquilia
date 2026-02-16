@@ -433,12 +433,30 @@ class AquiliaServer:
         # Initialize WebSockets with DI container factory for per-connection scopes
         self.socket_router = SocketRouter()
         
-        def _socket_container_factory(app_name: str = "default"):
-            """Create request-scoped DI container for WebSocket connections."""
+        async def _socket_container_factory(request=None, app_name: str = "default"):
+            """Create request-scoped DI container for WebSocket connections.
+            
+            This factory is called by the socket runtime during handshake.
+            It accepts an optional request object (for extracting app context)
+            and returns a request-scoped child DI container.
+            """
+            # If request has app_name in state, use it for more precise scoping
+            if request and hasattr(request, 'state'):
+                req_app = request.state.get('app_name')
+                if req_app:
+                    app_name = req_app
+            
             app_container = self.runtime.di_containers.get(app_name)
+            if not app_container and self.runtime.di_containers:
+                # Fallback to first available container
+                app_container = next(iter(self.runtime.di_containers.values()))
+            
             if app_container and hasattr(app_container, 'create_request_scope'):
                 return app_container.create_request_scope()
-            return app_container
+            
+            # Fallback: create a minimal container
+            from .di import Container
+            return Container(scope="request")
         
         self.aquila_sockets = AquilaSockets(
             router=self.socket_router,
@@ -934,7 +952,52 @@ class AquiliaServer:
         if store_type == "memory":
             identity_store = MemoryIdentityStore()
             credential_store = MemoryCredentialStore()
-            # TODO: Load initial users if configured?
+            
+            # Load initial users if configured in auth config
+            initial_users = auth_config.get("initial_users", [])
+            if initial_users:
+                from .auth.core import Identity, IdentityStatus, IdentityType, PasswordCredential
+                from .auth.hashing import PasswordHasher
+                import uuid
+                
+                hasher = PasswordHasher()
+                for user_cfg in initial_users:
+                    try:
+                        user_id = user_cfg.get("id", str(uuid.uuid4()))
+                        
+                        # Build attributes dict from config fields
+                        attributes = user_cfg.get("attributes", {})
+                        if "email" in user_cfg:
+                            attributes.setdefault("email", user_cfg["email"])
+                        if "display_name" in user_cfg or "username" in user_cfg:
+                            attributes.setdefault("display_name", user_cfg.get("display_name", user_cfg.get("username", "")))
+                        if "roles" in user_cfg:
+                            attributes.setdefault("roles", list(user_cfg["roles"]))
+                        if "scopes" in user_cfg:
+                            attributes.setdefault("scopes", list(user_cfg["scopes"]))
+                        
+                        identity = Identity(
+                            id=user_id,
+                            type=IdentityType(user_cfg.get("type", "user")),
+                            status=IdentityStatus(user_cfg.get("status", "active")),
+                            attributes=attributes,
+                            tenant_id=user_cfg.get("tenant_id"),
+                        )
+                        identity_store._identities[user_id] = identity
+                        
+                        # Hash and store password credential if provided
+                        password = user_cfg.get("password")
+                        if password:
+                            hashed = hasher.hash(password)
+                            credential = PasswordCredential(
+                                identity_id=user_id,
+                                password_hash=hashed,
+                            )
+                            credential_store._passwords[user_id] = credential
+                        
+                        self.logger.info(f"Loaded initial user: {attributes.get('email', user_id)}")
+                    except Exception as e:
+                        self.logger.warning(f"Failed to load initial user: {e}")
         else:
             self.logger.warning(f"Unknown auth store type '{store_type}', using memory store")
             identity_store = MemoryIdentityStore()
@@ -1206,12 +1269,34 @@ class AquiliaServer:
                                 if h_meta.get("schema"):
                                     schemas[event] = h_meta.get("schema")
                             elif h_type == "guard":
-                                # TODO: Instantiate guards
-                                pass
+                                # Instantiate guard from method-level @Guard decorator
+                                guard_class = h_meta.get("guard_class")
+                                guard_kwargs = h_meta.get("guard_kwargs", {})
+                                if guard_class:
+                                    try:
+                                        guard_instance = guard_class(**guard_kwargs)
+                                        guards.append(guard_instance)
+                                        self.logger.debug(f"Instantiated guard {guard_class.__name__} for {namespace}")
+                                    except Exception as ge:
+                                        self.logger.warning(f"Failed to instantiate guard {guard_class}: {ge}")
+                    
+                    # Also instantiate class-level guards from metadata if present
+                    if meta.get("guards"):
+                        for guard_spec in meta["guards"]:
+                            if isinstance(guard_spec, type):
+                                try:
+                                    guards.append(guard_spec())
+                                except Exception as ge:
+                                    self.logger.warning(f"Failed to instantiate class guard {guard_spec}: {ge}")
+                            elif callable(guard_spec):
+                                guards.append(guard_spec)
+                    
+                    # Use the @Socket path as the pattern (supports Aquilia patterns like /:id)
+                    path_pattern = meta.get("path", namespace)
                     
                     route_meta = RouteMetadata(
                         namespace=namespace,
-                        path_pattern=namespace, # Pattern matching TODO
+                        path_pattern=path_pattern,
                         controller_class=cls,
                         handlers=handlers,
                         schemas=schemas,

@@ -85,9 +85,59 @@ def cmd_ws_broadcast(args: dict):
     print(f"Event: {event}")
     print(f"Payload: {payload_dict}")
     
-    # TODO: Implement actual broadcast via adapter
-    # This would require connecting to the runtime
-    print("\n[Not yet implemented - requires runtime connection]")
+    # Connect to the runtime and broadcast via the adapter
+    async def _do_broadcast():
+        try:
+            from aquilia.sockets.envelope import MessageEnvelope, MessageType
+            from aquilia.sockets.adapters.inmemory import InMemoryAdapter
+            
+            # Try Redis adapter first (production), fallback to in-memory
+            adapter = None
+            redis_url = args.get("redis_url")
+            if redis_url:
+                try:
+                    from aquilia.sockets.adapters.redis import RedisAdapter
+                    adapter = RedisAdapter(redis_url=redis_url)
+                    await adapter.initialize()
+                except Exception:
+                    print("Warning: Could not connect to Redis, using in-memory adapter")
+                    adapter = None
+            
+            if adapter is None:
+                # In-memory adapter - only works for same-process
+                print("Note: Using in-memory adapter (only reaches current process)")
+                adapter = InMemoryAdapter()
+                await adapter.initialize()
+            
+            envelope = MessageEnvelope(
+                type=MessageType.EVENT,
+                event=event,
+                payload=payload_dict,
+            )
+            
+            if room:
+                await adapter.publish(
+                    namespace=namespace,
+                    room=room,
+                    envelope=envelope,
+                )
+                print(f"✓ Broadcast sent to room {room}")
+            else:
+                await adapter.broadcast(
+                    namespace=namespace,
+                    envelope=envelope,
+                )
+                print(f"✓ Broadcast sent to namespace {namespace}")
+            
+            await adapter.shutdown()
+        except ImportError as e:
+            print(f"Error: Missing dependency: {e}")
+            sys.exit(1)
+        except Exception as e:
+            print(f"Error: {e}")
+            sys.exit(1)
+    
+    asyncio.run(_do_broadcast())
 
 
 def cmd_ws_purge_room(args: dict):
@@ -105,8 +155,37 @@ def cmd_ws_purge_room(args: dict):
     
     print(f"Purging room: {namespace}/{room}")
     
-    # TODO: Implement actual purge via adapter
-    print("[Not yet implemented - requires adapter connection]")
+    async def _do_purge():
+        try:
+            from aquilia.sockets.adapters.inmemory import InMemoryAdapter
+            
+            adapter = None
+            redis_url = args.get("redis_url")
+            if redis_url:
+                try:
+                    from aquilia.sockets.adapters.redis import RedisAdapter
+                    adapter = RedisAdapter(redis_url=redis_url)
+                    await adapter.initialize()
+                except Exception:
+                    print("Warning: Could not connect to Redis, using in-memory adapter")
+                    adapter = None
+            
+            if adapter is None:
+                adapter = InMemoryAdapter()
+                await adapter.initialize()
+            
+            # Get all connections in the room and remove them
+            members = await adapter.get_room_members(namespace, room)
+            for conn_id in members:
+                await adapter.leave_room(namespace, room, conn_id)
+            
+            print(f"✓ Purged room {namespace}/{room} ({len(members)} connections removed)")
+            await adapter.shutdown()
+        except Exception as e:
+            print(f"Error: {e}")
+            sys.exit(1)
+    
+    asyncio.run(_do_purge())
 
 
 def cmd_ws_kick(args: dict):
@@ -125,8 +204,47 @@ def cmd_ws_kick(args: dict):
     print(f"Kicking connection: {conn_id}")
     print(f"Reason: {reason}")
     
-    # TODO: Implement actual kick via runtime API
-    print("[Not yet implemented - requires runtime API]")
+    async def _do_kick():
+        try:
+            from aquilia.sockets.adapters.inmemory import InMemoryAdapter
+            
+            adapter = None
+            redis_url = args.get("redis_url")
+            if redis_url:
+                try:
+                    from aquilia.sockets.adapters.redis import RedisAdapter
+                    adapter = RedisAdapter(redis_url=redis_url)
+                    await adapter.initialize()
+                except Exception:
+                    print("Warning: Could not connect to Redis, using in-memory adapter")
+                    adapter = None
+            
+            if adapter is None:
+                adapter = InMemoryAdapter()
+                await adapter.initialize()
+            
+            # Unregister connection from all namespaces
+            # Since we don't know the namespace, try to find it
+            found = False
+            if hasattr(adapter, '_connections'):
+                for ns, connections in adapter._connections.items():
+                    if conn_id in connections:
+                        await adapter.unregister_connection(ns, conn_id)
+                        print(f"✓ Kicked connection {conn_id} from namespace {ns}")
+                        print(f"  Reason: {reason}")
+                        found = True
+                        break
+            
+            if not found:
+                print(f"Warning: Connection {conn_id} not found in any namespace")
+                print("  (Connection may have already disconnected or is on another worker)")
+            
+            await adapter.shutdown()
+        except Exception as e:
+            print(f"Error: {e}")
+            sys.exit(1)
+    
+    asyncio.run(_do_kick())
 
 
 def cmd_ws_gen_client(args: dict):

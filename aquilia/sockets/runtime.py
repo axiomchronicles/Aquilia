@@ -354,10 +354,12 @@ class AquilaSockets:
         self.connections[connection_id] = conn
         
         # Register with adapter
+        import os
+        worker_id = f"{os.uname().nodename}:{os.getpid()}"
         await self.adapter.register_connection(
             namespace=namespace,
             connection_id=connection_id,
-            worker_id="worker-1",  # TODO: Get actual worker ID
+            worker_id=worker_id,
         )
         
         # Register send callback with adapter (for InMemoryAdapter)

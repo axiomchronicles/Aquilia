@@ -448,7 +448,6 @@ class EnhancedRequestScopeMiddleware:
         request.state["di_container"] = request_container
         
         # Register request in DI
-        # Register request in DI
         from aquilia.di.providers import ValueProvider
         request_container.register(
             ValueProvider(
@@ -463,8 +462,15 @@ class EnhancedRequestScopeMiddleware:
             response = await next(request, ctx)
         finally:
             # Cleanup request-scoped resources
-            # TODO: Call container.dispose() when implemented
-            pass
+            # Properly dispose of the request-scoped container to release
+            # any held resources (DB connections, file handles, etc.)
+            try:
+                if hasattr(request_container, 'shutdown'):
+                    await request_container.shutdown()
+                elif hasattr(request_container, 'dispose'):
+                    request_container.dispose()
+            except Exception as cleanup_err:
+                self.logger.debug(f"Container cleanup error (non-fatal): {cleanup_err}")
         
         return response
 
