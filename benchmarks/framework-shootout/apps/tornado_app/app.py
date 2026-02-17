@@ -143,6 +143,37 @@ class WsEchoHandler(tornado.websocket.WebSocketHandler):
         self.write_message(message)
 
 
+# ── Regressive Scenarios ────────────────────────────────────────────────
+
+class QueryHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json")
+        self.write(orjson.dumps({
+            "q": self.get_argument("q", ""),
+            "limit": int(self.get_argument("limit", 0)),
+            "offset": int(self.get_argument("offset", 0)),
+        }))
+
+
+class UserInfoHandler(tornado.web.RequestHandler):
+    def get(self, id):
+        self.set_header("Content-Type", "application/json")
+        self.write(orjson.dumps({"id": id}))
+
+
+class JsonLargeHandler(tornado.web.RequestHandler):
+    def get(self):
+        data = [{"id": i, "name": "item", "active": True} for i in range(1000)]
+        self.set_header("Content-Type", "application/json")
+        self.write(orjson.dumps(data))
+
+
+class HtmlHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "text/html")
+        self.write("<html><body><h1>Hello World</h1></body></html>")
+
+
 # ── App ──────────────────────────────────────────────────────────────────────
 
 def make_app():
@@ -154,6 +185,10 @@ def make_app():
         (r"/upload", UploadHandler),
         (r"/stream", StreamHandler),
         (r"/ws-echo", WsEchoHandler),
+        (r"/query", QueryHandler),
+        (r"/user/([^/]+)/info", UserInfoHandler),
+        (r"/json-large", JsonLargeHandler),
+        (r"/html", HtmlHandler),
     ], decompress_request=True)
 
 

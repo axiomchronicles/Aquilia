@@ -26,13 +26,26 @@ declare -A PORTS=(
 )
 
 PORT="${PORTS[$FRAMEWORK]}"
-HOST="localhost"
+
+BENCH_MODE="${BENCH_MODE:-local}"
+if [[ "$BENCH_MODE" == "docker" ]]; then
+    HOST="${FRAMEWORK}"
+    # In Docker mode, all services are on port 8080 inside the network
+    # But wait, run_all.sh uses specific ports for checking?
+    # No, services effectively listen on 8080 internally.
+    # The docker-compose mapping maps internal 8080 to external 808X.
+    # So inside the network, we should use 8080 for all.
+    PORT=8080
+else
+    HOST="localhost"
+fi
+
 BASE="http://${HOST}:${PORT}"
 RESULTS_DIR="results/${FRAMEWORK}/${SCENARIO}/run${RUN_ID}"
 mkdir -p "$RESULTS_DIR"
 
-DURATION_STEADY="180s"
-DURATION_WARMUP="30s"
+DURATION_STEADY="${DURATION_STEADY:-180s}"
+DURATION_WARMUP="${DURATION_WARMUP:-30s}"
 CONNS_STEADY=50
 THREADS=4
 
@@ -92,6 +105,34 @@ case "$SCENARIO" in
     websocket)
         echo "  SKIP (correctness): WS tested separately"
         ;;
+    query)
+        RESP=$(curl -s "${BASE}/query?q=foo&limit=10&offset=5")
+        echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['q']=='foo' and int(d['limit'])==10, f'Bad query: {d}'" 2>&1
+        echo "  OK: $RESP"
+        ;;
+    path)
+        RESP=$(curl -s "${BASE}/user/101/info")
+        echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); assert str(d['id'])=='101', f'Bad path: {d}'" 2>&1
+        echo "  OK: $RESP"
+        ;;
+    json-large)
+        SIZE=$(curl -s "${BASE}/json-large" | wc -c | tr -d ' ')
+        # Expecting ~50KB (1000 items * ~50 bytes?)
+        # 1000 items * {"id": 999, "name": "item", "active": true} ~= 1000 * 45 bytes = 45KB
+        if [[ "$SIZE" -lt 40000 ]]; then
+            echo "  FAIL: Expected >40KB, got ${SIZE} bytes"
+            exit 1
+        fi
+        echo "  OK: ${SIZE} bytes"
+        ;;
+    html)
+        RESP=$(curl -s "${BASE}/html")
+        if [[ "$RESP" != *"<h1>Hello"* ]]; then
+            echo "  FAIL: Expected HTML, got '$RESP'"
+            exit 1
+        fi
+        echo "  OK: HTML content"
+        ;;
     *)
         echo "Unknown scenario: $SCENARIO"
         exit 1
@@ -124,9 +165,13 @@ echo "  Done."
 
 # ── Collect system baseline ──────────────────────────────────────────────
 echo "[3/4] Collecting container stats..."
-docker stats --no-stream --format \
-    "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" \
-    | grep -i "$FRAMEWORK" > "${RESULTS_DIR}/stats_before.txt" 2>/dev/null || true
+if command -v docker &>/dev/null; then
+    docker stats --no-stream --format \
+        "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" \
+        | grep -i "$FRAMEWORK" > "${RESULTS_DIR}/stats_before.txt" 2>/dev/null || true
+else
+    echo "  (docker stats skipped)"
+fi
 
 # ── Steady-state load ────────────────────────────────────────────────────
 echo "[4/4] Running steady-state load (${CONNS_STEADY}c, ${DURATION_STEADY})..."
@@ -172,12 +217,35 @@ case "$SCENARIO" in
         python3 bench/ws_bench.py "${HOST}" "${PORT}" 50 60 \
             > "${RESULTS_DIR}/ws_steady.txt" 2>&1
         ;;
+    query)
+        wrk -t"$THREADS" -c"$CONNS_STEADY" -d"$DURATION_STEADY" \
+            --latency "${BASE}/query?q=bench&limit=100&offset=50" \
+            > "${RESULTS_DIR}/wrk_steady.txt" 2>&1
+        ;;
+    path)
+        # Randomize IDs? wrk supports Lua scripts, but for now fixed ID is fine to test routing dispatch overhead
+        wrk -t"$THREADS" -c"$CONNS_STEADY" -d"$DURATION_STEADY" \
+            --latency "${BASE}/user/12345/info" \
+            > "${RESULTS_DIR}/wrk_steady.txt" 2>&1
+        ;;
+    json-large)
+        wrk -t"$THREADS" -c"$CONNS_STEADY" -d"$DURATION_STEADY" \
+            --latency "${BASE}/json-large" \
+            > "${RESULTS_DIR}/wrk_steady.txt" 2>&1
+        ;;
+    html)
+        wrk -t"$THREADS" -c"$CONNS_STEADY" -d"$DURATION_STEADY" \
+            --latency "${BASE}/html" \
+            > "${RESULTS_DIR}/wrk_steady.txt" 2>&1
+        ;;
 esac
 
 # ── Post-load stats ──────────────────────────────────────────────────────
-docker stats --no-stream --format \
-    "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" \
-    | grep -i "$FRAMEWORK" > "${RESULTS_DIR}/stats_after.txt" 2>/dev/null || true
+if command -v docker &>/dev/null; then
+    docker stats --no-stream --format \
+        "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" \
+        | grep -i "$FRAMEWORK" > "${RESULTS_DIR}/stats_after.txt" 2>/dev/null || true
+fi
 
 echo "  Results → ${RESULTS_DIR}/"
 echo "  Done ✓"

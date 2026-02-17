@@ -187,7 +187,17 @@ class ManifestLoader:
             Manifest object
         """
         if source.type == "class":
-            return source.value
+            # Instantiate class-based manifests for proper attribute resolution.
+            # Dataclass field descriptors can shadow class-level attribute overrides
+            # in certain Python versions, so instantiation ensures clean resolution.
+            cls = source.value
+            if isinstance(cls, type):
+                try:
+                    return cls()
+                except TypeError:
+                    # Class requires args — use the class directly
+                    return cls
+            return cls
         elif source.type == "file":
             return self._load_from_python_file(source.value)
         elif source.type == "dsl":
@@ -404,7 +414,7 @@ class ManifestLoader:
                 errors.append("Field 'controllers' must be a list")
             else:
                 for i, ctrl in enumerate(manifest.controllers):
-                    if not isinstance(ctrl, str):
+                    if not isinstance(ctrl, (str, type)):
                         errors.append(
                             f"controllers[{i}] must be string import path"
                         )

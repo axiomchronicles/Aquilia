@@ -1,0 +1,13 @@
+Running 5s test @ http://tornado:8080/stream
+  4 threads and 20 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    51.10ms    8.36ms 149.29ms   92.91%
+    Req/Sec    98.14     12.26   212.00     88.00%
+  Latency Distribution
+     50%   49.95ms
+     75%   51.98ms
+     90%   55.21ms
+     99%   70.04ms
+  1977 requests in 5.09s, 19.31GB read
+Requests/sec:    388.19
+Transfer/sec:      3.79GB

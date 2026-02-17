@@ -1,0 +1,13 @@
+Running 5s test @ http://aquilia:8080/html
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    20.70ms   23.21ms 183.36ms   83.44%
+    Req/Sec   837.78    267.66     1.38k    72.00%
+  Latency Distribution
+     50%    8.30ms
+     75%   32.77ms
+     90%   54.88ms
+     99%  104.95ms
+  16864 requests in 5.08s, 3.78MB read
+Requests/sec:   3320.28
+Transfer/sec:    761.98KB

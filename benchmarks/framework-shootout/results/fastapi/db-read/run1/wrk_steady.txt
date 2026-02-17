@@ -1,0 +1,15 @@
+Running 5s test @ http://fastapi:8080/db-read?id=1
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    62.51ms  147.24ms 917.05ms   91.73%
+    Req/Sec   632.45    288.79     1.63k    75.00%
+  Latency Distribution
+     50%   12.49ms
+     75%   39.73ms
+     90%   95.93ms
+     99%  738.18ms
+  12633 requests in 5.03s, 3.05MB read
+  Socket errors: connect 0, read 2649, write 0, timeout 0
+  Non-2xx or 3xx responses: 2651
+Requests/sec:   2513.78
+Transfer/sec:    621.12KB

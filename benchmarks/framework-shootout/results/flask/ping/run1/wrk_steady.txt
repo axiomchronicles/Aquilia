@@ -1,0 +1,13 @@
+Running 5s test @ http://flask:8080/ping
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    14.67ms   18.01ms  76.60ms   80.51%
+    Req/Sec     1.65k   407.18     3.35k    71.78%
+  Latency Distribution
+     50%    4.34ms
+     75%   24.28ms
+     90%   47.09ms
+     99%   61.03ms
+  33249 requests in 5.10s, 5.11MB read
+Requests/sec:   6520.02
+Transfer/sec:      1.00MB

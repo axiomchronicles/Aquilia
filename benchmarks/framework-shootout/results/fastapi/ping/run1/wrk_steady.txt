@@ -1,0 +1,13 @@
+Running 5s test @ http://fastapi:8080/ping
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     9.38ms   14.80ms  59.77ms   81.88%
+    Req/Sec     7.10k   605.70     8.59k    68.63%
+  Latency Distribution
+     50%    0.93ms
+     75%   13.69ms
+     90%   36.57ms
+     99%   51.02ms
+  144186 requests in 5.10s, 18.84MB read
+Requests/sec:  28280.33
+Transfer/sec:      3.69MB

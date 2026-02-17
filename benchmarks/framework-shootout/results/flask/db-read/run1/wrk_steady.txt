@@ -1,0 +1,13 @@
+Running 5s test @ http://flask:8080/db-read?id=1
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    17.50ms   17.87ms  86.49ms   81.22%
+    Req/Sec     0.98k   156.74     1.36k    64.00%
+  Latency Distribution
+     50%    7.63ms
+     75%   28.55ms
+     90%   48.04ms
+     99%   61.41ms
+  19567 requests in 5.01s, 5.58MB read
+Requests/sec:   3903.38
+Transfer/sec:      1.11MB

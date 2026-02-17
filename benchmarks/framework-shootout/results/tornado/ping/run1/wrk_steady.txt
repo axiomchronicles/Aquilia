@@ -1,0 +1,13 @@
+Running 5s test @ http://tornado:8080/ping
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     3.08ms  219.83us   7.80ms   96.28%
+    Req/Sec     3.91k   141.42     4.20k    75.00%
+  Latency Distribution
+     50%    3.08ms
+     75%    3.11ms
+     90%    3.20ms
+     99%    4.14ms
+  77974 requests in 5.02s, 13.68MB read
+Requests/sec:  15546.81
+Transfer/sec:      2.73MB

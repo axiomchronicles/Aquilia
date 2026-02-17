@@ -10,5 +10,6 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY benchmarks/framework-shootout/apps/aquilia_app/ /app/
 WORKDIR /app
+RUN mkdir -p /app/.aquilia
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4", "--loop", "uvloop"]

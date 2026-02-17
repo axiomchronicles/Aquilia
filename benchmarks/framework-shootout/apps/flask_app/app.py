@@ -127,5 +127,41 @@ def stream():
     )
 
 
+# ── Regressive Scenarios ────────────────────────────────────────────────
+
+@app.route("/query")
+def query_bench():
+    data = orjson.dumps({
+        "q": request.args.get("q", ""),
+        "limit": int(request.args.get("limit", 0)),
+        "offset": int(request.args.get("offset", 0)),
+    })
+    return Response(data, content_type="application/json")
+
+
+@app.route("/user/<id>/info")
+def user_info(id):
+    # Tests path routing
+    return Response(orjson.dumps({"id": id}), content_type="application/json")
+
+
+@app.route("/json-large")
+def json_large():
+    # 50KB+ JSON response
+    data = [
+        {"id": i, "name": "item", "active": True}
+        for i in range(1000)
+    ]
+    return Response(orjson.dumps(data), content_type="application/json")
+
+
+@app.route("/html")
+def html_bench():
+    return Response(
+        "<html><body><h1>Hello World</h1></body></html>",
+        content_type="text/html",
+    )
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

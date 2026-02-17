@@ -116,5 +116,32 @@ async def ws_echo(request, ws: Websocket):
         await ws.send(msg)
 
 
+# ── Regressive Scenarios ────────────────────────────────────────────────
+
+@app.get("/query")
+async def query_bench(request):
+    return raw(orjson.dumps({
+        "q": request.args.get("q", ""),
+        "limit": int(request.args.get("limit", 0)),
+        "offset": int(request.args.get("offset", 0)),
+    }), content_type="application/json")
+
+
+@app.get("/user/<id>/info")
+async def user_info(request, id):
+    return raw(orjson.dumps({"id": id}), content_type="application/json")
+
+
+@app.get("/json-large")
+async def json_large(request):
+    data = [{"id": i, "name": "item", "active": True} for i in range(1000)]
+    return raw(orjson.dumps(data), content_type="application/json")
+
+
+@app.get("/html")
+async def html_bench(request):
+    return raw(b"<html><body><h1>Hello World</h1></body></html>", content_type="text/html")
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, single_process=True)

@@ -25,7 +25,7 @@ REPORT_DIR = Path("report")
 REPORT_DIR.mkdir(exist_ok=True)
 
 FRAMEWORKS = ["flask", "django", "fastapi", "aquilia", "sanic", "tornado"]
-SCENARIOS = ["ping", "json", "db-read", "db-write", "upload", "stream", "websocket"]
+SCENARIOS = ["ping", "json", "db-read", "db-write", "upload", "stream", "websocket", "query", "path", "json-large", "html"]
 
 
 # ── Parsers ──────────────────────────────────────────────────────────────────

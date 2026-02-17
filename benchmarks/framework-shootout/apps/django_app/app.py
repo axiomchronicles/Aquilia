@@ -134,6 +134,46 @@ def stream(request):
     return StreamingHttpResponse(generate(), content_type="application/octet-stream")
 
 
+# ── Regressive Scenarios ────────────────────────────────────────────────
+
+def query_bench(request):
+    data = orjson.dumps({
+        "q": request.GET.get("q", ""),
+        "limit": int(request.GET.get("limit", 0)),
+        "offset": int(request.GET.get("offset", 0)),
+    })
+    return HttpResponse(data, content_type="application/json")
+
+
+def user_info(request, id):
+    return HttpResponse(orjson.dumps({"id": str(id)}), content_type="application/json")
+
+
+def json_large(request):
+    data = [{"id": i, "name": "item", "active": True} for i in range(1000)]
+    return HttpResponse(orjson.dumps(data), content_type="application/json")
+
+
+def html_bench(request):
+    return HttpResponse("<html><body><h1>Hello World</h1></body></html>", content_type="text/html")
+
+
+# ── URL routing ──────────────────────────────────────────────────────────────
+
+urlpatterns = [
+    path("ping", ping),
+    path("json", json_view),
+    path("db-read", db_read),
+    path("db-write", db_write),
+    path("upload", upload),
+    path("stream", stream),
+    path("query", query_bench),
+    path("user/<str:id>/info", user_info),
+    path("json-large", json_large),
+    path("html", html_bench),
+]
+
+
 # ── URL routing ──────────────────────────────────────────────────────────────
 
 urlpatterns = [

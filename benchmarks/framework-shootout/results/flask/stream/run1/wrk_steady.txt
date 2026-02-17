@@ -1,0 +1,13 @@
+Running 5s test @ http://flask:8080/stream
+  4 threads and 20 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    37.81ms   28.45ms 144.84ms   57.43%
+    Req/Sec   135.82     27.18   212.00     71.50%
+  Latency Distribution
+     50%   25.66ms
+     75%   70.26ms
+     90%   79.61ms
+     99%   89.92ms
+  2734 requests in 5.06s, 26.72GB read
+Requests/sec:    539.91
+Transfer/sec:      5.28GB

@@ -113,6 +113,29 @@ async def ws_echo(ws: WebSocket):
         pass
 
 
+# ── Regressive Scenarios ────────────────────────────────────────────────
+
+@app.get("/query")
+async def query_bench(q: str = "", limit: int = 0, offset: int = 0):
+    return {"q": q, "limit": limit, "offset": offset}
+
+
+@app.get("/user/{id}/info")
+async def user_info(id: str):
+    return {"id": id}
+
+
+@app.get("/json-large")
+async def json_large():
+    return [{"id": i, "name": "item", "active": True} for i in range(1000)]
+
+
+@app.get("/html")
+async def html_bench():
+    return Response(content="<html><body><h1>Hello World</h1></body></html>", media_type="text/html")
+
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)

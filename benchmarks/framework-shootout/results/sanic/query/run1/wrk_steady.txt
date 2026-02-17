@@ -1,0 +1,13 @@
+Running 5s test @ http://sanic:8080/query?q=bench&limit=100&offset=50
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     9.11ms   14.75ms  60.30ms   82.09%
+    Req/Sec     8.95k     1.13k   11.49k    75.50%
+  Latency Distribution
+     50%  792.00us
+     75%   12.98ms
+     90%   36.17ms
+     99%   51.18ms
+  178083 requests in 5.00s, 22.42MB read
+Requests/sec:  35608.30
+Transfer/sec:      4.48MB

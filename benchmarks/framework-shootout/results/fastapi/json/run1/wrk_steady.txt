@@ -1,0 +1,13 @@
+Running 5s test @ http://fastapi:8080/json
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     9.70ms   14.97ms  61.16ms   81.89%
+    Req/Sec     5.70k   810.37     8.57k    72.41%
+  Latency Distribution
+     50%    1.19ms
+     75%   14.21ms
+     90%   37.12ms
+     99%   51.98ms
+  115106 requests in 5.10s, 20.20MB read
+Requests/sec:  22568.62
+Transfer/sec:      3.96MB

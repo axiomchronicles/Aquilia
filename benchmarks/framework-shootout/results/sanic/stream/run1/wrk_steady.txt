@@ -1,0 +1,13 @@
+Running 5s test @ http://sanic:8080/stream
+  4 threads and 20 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    25.41ms   21.30ms  89.44ms   76.76%
+    Req/Sec   224.35     28.57   297.00     72.00%
+  Latency Distribution
+     50%   14.56ms
+     75%   40.61ms
+     90%   60.65ms
+     99%   74.67ms
+  4501 requests in 5.04s, 44.01GB read
+Requests/sec:    892.79
+Transfer/sec:      8.73GB

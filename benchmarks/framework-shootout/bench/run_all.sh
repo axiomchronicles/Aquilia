@@ -9,8 +9,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 FRAMEWORKS=(flask django fastapi aquilia sanic tornado)
-SCENARIOS=(ping json db-read db-write upload stream websocket)
-RUNS=3
+SCENARIOS=(ping json db-read db-write upload stream websocket query path json-large html)
+RUNS="${RUNS:-3}"
 
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║          Framework Shootout — Benchmark Suite               ║"
@@ -34,13 +34,21 @@ declare -A PORTS=(
     [aquilia]=8084 [sanic]=8085 [tornado]=8086
 )
 
+BENCH_MODE="${BENCH_MODE:-local}"
+
 for fw in "${FRAMEWORKS[@]}"; do
-    PORT="${PORTS[$fw]}"
-    if ! curl -sf "http://localhost:${PORT}/ping" > /dev/null 2>&1; then
-        echo "  WARNING: $fw (port $PORT) not responding. Skipping."
+    if [[ "$BENCH_MODE" == "docker" ]]; then
+        TARGET="${fw}:8080"
+    else
+        PORT="${PORTS[$fw]}"
+        TARGET="localhost:${PORT}"
+    fi
+
+    if ! curl -sf "http://${TARGET}/ping" > /dev/null 2>&1; then
+        echo "  WARNING: $fw ($TARGET) not responding. Skipping."
         FRAMEWORKS=("${FRAMEWORKS[@]/$fw/}")
     else
-        echo "  ✓ $fw (port $PORT)"
+        echo "  ✓ $fw ($TARGET)"
     fi
 done
 echo ""

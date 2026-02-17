@@ -1,0 +1,13 @@
+Running 5s test @ http://aquilia:8080/json
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    21.19ms   19.61ms 111.39ms   79.62%
+    Req/Sec   711.49    156.40     1.12k    70.00%
+  Latency Distribution
+     50%   10.36ms
+     75%   35.29ms
+     90%   55.39ms
+     99%   70.70ms
+  14335 requests in 5.08s, 3.69MB read
+Requests/sec:   2821.50
+Transfer/sec:    743.95KB

@@ -1,0 +1,13 @@
+Running 5s test @ http://sanic:8080/ping
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     9.02ms   14.67ms  58.07ms   81.98%
+    Req/Sec     9.66k     1.12k   11.55k    70.10%
+  Latency Distribution
+     50%  672.00us
+     75%   13.00ms
+     90%   35.92ms
+     99%   50.57ms
+  196125 requests in 5.10s, 20.01MB read
+Requests/sec:  38472.35
+Transfer/sec:      3.93MB

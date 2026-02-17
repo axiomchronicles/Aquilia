@@ -47,6 +47,7 @@ class TraceLifecycleJournal:
         """Append a single event (JSON line)."""
         event.setdefault("ts", _now_iso())
         event.setdefault("pid", os.getpid())
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.path, "a") as fp:
             fp.write(json.dumps(event, default=str) + "\n")
 
