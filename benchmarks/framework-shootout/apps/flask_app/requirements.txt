@@ -1,4 +1,0 @@
-flask==3.1.*
-gunicorn==23.*
-psycopg2-binary==2.9.*
-orjson==3.*
