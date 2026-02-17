@@ -46,7 +46,7 @@ LABEL org.opencontainers.image.title="myapp" \
       org.opencontainers.image.description="Aquilia application — myapp" \
       org.opencontainers.image.vendor="Aquilia" \
       org.opencontainers.image.version="${APP_VERSION:-0.1.0}" \
-      org.opencontainers.image.created="2026-02-17T20:37:58.194494+00:00"
+      org.opencontainers.image.created="2026-02-17T20:51:00.597386+00:00"
 
 # Security: run as non-root
 RUN groupadd -r aquilia && \

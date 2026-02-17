@@ -41,9 +41,16 @@ def _validate_workspace_config(workspace_root: Path, verbose: bool = False) -> L
             errors.append(f"Cannot read workspace.py: {str(e)[:60]}")
             return errors
         
+        # Remove comment lines to avoid matching commented-out modules
+        # This fixes the issue where default templates have commented-out 'auth' and 'users' modules
+        clean_content = "\n".join(
+            line for line in workspace_content.splitlines() 
+            if not line.strip().startswith("#")
+        )
+        
         # Extract module names from workspace.py
         import re
-        module_matches = re.findall(r'Module\("([^"]+)"', workspace_content)
+        module_matches = re.findall(r'Module\("([^"]+)"', clean_content)
         module_names = list(set(module_matches))  # Deduplicate
 
         # The "starter" pseudo-module lives in workspace root (starter.py),
