@@ -50,3 +50,6 @@ Thumbs.db
 *.py.backup
 *.py.old
 p.html
+
+node_modules/
+dist/       

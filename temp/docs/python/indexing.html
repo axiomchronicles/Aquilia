@@ -1,0 +1,117 @@
+{% extends "docs/doc_layout.html" %}
+
+{% block doc_title %}Index Management - Python SDK{% endblock %}
+
+{% block doc_content %}
+{% set active_page = 'indexing' %}
+
+<h1 class="text-3xl font-bold text-white mb-2">Index Management</h1>
+<p class="text-xl text-gray-400 mb-12">Optimize query performance with indexes.</p>
+
+<!-- Create Index -->
+<section class="mb-16">
+    <h2 class="text-2xl font-bold text-white mb-6">Creating Indexes</h2>
+    <p class="text-gray-400 mb-6">
+        Indexes support efficient execution of queries. Without indexes, Tubox must perform a collection scan.
+    </p>
+
+    <h3 class="text-lg font-bold text-white mb-3">Single Field Index</h3>
+    <pre class="bg-zinc-950 border border-white/10 rounded-xl p-4 mb-8 text-sm text-gray-300 overflow-x-auto"><code class="language-python"><span class="text-gray-500"># Create standard index on "email"</span>
+name = <span class="text-crous-400">await</span> collection.create_index(
+    field=<span class="text-green-400">"email"</span>, 
+    unique=<span class="text-blue-400">True</span>
+)
+print(f<span class="text-green-400">"Created index: {name}"</span>)</code></pre>
+
+    <h3 class="text-lg font-bold text-white mb-3">Compound Index</h3>
+    <pre class="bg-zinc-950 border border-white/10 rounded-xl p-4 mb-8 text-sm text-gray-300 overflow-x-auto"><code class="language-python"><span class="text-gray-500"># Index on status (asc) and created_at (desc)</span>
+<span class="text-crous-400">await</span> collection.create_compound_index([
+    (<span class="text-green-400">"status"</span>, <span class="text-blue-400">1</span>),
+    (<span class="text-green-400">"created_at"</span>, <span class="text-blue-400">-1</span>)
+])</code></pre>
+</section>
+
+<!-- Index Types -->
+<section class="mb-16">
+    <h2 class="text-2xl font-bold text-white mb-6">Index Types & Options</h2>
+
+    <div class="overflow-x-auto mb-8">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-white/10 text-gray-400 text-sm">
+                    <th class="py-3 font-medium w-1/4">Type / Option</th>
+                    <th class="py-3 font-medium">Description</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-300 text-sm divide-y divide-white/5">
+                <tr>
+                    <td class="py-3 font-mono text-crous-400">unique=True</td>
+                    <td class="py-3">Enforces uniqueness. Duplicate values will raise an error.</td>
+                </tr>
+                <tr>
+                    <td class="py-3 font-mono text-crous-400">sparse=True</td>
+                    <td class="py-3">Only indexes documents that contain the indexed field.</td>
+                </tr>
+                <tr>
+                    <td class="py-3 font-mono text-crous-400">ttl_seconds=3600</td>
+                    <td class="py-3">Automatically deletes documents after the specified seconds.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="text-lg font-bold text-white mb-3">TTL Index Example</h3>
+    <pre class="bg-zinc-950 border border-white/10 rounded-xl p-4 mb-4 text-sm text-gray-300 overflow-x-auto"><code class="language-python"><span class="text-gray-500"># Documents expire 1 hour after "created_at"</span>
+<span class="text-crous-400">await</span> collection.create_index(
+    field=<span class="text-green-400">"created_at"</span>, 
+    ttl_seconds=<span class="text-blue-400">3600</span>
+)</code></pre>
+</section>
+
+<!-- Management -->
+<section>
+    <h2 class="text-2xl font-bold text-white mb-6">Management API</h2>
+
+    <div class="space-y-6">
+        <div>
+            <div class="bg-zinc-900 border border-white/5 rounded-lg p-3 font-mono text-xs text-blue-300 mb-2">
+                list_indexes() -> Dict[str, Dict]
+            </div>
+            <p class="text-sm text-gray-400">Returns all indexes on the collection.</p>
+        </div>
+
+        <div>
+            <div class="bg-zinc-900 border border-white/5 rounded-lg p-3 font-mono text-xs text-blue-300 mb-2">
+                drop_index(index_name: str) -> bool
+            </div>
+            <p class="text-sm text-gray-400">Removes an index.</p>
+        </div>
+
+        <div>
+            <div class="bg-zinc-900 border border-white/5 rounded-lg p-3 font-mono text-xs text-blue-300 mb-2">
+                rebuild_index(index_name: str) -> bool
+            </div>
+            <p class="text-sm text-gray-400">Rebuilds index from scratch. Useful if index is corrupted or after bulk
+                load.</p>
+        </div>
+
+        <div>
+            <div class="bg-zinc-900 border border-white/5 rounded-lg p-3 font-mono text-xs text-blue-300 mb-2">
+                analyze_indexes() -> Dict
+            </div>
+            <p class="text-sm text-gray-400">Get usage statistics and optimization recommendations.</p>
+        </div>
+    </div>
+</section>
+
+<div class="flex items-center justify-between pt-12 mt-12 border-t border-white/10">
+    <a href="/docs/python/crud" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> CRUD Operations
+    </a>
+    <a href="/docs/python/transactions"
+        class="flex items-center gap-2 text-white font-bold hover:text-crous-400 transition-colors">
+        Transactions <i data-lucide="arrow-right" class="w-4 h-4"></i>
+    </a>
+</div>
+
+{% endblock %}

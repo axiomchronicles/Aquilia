@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation - Tubox{% endblock %}
+
+{% block content %}
+<div class="relative min-h-screen bg-[#050505] text-white selection:bg-crous-500/30 overflow-x-hidden">
+    <!-- Dynamic Background: Subtle Grid + Floating Particles (CSS) -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div
+            class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(circle_800px_at_50%_400px,#000_20%,transparent_100%)]">
+        </div>
+        <!-- Ambient Glow Spot (Increased Opacity) -->
+        <div
+            class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-crous-500/10 rounded-[100%] blur-[100px] pointer-events-none opacity-60">
+        </div>
+    </div>
+
+    <div class="relative pt-32 pb-32">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+
+            <!-- Hero Section -->
+            <div class="flex flex-col items-center justify-center text-center mb-28 relative z-10">
+
+                <!-- BACKGROUND: Removed Animated SVG -->
+
+                <!-- Version Badge -->
+                <div
+                    class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-zinc-900/50 border border-white/10 rounded-full mb-10 hover:border-crous-500/50 hover:bg-crous-500/10 transition-all cursor-default group backdrop-blur-md shadow-lg z-20">
+                    <span class="relative flex h-2 w-2">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-crous-400 opacity-75 duration-1000"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-crous-500"></span>
+                    </span>
+                    <span
+                        class="text-xs text-zinc-300 font-medium tracking-wide group-hover:text-white transition-colors">DOCS
+                        V1.0 &bull; STABLE</span>
+                </div>
+
+                <h1
+                    class="text-6xl md:text-8xl font-bold mb-8 tracking-tighter leading-tight text-white max-w-4xl relative z-10 drop-shadow-2xl">
+                    Build faster with <span
+                        class="text-transparent bg-clip-text bg-gradient-to-br from-crous-400 to-crous-600">Tubox</span>.
+                </h1>
+
+                <p
+                    class="text-xl md:text-2xl text-zinc-400 leading-relaxed max-w-2xl mx-auto mb-12 font-light relative z-10">
+                    The ultra-low latency distributed object store. <br class="hidden md:block" />Designed for
+                    high-throughput, mission-critical workloads.
+                </p>
+
+                <!-- Command Bar -->
+                <div class="flex items-center gap-4 mb-8 relative z-10">
+                    <div class="group relative flex items-center gap-4 px-6 py-4 bg-[#0A0A0A] border border-white/10 rounded-xl shadow-2xl hover:border-crous-500/30 transition-all cursor-pointer"
+                        onclick="copyInstallCmd(this)">
+                        <div
+                            class="absolute inset-0 bg-crous-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                        </div>
+                        <span class="font-mono text-gray-400 text-sm">$</span>
+                        <span class="font-mono text-white text-sm">pip install tubox-client</span>
+                        <div
+                            class="pl-4 border-l border-white/10 text-gray-500 group-hover:text-crous-400 transition-colors">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                        </div>
+                        <div
+                            class="absolute -top-10 left-1/2 -translate-x-1/2 bg-crous-500 text-black text-xs font-bold px-2 py-1 rounded opacity-0 transition-opacity pointer-events-none copy-tooltip">
+                            Copied!</div>
+                    </div>
+                </div>
+
+                <!-- Global Search -->
+                <div class="w-full max-w-lg relative group z-10">
+                    <div
+                        class="absolute -inset-0.5 bg-gradient-to-r from-crous-500/20 to-transparent rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-700">
+                    </div>
+                    <div
+                        class="relative flex items-center bg-[#0F0F0F] border border-white/10 rounded-2xl shadow-lg transition-all group-focus-within:border-crous-500/50 group-hover:border-white/20">
+                        <div class="pl-5 text-gray-500 group-focus-within:text-crous-500 transition-colors">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </div>
+                        <input type="text" placeholder="Search guides, API references..."
+                            class="w-full bg-transparent border-none text-white placeholder-gray-600 focus:ring-0 text-sm py-4 font-medium">
+                        <div class="hidden sm:flex items-center gap-2 pr-4">
+                            <kbd
+                                class="inline-flex items-center justify-center h-6 px-2 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-gray-500 mb-0.5">⌘K</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features with TECHNICAL SVGs -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-32">
+                <!-- Protocol Card -->
+                <div
+                    class="group relative p-8 bg-[#0A0A0A] border border-white/10 rounded-3xl hover:-translate-y-1 hover:shadow-2xl hover:shadow-crous-900/20 transition-all duration-300 overflow-hidden">
+                    <div
+                        class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    </div>
+
+                    <div class="h-16 w-16 mb-6 relative text-crous-500">
+                        <!-- Technical Binary Viz -->
+                        <svg viewBox="0 0 64 64" fill="none"
+                            class="w-full h-full drop-shadow-[0_0_5px_rgba(34,197,94,0.3)]">
+                            <rect x="10" y="20" width="44" height="24" rx="2" stroke="currentColor" stroke-width="2" />
+                            <circle cx="16" cy="32" r="2.5" fill="currentColor" class="animate-pulse" />
+                            <circle cx="26" cy="32" r="2.5" fill="currentColor" class="animate-pulse"
+                                style="animation-delay: 100ms" />
+                            <circle cx="36" cy="32" r="2.5" fill="currentColor" class="animate-pulse"
+                                style="animation-delay: 200ms" />
+                            <circle cx="46" cy="32" r="2.5" fill="currentColor" class="animate-pulse"
+                                style="animation-delay: 300ms" />
+                            <path d="M32 20V10M32 44V54" stroke="currentColor" stroke-width="2"
+                                stroke-dasharray="2 2" />
+                        </svg>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-white mb-3">Binary Protocol</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed font-light">
+                        Low-level serialization. Zero-copy optimization for maximum throughput efficiency.
+                    </p>
+                </div>
+
+                <!-- Thread Safe Card -->
+                <div
+                    class="group relative p-8 bg-[#0A0A0A] border border-white/10 rounded-3xl hover:-translate-y-1 hover:shadow-2xl hover:shadow-crous-900/20 transition-all duration-300 overflow-hidden">
+                    <div
+                        class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    </div>
+
+                    <div class="h-16 w-16 mb-6 relative text-crous-500">
+                        <!-- Schematic Lock -->
+                        <svg viewBox="0 0 64 64" fill="none"
+                            class="w-full h-full drop-shadow-[0_0_5px_rgba(34,197,94,0.3)]">
+                            <path d="M22 24V18a10 10 0 0 1 20 0v6" stroke="currentColor" stroke-width="2" />
+                            <rect x="14" y="24" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2" />
+                            <circle cx="32" cy="37" r="3" stroke="currentColor" stroke-width="2" />
+                            <path d="M32 40v4" stroke="currentColor" stroke-width="2" />
+                            <!-- Sync Arrows -->
+                            <path d="M56 32l4 4-4 4" stroke="currentColor" stroke-width="2"
+                                class="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <path d="M8 32l-4 4 4 4" stroke="currentColor" stroke-width="2"
+                                class="opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </svg>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-white mb-3">Concurrency Control</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed font-light">
+                        Semaphore-based pooling. Safe for high-concurrency threaded or async environments.
+                    </p>
+                </div>
+
+                <!-- ACID Card -->
+                <div
+                    class="group relative p-8 bg-[#0A0A0A] border border-white/10 rounded-3xl hover:-translate-y-1 hover:shadow-2xl hover:shadow-crous-900/20 transition-all duration-300 overflow-hidden">
+                    <div
+                        class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    </div>
+
+                    <div class="h-16 w-16 mb-6 relative text-crous-500">
+                        <!-- Database Layers -->
+                        <svg viewBox="0 0 64 64" fill="none"
+                            class="w-full h-full drop-shadow-[0_0_5px_rgba(34,197,94,0.3)]">
+                            <ellipse cx="32" cy="16" rx="20" ry="6" stroke="currentColor" stroke-width="2" />
+                            <path d="M12 16v32c0 3.3 9 6 20 6s20-2.7 20-6V16" stroke="currentColor" stroke-width="2" />
+                            <path d="M12 27c0 3.3 9 6 20 6s20-2.7 20-6" stroke="currentColor" stroke-width="2"
+                                stroke-opacity="0.5" />
+                            <path d="M12 37c0 3.3 9 6 20 6s20-2.7 20-6" stroke="currentColor" stroke-width="2"
+                                stroke-opacity="0.5" />
+                            <!-- Check -->
+                            <path d="M24 32l6 6 10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                stroke-linejoin="round" class="path-draw hidden group-hover:block" />
+                        </svg>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-white mb-3">ACID Semantic</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed font-light">
+                        Snapshot isolation guarantees. Tunable consistency for read-heavy or write-heavy loads.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Developer Section: SPLIT LAYOUT -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-32">
+
+                <!-- BIG CARD: Official Python SDK -->
+                <div class="flex flex-col gap-6">
+                    <a href="/docs/python"
+                        class="group relative block bg-[#0A0A0A] border border-white/10 rounded-3xl p-10 overflow-hidden hover:border-crous-500/30 transition-all duration-500 flex-1">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-br from-crous-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        </div>
+                        <div
+                            class="absolute -right-10 -bottom-10 w-64 h-64 bg-crous-500/10 rounded-full blur-[80px] group-hover:bg-crous-500/20 transition-colors">
+                        </div>
+
+                        <div class="relative z-10 h-full flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div
+                                        class="w-16 h-16 bg-crous-500/10 rounded-2xl flex items-center justify-center border border-crous-500/20 group-hover:scale-110 transition-transform duration-300">
+                                        <i data-lucide="book-open" class="w-8 h-8 text-crous-500"></i>
+                                    </div>
+                                    <div
+                                        class="px-3 py-1 bg-white/5 rounded-full border border-white/10 text-xs font-mono text-gray-400">
+                                        v1.2.0</div>
+                                </div>
+
+                                <h2
+                                    class="text-3xl font-bold text-white mb-4 group-hover:text-crous-400 transition-colors">
+                                    Official Python Documentation</h2>
+                                <p class="text-gray-400 text-lg leading-relaxed mb-8">
+                                    Comprehensive API reference for the Python client. Includes async/await patterns,
+                                    connection pooling configuration, and advanced query strategies.
+                                </p>
+
+                                <ul class="space-y-3 mb-8">
+                                    <li class="flex items-center gap-3 text-sm text-gray-300">
+                                        <i data-lucide="check" class="w-4 h-4 text-crous-500"></i>
+                                        <span>Sync & Async Clients</span>
+                                    </li>
+                                    <li class="flex items-center gap-3 text-sm text-gray-300">
+                                        <i data-lucide="check" class="w-4 h-4 text-crous-500"></i>
+                                        <span>Type Hints (PEP 484)</span>
+                                    </li>
+                                    <li class="flex items-center gap-3 text-sm text-gray-300">
+                                        <i data-lucide="check" class="w-4 h-4 text-crous-500"></i>
+                                        <span>Pydantic Integration</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div
+                                class="flex items-center gap-2 text-crous-500 font-bold group-hover:translate-x-2 transition-transform">
+                                <span>Read the Docs</span>
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Product Updates Banner (Small) -->
+                    <a href="/docs/releases"
+                        class="group relative block bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 overflow-hidden hover:border-crous-500/30 transition-all">
+                        <div class="flex items-center justify-between relative z-10">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="h-10 w-10 bg-crous-500/10 rounded-full flex items-center justify-center border border-crous-500/20">
+                                    <i data-lucide="sparkles" class="w-5 h-5 text-crous-500"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-white font-bold text-lg">Product Updates</h3>
+                                    <p class="text-gray-400 text-sm">See what's new in Tubox</p>
+                                </div>
+                            </div>
+                            <div
+                                class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-crous-500 group-hover:text-black transition-colors">
+                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- CODE WINDOW: STATIC -->
+                <div class="flex flex-col h-full">
+                    <div
+                        class="bg-[#0A0A0A] border border-white/10 rounded-3xl shadow-2xl overflow-hidden relative group h-full flex flex-col">
+                        <!-- Window Chrome -->
+                        <div
+                            class="flex items-center justify-between px-6 py-4 bg-white/[0.02] border-b border-white/5 shrink-0">
+                            <div class="flex gap-2 opacity-50">
+                                <div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+                                <div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+                                <div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+                            </div>
+                            <div class="text-xs uppercase font-mono text-gray-500 tracking-wider">example.py</div>
+                        </div>
+
+                        <!-- Code Content Container - STATIC -->
+                        <div class="relative flex-1 bg-black/50 p-8 font-mono text-sm leading-relaxed overflow-x-auto">
+                            <pre><span class="text-purple-400">from</span> tubox <span class="text-purple-400">import</span> TuboxClient
+
+<span class="text-gray-500"># Connect to the cluster</span>
+client = TuboxClient(
+    host=<span class="text-green-500">"127.0.0.1"</span>,
+    port=<span class="text-orange-400">9000</span>
+)
+
+<span class="text-gray-500"># Async Insert</span>
+doc_id = <span class="text-purple-400">await</span> client.insert(
+    collection=<span class="text-green-500">"users"</span>,
+    doc={<span class="text-green-500">"name"</span>: <span class="text-green-500">"dev"</span>}
+)</pre>
+                        </div>
+                    </div>
+
+                    <!-- Coming Soon Badges Below Code -->
+                    <div class="flex gap-4 mt-6">
+                        <div
+                            class="flex-1 p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 opacity-50 hover:opacity-100 transition-opacity">
+                            <i data-lucide="terminal" class="w-5 h-5 text-gray-500"></i>
+                            <div>
+                                <div class="text-sm font-bold text-white">Node.js</div>
+                                <div class="text-[10px] text-gray-500">Q1 2026</div>
+                            </div>
+                        </div>
+                        <div
+                            class="flex-1 p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 opacity-50 hover:opacity-100 transition-opacity">
+                            <i data-lucide="cpu" class="w-5 h-5 text-gray-500"></i>
+                            <div>
+                                <div class="text-sm font-bold text-white">C++</div>
+                                <div class="text-[10px] text-gray-500">Q2 2026</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- Footer Grid Navigation -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 py-16 border-t border-white/5">
+                <div>
+                    <h4 class="text-white font-bold mb-4">Getting Started</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Installation</a></li>
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Quickstart</a></li>
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Architecture</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">Core Concepts</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Sharding</a></li>
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Replication</a></li>
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Consistency</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">API Reference</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Python SDK</a></li>
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">REST API</a></li>
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">CLI Tools</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">Community</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">GitHub</a></li>
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Discord</a></li>
+                        <li><a href="#" class="hover:text-crous-500 transition-colors">Twitter</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes spin-super-slow {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes spin-reverse-slow {
+        from {
+            transform: rotate(360deg);
+        }
+
+        to {
+            transform: rotate(0deg);
+        }
+    }
+
+    @keyframes pulse-slow {
+
+        0%,
+        100% {
+            opacity: 0.8;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.4;
+            transform: scale(0.9);
+        }
+    }
+
+    .animate-spin-super-slow {
+        animation: spin-super-slow 60s linear infinite;
+    }
+
+    .animate-spin-slow {
+        animation: spin-super-slow 30s linear infinite;
+    }
+
+    .animate-spin-reverse-slow {
+        animation: spin-reverse-slow 40s linear infinite;
+    }
+
+    .animate-pulse-slow {
+        animation: pulse-slow 4s ease-in-out infinite;
+    }
+
+    .animate-pulse-slower {
+        animation: pulse-slow 6s ease-in-out infinite;
+    }
+
+    @keyframes draw {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    .path-draw {
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: draw 1s forwards;
+    }
+</style>
+
+<script>
+    function copyInstallCmd(el) {
+        navigator.clipboard.writeText('pip install tubox-client');
+        const tooltip = el.querySelector('.copy-tooltip');
+        tooltip.style.opacity = '1';
+        setTimeout(() => tooltip.style.opacity = '0', 2000);
+    }
+</script>
+{% endblock %}

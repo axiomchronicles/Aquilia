@@ -1,0 +1,134 @@
+{% extends "docs/doc_layout.html" %}
+
+{% block doc_title %}Getting Started - Python SDK{% endblock %}
+
+{% block doc_content %}
+{% set active_page = 'getting_started' %}
+
+<div class="mb-8">
+    <h1
+        class="text-4xl font-extrabold text-white mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        Installation & Setup</h1>
+    <p class="text-lg text-gray-400">Production-ready configuration for high-throughput applications.</p>
+</div>
+
+<!-- Quick Install -->
+<section class="mb-16">
+    <div class="relative group">
+        <div class="absolute -inset-1 bg-gradient-to-r from-crous-500/20 to-blue-500/20 rounded-2xl blur opacity-25">
+        </div>
+        <div class="relative bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="download" class="w-5 h-5 text-crous-500"></i>
+                    Quick Install
+                </h2>
+                <span
+                    class="text-xs px-2 py-1 bg-crous-500/10 text-crous-400 rounded-full border border-crous-500/20">Python
+                    3.8+</span>
+            </div>
+            <div class="bg-black/50 rounded-lg p-4 font-mono text-sm text-gray-300 border border-white/5">
+                pip install tubox-client
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Connection Pooling -->
+<section class="mb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+        <div
+            class="w-8 h-8 rounded-lg bg-gradient-to-br from-crous-500/20 to-crous-500/5 flex items-center justify-center">
+            <i data-lucide="layers" class="w-4 h-4 text-crous-500"></i>
+        </div>
+        Connection Pooling
+    </h2>
+
+    <div class="bg-zinc-900/50 border border-white/5 rounded-xl p-6 mb-6">
+        <p class="text-gray-400 mb-4 leading-relaxed">
+            The SDK maintains a <strong class="text-white">thread-safe connection pool</strong> with automatic health
+            checks and exponential backoff retry logic. Each connection uses a persistent TCP socket with 4-byte
+            length-prefixed Crous binary protocol.
+        </p>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="p-3 bg-black/30 rounded-lg border border-white/5">
+                <div class="text-xs text-gray-500 mb-1">Default Pool Size</div>
+                <div class="text-lg font-bold text-white">10 connections</div>
+            </div>
+            <div class="p-3 bg-black/30 rounded-lg border border-white/5">
+                <div class="text-xs text-gray-500 mb-1">Max Concurrent</div>
+                <div class="text-lg font-bold text-white">100 operations</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative group">
+        <div
+            class="absolute -inset-0.5 bg-gradient-to-r from-crous-500/10 to-blue-500/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition">
+        </div>
+        <div class="relative bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/5">
+                <span class="text-xs font-mono text-gray-500">advanced_config.py</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-600">Production Config</span>
+                </div>
+            </div>
+            <pre class="p-6 overflow-x-auto"><code class="language-python text-sm leading-relaxed text-gray-300"><span class="text-crous-400">from</span> tubox_client <span class="text-crous-400">import</span> TuboxClient, ClientConfig
+
+<span class="text-gray-500"># Fine-tuned for high-throughput workloads</span>
+config = <span class="text-yellow-300">ClientConfig</span>(
+    host=<span class="text-green-400">"10.0.0.5"</span>,
+    port=<span class="text-blue-400">7188</span>,
+    min_pool_size=<span class="text-blue-400">5</span>,          <span class="text-gray-500"># Warm connections</span>
+    max_pool_size=<span class="text-blue-400">50</span>,         <span class="text-gray-500"># Peak capacity</span>
+    connect_timeout=<span class="text-blue-400">5.0</span>,      <span class="text-gray-500"># Fast-fail on network issues</span>
+    request_timeout=<span class="text-blue-400">30.0</span>,     <span class="text-gray-500"># Long-running queries</span>
+    retry_max_attempts=<span class="text-blue-400">3</span>      <span class="text-gray-500"># Exponential backoff</span>
+)
+
+client = <span class="text-yellow-300">TuboxClient</span>(**config.to_dict())</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- Authentication -->
+<section class="mb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+        <div
+            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center">
+            <i data-lucide="shield-check" class="w-4 h-4 text-blue-500"></i>
+        </div>
+        Session-Based Auth
+    </h2>
+
+    <div class="space-y-4">
+        <div
+            class="p-5 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 border border-white/10 rounded-xl backdrop-blur-sm">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-lg bg-crous-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <i data-lucide="key" class="w-5 h-5 text-crous-500"></i>
+                </div>
+                <div class="flex-1">
+                    <code class="text-sm text-crous-400 font-mono">await client.authenticate(username, password)</code>
+                    <p class="text-sm text-gray-400 mt-2">Exchanges credentials for a <strong class="text-white">24-hour
+                            session token</strong>. All subsequent requests automatically include this token in the
+                        binary protocol header.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Navigation -->
+<div class="flex items-center justify-between pt-12 mt-12 border-t border-white/10">
+    <a href="/docs/python" class="group flex items-center gap-2 text-gray-400 hover:text-white transition-all">
+        <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+        <span>Introduction</span>
+    </a>
+    <a href="/docs/python/crud"
+        class="group flex items-center gap-2 text-white font-bold hover:text-crous-400 transition-all">
+        <span>CRUD Operations</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+    </a>
+</div>
+{% endblock %}

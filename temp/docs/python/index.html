@@ -1,0 +1,82 @@
+{% extends "docs/doc_layout.html" %}
+
+{% block doc_title %}Python SDK Introduction{% endblock %}
+
+{% block doc_content %}
+{% set active_page = 'intro' %}
+
+<div class="mb-12">
+    <h1 class="text-4xl font-extrabold text-white mb-6">Tubox Python SDK</h1>
+    <p class="text-xl text-gray-400 leading-relaxed">
+        The official high-performance Python driver for Tubox.
+        Built on <code class="text-crous-400">asyncio</code>, it provides a native interface to the Crous engine's
+        atomic capabilities.
+    </p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+    <div class="p-6 bg-zinc-900/50 border border-white/5 rounded-xl">
+        <div class="flex items-center gap-3 mb-4">
+            <i data-lucide="zap" class="w-6 h-6 text-crous-500"></i>
+            <h3 class="text-lg font-bold text-white">High Performance</h3>
+        </div>
+        <p class="text-gray-400 text-sm leading-relaxed">
+            Uses a custom binary protocol for minimal serialization overhead.
+            Benchmarks show up to 10k ops/sec on a single core.
+        </p>
+    </div>
+    <div class="p-6 bg-zinc-900/50 border border-white/5 rounded-xl">
+        <div class="flex items-center gap-3 mb-4">
+            <i data-lucide="shield-check" class="w-6 h-6 text-crous-500"></i>
+            <h3 class="text-lg font-bold text-white">Type Safe</h3>
+        </div>
+        <p class="text-gray-400 text-sm leading-relaxed">
+            Fully typed with Python type hints. Great IDE support and reduced runtime errors.
+        </p>
+    </div>
+</div>
+
+<!-- Quickstart -->
+<section class="mb-16">
+    <h2 class="text-2xl font-bold text-white mb-6">Quickstart</h2>
+    <div class="relative group">
+        <div class="relative bg-zinc-950 border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/5">
+                <span class="text-xs font-mono text-gray-500">main.py</span>
+            </div>
+            <pre class="p-6 overflow-x-auto"><code class="language-python text-sm leading-relaxed text-gray-300"><span class="text-crous-400">import</span> asyncio
+<span class="text-crous-400">from</span> tubox_client <span class="text-crous-400">import</span> TuboxClient
+
+<span class="text-crous-400">async def</span> <span class="text-yellow-300">main</span>():
+    <span class="text-gray-500"># Connect to local Tubox instance</span>
+    client = <span class="text-yellow-300">TuboxClient</span>(host=<span class="text-green-400">"localhost"</span>, port=<span class="text-blue-400">7188</span>)
+    <span class="text-crous-400">await</span> client.connect()
+    
+    <span class="text-crous-400">try</span>:
+        <span class="text-crous-400">await</span> client.authenticate(<span class="text-green-400">"admin"</span>, <span class="text-green-400">"password"</span>)
+        
+        db = client[<span class="text-green-400">"mydb"</span>]
+        users = db[<span class="text-green-400">"users"</span>]
+        
+        <span class="text-gray-500"># Async Insert</span>
+        res = <span class="text-crous-400">await</span> users.insert_one({<span class="text-green-400">"name"</span>: <span class="text-green-400">"Alice"</span>})
+        print(f<span class="text-green-400">"Inserted: {res.data}"</span>)
+        
+    <span class="text-crous-400">finally</span>:
+        <span class="text-crous-400">await</span> client.close()
+
+<span class="text-crous-400">if</span> __name__ == <span class="text-green-400">"__main__"</span>:
+    asyncio.run(main())</code></pre>
+        </div>
+    </div>
+</section>
+
+<div class="flex items-center justify-between pt-8">
+    <div></div>
+    <a href="/docs/python/getting-started"
+        class="flex items-center gap-2 text-white font-bold hover:text-crous-400 transition-colors">
+        Installation Guide <i data-lucide="arrow-right" class="w-4 h-4"></i>
+    </a>
+</div>
+
+{% endblock %}

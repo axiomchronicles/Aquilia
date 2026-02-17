@@ -1,0 +1,213 @@
+{% extends "docs/doc_layout.html" %}
+
+{% block doc_title %}Database Management - Python SDK{% endblock %}
+
+{% block doc_content %}
+{% set active_page = 'db_mgmt' %}
+
+<div class="mb-8">
+    <h1
+        class="text-4xl font-extrabold text-white mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        Database Management</h1>
+    <p class="text-lg text-gray-400">Administrative operations for databases and collections.</p>
+</div>
+
+<!-- Database Operations -->
+<section class="mb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+        <div
+            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center">
+            <i data-lucide="database" class="w-4 h-4 text-blue-500"></i>
+        </div>
+        Database Operations
+    </h2>
+
+    <div class="space-y-4">
+        <!-- List Databases -->
+        <div class="group p-5 bg-zinc-900/50 border border-white/5 rounded-xl hover:border-blue-500/20 transition-all">
+            <div class="flex items-start gap-4 mb-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="list" class="w-5 h-5 text-blue-500"></i>
+                </div>
+                <div class="flex-1">
+                    <code class="text-lg font-mono text-blue-400">list_databases()</code>
+                    <p class="text-sm text-gray-400 mt-2">Returns all database names accessible to the current user.</p>
+                </div>
+            </div>
+            <div class="ml-14 bg-black/30 rounded-lg p-4 border border-white/5">
+                <pre class="text-xs text-gray-300"><code class="language-python">databases = client.list_databases()
+<span class="text-crous-400">for</span> db_name <span class="text-crous-400">in</span> databases:
+    print(f<span class="text-green-400">"Database: {db_name}"</span>)</code></pre>
+            </div>
+        </div>
+
+        <!-- Drop Database -->
+        <div class="group p-5 bg-zinc-900/50 border border-white/5 rounded-xl hover:border-red-500/20 transition-all">
+            <div class="flex items-start gap-4 mb-3">
+                <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-red-500"></i>
+                </div>
+                <div class="flex-1">
+                    <code class="text-lg font-mono text-red-400">drop_database(db_name)</code>
+                    <p class="text-sm text-gray-400 mt-2">Permanently deletes a database and all its collections.</p>
+                    <div class="mt-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg inline-block">
+                        <span class="text-xs text-red-400 font-medium">⚠️ Irreversible Operation</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ml-14 bg-black/30 rounded-lg p-4 border border-white/5">
+                <pre class="text-xs text-gray-300"><code class="language-python">success = client.drop_database(<span class="text-green-400">"old_db"</span>)
+<span class="text-crous-400">if</span> success:
+    print(<span class="text-green-400">"Database deleted"</span>)</code></pre>
+            </div>
+        </div>
+
+        <!-- Rename Database -->
+        <div
+            class="group p-5 bg-zinc-900/50 border border-white/5 rounded-xl hover:border-purple-500/20 transition-all">
+            <div class="flex items-start gap-4 mb-3">
+                <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="edit-3" class="w-5 h-5 text-purple-500"></i>
+                </div>
+                <div class="flex-1">
+                    <code class="text-lg font-mono text-purple-400">rename_database(old_name, new_name)</code>
+                    <p class="text-sm text-gray-400 mt-2">Atomically renames a database. All collections and data are
+                        preserved.</p>
+                </div>
+            </div>
+            <div class="ml-14 bg-black/30 rounded-lg p-4 border border-white/5">
+                <pre
+                    class="text-xs text-gray-300"><code class="language-python">client.rename_database(<span class="text-green-400">"dev_db"</span>, <span class="text-green-400">"production_db"</span>)</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Collection Operations -->
+<section class="mb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+        <div
+            class="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center">
+            <i data-lucide="folder" class="w-4 h-4 text-green-500"></i>
+        </div>
+        Collection Operations
+    </h2>
+
+    <div class="relative group mb-6">
+        <div class="absolute -inset-1 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-2xl blur opacity-25">
+        </div>
+        <div class="relative bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+            <div class="px-4 py-3 border-b border-white/5 bg-white/5">
+                <span class="text-xs font-mono text-gray-500">collection_admin.py</span>
+            </div>
+            <pre class="p-6 overflow-x-auto"><code class="language-python text-sm text-gray-300">db = client[<span class="text-green-400">"mydb"</span>]
+
+<span class="text-gray-500"># List all collections</span>
+collections = db.list_collections()
+
+<span class="text-gray-500"># Rename collection</span>
+col = db[<span class="text-green-400">"old_name"</span>]
+col.rename(<span class="text-green-400">"new_name"</span>)
+
+<span class="text-gray-500"># Drop collection (irreversible!)</span>
+col.drop()</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- Storage Monitoring -->
+<section class="mb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+        <div
+            class="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 flex items-center justify-center">
+            <i data-lucide="hard-drive" class="w-4 h-4 text-yellow-500"></i>
+        </div>
+        Storage Monitoring
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="p-5 bg-zinc-900/50 border border-white/5 rounded-xl">
+            <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-crous-500"></i>
+                Storage Info
+            </h3>
+            <pre class="bg-black/30 rounded-lg p-4 text-xs text-gray-300"><code class="language-python">info = client.get_storage_info()
+print(info)
+<span class="text-gray-500"># {</span>
+<span class="text-gray-500">#   "total_size_mb": 1024,</span>
+<span class="text-gray-500">#   "used_size_mb": 512,</span>
+<span class="text-gray-500">#   "databases": 5,</span>
+<span class="text-gray-500">#   "collections": 23</span>
+<span class="text-gray-500"># }</span></code></pre>
+        </div>
+
+        <div class="p-5 bg-zinc-900/50 border border-white/5 rounded-xl">
+            <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-blue-500"></i>
+                Server Metrics
+            </h3>
+            <pre class="bg-black/30 rounded-lg p-4 text-xs text-gray-300"><code class="language-python">metrics = client.get_server_metrics()
+print(metrics)
+<span class="text-gray-500"># {</span>
+<span class="text-gray-500">#   "uptime_seconds": 86400,</span>
+<span class="text-gray-500">#   "active_connections": 42,</span>
+<span class="text-gray-500">#   "requests_per_sec": 1250</span>
+<span class="text-gray-500"># }</span></code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- Best Practices -->
+<section>
+    <h2 class="text-2xl font-bold text-white mb-6">Best Practices</h2>
+
+    <div class="space-y-4">
+        <div class="p-5 bg-gradient-to-br from-yellow-500/5 to-transparent border border-yellow-500/20 rounded-xl">
+            <div class="flex items-start gap-3">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <h3 class="text-white font-bold mb-2">Backup Before Drop</h3>
+                    <p class="text-sm text-gray-400">Always create backups before dropping databases or collections.
+                        These operations are <strong class="text-white">irreversible</strong>.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-5 bg-gradient-to-br from-blue-500/5 to-transparent border border-blue-500/20 rounded-xl">
+            <div class="flex items-start gap-3">
+                <i data-lucide="shield" class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <h3 class="text-white font-bold mb-2">Use Transactions for Renames</h3>
+                    <p class="text-sm text-gray-400">Rename operations are atomic but consider using transactions when
+                        coordinating with application state changes.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-5 bg-gradient-to-br from-green-500/5 to-transparent border border-green-500/20 rounded-xl">
+            <div class="flex items-start gap-3">
+                <i data-lucide="gauge" class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <h3 class="text-white font-bold mb-2">Monitor Storage Growth</h3>
+                    <p class="text-sm text-gray-400">Regularly check <code class="text-white">get_storage_info()</code>
+                        to track database growth and plan capacity.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Navigation -->
+<div class="flex items-center justify-between pt-12 mt-12 border-t border-white/10">
+    <a href="/docs/python/crud" class="group flex items-center gap-2 text-gray-400 hover:text-white transition-all">
+        <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+        <span>CRUD Operations</span>
+    </a>
+    <a href="/docs/python/indexing"
+        class="group flex items-center gap-2 text-white font-bold hover:text-crous-400 transition-all">
+        <span>Indexing</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+    </a>
+</div>
+
+{% endblock %}

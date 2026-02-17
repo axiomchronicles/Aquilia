@@ -1,0 +1,703 @@
+{% extends "base.html" %}
+
+{% block title %}Release notes | Tubox Docs{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#020202] text-gray-300 selection:bg-crous-900/50 font-sans scroll-smooth group/page">
+
+    <!-- Reading Progress Bar -->
+    <div class="fixed top-0 left-0 h-0.5 bg-crous-500 z-[60] w-0 transition-all duration-100 ease-out"
+        id="reading-progress"></div>
+
+    <!-- Top Bar -->
+    <div class="sticky top-0 z-50 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md">
+        <div class="max-w-[90rem] mx-auto px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm">
+                <a href="/docs" class="text-gray-500 hover:text-white transition-colors">Docs</a>
+                <span class="text-gray-700">/</span>
+                <span class="text-white font-medium">Release notes</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Command Palette Trigger -->
+                <button id="cmd-k-trigger"
+                    class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#0A0A0A] hover:bg-white/5 border border-white/10 hover:border-crous-500/30 rounded-md transition-all group">
+                    <i data-lucide="search"
+                        class="w-3.5 h-3.5 text-gray-500 group-hover:text-crous-500 transition-colors"></i>
+                    <span class="text-xs text-gray-400">Search releases...</span>
+                    <span
+                        class="flex items-center gap-0.5 ml-4 text-[10px] text-gray-600 font-mono border border-white/10 rounded px-1 bg-black/20">
+                        <span>⌘</span><span>K</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-[90rem] mx-auto px-6 lg:px-8 py-12">
+        <div class="flex flex-col lg:flex-row gap-12">
+
+            <!-- LEFT SIDEBAR: Navigation -->
+            <aside class="w-64 flex-shrink-0 hidden lg:block">
+                <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-bold text-white text-xs uppercase tracking-widest">Versions</h3>
+                        <span class="text-[10px] text-gray-600 font-mono" title="Use J/K to navigate">J / K</span>
+                    </div>
+
+                    <nav class="space-y-8" id="version-nav">
+                        <div>
+                            <div class="flex items-center justify-between mb-3 group cursor-pointer">
+                                <h4 class="text-xs font-semibold text-crous-500 uppercase">1.1 Series</h4>
+                                <span
+                                    class="bg-crous-500/10 text-crous-500 text-[10px] px-1.5 py-0.5 rounded border border-crous-500/20">DEV</span>
+                            </div>
+                            <ul class="space-y-0.5 border-l border-white/10 ml-1">
+                                <li>
+                                    <a href="#v1-1-0"
+                                        class="block py-1.5 pl-4 text-sm text-gray-400 hover:text-white border-l-2 border-transparent hover:border-crous-500 -ml-[1px] transition-all data-[active=true]:text-white data-[active=true]:border-crous-500 data-[active=true]:font-medium focus:outline-none focus:text-white focus:border-crous-500 ring-0">
+                                        1.1.0-rc1
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-xs font-semibold text-gray-500 uppercase">1.0 Series</h4>
+                                <span
+                                    class="bg-white/5 text-gray-500 text-[10px] px-1.5 py-0.5 rounded border border-white/10">LTS</span>
+                            </div>
+                            <ul class="space-y-0.5 border-l border-white/10 ml-1">
+                                <li>
+                                    <a href="#v1-0-4"
+                                        class="block py-1.5 pl-4 text-sm text-gray-400 hover:text-white border-l-2 border-transparent hover:border-gray-500 -ml-[1px] transition-all data-[active=true]:text-white data-[active=true]:border-gray-500 focus:outline-none focus:text-white focus:border-gray-500 ring-0">
+                                        1.0.4
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#v1-0-3"
+                                        class="block py-1.5 pl-4 text-sm text-gray-400 hover:text-white border-l-2 border-transparent hover:border-gray-500 -ml-[1px] transition-all data-[active=true]:text-white data-[active=true]:border-gray-500 focus:outline-none focus:text-white focus:border-gray-500 ring-0">
+                                        1.0.3
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#v1-0-2"
+                                        class="block py-1.5 pl-4 text-sm text-gray-400 hover:text-white border-l-2 border-transparent hover:border-gray-500 -ml-[1px] transition-all data-[active=true]:text-white data-[active=true]:border-gray-500 focus:outline-none focus:text-white focus:border-gray-500 ring-0">
+                                        1.0.2
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#v1-0-1"
+                                        class="block py-1.5 pl-4 text-sm text-gray-400 hover:text-white border-l-2 border-transparent hover:border-gray-500 -ml-[1px] transition-all data-[active=true]:text-white data-[active=true]:border-gray-500 focus:outline-none focus:text-white focus:border-gray-500 ring-0">
+                                        1.0.1
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#v1-0-0"
+                                        class="block py-1.5 pl-4 text-sm text-gray-400 hover:text-white border-l-2 border-transparent hover:border-gray-500 -ml-[1px] transition-all data-[active=true]:text-white data-[active=true]:border-gray-500 focus:outline-none focus:text-white focus:border-gray-500 ring-0">
+                                        1.0.0
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- CENTER MAIN CONTENT -->
+            <main class="flex-1 min-w-0">
+
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-8">Release notes</h1>
+                <p class="text-lg text-gray-400 mb-16 leading-relaxed max-w-3xl border-b border-white/5 pb-8">
+                    Comprehensive changelogs for the Tubox distributed database.
+                </p>
+
+                <!-- ================= V1.1.0 ================= -->
+                <article id="v1-1-0" class="mb-32 scroll-mt-28 release-article group/article">
+                    <header class="mb-10 flex items-start justify-between">
+                        <div>
+                            <h2 class="group/header text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                                Tubox 1.1
+                                <a href="#v1-1-0"
+                                    class="opacity-0 group-hover/header:opacity-100 text-crous-500 transition-opacity ml-2 focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50"
+                                    aria-label="Permalink">#</a>
+                            </h2>
+                            <p class="text-sm font-mono text-gray-500">Expected: January 15, 2026</p>
+                        </div>
+                        <div
+                            class="px-3 py-1 bg-crous-900/30 border border-crous-500/30 text-crous-400 text-xs font-bold uppercase rounded">
+                            Preview
+                        </div>
+                    </header>
+
+                    <div class="prose prose-invert max-w-none 
+                        prose-headings:font-bold prose-headings:text-white prose-headings:scroll-mt-28
+                        prose-h3:text-xl prose-h3:mt-12 prose-h3:mb-6 prose-h3:border-b prose-h3:border-white/5 prose-h3:pb-2
+                        prose-h4:text-lg prose-h4:text-white prose-h4:mt-8 prose-h4:mb-3
+                        prose-p:text-gray-300 prose-p:leading-7
+                        prose-a:text-crous-500 prose-a:no-underline prose-a:font-medium hover:prose-a:underline
+                        prose-code:text-gray-200 prose-code:bg-[#111] prose-code:border prose-code:border-white/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-[0.9em] prose-code:before:content-none prose-code:after:content-none
+                        prose-ul:marker:text-gray-600 prose-li:text-gray-300">
+
+                        <p>
+                            Tubox 1.1 brings <strong>Active-Active Multi-Region Replication</strong> and a native
+                            <strong>Vector Search Engine</strong>.
+                        </p>
+
+                        <h3 id="v1-1-0-whats-new" class="group/header">
+                            What's new
+                            <a href="#v1-1-0-whats-new"
+                                class="opacity-0 group-hover/header:opacity-100 text-crous-500 no-underline ml-2 transition-opacity focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50">#</a>
+                        </h3>
+
+                        <h4 id="v1-1-0-multi-region">Multi-Region Replication</h4>
+                        <p>
+                            Configure replication across distinct geographic regions using the new
+                            <code>topology.conf</code>.
+                        </p>
+                        <ul class="list-disc pl-0 space-y-2 mt-4 ml-4">
+                            <li><strong>RegionAwareSnitch</strong>: Automatic topology discovery via gossip overlay.
+                            </li>
+                            <li><strong>LOCAL_QUORUM</strong>: New consistency level for low-latency builds, reading
+                                only from the local datacenter.</li>
+                            <li><strong>Conflict Resolution</strong>: Automatic anti-entropy using Last-Write-Wins (LWW)
+                                per column field.</li>
+                        </ul>
+
+                        <h4 id="v1-1-0-vector">Vector Search Engine</h4>
+                        <p>
+                            Native HNSW index for `vector` fields. Supports dimensionality up to 2048.
+                        </p>
+                        <div
+                            class="bg-[#0A0A0A] border border-white/10 rounded-lg p-4 my-4 font-mono text-sm text-gray-300 relative group/code">
+                            <button
+                                class="absolute top-2 right-2 p-1.5 rounded bg-white/5 text-gray-500 opacity-0 group-hover/code:opacity-100 hover:text-white hover:bg-white/10 transition-all custom-copy-btn focus:opacity-100"
+                                aria-label="Copy code">
+                                <i data-lucide="copy" class="w-3 h-3"></i>
+                            </button>
+                            <span class="text-crous-500">CREATE INDEX</span> embedding_idx <span
+                                class="text-crous-500">ON</span> videos(embedding) <br>
+                            <span class="text-crous-500">USING</span> HNSW <span class="text-crous-500">WITH</span>
+                            (metric='cosine', m=16, ef_construction=200);
+                        </div>
+
+                        <h3 id="v1-1-0-breaking" class="group/header">
+                            Backwards compatibility
+                            <a href="#v1-1-0-breaking"
+                                class="opacity-0 group-hover/header:opacity-100 text-crous-500 no-underline ml-2 transition-opacity focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50">#</a>
+                        </h3>
+                        <div class="bg-red-900/10 border-l-4 border-red-900/50 p-4 my-6 rounded-r">
+                            <p class="text-red-200/80 text-sm m-0">
+                                <strong
+                                    class="text-red-400 block mb-1 text-xs uppercase tracking-wide">Deprecation</strong>
+                                The <code>replication_factor</code> global parameter is deprecated. Use keyspace-level
+                                Strategy Options instead.
+                            </p>
+                        </div>
+
+                        <h3 id="v1-1-0-compatibility" class="group/header">
+                            Compatibility Matrix
+                            <a href="#v1-1-0-compatibility"
+                                class="opacity-0 group-hover/header:opacity-100 text-crous-500 no-underline ml-2 transition-opacity focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50">#</a>
+                        </h3>
+                        <div class="overflow-x-auto my-6 border border-white/10 rounded-lg">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-white/5 text-gray-400 font-bold uppercase text-xs">
+                                    <tr>
+                                        <th class="px-6 py-3 border-b border-white/10">Tubox Version</th>
+                                        <th class="px-6 py-3 border-b border-white/10">Protocol</th>
+                                        <th class="px-6 py-3 border-b border-white/10">Python Client</th>
+                                        <th class="px-6 py-3 border-b border-white/10">Java Client</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5">
+                                    <tr>
+                                        <td class="px-6 py-3 text-white">1.1.x</td>
+                                        <td class="px-6 py-3">v4</td>
+                                        <td class="px-6 py-3 text-crous-500">>= 2.5.0</td>
+                                        <td class="px-6 py-3 text-crous-500">>= 3.0.0</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-3 text-white">1.0.x</td>
+                                        <td class="px-6 py-3">v3</td>
+                                        <td class="px-6 py-3">>= 1.0.0</td>
+                                        <td class="px-6 py-3">>= 2.8.0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ================= V1.0.4 ================= -->
+                <article id="v1-0-4" class="mb-32 scroll-mt-28 release-article group/article">
+                    <header class="mb-10 flex items-start justify-between">
+                        <div>
+                            <h2 class="group/header text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                                Tubox 1.0.4
+                                <a href="#v1-0-4"
+                                    class="opacity-0 group-hover/header:opacity-100 text-crous-500 transition-opacity ml-2 focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50"
+                                    aria-label="Permalink">#</a>
+                            </h2>
+                            <p class="text-sm font-mono text-gray-500">December 20, 2025</p>
+                        </div>
+                        <div
+                            class="px-3 py-1 bg-white/5 border border-white/10 text-gray-400 text-xs font-bold uppercase rounded">
+                            LTS
+                        </div>
+                    </header>
+
+                    <div class="prose prose-invert max-w-none 
+                        prose-headings:font-bold prose-headings:text-white prose-headings:scroll-mt-28
+                        prose-h3:text-xl prose-h3:mt-12 prose-h3:mb-6 prose-h3:border-b prose-h3:border-white/5 prose-h3:pb-2
+                        prose-a:text-crous-500 prose-a:no-underline hover:prose-a:underline
+                        prose-li:text-gray-300">
+
+                        <p>
+                            Maintenance release addressing high-priority issues. Recommended for all production
+                            deployments.
+                        </p>
+
+                        <h3 id="v1-0-4-fixes" class="group/header">
+                            Bug fixes
+                            <a href="#v1-0-4-fixes"
+                                class="opacity-0 group-hover/header:opacity-100 text-crous-500 no-underline ml-2 transition-opacity focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50">#</a>
+                        </h3>
+
+                        <dl class="space-y-8 mt-6">
+                            <div
+                                class="relative pl-6 border-l-2 border-white/5 hover:border-crous-500/50 transition-colors">
+                                <dt class="font-bold text-white text-sm flex items-center gap-2">
+                                    <a href="#"
+                                        class="font-mono text-xs text-crous-500 bg-crous-500/10 px-1.5 py-0.5 rounded border border-crous-500/20 hover:bg-crous-500/20 no-underline">#1024</a>
+                                    OOM on large insertions
+                                </dt>
+                                <dd class="text-gray-400 text-sm mt-3 leading-relaxed">
+                                    Fixed WAL compactor memory leak during >100M key ingestions. The iterator wasn't
+                                    correctly releasing page locks in the buffer cache.
+                                    <span
+                                        class="block mt-2 text-xs font-mono bg-white/5 p-2 rounded text-gray-500">Backport
+                                        of commit 4f2a1d from master.</span>
+                                </dd>
+                            </div>
+                            <div
+                                class="relative pl-6 border-l-2 border-white/5 hover:border-crous-500/50 transition-colors">
+                                <dt class="font-bold text-white text-sm flex items-center gap-2">
+                                    <a href="#"
+                                        class="font-mono text-xs text-crous-500 bg-crous-500/10 px-1.5 py-0.5 rounded border border-crous-500/20 hover:bg-crous-500/20 no-underline">#1042</a>
+                                    RAFT Election Jitter
+                                </dt>
+                                <dd class="text-gray-400 text-sm mt-3 leading-relaxed">
+                                    Added 150-300ms randomized jitter to election timeouts. This prevents leader
+                                    flapping during network instability in high-latency clusters.
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </article>
+
+                <!-- ================= V1.0.3 ================= -->
+                <article id="v1-0-3" class="mb-32 scroll-mt-28 release-article group/article">
+                    <header class="mb-10 flex items-start justify-between">
+                        <div>
+                            <h2 class="group/header text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                                Tubox 1.0.3
+                                <a href="#v1-0-3"
+                                    class="opacity-0 group-hover/header:opacity-100 text-crous-500 transition-opacity ml-2 focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50"
+                                    aria-label="Permalink">#</a>
+                            </h2>
+                            <p class="text-sm font-mono text-gray-500">December 10, 2025</p>
+                        </div>
+                    </header>
+
+                    <div class="prose prose-invert max-w-none 
+                        prose-headings:font-bold prose-headings:text-white prose-headings:scroll-mt-28
+                        prose-h3:text-xl prose-h3:mt-12 prose-h3:mb-6 prose-h3:border-b prose-h3:border-white/5 prose-h3:pb-2
+                        prose-li:text-gray-300 prose-a:text-crous-500">
+
+                        <p>Focus on storage efficiency and performance.</p>
+
+                        <h3 id="v1-0-3-compression" class="group/header">
+                            WAL Compression
+                            <a href="#v1-0-3-compression"
+                                class="opacity-0 group-hover/header:opacity-100 text-crous-500 no-underline ml-2 transition-opacity focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50">#</a>
+                        </h3>
+                        <p>
+                            Introduced Zstd compression for Write-Ahead Logs. Reduces disk usage by up to 60% with
+                            negligible CPU overhead.
+                        </p>
+                        <div
+                            class="bg-[#0A0A0A] border border-white/10 rounded-lg p-4 my-4 font-mono text-sm text-gray-300 relative group/code">
+                            <button
+                                class="absolute top-2 right-2 p-1.5 rounded bg-white/5 text-gray-500 opacity-0 group-hover/code:opacity-100 hover:text-white hover:bg-white/10 transition-all custom-copy-btn focus:opacity-100"
+                                aria-label="Copy code">
+                                <i data-lucide="copy" class="w-3 h-3"></i>
+                            </button>
+                            <span class="text-gray-500"># tubox.yaml</span><br>
+                            storage:<br>
+                            &nbsp;&nbsp;wal_compression: <span class="text-crous-500">true</span><br>
+                            &nbsp;&nbsp;wal_compression_algo: <span class="text-green-300">"zstd"</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ================= V1.0.2 ================= -->
+                <article id="v1-0-2" class="mb-32 scroll-mt-28 release-article group/article">
+                    <header class="mb-10 flex items-start justify-between">
+                        <div>
+                            <h2 class="group/header text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                                Tubox 1.0.2
+                                <a href="#v1-0-2"
+                                    class="opacity-0 group-hover/header:opacity-100 text-crous-500 transition-opacity ml-2 focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50"
+                                    aria-label="Permalink">#</a>
+                            </h2>
+                            <p class="text-sm font-mono text-gray-500">December 01, 2025</p>
+                        </div>
+                    </header>
+                    <div class="prose prose-invert max-w-none prose-li:text-gray-300">
+                        <p>Client-side stability improvements.</p>
+                        <ul class="list-disc pl-4 space-y-2">
+                            <li><span class="text-white font-bold">Python Client</span>: Added automatic retry usage for
+                                idempotent queries (`SELECT`, `GET`).</li>
+                            <li><span class="text-white font-bold">Metrics</span>: Exposed `tubox_client_latency_bucket`
+                                Prometheus metric.</li>
+                        </ul>
+                    </div>
+                </article>
+
+                <!-- ================= V1.0.1 ================= -->
+                <article id="v1-0-1" class="mb-32 scroll-mt-28 release-article group/article">
+                    <header class="mb-10 flex items-start justify-between">
+                        <div>
+                            <h2 class="group/header text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                                Tubox 1.0.1
+                                <a href="#v1-0-1"
+                                    class="opacity-0 group-hover/header:opacity-100 text-crous-500 transition-opacity ml-2 focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50"
+                                    aria-label="Permalink">#</a>
+                            </h2>
+                            <p class="text-sm font-mono text-gray-500">November 20, 2025</p>
+                        </div>
+                    </header>
+                    <div class="prose prose-invert max-w-none prose-li:text-gray-300">
+                        <p>First patch release.</p>
+                        <ul class="list-disc pl-4 space-y-2">
+                            <li>Fixed: Startup failure on MacOS M2 chips due to missing `arm64` binary linkage.</li>
+                            <li>Fixed: Typo in default `tubox.yaml` configuration.</li>
+                        </ul>
+                    </div>
+                </article>
+
+                <!-- ================= V1.0.0 ================= -->
+                <article id="v1-0-0" class="mb-32 scroll-mt-28 release-article group/article">
+                    <header class="mb-10 flex items-start justify-between">
+                        <div>
+                            <h2 class="group/header text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                                Tubox 1.0.0
+                                <a href="#v1-0-0"
+                                    class="opacity-0 group-hover/header:opacity-100 text-crous-500 transition-opacity ml-2 focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50"
+                                    aria-label="Permalink">#</a>
+                            </h2>
+                            <p class="text-sm font-mono text-gray-500">November 15, 2025</p>
+                        </div>
+                        <div
+                            class="px-3 py-1 bg-crous-500 text-black text-xs font-bold uppercase rounded shadow-[0_0_15px_rgba(34,197,94,0.4)]">
+                            Major Release
+                        </div>
+                    </header>
+
+                    <div class="prose prose-invert max-w-none
+                        prose-headings:font-bold prose-headings:text-white prose-headings:scroll-mt-28
+                        prose-h3:text-xl prose-h3:mt-12 prose-h3:mb-6 prose-h3:border-b prose-h3:border-white/5 prose-h3:pb-2
+                        prose-li:text-gray-300 prose-a:text-crous-500">
+
+                        <p class="lead text-lg">
+                            We are proud to announce the general availability of Tubox 1.0, the distributed database for
+                            the AI era.
+                        </p>
+
+                        <h3 id="v1-0-0-architecture" class="group/header">
+                            Core Architecture
+                            <a href="#v1-0-0-architecture"
+                                class="opacity-0 group-hover/header:opacity-100 text-crous-500 no-underline ml-2 transition-opacity focus:opacity-100 outline-none rounded-sm focus:ring-2 ring-crous-500/50">#</a>
+                        </h3>
+
+                        <dl class="space-y-6 mt-6">
+                            <div class="relative pl-6 border-l-2 border-crous-500">
+                                <dt class="font-bold text-white text-base">Storage Engine (Crous)</dt>
+                                <dd class="text-gray-400 text-sm mt-2 leading-relaxed">
+                                    A custom LSM-tree implementation optimized for NVMe SSDs, supporting separate
+                                    key/value storage paths for high throughput.
+                                </dd>
+                            </div>
+                            <div class="relative pl-6 border-l-2 border-crous-500">
+                                <dt class="font-bold text-white text-base">Consensus (Raft)</dt>
+                                <dd class="text-gray-400 text-sm mt-2 leading-relaxed">
+                                    Strong consistency for metadata operations and shard orchestration. Leader leases
+                                    allow for glitch-free reads.
+                                </dd>
+                            </div>
+                            <div class="relative pl-6 border-l-2 border-crous-500">
+                                <dt class="font-bold text-white text-base">Query Language (CQL)</dt>
+                                <dd class="text-gray-400 text-sm mt-2 leading-relaxed">
+                                    SQL-like syntax for structured data, with extensions for semi-structured JSON
+                                    documents.
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </article>
+
+            </main>
+
+            <!-- RIGHT SIDEBAR: Table of Contents -->
+            <aside class="w-64 flex-shrink-0 hidden xl:block">
+                <div class="sticky top-24">
+                    <h3 class="font-bold text-white mb-4 text-xs uppercase tracking-widest pl-3">On this page</h3>
+                    <nav class="space-y-1 relative" id="toc-nav">
+                        <!-- Dynamic Line -->
+                        <div class="absolute left-0 top-0 bottom-0 w-px bg-white/10"></div>
+                        <div id="toc-active-indicator"
+                            class="absolute left-0 w-0.5 h-6 bg-crous-500 transition-all duration-200"></div>
+
+                        <ul class="space-y-4 text-sm" id="toc-list">
+                            <li class="pl-4">
+                                <a href="#v1-1-0"
+                                    class="block text-white font-medium hover:text-crous-400 transition-colors">Tubox
+                                    1.1</a>
+                                <ul class="mt-2 space-y-2 pl-2 text-gray-500 text-xs">
+                                    <li><a href="#v1-1-0-whats-new"
+                                            class="hover:text-crous-400 transition-colors block">What's new</a></li>
+                                    <li><a href="#v1-1-0-breaking"
+                                            class="hover:text-crous-400 transition-colors block">Compatibility</a></li>
+                                </ul>
+                            </li>
+                            <li class="pl-4">
+                                <a href="#v1-0-4" class="block text-gray-400 hover:text-white transition-colors">Tubox
+                                    1.0.4</a>
+                                <ul class="mt-2 space-y-2 pl-2 text-gray-500 text-xs text-opacity-50">
+                                    <li><a href="#v1-0-4-fixes" class="hover:text-crous-400 transition-colors block">Bug
+                                            fixes</a></li>
+                                </ul>
+                            </li>
+                            <li class="pl-4">
+                                <a href="#v1-0-0" class="block text-gray-400 hover:text-white transition-colors">Tubox
+                                    1.0.0</a>
+                                <ul class="mt-2 space-y-2 pl-2 text-gray-500 text-xs text-opacity-50">
+                                    <li><a href="#v1-0-0-architecture"
+                                            class="hover:text-crous-400 transition-colors block">Architecture</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <!-- COMMAND PALETTE MODAL -->
+    <div id="cmd-palette" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0" id="cmd-backdrop"></div>
+
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
+            <div class="mx-auto max-w-2xl transform divide-y divide-white/10 overflow-hidden rounded-xl bg-[#0F0F0F] border border-white/10 shadow-2xl transition-all scale-95 opacity-0"
+                id="cmd-panel">
+                <div class="relative">
+                    <i data-lucide="search"
+                        class="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-500"></i>
+                    <input type="text" id="cmd-input"
+                        class="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white placeholder:text-gray-500 focus:ring-0 sm:text-sm"
+                        placeholder="Search docs..." role="combobox" aria-expanded="false" aria-controls="options">
+                </div>
+
+                <!-- Results List -->
+                <ul class="max-h-96 scroll-py-3 overflow-y-auto p-3" id="cmd-results">
+                    <!-- Dynamic Items will be injected here -->
+                    <li class="group flex cursor-default select-none rounded-xl p-3 hover:bg-white/5 transition-colors">
+                        <div
+                            class="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-white/5 ring-1 ring-white/10">
+                            <i data-lucide="file-text" class="h-6 w-6 text-gray-400"></i>
+                        </div>
+                        <div class="ml-4 flex-auto">
+                            <p class="text-sm font-medium text-white">Search for versions, features, or keywords...</p>
+                            <p class="text-sm text-gray-500">Press <kbd
+                                    class="font-mono text-[10px] border border-white/20 rounded px-1">Esc</kbd> to close
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- 1. SEARCH/COMMAND PALETTE LOGIC ---
+        const palette = document.getElementById('cmd-palette');
+        const backdrop = document.getElementById('cmd-backdrop');
+        const panel = document.getElementById('cmd-panel');
+        const input = document.getElementById('cmd-input');
+        const trigger = document.getElementById('cmd-k-trigger');
+        let isOpen = false;
+
+        function openPalette() {
+            if (isOpen) return;
+            isOpen = true;
+            palette.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+                panel.classList.remove('scale-95', 'opacity-0');
+                panel.classList.add('scale-100', 'opacity-100');
+            });
+            input.focus();
+            populateSearchIndex();
+        }
+
+        function closePalette() {
+            if (!isOpen) return;
+            isOpen = false;
+            backdrop.classList.add('opacity-0');
+            panel.classList.remove('scale-100', 'opacity-100');
+            panel.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => palette.classList.add('hidden'), 200);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                openPalette();
+            }
+            if (e.key === 'Escape' && isOpen) closePalette();
+            if (!isOpen && document.activeElement === document.body) {
+                if (e.key === 'j') navigateRelease(1);
+                if (e.key === 'k') navigateRelease(-1);
+            }
+        });
+
+        trigger?.addEventListener('click', openPalette);
+        backdrop?.addEventListener('click', closePalette);
+
+        // --- 2. CLIENT-SIDE SEARCH INDEXING ---
+        let searchIndex = [];
+        function populateSearchIndex() {
+            searchIndex = [];
+            document.querySelectorAll('article').forEach(article => {
+                const version = article.querySelector('h2').innerText.trim();
+                const date = article.querySelector('p.font-mono').innerText;
+                const link = `#${article.id}`;
+
+                searchIndex.push({ type: 'release', title: version, subtitle: date, link: link, icon: 'box' });
+
+                article.querySelectorAll('h3, h4').forEach(header => {
+                    // Clean up header text (remove hashtags)
+                    const title = header.cloneNode(true);
+                    title.querySelectorAll('a').forEach(a => a.remove());
+
+                    searchIndex.push({
+                        type: 'section',
+                        title: title.innerText.trim(),
+                        subtitle: `in ${version}`,
+                        link: `#${header.id || article.id}`,
+                        icon: 'hash'
+                    });
+                });
+            });
+        }
+
+        input.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const resultsList = document.getElementById('cmd-results');
+            resultsList.innerHTML = '';
+
+            if (query === '') return;
+
+            const matches = searchIndex.filter(item =>
+                item.title.toLowerCase().includes(query) ||
+                item.subtitle.toLowerCase().includes(query)
+            ).slice(0, 10);
+
+            if (matches.length === 0) {
+                resultsList.innerHTML = `<li class="p-3 text-center text-sm text-gray-500">No results found for "${query}"</li>`;
+                return;
+            }
+
+            matches.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = `group flex cursor-pointer select-none rounded-xl p-3 hover:bg-white/5 transition-colors ${index === 0 ? 'bg-white/5' : ''}`;
+                li.innerHTML = `
+                    <div class="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-[#111] ring-1 ring-white/10 group-hover:ring-crous-500/50 transition-colors">
+                        <i data-lucide="${item.icon}" class="h-5 w-5 text-gray-400 group-hover:text-crous-400"></i>
+                    </div>
+                    <div class="ml-4 flex-auto">
+                        <p class="text-sm font-medium text-white highlight-match">${item.title}</p>
+                        <p class="text-sm text-gray-500">${item.subtitle}</p>
+                    </div>
+                `;
+                li.addEventListener('click', () => {
+                    window.location.hash = item.link;
+                    closePalette();
+                });
+                resultsList.appendChild(li);
+            });
+            lucide.createIcons();
+        });
+
+        // --- 3. J/K KEYBOARD NAVIGATION ---
+        function navigateRelease(direction) {
+            const articles = Array.from(document.querySelectorAll('.release-article'));
+            let currentIndex = articles.findIndex(article => {
+                const rect = article.getBoundingClientRect();
+                return rect.top >= 0 && rect.top < window.innerHeight;
+            });
+
+            if (currentIndex === -1) {
+                currentIndex = articles.findIndex(article => article.offsetTop > window.scrollY);
+                if (currentIndex === -1) currentIndex = articles.length - 1;
+                else currentIndex -= 1;
+            }
+
+            let nextIndex = currentIndex + direction;
+            if (nextIndex >= 0 && nextIndex < articles.length) {
+                const target = articles[nextIndex];
+                window.scrollTo({ top: target.offsetTop - 120, behavior: 'smooth' });
+                target.querySelector('h2').classList.add('text-crous-400');
+                setTimeout(() => target.querySelector('h2').classList.remove('text-crous-400'), 500);
+            }
+        }
+
+        // --- 4. READING PROGRESS BAR ---
+        window.addEventListener('scroll', () => {
+            const totalHeight = document.body.scrollHeight - window.innerHeight;
+            const progress = (window.scrollY / totalHeight) * 100;
+            document.getElementById('reading-progress').style.width = `${progress}%`;
+        });
+
+        // Smart Nav & Copy Logic
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
+                    const id = entry.target.id;
+                    document.querySelectorAll('#version-nav a').forEach(link => {
+                        if (link.getAttribute('href') === `#${id}`) link.setAttribute('data-active', 'true');
+                        else link.removeAttribute('data-active');
+                    });
+                }
+            });
+        }, { threshold: [0.1], rootMargin: "-20% 0px -60% 0px" });
+        document.querySelectorAll('.release-article').forEach(article => observer.observe(article));
+
+        document.querySelectorAll('.custom-copy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const code = e.target.closest('div').innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    btn.classList.add('text-crous-500');
+                    setTimeout(() => btn.classList.remove('text-crous-500'), 2000);
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

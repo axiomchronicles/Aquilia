@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}{% block doc_title %}Documentation{% endblock %} - Tubox{% endblock %}
+
+{% block content %}
+<!-- Ambient Background -->
+<div class="fixed inset-0 bg-black">
+    <div class="absolute inset-0 bg-gradient-to-br from-crous-500/5 via-transparent to-blue-500/5"></div>
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-crous-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+</div>
+
+<div class="relative min-h-screen">
+    <div class="flex flex-col lg:flex-row max-w-8xl mx-auto">
+
+        <!-- Enhanced Sidebar -->
+        <div
+            class="lg:w-72 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-white/10 backdrop-blur-xl bg-black/30">
+            <div
+                class="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto pt-8 pb-12 px-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+
+                <div class="mb-8">
+                    <a href="/docs"
+                        class="group flex items-center gap-2 text-sm text-gray-400 hover:text-crous-400 transition-all mb-6">
+                        <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                        <span>Back to SDKs</span>
+                    </a>
+
+                    <!-- Premium SDK Badge -->
+                    <div class="relative group">
+                        <div
+                            class="absolute -inset-0.5 bg-gradient-to-r from-crous-500 to-blue-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition">
+                        </div>
+                        <div
+                            class="relative flex items-center gap-3 px-4 py-3 bg-zinc-900/90 backdrop-blur-sm rounded-xl border border-white/10">
+                            <div
+                                class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3776AB] to-[#3776AB]/50 flex items-center justify-center shadow-lg shadow-[#3776AB]/20">
+                                <i data-lucide="code-2" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white text-sm">Python SDK</div>
+                                <div class="text-xs text-gray-500">v1.0.0 • Latest</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="space-y-6">
+                    <div>
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-3 flex items-center gap-2">
+                            <i data-lucide="rocket" class="w-3 h-3"></i>
+                            Getting Started
+                        </h4>
+                        <ul class="space-y-1">
+                            <li>
+                                <a href="/docs/python"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'intro' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                                        Introduction
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/docs/python/getting-started"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'getting_started' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                        Installation
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-3 flex items-center gap-2">
+                            <i data-lucide="zap" class="w-3 h-3"></i>
+                            Core
+                        </h4>
+                        <ul class="space-y-1">
+                            <li>
+                                <a href="/docs/python/crud"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'crud' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="database" class="w-3.5 h-3.5"></i>
+                                        CRUD & Bulk
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/docs/python/database-management"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'db_mgmt' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="hard-drive" class="w-3.5 h-3.5"></i>
+                                        DB Management
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/docs/python/indexing"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'indexing' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="list-tree" class="w-3.5 h-3.5"></i>
+                                        Indexing
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/docs/python/transactions"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'transactions' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="git-branch" class="w-3.5 h-3.5"></i>
+                                        Transactions
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-3 flex items-center gap-2">
+                            <i data-lucide="book-marked" class="w-3 h-3"></i>
+                            Reference
+                        </h4>
+                        <ul class="space-y-1">
+                            <li>
+                                <a href="/docs/python/api"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'api' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="code" class="w-3.5 h-3.5"></i>
+                                        API Reference
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/docs/python/results"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'results' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="package" class="w-3.5 h-3.5"></i>
+                                        Result Classes
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-3 flex items-center gap-2">
+                            <i data-lucide="settings" class="w-3 h-3"></i>
+                            Advanced
+                        </h4>
+                        <ul class="space-y-1">
+                            <li>
+                                <a href="/docs/python/error-handling"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'errors' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                                        Error Handling
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/docs/python/configuration"
+                                    class="group block px-3 py-2 rounded-lg text-sm {% if active_page == 'config' %}bg-gradient-to-r from-crous-500/10 to-transparent text-crous-400 font-medium border-l-2 border-crous-500{% else %}text-gray-400 hover:text-white hover:bg-white/5 transition-all{% endif %}">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+                                        Configuration
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+
+            </div>
+        </div>
+
+        <!-- Enhanced Main Content -->
+        <div class="flex-1 min-w-0 backdrop-blur-sm">
+            <div class="max-w-4xl px-4 sm:px-6 lg:px-12 py-12">
+                {% block doc_content %}{% endblock %}
+
+                <!-- Premium Footer -->
+                <div class="mt-24 pt-8 border-t border-white/10">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <p class="text-sm text-gray-500">Last updated: Dec 14, 2025</p>
+                        <div class="flex gap-4">
+                            <a href="#"
+                                class="group flex items-center gap-2 text-sm text-gray-500 hover:text-crous-400 transition-colors">
+                                <i data-lucide="github" class="w-4 h-4"></i>
+                                <span>Edit on GitHub</span>
+                            </a>
+                            <a href="#"
+                                class="group flex items-center gap-2 text-sm text-gray-500 hover:text-crous-400 transition-colors">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                <span>Report Issue</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}

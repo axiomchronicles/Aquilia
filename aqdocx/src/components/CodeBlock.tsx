@@ -15,7 +15,7 @@ import { useTheme } from '../context/ThemeContext'
  *   Plain text            → gray-200 (#e5e7eb)
  */
 const aquiliaDarkTheme: PrismTheme = {
-  plain: { color: '#e5e7eb', backgroundColor: '#0d1117' },
+  plain: { color: '#e5e7eb', backgroundColor: '#000000' },
   styles: [
     { types: ['comment', 'prolog', 'doctype', 'cdata'], style: { color: '#6b7280', fontStyle: 'italic' as const } },
     { types: ['keyword', 'builtin', 'tag', 'selector', 'important'], style: { color: '#22c55e' } },
@@ -97,7 +97,7 @@ export function CodeBlock({ code, children, language = 'python', filename, showL
   return (
     <div className="group relative my-6">
       <div className="absolute -inset-0.5 bg-gradient-to-r from-aquilia-500/10 to-blue-500/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition" />
-      <div className={`relative rounded-xl overflow-hidden border ${isDark ? 'bg-[#0d1117] border-white/10' : 'bg-[#f8fafc] border-gray-200'}`}>
+      <div className={`relative rounded-xl overflow-hidden border ${isDark ? 'bg-black border-white/10' : 'bg-[#f8fafc] border-gray-200'}`}>
         {/* Header with macOS traffic-light dots */}
         <div className={`flex items-center justify-between px-4 py-2.5 border-b ${isDark ? 'border-white/5 bg-white/[0.02]' : 'border-gray-200 bg-gray-50/80'}`}>
           <div className="flex items-center gap-3">
@@ -128,7 +128,7 @@ export function CodeBlock({ code, children, language = 'python', filename, showL
         {/* Code body */}
         <Highlight theme={isDark ? aquiliaDarkTheme : aquiliaLightTheme} code={codeContent} language={prismLanguage as any}>
           {({ tokens, getLineProps, getTokenProps }) => (
-            <pre className={`p-4 overflow-x-auto text-sm leading-relaxed font-mono ${isDark ? 'bg-[#0d1117]' : 'bg-[#f8fafc]'}`}>
+            <pre className={`p-4 overflow-x-auto text-sm leading-relaxed font-mono ${isDark ? 'bg-black' : 'bg-[#f8fafc]'}`}>
               {tokens.map((line, i) => (
                 <div key={i} {...getLineProps({ line })}>
                   {showLineNumbers && (
