@@ -25,6 +25,16 @@ from typing import Any, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
 
 from .fields.lookups import resolve_lookup, lookup_registry
 
+# Module-level cached lookup registry — avoid calling lookup_registry()
+# on every filter clause.
+_cached_lookup_registry = None
+
+# Pre-built operator map for Expression-based filter comparisons
+_EXPR_OP_MAP = {
+    "exact": "=", "gt": ">", "gte": ">=",
+    "lt": "<", "lte": "<=", "ne": "!=",
+}
+
 if TYPE_CHECKING:
     from ..db.engine import AquiliaDatabase
     from .base import Model
@@ -180,12 +190,9 @@ def _build_filter_clause(key: str, value: Any) -> Tuple[str, List[Any]]:
         # This MUST come before the lookup registry which treats values as literals
         if isinstance(value, (Expression, Combinable)):
             rhs_sql, rhs_params = value.as_sql("sqlite")
-            op_map = {
-                "exact": "=", "gt": ">", "gte": ">=",
-                "lt": "<", "lte": "<=", "ne": "!=",
-            }
-            if op in op_map:
-                return f'"{field}" {op_map[op]} {rhs_sql}', rhs_params
+            sql_op = _EXPR_OP_MAP.get(op)
+            if sql_op is not None:
+                return f'"{field}" {sql_op} {rhs_sql}', rhs_params
             # For 'in' with a Subquery
             if op == "in" and hasattr(value, '_build_select'):
                 sub_sql, sub_params = value._build_select()
@@ -194,8 +201,10 @@ def _build_filter_clause(key: str, value: Any) -> Tuple[str, List[Any]]:
         # Lookup registry covers: exact, iexact, contains, icontains,
         # startswith, istartswith, endswith, iendswith, in, gt, gte,
         # lt, lte, isnull, range, regex, iregex, date, year, month, day
-        registry = lookup_registry()
-        if op in registry:
+        global _cached_lookup_registry
+        if _cached_lookup_registry is None:
+            _cached_lookup_registry = lookup_registry()
+        if op in _cached_lookup_registry:
             lookup_inst = resolve_lookup(field, op, value)
             return lookup_inst.as_sql()
 

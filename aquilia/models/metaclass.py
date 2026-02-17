@@ -125,6 +125,20 @@ class ModelMeta(type):
             if not isinstance(f, ManyToManyField)
         ]
 
+        # Pre-built list of (attr_name, field) for non-M2M fields.
+        # Used by __init__, from_row, save, create etc. to avoid
+        # isinstance(field, ManyToManyField) on every access.
+        cls._non_m2m_fields: list = [
+            (fname, f) for fname, f in fields.items()
+            if not isinstance(f, ManyToManyField)
+        ]
+
+        # Column-name → (attr_name, field) mapping for from_row()
+        cls._col_to_attr: dict = {}
+        for fname, f in cls._non_m2m_fields:
+            cls._col_to_attr[f.column_name] = (fname, f)
+            cls._col_to_attr[fname] = (fname, f)  # also allow attr-name lookup
+
         # Auto-inject default Manager if none declared
         if not opts.abstract and not any(
             isinstance(v, BaseManager) for v in namespace.values()

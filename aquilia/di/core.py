@@ -26,6 +26,12 @@ from contextvars import ContextVar
 # Use inspect.iscoroutinefunction (asyncio version deprecated in 3.16)
 _is_coroutine = inspect.iscoroutinefunction
 
+# Module-level cache: type → "module.qualname" string
+_type_key_cache: Dict[type, str] = {}
+
+# Scopes that should cache instances (frozen for O(1) lookup)
+_CACHEABLE_SCOPES = frozenset(("singleton", "app", "request"))
+
 
 T = TypeVar("T")
 
@@ -62,16 +68,19 @@ class ProviderMeta:
         }
 
 
-@dataclass
 class ResolveCtx:
     """
     Context for resolution operations.
     
     Tracks resolution stack for cycle detection and diagnostics.
+    Uses __slots__ for minimal allocation overhead.
     """
-    container: "Container"
-    stack: List[str] = field(default_factory=list)
-    cache: Dict[str, Any] = field(default_factory=dict)
+    __slots__ = ("container", "stack", "cache")
+
+    def __init__(self, container: "Container"):
+        self.container = container
+        self.stack: List[str] = []
+        self.cache: Dict[str, Any] = {}
     
     def push(self, token: str) -> None:
         """Push token onto resolution stack."""
@@ -326,13 +335,25 @@ class Container:
         """
         Async resolve (primary resolution path).
 
-        Performance (v2):
-        - Fast-path cache lookup before any diagnostics.
-        - Diagnostics only emitted when actually instantiating.
-        - No f-string formatting on hot path.
+        Performance (v3):
+        - Inlined token_to_key for common cases (str pass-through, type cache).
+        - Single dict.get on _cache for the fast path.
+        - No method call overhead for the >99% cached-hit case.
+        - _should_cache uses frozenset constant.
         """
-        token_key = self._token_to_key(token)
-        cache_key = self._make_cache_key(token_key, tag)
+        # ── Inline token_to_key for speed ──
+        if isinstance(token, str):
+            token_key = token
+        elif isinstance(token, type):
+            token_key = _type_key_cache.get(token)
+            if token_key is None:
+                token_key = f"{token.__module__}.{token.__qualname__}"
+                _type_key_cache[token] = token_key
+        else:
+            token_key = str(token)
+        
+        # ── Inline _make_cache_key ──
+        cache_key = f"{token_key}#{tag}" if tag else token_key
         
         # Fast path: check cache (no diagnostics overhead)
         cached = self._cache.get(cache_key)
@@ -359,7 +380,7 @@ class Container:
             instance = await provider.instantiate(ctx)
             
             # Cache if appropriate for scope
-            if self._should_cache(provider.meta.scope):
+            if provider.meta.scope in _CACHEABLE_SCOPES:
                 self._cache[cache_key] = instance
                 await self._check_lifecycle_hooks(instance, provider.meta.name)
                 if hasattr(instance, "__aexit__") or hasattr(instance, "shutdown"):
@@ -448,12 +469,20 @@ class Container:
         self._lifecycle.clear()
     
     def _token_to_key(self, token: Type | str) -> str:
-        """Convert type or string to cache key."""
+        """Convert type or string to cache key.
+
+        Performance: type→key results are cached in a module-level dict
+        to avoid repeated f-string formatting (~0.12µs → ~0.04µs).
+        """
         if isinstance(token, str):
             return token
         
         if isinstance(token, type):
-            return f"{token.__module__}.{token.__qualname__}"
+            key = _type_key_cache.get(token)
+            if key is None:
+                key = f"{token.__module__}.{token.__qualname__}"
+                _type_key_cache[token] = key
+            return key
         
         # Handle typing generics
         return str(token)
@@ -488,7 +517,7 @@ class Container:
     
     def _should_cache(self, scope: str) -> bool:
         """Check if scope should cache instances."""
-        return scope in ("singleton", "app", "request")
+        return scope in _CACHEABLE_SCOPES
     
     def _register_finalizer(self, instance: Any) -> None:
         """Register finalizer for cleanup."""

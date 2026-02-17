@@ -266,9 +266,7 @@ class Model(metaclass=ModelMeta):
     def __init__(self, **kwargs: Any):
         """Create a model instance (in-memory, not persisted)."""
         pre_init.send_sync(sender=self.__class__, kwargs=kwargs)
-        for attr_name, field in self._fields.items():
-            if isinstance(field, ManyToManyField):
-                continue
+        for attr_name, field in self._non_m2m_fields:
             if attr_name in kwargs:
                 setattr(self, attr_name, kwargs[attr_name])
             elif field.column_name in kwargs:
@@ -347,10 +345,7 @@ class Model(metaclass=ModelMeta):
         # Apply defaults and pre_save BEFORE validation so auto fields
         # (auto_now_add, defaults) are populated before full_clean()
         final_data: Dict[str, Any] = {}
-        for attr_name, field in cls._fields.items():
-            if isinstance(field, ManyToManyField):
-                continue
-
+        for attr_name, field in cls._non_m2m_fields:
             value = getattr(instance, attr_name, None)
 
             # Skip auto-PKs
@@ -513,9 +508,7 @@ class Model(metaclass=ModelMeta):
 
                 # Process fields
                 final_data: Dict[str, Any] = {}
-                for attr_name, field in cls._fields.items():
-                    if isinstance(field, ManyToManyField):
-                        continue
+                for attr_name, field in cls._non_m2m_fields:
                     value = getattr(obj, attr_name, None)
                     if field.primary_key and isinstance(field, (AutoField, BigAutoField)) and value is None:
                         continue
@@ -782,9 +775,7 @@ class Model(metaclass=ModelMeta):
             # Insert — build and execute directly to avoid
             # double signal firing from cls.create()
             final_data: Dict[str, Any] = {}
-            for attr_name, field in self._fields.items():
-                if isinstance(field, ManyToManyField):
-                    continue
+            for attr_name, field in self._non_m2m_fields:
                 value = getattr(self, attr_name, None)
 
                 # Skip auto-PKs unless force_insert with explicit PK
@@ -1132,21 +1123,24 @@ class Model(metaclass=ModelMeta):
 
     @classmethod
     def from_row(cls, row: Dict[str, Any]) -> Model:
-        """Create model instance from database row dict."""
+        """Create model instance from database row dict.
+
+        Performance: Uses _col_to_attr mapping cached at class creation
+        to avoid per-field isinstance checks and double-lookups.
+        """
         instance = cls.__new__(cls)
+        col_to_attr = cls._col_to_attr
 
-        for attr_name, field in cls._fields.items():
-            if isinstance(field, ManyToManyField):
-                continue
+        # Iterate row keys and map to attrs via cached dict
+        for key, raw in row.items():
+            mapping = col_to_attr.get(key)
+            if mapping is not None:
+                attr_name, field = mapping
+                setattr(instance, attr_name, field.to_python(raw))
 
-            col_name = field.column_name
-            if col_name in row:
-                raw = row[col_name]
-                setattr(instance, attr_name, field.to_python(raw))
-            elif attr_name in row:
-                raw = row[attr_name]
-                setattr(instance, attr_name, field.to_python(raw))
-            else:
+        # Set None for any fields not in the row
+        for attr_name, field in cls._non_m2m_fields:
+            if not hasattr(instance, attr_name):
                 setattr(instance, attr_name, None)
 
         return instance
@@ -1158,9 +1152,7 @@ class Model(metaclass=ModelMeta):
         """Generate CREATE TABLE SQL using CreateTableBuilder."""
         builder = CreateTableBuilder(cls._table_name)
 
-        for attr_name, field in cls._fields.items():
-            if isinstance(field, ManyToManyField):
-                continue
+        for attr_name, field in cls._non_m2m_fields:
             col_def = field.sql_column_def(dialect)
             if col_def:
                 builder.column(col_def)
