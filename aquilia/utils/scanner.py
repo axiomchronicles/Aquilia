@@ -10,7 +10,7 @@ import pkgutil
 import inspect
 import logging
 from types import ModuleType
-from typing import List, Type, Any, Optional, Callable, Set
+from typing import List, Type, Any, Optional, Callable, Set, Dict
 
 logger = logging.getLogger("aquilia.scanner")
 

@@ -1103,11 +1103,7 @@ def render_http_error_page(
     <div class="aq-http-title">{_esc(title)}</div>
     <div class="aq-http-detail">{_esc(description)}</div>
 
-    {f"""<div class="aq-http-meta">
-      <span style="margin-right:16px;"><strong>Method:</strong> {_esc(req_method)}</span>
-      <span style="margin-right:16px;"><strong>Path:</strong> {_esc(req_path)}</span>
-      <span><strong>Time:</strong> {_esc(req_time)}</span>
-    </div>""" if req_method else f"""<div class="aq-http-meta"><span><strong>Time:</strong> {_esc(req_time)}</span></div>"""}
+    {'<div class="aq-http-meta"><span style="margin-right:16px;"><strong>Method:</strong> ' + _esc(req_method) + '</span><span style="margin-right:16px;"><strong>Path:</strong> ' + _esc(req_path) + '</span><span><strong>Time:</strong> ' + _esc(req_time) + '</span></div>' if req_method else '<div class="aq-http-meta"><span><strong>Time:</strong> ' + _esc(req_time) + '</span></div>'}
 
     {tip_html}
 
