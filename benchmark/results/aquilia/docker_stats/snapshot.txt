@@ -1,0 +1,2 @@
+CONTAINER ID   NAME                           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O          BLOCK I/O         PIDS
+3c8b8b338a74   framework-shootout-aquilia-1   1.22%     200.2MiB / 512MiB   39.09%    7.88GB / 112GB   34.5MB / 47.2MB   26

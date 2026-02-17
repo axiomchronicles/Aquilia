@@ -1,0 +1,2 @@
+CONTAINER ID   NAME                           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O        BLOCK I/O       PIDS
+30662c589e06   framework-shootout-fastapi-1   1.22%     175MiB / 512MiB     34.18%    77GB / 679GB   160MB / 188MB   29

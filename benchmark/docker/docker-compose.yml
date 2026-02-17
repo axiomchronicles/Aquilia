@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────
+# Framework Shootout — Docker Compose
+# ─────────────────────────────────────────────────────────────
+# Usage:
+#   docker compose -f benchmark/docker/docker-compose.yml up -d
+#   docker compose -f benchmark/docker/docker-compose.yml down -v
+# ─────────────────────────────────────────────────────────────
+
+services:
+  # ── PostgreSQL 16 (shared by all frameworks) ──
+  postgres:
+    image: postgres:16
+    container_name: benchmark-postgres
+    environment:
+      POSTGRES_USER: bench
+      POSTGRES_PASSWORD: bench
+      POSTGRES_DB: bench
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bench"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 512M
+
+  # ── Aquilia ──
+  aquilia:
+    build:
+      context: ../..
+      dockerfile: benchmark/docker/aquilia.Dockerfile
+    container_name: bench-aquilia
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://bench:bench@postgres:5432/bench
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 512M
+
+  # ── Sanic ──
+  sanic:
+    build:
+      context: ../..
+      dockerfile: benchmark/docker/sanic.Dockerfile
+    container_name: bench-sanic
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://bench:bench@postgres:5432/bench
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 512M
+
+  # ── FastAPI ──
+  fastapi:
+    build:
+      context: ../..
+      dockerfile: benchmark/docker/fastapi.Dockerfile
+    container_name: bench-fastapi
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql://bench:bench@postgres:5432/bench
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 512M
+
+volumes:
+  pgdata:
