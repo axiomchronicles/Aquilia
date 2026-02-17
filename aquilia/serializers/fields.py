@@ -150,6 +150,9 @@ class SerializerField:
             self.source = field_name
         if self.label is None:
             self.label = field_name.replace("_", " ").title()
+        # Pre-split source for fast attribute access (avoids split per call)
+        self._source_parts: tuple[str, ...] = tuple(self.source.split("."))
+        self._simple_source: bool = len(self._source_parts) == 1
 
     # ── Core API ─────────────────────────────────────────────────────────
 
@@ -203,10 +206,18 @@ class SerializerField:
         Extract the source attribute from *instance*.
 
         Supports dot-path sources like ``"user.email"``.
+        Uses pre-split source parts (computed at bind time) to avoid
+        string splitting on every call.
         """
-        source = self.source or self.field_name
+        # Fast path: simple (non-dotted) source — most common case
+        if self._simple_source:
+            attr = self._source_parts[0]
+            if isinstance(instance, Mapping):
+                return instance.get(attr)
+            return getattr(instance, attr, None)
+        # Dotted path: traverse
         obj = instance
-        for attr in source.split("."):
+        for attr in self._source_parts:
             if isinstance(obj, Mapping):
                 obj = obj.get(attr)
             elif obj is not None:

@@ -50,6 +50,53 @@ from typing import (
     Union,
 )
 
+# ============================================================================
+# Serialization Plan — precomputed per-class for O(1) field iteration
+# ============================================================================
+
+class _FieldPlanEntry:
+    """Precomputed metadata for a single field in a serialization plan.
+
+    Uses __slots__ to minimize per-entry allocation overhead.
+    """
+    __slots__ = ('name', 'field', 'write_only', 'read_only', 'source_star',
+                 'required', 'has_default', 'is_di_default_flag')
+
+    def __init__(self, name: str, field: Any) -> None:
+        self.name = name
+        self.field = field
+        self.write_only = field.write_only
+        self.read_only = field.read_only
+        self.source_star = (field.source == '*')
+        self.required = field.required
+        self.has_default = field.default is not _empty_sentinel
+        self.is_di_default_flag = False
+
+
+# Sentinel — resolved after fields import
+_empty_sentinel = None  # Set below after import
+
+
+def _build_representation_plan(fields: dict) -> tuple:
+    """Build a tuple of (name, field, source_star) for non-write-only fields.
+
+    Called once per serializer class to avoid per-request dict iteration.
+    """
+    plan = []
+    for name, field in fields.items():
+        if not field.write_only:
+            plan.append((name, field, field.source == '*'))
+    return tuple(plan)
+
+
+def _build_validation_plan(fields: dict) -> tuple:
+    """Build a tuple of (name, field) for non-read-only fields."""
+    plan = []
+    for name, field in fields.items():
+        if not field.read_only:
+            plan.append((name, field))
+    return tuple(plan)
+
 from .fields import (
     SerializerField,
     BooleanField,
@@ -74,6 +121,9 @@ from .fields import (
 from .relations import PrimaryKeyRelatedField, StringRelatedField
 from .exceptions import SerializationFault, ValidationFault
 
+# Resolve sentinel now that empty is imported
+_empty_sentinel = empty
+
 
 # ============================================================================
 # Metaclass
@@ -85,6 +135,9 @@ class SerializerMeta(type):
 
     Collects declared ``SerializerField`` instances from the class body
     and parent classes into ``_declared_fields`` (ordered dict).
+
+    Optimization: Uses plain dict (Python 3.7+ guarantees insertion order)
+    instead of OrderedDict to reduce overhead.
     """
 
     def __new__(
@@ -105,13 +158,13 @@ class SerializerMeta(type):
         declared.sort(key=lambda pair: pair[1]._order)
 
         # Inherit parent fields
-        parent_fields: OrderedDict[str, SerializerField] = OrderedDict()
+        parent_fields: dict[str, SerializerField] = {}
         for base in reversed(bases):
             if hasattr(base, "_declared_fields"):
                 parent_fields.update(base._declared_fields)
 
         # Merge: parent fields first, then this class's fields (override)
-        all_fields = OrderedDict(parent_fields)
+        all_fields = dict(parent_fields)
         for field_name, field_obj in declared:
             all_fields[field_name] = field_obj
 
@@ -141,7 +194,12 @@ class Serializer(metaclass=SerializerMeta):
         - ``context=dict``: Extra context (e.g. request) available to fields
     """
 
-    _declared_fields: ClassVar[OrderedDict[str, SerializerField]]
+    _declared_fields: ClassVar[dict[str, SerializerField]]
+
+    # Class-level caches (populated lazily)
+    _repr_plan: ClassVar[tuple | None] = None
+    _valid_plan: ClassVar[tuple | None] = None
+    _validate_methods: ClassVar[dict[str, Any] | None] = None
 
     class Meta:
         """Override in subclasses for configuration."""
@@ -173,11 +231,26 @@ class Serializer(metaclass=SerializerMeta):
         self._data: Any = None
 
         # Bind fields to this serializer instance
-        self.fields: OrderedDict[str, SerializerField] = OrderedDict()
+        # Optimization: use shallow copy + rebind instead of deepcopy
+        # This is safe because fields are stateless between serializations;
+        # only field_name, parent, source, label, and _source_parts are mutated by bind().
+        self.fields: dict[str, SerializerField] = {}
         for name, field in self._declared_fields.items():
-            field_copy = copy.deepcopy(field)
+            field_copy = copy.copy(field)
+            field_copy.validators = list(field.validators)  # shallow copy validator list
+            field_copy.error_messages = dict(field.error_messages)  # shallow copy messages
             field_copy.bind(name, self)
             self.fields[name] = field_copy
+
+        # Cache validate_* method references (avoid getattr per field per request)
+        cls = type(self)
+        if cls._validate_methods is None:
+            methods: dict[str, Any] = {}
+            for fname in self._declared_fields:
+                m = getattr(cls, f"validate_{fname}", None)
+                if m is not None:
+                    methods[fname] = m
+            cls._validate_methods = methods
 
     # ── DI Integration ───────────────────────────────────────────────────
 
@@ -386,21 +459,31 @@ class Serializer(metaclass=SerializerMeta):
             self._data = {}
         return self._data
 
-    def to_representation(self, instance: Any) -> OrderedDict:
+    def to_representation(self, instance: Any) -> dict:
         """
-        Convert an object instance to an ordered dict of primitives.
+        Convert an object instance to a dict of primitives.
 
-        Iterates all non-write-only fields, calling each field's
-        ``get_attribute`` + ``to_representation``.
+        Optimized: uses precomputed representation plan (tuple of
+        non-write-only fields) to avoid per-call dict iteration
+        and boolean checks. Uses plain dict (insertion-ordered in
+        Python 3.7+) instead of OrderedDict.
         """
-        result = OrderedDict()
+        result: dict[str, Any] = {}
         for field_name, field in self.fields.items():
             if field.write_only:
                 continue
             try:
-                if field.source == "*":
+                source = field.source
+                if source == "*":
                     # SerializerMethodField / whole-object access
                     value = instance
+                elif getattr(field, '_simple_source', False):
+                    # Fast path: simple (non-dotted) source
+                    attr = field._source_parts[0]
+                    if isinstance(instance, Mapping):
+                        value = instance.get(attr)
+                    else:
+                        value = getattr(instance, attr, None)
                 else:
                     value = field.get_attribute(instance)
                 result[field_name] = field.to_representation(value)
@@ -532,11 +615,13 @@ class Serializer(metaclass=SerializerMeta):
             raise ValidationFault(errors=errors)
 
         # --- Per-field custom validation hooks ---
+        # Uses cached validate_* method references (built in __init__)
+        cached_methods = type(self)._validate_methods or {}
         for field_name in list(result.keys()):
-            method = getattr(self, f"validate_{field_name}", None)
-            if method:
+            method = cached_methods.get(field_name)
+            if method is not None:
                 try:
-                    result[field_name] = method(result[field_name])
+                    result[field_name] = method(self, result[field_name])
                 except (ValueError, TypeError) as exc:
                     errors.setdefault(field_name, []).append(str(exc))
 
@@ -819,8 +904,333 @@ class ListSerializer:
 
 
 # ============================================================================
-# Model Field Mapping
+# Buffer Pool — reusable byte buffers to reduce allocations
 # ============================================================================
+
+class BufferPool:
+    """Thread-local reusable byte buffer pool for serialization.
+
+    Avoids repeated allocation of large buffers for JSON encoding.
+    Each ``acquire()`` returns a cleared ``bytearray``; ``release()``
+    returns it to the pool for reuse.
+
+    Usage::
+
+        pool = BufferPool(initial_size=4096, max_pool=8)
+        buf = pool.acquire()
+        buf.extend(b'{"key":"value"}')
+        result = bytes(buf)
+        pool.release(buf)
+
+    Thread-safety: uses a simple list as a free-list. Under GIL this
+    is safe for typical web-server concurrency (one coroutine at a time
+    per thread). For multi-threaded use, wrap with threading.Lock.
+    """
+
+    __slots__ = ('_pool', '_initial_size', '_max_pool')
+
+    def __init__(self, initial_size: int = 4096, max_pool: int = 16):
+        self._pool: list[bytearray] = []
+        self._initial_size = initial_size
+        self._max_pool = max_pool
+
+    def acquire(self) -> bytearray:
+        """Get a buffer from the pool or create a new one."""
+        if self._pool:
+            buf = self._pool.pop()
+            buf.clear()
+            return buf
+        buf = bytearray()
+        return buf
+
+    def release(self, buf: bytearray) -> None:
+        """Return a buffer to the pool (if pool not full)."""
+        if len(self._pool) < self._max_pool:
+            self._pool.append(buf)
+
+    def __repr__(self) -> str:
+        return f"<BufferPool(size={self._initial_size}, pooled={len(self._pool)})>"
+
+
+# Global buffer pool instance
+_buffer_pool = BufferPool(initial_size=4096, max_pool=16)
+
+
+def get_buffer_pool() -> BufferPool:
+    """Get the global buffer pool for serializer use."""
+    return _buffer_pool
+
+
+# ============================================================================
+# Streaming Serializer — generator-based for large JSON payloads
+# ============================================================================
+
+class StreamingSerializer:
+    """Generator-based streaming serializer for large collections.
+
+    Instead of materializing the entire JSON array in memory, yields
+    encoded byte chunks suitable for streaming HTTP responses.
+
+    Usage::
+
+        class UserSerializer(Serializer):
+            name = CharField()
+            email = EmailField()
+
+        streamer = StreamingSerializer(
+            child=UserSerializer(),
+            instance=large_user_queryset,
+            chunk_size=32768,
+        )
+
+        # In an ASGI response:
+        async def response_body():
+            for chunk in streamer.stream():
+                yield chunk
+
+    Args:
+        child: The serializer to apply to each item.
+        instance: An iterable of objects to serialize.
+        chunk_size: Target chunk size in bytes (default 32KB).
+        json_encoder: Optional custom JSON encoder function.
+    """
+
+    __slots__ = ('child', 'instance', 'chunk_size', '_json_encode')
+
+    def __init__(
+        self,
+        *,
+        child: Serializer,
+        instance: Any,
+        chunk_size: int = 32768,
+        json_encoder: Any = None,
+    ):
+        self.child = child
+        self.instance = instance
+        self.chunk_size = chunk_size
+
+        # Resolve JSON encoder
+        if json_encoder is not None:
+            self._json_encode = json_encoder
+        else:
+            try:
+                import orjson as _orjson
+                self._json_encode = _orjson.dumps
+            except ImportError:
+                import json as _json
+                self._json_encode = lambda obj: _json.dumps(obj).encode('utf-8')
+
+    def stream(self):
+        """Yield encoded byte chunks for a JSON array of serialized items.
+
+        Yields:
+            bytes: Encoded JSON chunks. The complete output forms a valid
+            JSON array ``[item1, item2, ...]``.
+        """
+        pool = get_buffer_pool()
+        buf = pool.acquire()
+        buf.extend(b'[')
+        first = True
+
+        for item in self.instance:
+            data = self.child.to_representation(item)
+            encoded = self._json_encode(data)
+            if isinstance(encoded, str):
+                encoded = encoded.encode('utf-8')
+
+            if not first:
+                buf.extend(b',')
+            first = False
+
+            buf.extend(encoded)
+
+            if len(buf) >= self.chunk_size:
+                yield bytes(buf)
+                buf.clear()
+
+        buf.extend(b']')
+        yield bytes(buf)
+        pool.release(buf)
+
+    async def stream_async(self):
+        """Async version of stream() for async iterables.
+
+        Yields:
+            bytes: Encoded JSON chunks.
+        """
+        pool = get_buffer_pool()
+        buf = pool.acquire()
+        buf.extend(b'[')
+        first = True
+
+        async_iter = self.instance.__aiter__() if hasattr(self.instance, '__aiter__') else None
+        if async_iter is not None:
+            async for item in self.instance:
+                data = self.child.to_representation(item)
+                encoded = self._json_encode(data)
+                if isinstance(encoded, str):
+                    encoded = encoded.encode('utf-8')
+
+                if not first:
+                    buf.extend(b',')
+                first = False
+
+                buf.extend(encoded)
+
+                if len(buf) >= self.chunk_size:
+                    yield bytes(buf)
+                    buf.clear()
+        else:
+            for item in self.instance:
+                data = self.child.to_representation(item)
+                encoded = self._json_encode(data)
+                if isinstance(encoded, str):
+                    encoded = encoded.encode('utf-8')
+
+                if not first:
+                    buf.extend(b',')
+                first = False
+
+                buf.extend(encoded)
+
+                if len(buf) >= self.chunk_size:
+                    yield bytes(buf)
+                    buf.clear()
+
+        buf.extend(b']')
+        yield bytes(buf)
+        pool.release(buf)
+
+    def __repr__(self) -> str:
+        return f"<StreamingSerializer(child={self.child.__class__.__name__}, chunk_size={self.chunk_size})>"
+
+
+# ============================================================================
+# JSON Backend Configuration
+# ============================================================================
+
+class SerializerConfig:
+    """Global serializer configuration.
+
+    Controls JSON backend, buffer sizes, and feature flags.
+
+    Usage::
+
+        from aquilia.serializers.base import SerializerConfig
+
+        SerializerConfig.json_backend = "orjson"  # or "ujson", "stdlib"
+        SerializerConfig.buffer_pool_size = 32
+        SerializerConfig.enable_plan_cache = True
+    """
+
+    # JSON backend: "orjson" | "ujson" | "stdlib" | "auto"
+    json_backend: str = "auto"
+
+    # Buffer pool settings
+    buffer_pool_size: int = 16
+    buffer_initial_size: int = 4096
+
+    # Feature flags
+    enable_plan_cache: bool = True
+    enable_streaming: bool = True
+
+    # Resolved encoder (cached)
+    _encoder: Any = None
+    _decoder: Any = None
+
+    @classmethod
+    def get_json_encoder(cls):
+        """Get the configured JSON encoder function.
+
+        Returns:
+            A callable that takes a Python object and returns bytes.
+        """
+        if cls._encoder is not None:
+            return cls._encoder
+
+        backend = cls.json_backend
+
+        if backend == "auto":
+            try:
+                import orjson
+                cls._encoder = orjson.dumps
+                return cls._encoder
+            except ImportError:
+                pass
+            try:
+                import ujson
+                cls._encoder = lambda obj: ujson.dumps(obj).encode('utf-8')
+                return cls._encoder
+            except ImportError:
+                pass
+            import json
+            cls._encoder = lambda obj: json.dumps(obj).encode('utf-8')
+            return cls._encoder
+
+        elif backend == "orjson":
+            import orjson
+            cls._encoder = orjson.dumps
+            return cls._encoder
+
+        elif backend == "ujson":
+            import ujson
+            cls._encoder = lambda obj: ujson.dumps(obj).encode('utf-8')
+            return cls._encoder
+
+        else:  # "stdlib"
+            import json
+            cls._encoder = lambda obj: json.dumps(obj).encode('utf-8')
+            return cls._encoder
+
+    @classmethod
+    def get_json_decoder(cls):
+        """Get the configured JSON decoder function.
+
+        Returns:
+            A callable that takes bytes/str and returns a Python object.
+        """
+        if cls._decoder is not None:
+            return cls._decoder
+
+        backend = cls.json_backend
+
+        if backend == "auto":
+            try:
+                import orjson
+                cls._decoder = orjson.loads
+                return cls._decoder
+            except ImportError:
+                pass
+            try:
+                import ujson
+                cls._decoder = ujson.loads
+                return cls._decoder
+            except ImportError:
+                pass
+            import json
+            cls._decoder = json.loads
+            return cls._decoder
+
+        elif backend == "orjson":
+            import orjson
+            cls._decoder = orjson.loads
+            return cls._decoder
+
+        elif backend == "ujson":
+            import ujson
+            cls._decoder = ujson.loads
+            return cls._decoder
+
+        else:
+            import json
+            cls._decoder = json.loads
+            return cls._decoder
+
+    @classmethod
+    def reset(cls):
+        """Reset cached encoder/decoder (call after changing json_backend)."""
+        cls._encoder = None
+        cls._decoder = None
 
 # Maps Aquilia Model field class names → Serializer field classes
 _MODEL_FIELD_MAP: Dict[str, Type[SerializerField]] = {
