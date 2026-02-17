@@ -63,6 +63,19 @@ class MLOpsConfig:
         "scaling_policy",
         "metrics_model_name",
         "metrics_model_version",
+        # LLM/SLM settings
+        "rate_limit_rps",
+        "rate_limit_capacity",
+        "circuit_breaker_failure_threshold",
+        "circuit_breaker_timeout",
+        "memory_soft_limit_mb",
+        "memory_hard_limit_mb",
+        # Ecosystem integration
+        "cache_enabled",
+        "cache_ttl",
+        "cache_namespace",
+        "artifact_store_dir",
+        "fault_engine_debug",
     )
 
     def __init__(self, config_dict: Optional[Dict[str, Any]] = None):
@@ -87,6 +100,19 @@ class MLOpsConfig:
         self.scaling_policy: Optional[Dict[str, Any]] = d.get("scaling_policy")
         self.metrics_model_name: str = d.get("metrics_model_name", "")
         self.metrics_model_version: str = d.get("metrics_model_version", "")
+        # LLM/SLM
+        self.rate_limit_rps: float = d.get("rate_limit_rps", 0.0)
+        self.rate_limit_capacity: int = d.get("rate_limit_capacity", 0)
+        self.circuit_breaker_failure_threshold: int = d.get("circuit_breaker_failure_threshold", 5)
+        self.circuit_breaker_timeout: float = d.get("circuit_breaker_timeout", 30.0)
+        self.memory_soft_limit_mb: int = d.get("memory_soft_limit_mb", 0)
+        self.memory_hard_limit_mb: int = d.get("memory_hard_limit_mb", 0)
+        # Ecosystem integration
+        self.cache_enabled: bool = d.get("cache_enabled", True)
+        self.cache_ttl: int = d.get("cache_ttl", 60)
+        self.cache_namespace: str = d.get("cache_namespace", "mlops")
+        self.artifact_store_dir: str = d.get("artifact_store_dir", "artifacts")
+        self.fault_engine_debug: bool = d.get("fault_engine_debug", False)
 
 
 def register_mlops_providers(
@@ -114,6 +140,17 @@ def register_mlops_providers(
     - ``ArtifactSigner`` — signing (singleton)
     - ``EncryptionManager`` — encryption (singleton)
     - ``BlobEncryptor`` — blob encryption (singleton)
+    - ``CircuitBreaker`` — circuit breaker (singleton)
+    - ``TokenBucketRateLimiter`` — rate limiter (singleton)
+    - ``MemoryTracker`` — memory management (singleton)
+    - ``ModelLineageDAG`` — lineage tracking (singleton)
+    - ``ExperimentLedger`` — A/B experiments (singleton)
+    - ``MLOpsController`` — HTTP controller (singleton)
+
+    Ecosystem services (from Aquilia core, shared or created):
+    - ``FaultEngine`` — fault processing (resolve from container or create)
+    - ``CacheService`` — caching layer (resolve from container or skip)
+    - ``FilesystemArtifactStore`` — artifact storage (singleton)
     """
     from .observe.metrics import MetricsCollector
     from .observe.drift import DriftDetector
@@ -128,6 +165,14 @@ def register_mlops_providers(
     from .security.signing import ArtifactSigner, EncryptionManager
     from .security.encryption import BlobEncryptor
     from ._types import DriftMethod, BatchingStrategy
+    from ._structures import (
+        CircuitBreaker,
+        ExperimentLedger,
+        MemoryTracker,
+        ModelLineageDAG,
+        TokenBucketRateLimiter,
+    )
+    from .controller import MLOpsController
 
     cfg = MLOpsConfig(config)
 
@@ -263,7 +308,164 @@ def register_mlops_providers(
         scope="singleton",
     ))
 
+    # Circuit Breaker
+    circuit_breaker = CircuitBreaker(
+        failure_threshold=cfg.circuit_breaker_failure_threshold,
+        timeout_seconds=cfg.circuit_breaker_timeout,
+    )
+    container.register(ValueProvider(
+        value=circuit_breaker,
+        token=CircuitBreaker,
+        scope="singleton",
+    ))
+
+    # Rate Limiter (only if rps > 0)
+    rate_limiter: Optional[TokenBucketRateLimiter] = None
+    if cfg.rate_limit_rps > 0:
+        cap = cfg.rate_limit_capacity or int(cfg.rate_limit_rps * 10)
+        rate_limiter = TokenBucketRateLimiter(rate=cfg.rate_limit_rps, capacity=cap)
+    container.register(ValueProvider(
+        value=rate_limiter,
+        token=TokenBucketRateLimiter,
+        scope="singleton",
+    ))
+
+    # Memory Tracker (only if hard limit > 0)
+    memory_tracker: Optional[MemoryTracker] = None
+    if cfg.memory_hard_limit_mb > 0:
+        memory_tracker = MemoryTracker(
+            soft_limit_mb=cfg.memory_soft_limit_mb or cfg.memory_hard_limit_mb,
+            hard_limit_mb=cfg.memory_hard_limit_mb,
+        )
+    container.register(ValueProvider(
+        value=memory_tracker,
+        token=MemoryTracker,
+        scope="singleton",
+    ))
+
+    # Model Lineage DAG
+    lineage_dag = ModelLineageDAG()
+    container.register(ValueProvider(
+        value=lineage_dag,
+        token=ModelLineageDAG,
+        scope="singleton",
+    ))
+
+    # Experiment Ledger
+    experiment_ledger = ExperimentLedger()
+    container.register(ValueProvider(
+        value=experiment_ledger,
+        token=ExperimentLedger,
+        scope="singleton",
+    ))
+
+    # ── Aquilia Ecosystem Services ───────────────────────────────────
+
+    # FaultEngine — resolve from container or create dedicated instance
+    fault_engine = None
+    try:
+        from aquilia.faults import FaultEngine
+        # Check if FaultEngine was pre-registered (e.g. by the app)
+        token_key = container._token_to_key(FaultEngine) if hasattr(container, '_token_to_key') else None
+        cached = container._cache.get(token_key) if token_key and hasattr(container, '_cache') else None
+        if cached is not None:
+            fault_engine = cached
+        else:
+            fault_engine = FaultEngine(debug=cfg.fault_engine_debug)
+            container.register(ValueProvider(
+                value=fault_engine,
+                token=FaultEngine,
+                scope="singleton",
+            ))
+
+        # Register MLOps-specific fault handler
+        from .faults import MLOpsFault
+        from aquilia.faults.handlers import FaultHandler
+        from aquilia.faults.core import FaultContext, Escalate
+
+        class MLOpsFaultHandler(FaultHandler):
+            """Handler that logs MLOps-domain faults with structured metadata."""
+
+            async def handle(self, ctx: FaultContext):
+                if isinstance(ctx.fault, MLOpsFault):
+                    logger.warning(
+                        "MLOps fault [%s/%s]: %s",
+                        ctx.fault.domain.name if hasattr(ctx.fault.domain, "name") else ctx.fault.domain,
+                        ctx.fault.code,
+                        ctx.fault.message,
+                    )
+                return Escalate()
+
+        fault_engine.register_app("mlops", MLOpsFaultHandler())
+        logger.info("  ✓ FaultEngine wired with MLOps handler")
+    except Exception as exc:
+        logger.debug("  FaultEngine integration skipped: %s", exc)
+
+    # CacheService — resolve from container if available
+    cache_service = None
+    try:
+        from aquilia.cache import CacheService
+        # Check if CacheService was pre-registered
+        token_key = container._token_to_key(CacheService) if hasattr(container, '_token_to_key') else None
+        cached = container._cache.get(token_key) if token_key and hasattr(container, '_cache') else None
+        if cached is not None:
+            cache_service = cached
+            logger.info("  ✓ CacheService resolved from DI container")
+        elif cfg.cache_enabled:
+            from aquilia.cache import MemoryBackend, CacheConfig
+            backend = MemoryBackend(max_size=1024)
+            cache_config = CacheConfig(
+                default_ttl=cfg.cache_ttl,
+                namespace=cfg.cache_namespace,
+            )
+            cache_service = CacheService(backend, cache_config)
+            container.register(ValueProvider(
+                value=cache_service,
+                token=CacheService,
+                scope="singleton",
+            ))
+            logger.info("  ✓ CacheService created (memory backend)")
+    except Exception as exc:
+        logger.debug("  CacheService integration skipped: %s", exc)
+
+    # ArtifactStore — for model artifact management
+    artifact_store = None
+    try:
+        from aquilia.artifacts import FilesystemArtifactStore
+        artifact_store = FilesystemArtifactStore(cfg.artifact_store_dir)
+        container.register(ValueProvider(
+            value=artifact_store,
+            token=FilesystemArtifactStore,
+            scope="singleton",
+        ))
+        logger.info("  ✓ ArtifactStore registered (%s)", cfg.artifact_store_dir)
+    except Exception as exc:
+        logger.debug("  ArtifactStore integration skipped: %s", exc)
+
+    # MLOps Controller (with ecosystem services injected)
+    controller = MLOpsController(
+        registry=registry,
+        metrics_collector=collector,
+        drift_detector=detector,
+        rollout_engine=rollout_engine,
+        plugin_host=host,
+        rbac_manager=rbac,
+        lineage_dag=lineage_dag,
+        experiment_ledger=experiment_ledger,
+        cache_service=cache_service,
+        fault_engine=fault_engine,
+        artifact_store=artifact_store,
+    )
+    container.register(ValueProvider(
+        value=controller,
+        token=MLOpsController,
+        scope="singleton",
+    ))
+
     logger.info(
-        "MLOps DI providers registered: %d services wired",
-        14,
+        "MLOps DI providers registered: %d+ services wired (ecosystem: cache=%s, faults=%s, artifacts=%s)",
+        20,
+        cache_service is not None,
+        fault_engine is not None,
+        artifact_store is not None,
     )

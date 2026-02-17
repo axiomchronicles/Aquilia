@@ -82,7 +82,10 @@ def pack_inspect(archive_path):
     """
     from aquilia.mlops.pack.builder import ModelpackBuilder
 
-    manifest = ModelpackBuilder.inspect(archive_path)
+    async def _inspect():
+        return await ModelpackBuilder.inspect(archive_path)
+
+    manifest = _run(_inspect())
     click.echo(json.dumps(manifest, indent=2, default=str))
 
 
@@ -96,11 +99,20 @@ def pack_verify(archive_path, key):
     Examples:
       aq pack verify my-model-v1.0.0.aquilia --key mysecret
     """
-    from aquilia.mlops.pack.signer import verify_archive
+    from aquilia.mlops.pack.signer import verify_archive, HMACSigner
+
+    async def _verify():
+        sig_path = archive_path + ".sig"
+        signer = HMACSigner(key)
+        return await verify_archive(archive_path, sig_path, signer)
 
     try:
-        verify_archive(archive_path, key)
-        click.echo(click.style("✓ Signature valid", fg="green"))
+        valid = _run(_verify())
+        if valid:
+            click.echo(click.style("✓ Signature valid", fg="green"))
+        else:
+            click.echo(click.style("✗ Signature invalid", fg="red"))
+            sys.exit(1)
     except Exception as e:
         click.echo(click.style(f"✗ Verification failed: {e}", fg="red"))
         sys.exit(1)
@@ -124,13 +136,20 @@ def pack_push(archive_path, registry, tag):
         from aquilia.mlops.registry.service import RegistryService
         from aquilia.mlops.registry.storage.filesystem import FilesystemStorageAdapter
 
-        adapter = FilesystemStorageAdapter(root=Path(registry.replace("http://", "")))
-        svc = RegistryService(storage=adapter, db_path=":memory:")
+        store_root = Path(registry.replace("http://", "").replace("https://", ""))
+        adapter = FilesystemStorageAdapter(root=store_root)
+        svc = RegistryService(
+            db_path=":memory:",
+            blob_root=str(store_root / ".blobs"),
+            storage_adapter=adapter,
+        )
         await svc.initialize()
 
         from aquilia.mlops.pack.builder import ModelpackBuilder
-        manifest_data = ModelpackBuilder.inspect(archive_path)
-        digest = await svc.publish(manifest_data, archive_path)
+        manifest_data = await ModelpackBuilder.inspect(archive_path)
+        from aquilia.mlops._types import ModelpackManifest
+        manifest = ModelpackManifest.from_dict(manifest_data)
+        digest = await svc.publish(manifest, archive_path)
 
         for t in tag:
             await svc.promote(manifest_data["name"], manifest_data.get("version", "latest"), t)
@@ -179,10 +198,15 @@ def model_serve(model_path, runtime, host, port, batch_size, batch_latency_ms):
         from aquilia.mlops.serving.server import ModelServingServer
         from aquilia.mlops._types import ModelpackManifest, TensorSpec, BlobRef, Framework
 
+        fw = runtime if runtime != "python" else "pytorch"
+        try:
+            fw_enum = Framework(fw)
+        except ValueError:
+            fw_enum = Framework.CUSTOM
         manifest = ModelpackManifest(
             name=Path(model_path).stem,
             version="local",
-            framework=Framework(runtime if runtime != "python" else "pytorch"),
+            framework=fw_enum.value,
             entrypoint=str(model_path),
             inputs=[TensorSpec(name="input", dtype="float32", shape=[-1])],
             outputs=[TensorSpec(name="output", dtype="float32", shape=[-1])],
@@ -257,19 +281,28 @@ def deploy_rollout(model_name, from_version, to_version, strategy, steps, error_
     from aquilia.mlops.release.rollout import RolloutEngine
 
     config = RolloutConfig(
-        name=f"{model_name}-rollout",
-        source_version=from_version,
-        target_version=to_version,
+        from_version=from_version,
+        to_version=to_version,
         strategy=RolloutStrategy(strategy),
-        phases=steps,
-        error_rate_threshold=error_threshold,
+        percentage=max(1, 100 // steps),
+        threshold=error_threshold,
+        auto_rollback=True,
+        step_interval_seconds=300,
     )
-    engine = RolloutEngine(config)
-    click.echo(f"Rollout created: {engine.state.name}")
+
+    async def _rollout():
+        engine = RolloutEngine()
+        state = await engine.start(config)
+        return state
+
+    state = _run(_rollout())
+    click.echo(click.style(f"✓ Rollout started: {state.id}", fg="green"))
     click.echo(json.dumps({
         "model": model_name,
+        "from": from_version,
+        "to": to_version,
         "strategy": strategy,
-        "phases": steps,
+        "initial_percentage": config.percentage,
         "error_threshold": error_threshold,
     }, indent=2))
 
@@ -289,8 +322,8 @@ def deploy_ci_template(registry, output):
     out = Path(output)
     out.mkdir(parents=True, exist_ok=True)
 
-    workflow = generate_ci_workflow(registry_url=registry)
-    dockerfile = generate_dockerfile(registry_url=registry)
+    workflow = generate_ci_workflow(output_dir=str(out))
+    dockerfile = generate_dockerfile(output_dir=str(out))
 
     (out / "mlops-ci.yml").write_text(workflow)
     (out / "Dockerfile.model").write_text(dockerfile)
@@ -371,7 +404,7 @@ def observe_metrics(fmt):
     if fmt == "prometheus":
         click.echo(collector.to_prometheus())
     else:
-        click.echo(json.dumps(collector.snapshot(), indent=2))
+        click.echo(json.dumps(collector.get_summary(), indent=2))
 
 
 # ═══════════════════════════════════════════════════════════════════════════

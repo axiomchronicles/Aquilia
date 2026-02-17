@@ -105,8 +105,11 @@ class TrafficRouter:
         elif self._strategy == RolloutStrategy.SHADOW:
             # Shadow always routes to primary; secondary is called async
             chosen = self._primary_version()
+        elif self._strategy == RolloutStrategy.ROLLING:
+            # Rolling: sticky hash for gradual rollover
+            chosen = self.route_sticky(request_id) if request_id else self._weighted_route()
         else:
-            # Canary: weighted random
+            # Canary / blue_green: weighted random
             chosen = self._weighted_route()
 
         self._hot_tracker.push(chosen, 1)

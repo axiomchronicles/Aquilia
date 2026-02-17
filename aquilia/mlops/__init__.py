@@ -32,20 +32,29 @@ from ._types import (
     BatchingStrategy,
     RolloutStrategy,
     DriftMethod,
+    ModelType,
+    InferenceMode,
+    DeviceType,
+    CircuitState,
     # Data classes
     TensorSpec,
     BlobRef,
     Provenance,
+    LLMConfig,
     ModelpackManifest,
     InferenceRequest,
     InferenceResult,
+    StreamChunk,
     BatchRequest,
     PlacementScore,
     RolloutConfig,
     DriftReport,
+    CircuitBreakerConfig,
+    TokenUsage,
     # Protocols
     StorageAdapter,
     Runtime,
+    StreamingRuntime,
     PluginHook,
 )
 
@@ -63,11 +72,16 @@ from ._structures import (
     ExperimentLedger,
     Experiment,
     ExperimentArm,
+    CircuitBreaker,
+    TokenBucketRateLimiter,
+    AdaptiveBatchQueue,
+    MemoryTracker,
 )
 
 from .pack.builder import ModelpackBuilder
 from .pack.content_store import ContentStore
 from .registry.service import RegistryService
+from .runtime.base import BaseRuntime, BaseStreamingRuntime
 from .runtime.python_runtime import PythonRuntime
 from .serving.server import ModelServingServer, WarmupStrategy
 from .serving.batching import DynamicBatcher
@@ -99,14 +113,33 @@ from .faults import (
     EncryptionFault,
     PluginLoadFault,
     PluginHookFault,
+    # Resilience faults
+    CircuitBreakerFault,
+    CircuitBreakerOpenFault,
+    CircuitBreakerExhaustedFault,
+    RateLimitFault,
+    # Streaming faults
+    StreamingFault,
+    StreamInterruptedFault,
+    TokenLimitExceededFault,
+    # Memory faults
+    MemoryFault,
+    MemorySoftLimitFault,
+    MemoryHardLimitFault,
 )
 from .di_providers import register_mlops_providers, MLOpsConfig
 from .controller import MLOpsController
-from .middleware import mlops_metrics_middleware, mlops_request_id_middleware
+from .middleware import (
+    mlops_metrics_middleware,
+    mlops_request_id_middleware,
+    mlops_rate_limit_middleware,
+    mlops_circuit_breaker_middleware,
+    register_mlops_middleware,
+)
 from .lifecycle_hooks import mlops_on_startup, mlops_on_shutdown
 
 __all__ = [
-    # Types
+    # Types — Enums
     "Framework",
     "RuntimeKind",
     "QuantizePreset",
@@ -114,18 +147,29 @@ __all__ = [
     "BatchingStrategy",
     "RolloutStrategy",
     "DriftMethod",
+    "ModelType",
+    "InferenceMode",
+    "DeviceType",
+    "CircuitState",
+    # Types — Data classes
     "TensorSpec",
     "BlobRef",
     "Provenance",
+    "LLMConfig",
     "ModelpackManifest",
     "InferenceRequest",
     "InferenceResult",
+    "StreamChunk",
     "BatchRequest",
     "PlacementScore",
     "RolloutConfig",
     "DriftReport",
+    "CircuitBreakerConfig",
+    "TokenUsage",
+    # Types — Protocols
     "StorageAdapter",
     "Runtime",
+    "StreamingRuntime",
     "PluginHook",
     # Data Structures
     "RingBuffer",
@@ -141,10 +185,16 @@ __all__ = [
     "ExperimentLedger",
     "Experiment",
     "ExperimentArm",
+    "CircuitBreaker",
+    "TokenBucketRateLimiter",
+    "AdaptiveBatchQueue",
+    "MemoryTracker",
     # Core classes
     "ModelpackBuilder",
     "ContentStore",
     "RegistryService",
+    "BaseRuntime",
+    "BaseStreamingRuntime",
     "PythonRuntime",
     "ModelServingServer",
     "WarmupStrategy",
@@ -175,6 +225,16 @@ __all__ = [
     "EncryptionFault",
     "PluginLoadFault",
     "PluginHookFault",
+    "CircuitBreakerFault",
+    "CircuitBreakerOpenFault",
+    "CircuitBreakerExhaustedFault",
+    "RateLimitFault",
+    "StreamingFault",
+    "StreamInterruptedFault",
+    "TokenLimitExceededFault",
+    "MemoryFault",
+    "MemorySoftLimitFault",
+    "MemoryHardLimitFault",
     # DI
     "register_mlops_providers",
     "MLOpsConfig",
@@ -183,6 +243,9 @@ __all__ = [
     # Middleware
     "mlops_metrics_middleware",
     "mlops_request_id_middleware",
+    "mlops_rate_limit_middleware",
+    "mlops_circuit_breaker_middleware",
+    "register_mlops_middleware",
     # Lifecycle
     "mlops_on_startup",
     "mlops_on_shutdown",

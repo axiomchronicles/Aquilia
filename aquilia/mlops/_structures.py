@@ -897,3 +897,413 @@ class ExperimentLedger:
 
     def to_dict(self) -> Dict[str, Any]:
         return {eid: self.summary(eid) for eid in self._experiments}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Circuit Breaker (async, lock-free state machine)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class CircuitBreaker:
+    """
+    Three-state circuit breaker (CLOSED → OPEN → HALF_OPEN → CLOSED).
+
+    Protects inference endpoints against cascading failures.  Thread-safe
+    via a lock; the hot path (``allow_request``) is a single comparison
+    in the CLOSED state.
+
+    States:
+        CLOSED    – requests flow normally, failures are counted
+        OPEN      – all requests are rejected immediately (fail-fast)
+        HALF_OPEN – a limited number of probe requests are allowed through
+
+    >>> cb = CircuitBreaker(failure_threshold=3, timeout_seconds=5)
+    >>> cb.allow_request()
+    True
+    >>> cb.record_failure(); cb.record_failure(); cb.record_failure()
+    >>> cb.allow_request()
+    False
+    """
+
+    __slots__ = (
+        "_failure_threshold", "_success_threshold", "_timeout",
+        "_half_open_max", "_state", "_failure_count", "_success_count",
+        "_last_failure_time", "_half_open_calls", "_lock",
+        "_total_failures", "_total_successes", "_total_rejections",
+    )
+
+    def __init__(
+        self,
+        failure_threshold: int = 5,
+        success_threshold: int = 3,
+        timeout_seconds: float = 30.0,
+        half_open_max_calls: int = 3,
+    ) -> None:
+        self._failure_threshold = failure_threshold
+        self._success_threshold = success_threshold
+        self._timeout = timeout_seconds
+        self._half_open_max = half_open_max_calls
+        self._state = "closed"
+        self._failure_count = 0
+        self._success_count = 0
+        self._last_failure_time = 0.0
+        self._half_open_calls = 0
+        self._lock = threading.Lock()
+        # Lifetime metrics
+        self._total_failures = 0
+        self._total_successes = 0
+        self._total_rejections = 0
+
+    @property
+    def state(self) -> str:
+        with self._lock:
+            self._maybe_transition()
+            return self._state
+
+    def _maybe_transition(self) -> None:
+        """Transition OPEN → HALF_OPEN if timeout has elapsed."""
+        if self._state == "open":
+            if time.monotonic() - self._last_failure_time >= self._timeout:
+                self._state = "half_open"
+                self._half_open_calls = 0
+                self._success_count = 0
+
+    def allow_request(self) -> bool:
+        """Check if a request should be allowed through."""
+        with self._lock:
+            self._maybe_transition()
+            if self._state == "closed":
+                return True
+            if self._state == "open":
+                self._total_rejections += 1
+                return False
+            # half_open
+            if self._half_open_calls < self._half_open_max:
+                self._half_open_calls += 1
+                return True
+            self._total_rejections += 1
+            return False
+
+    def record_success(self) -> None:
+        """Record a successful request."""
+        with self._lock:
+            self._total_successes += 1
+            if self._state == "half_open":
+                self._success_count += 1
+                if self._success_count >= self._success_threshold:
+                    self._state = "closed"
+                    self._failure_count = 0
+                    self._success_count = 0
+            elif self._state == "closed":
+                # Reset consecutive failure count on success
+                self._failure_count = 0
+
+    def record_failure(self) -> None:
+        """Record a failed request."""
+        with self._lock:
+            self._total_failures += 1
+            self._last_failure_time = time.monotonic()
+            if self._state == "half_open":
+                self._state = "open"
+                self._half_open_calls = 0
+            elif self._state == "closed":
+                self._failure_count += 1
+                if self._failure_count >= self._failure_threshold:
+                    self._state = "open"
+
+    def reset(self) -> None:
+        """Force reset to closed state."""
+        with self._lock:
+            self._state = "closed"
+            self._failure_count = 0
+            self._success_count = 0
+            self._half_open_calls = 0
+
+    @property
+    def stats(self) -> Dict[str, Any]:
+        with self._lock:
+            self._maybe_transition()
+            return {
+                "state": self._state,
+                "failure_count": self._failure_count,
+                "total_failures": self._total_failures,
+                "total_successes": self._total_successes,
+                "total_rejections": self._total_rejections,
+                "failure_threshold": self._failure_threshold,
+                "timeout_seconds": self._timeout,
+            }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Token Bucket Rate Limiter
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TokenBucketRateLimiter:
+    """
+    Token-bucket rate limiter for inference request throttling.
+
+    Refills at ``rate`` tokens per second up to ``capacity``.
+    Each ``acquire()`` consumes one token.
+
+    Time complexity: O(1) per acquire (lazy refill).
+
+    >>> rl = TokenBucketRateLimiter(rate=10.0, capacity=100)
+    >>> rl.acquire()
+    True
+    """
+
+    __slots__ = ("_rate", "_capacity", "_tokens", "_last_refill", "_lock",
+                 "_total_allowed", "_total_rejected")
+
+    def __init__(self, rate: float = 100.0, capacity: int = 1000) -> None:
+        self._rate = rate
+        self._capacity = capacity
+        self._tokens = float(capacity)
+        self._last_refill = time.monotonic()
+        self._lock = threading.Lock()
+        self._total_allowed = 0
+        self._total_rejected = 0
+
+    def _refill(self) -> None:
+        now = time.monotonic()
+        elapsed = now - self._last_refill
+        self._tokens = min(self._capacity, self._tokens + elapsed * self._rate)
+        self._last_refill = now
+
+    def acquire(self, tokens: int = 1) -> bool:
+        """Try to consume tokens. Returns True if allowed."""
+        with self._lock:
+            self._refill()
+            if self._tokens >= tokens:
+                self._tokens -= tokens
+                self._total_allowed += 1
+                return True
+            self._total_rejected += 1
+            return False
+
+    def acquire_wait_time(self, tokens: int = 1) -> float:
+        """Return seconds to wait before tokens become available, 0 if available now."""
+        with self._lock:
+            self._refill()
+            if self._tokens >= tokens:
+                return 0.0
+            deficit = tokens - self._tokens
+            return deficit / self._rate if self._rate > 0 else float("inf")
+
+    @property
+    def available(self) -> float:
+        with self._lock:
+            self._refill()
+            return self._tokens
+
+    @property
+    def stats(self) -> Dict[str, Any]:
+        with self._lock:
+            self._refill()
+            return {
+                "rate": self._rate,
+                "capacity": self._capacity,
+                "available_tokens": self._tokens,
+                "total_allowed": self._total_allowed,
+                "total_rejected": self._total_rejected,
+            }
+
+    def reset(self) -> None:
+        with self._lock:
+            self._tokens = float(self._capacity)
+            self._last_refill = time.monotonic()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Adaptive Batch Queue (for continuous batching in LLM serving)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class AdaptiveBatchQueue(Generic[T]):
+    """
+    Priority-aware batch queue with adaptive sizing for LLM serving.
+
+    Supports continuous batching: items can be drained by token budget
+    rather than fixed batch size, enabling efficient GPU utilisation for
+    variable-length sequences.
+
+    Features:
+        - Priority ordering (higher priority first, then FIFO)
+        - Token-budget-aware draining
+        - Max wait time enforcement
+        - Backpressure via capacity limit
+
+    >>> q = AdaptiveBatchQueue(max_capacity=100)
+    >>> q.put("req1", priority=0, token_estimate=128)
+    >>> q.put("req2", priority=1, token_estimate=256)
+    >>> batch = q.drain(max_tokens=512)
+    >>> len(batch)
+    2
+    """
+
+    __slots__ = ("_queue", "_capacity", "_lock", "_total_enqueued",
+                 "_total_dequeued", "_total_dropped")
+
+    def __init__(self, max_capacity: int = 1024) -> None:
+        self._capacity = max_capacity
+        # Each entry: (negative_priority, insert_order, token_estimate, item)
+        self._queue: List[Tuple[int, int, int, T]] = []
+        self._lock = threading.Lock()
+        self._total_enqueued = 0
+        self._total_dequeued = 0
+        self._total_dropped = 0
+
+    def put(self, item: T, priority: int = 0, token_estimate: int = 1) -> bool:
+        """
+        Enqueue an item. Returns False if queue is at capacity (backpressure).
+        Higher priority values are dequeued first.
+        """
+        import heapq
+        with self._lock:
+            if len(self._queue) >= self._capacity:
+                self._total_dropped += 1
+                return False
+            heapq.heappush(
+                self._queue,
+                (-priority, self._total_enqueued, token_estimate, item),
+            )
+            self._total_enqueued += 1
+            return True
+
+    def drain(
+        self,
+        max_items: int = 0,
+        max_tokens: int = 0,
+    ) -> List[T]:
+        """
+        Drain items from the queue respecting token budget and/or max items.
+
+        If both max_items and max_tokens are 0, drains everything.
+        """
+        import heapq
+        with self._lock:
+            if not self._queue:
+                return []
+
+            result: List[T] = []
+            token_total = 0
+
+            while self._queue:
+                if max_items > 0 and len(result) >= max_items:
+                    break
+                # Peek at next item's token estimate
+                neg_pri, order, tok_est, item = self._queue[0]
+                if max_tokens > 0 and token_total + tok_est > max_tokens and result:
+                    break  # would exceed budget and we have at least one item
+                heapq.heappop(self._queue)
+                result.append(item)
+                token_total += tok_est
+                self._total_dequeued += 1
+
+            return result
+
+    def peek_token_total(self) -> int:
+        """Total estimated tokens currently in the queue."""
+        with self._lock:
+            return sum(entry[2] for entry in self._queue)
+
+    def __len__(self) -> int:
+        return len(self._queue)
+
+    @property
+    def stats(self) -> Dict[str, Any]:
+        with self._lock:
+            return {
+                "size": len(self._queue),
+                "capacity": self._capacity,
+                "total_enqueued": self._total_enqueued,
+                "total_dequeued": self._total_dequeued,
+                "total_dropped": self._total_dropped,
+                "pending_tokens": sum(e[2] for e in self._queue),
+            }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Memory Tracker (for GPU/CPU memory management)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class MemoryTracker:
+    """
+    Tracks memory allocations for model serving with watermark alerts.
+
+    Provides soft/hard limits: when usage exceeds the soft limit,
+    the system should start evicting unused models; at the hard limit,
+    new loads are rejected.
+
+    >>> mt = MemoryTracker(soft_limit_mb=8000, hard_limit_mb=10000)
+    >>> mt.allocate("model-v1", 2048)
+    True
+    >>> mt.current_usage_mb
+    2048
+    """
+
+    __slots__ = ("_allocations", "_soft_limit", "_hard_limit", "_lock")
+
+    def __init__(self, soft_limit_mb: int = 8192, hard_limit_mb: int = 12288) -> None:
+        self._soft_limit = soft_limit_mb
+        self._hard_limit = hard_limit_mb
+        self._allocations: Dict[str, int] = {}  # name → MB
+        self._lock = threading.Lock()
+
+    def allocate(self, name: str, size_mb: int) -> bool:
+        """Allocate memory for a model. Returns False if hard limit would be exceeded."""
+        with self._lock:
+            current = sum(self._allocations.values())
+            if current + size_mb > self._hard_limit:
+                return False
+            self._allocations[name] = size_mb
+            return True
+
+    def release(self, name: str) -> int:
+        """Release memory for a model. Returns freed MB."""
+        with self._lock:
+            return self._allocations.pop(name, 0)
+
+    @property
+    def current_usage_mb(self) -> int:
+        with self._lock:
+            return sum(self._allocations.values())
+
+    @property
+    def is_above_soft_limit(self) -> bool:
+        return self.current_usage_mb > self._soft_limit
+
+    @property
+    def is_above_hard_limit(self) -> bool:
+        return self.current_usage_mb > self._hard_limit
+
+    @property
+    def available_mb(self) -> int:
+        return max(0, self._hard_limit - self.current_usage_mb)
+
+    def largest_model(self) -> Optional[Tuple[str, int]]:
+        """Return the name and size of the largest allocated model."""
+        with self._lock:
+            if not self._allocations:
+                return None
+            name = max(self._allocations, key=self._allocations.get)  # type: ignore[arg-type]
+            return name, self._allocations[name]
+
+    def eviction_candidates(self) -> List[Tuple[str, int]]:
+        """Return models sorted by size ascending (smallest first) for eviction."""
+        with self._lock:
+            return sorted(self._allocations.items(), key=lambda x: x[1])
+
+    @property
+    def stats(self) -> Dict[str, Any]:
+        with self._lock:
+            return {
+                "current_usage_mb": sum(self._allocations.values()),
+                "soft_limit_mb": self._soft_limit,
+                "hard_limit_mb": self._hard_limit,
+                "model_count": len(self._allocations),
+                "allocations": dict(self._allocations),
+                "above_soft_limit": sum(self._allocations.values()) > self._soft_limit,
+            }

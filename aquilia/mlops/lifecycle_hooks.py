@@ -4,9 +4,20 @@ LifecycleCoordinator.
 
 Hooks registered:
 - **Startup**: Initialize registry DB, start batcher, discover plugins,
-  wire DI providers.
-- **Shutdown**: Stop batcher, flush metrics, deactivate plugins, close
-  registry connections.
+  wire DI providers, initialize cache, register fault handlers, set up
+  artifact store.
+- **Shutdown**: Stop batcher, flush metrics, flush cache, deactivate
+  plugins, close registry connections.
+
+Ecosystem integration:
+- :class:`~aquilia.faults.FaultEngine` — MLOps fault handlers are registered
+  at the ``app:mlops`` scope during startup.
+- :class:`~aquilia.cache.CacheService` — Cache is initialized / warmed
+  during startup and flushed during shutdown.
+- :class:`~aquilia.artifacts.FilesystemArtifactStore` — Artifact store
+  directory is created during startup.
+- :class:`~aquilia.effects.CacheEffect` — Cache effect provider is
+  registered if the effect system is active.
 
 Usage::
 
@@ -81,6 +92,70 @@ async def mlops_on_startup(
     except Exception as exc:
         logger.warning("  ✗ Plugin discovery failed: %s", exc)
 
+    # 4. Initialize CacheService (if resolved from DI)
+    try:
+        if di_container is not None and hasattr(di_container, "resolve_async"):
+            from aquilia.cache import CacheService
+
+            cache = await di_container.resolve_async(CacheService, optional=True)
+            if cache and hasattr(cache, "initialize"):
+                await cache.initialize()
+                logger.info("  ✓ CacheService initialized")
+    except Exception as exc:
+        logger.debug("  CacheService init: %s", exc)
+
+    # 5. Ensure artifact store directory exists
+    try:
+        import os
+
+        artifact_dir = cfg.get("artifact_store_dir",
+                               cfg.get("registry", {}).get("blob_root", "artifacts"))
+        os.makedirs(artifact_dir, exist_ok=True)
+        logger.info("  ✓ Artifact store directory ready (%s)", artifact_dir)
+    except Exception as exc:
+        logger.debug("  Artifact store dir: %s", exc)
+
+    # 6. Register MLOps fault event listener for metrics observability
+    try:
+        if di_container is not None and hasattr(di_container, "resolve_async"):
+            from aquilia.faults import FaultEngine
+            from .observe.metrics import MetricsCollector
+
+            fault_engine = await di_container.resolve_async(FaultEngine, optional=True)
+            metrics = await di_container.resolve_async(MetricsCollector, optional=True)
+            if fault_engine and metrics:
+                def _fault_metrics_listener(ctx):
+                    """Record fault events in MLOps metrics."""
+                    if hasattr(ctx, "fault") and hasattr(ctx.fault, "domain"):
+                        domain_name = (
+                            ctx.fault.domain.name
+                            if hasattr(ctx.fault.domain, "name")
+                            else str(ctx.fault.domain)
+                        )
+                        if domain_name.startswith("mlops"):
+                            metrics.record_inference(
+                                latency_ms=0,
+                                batch_size=0,
+                                error=True,
+                            )
+
+                fault_engine.on_fault(_fault_metrics_listener)
+                logger.info("  ✓ FaultEngine → MetricsCollector listener registered")
+    except Exception as exc:
+        logger.debug("  Fault metrics listener: %s", exc)
+
+    # 7. Detect GPU/device capabilities
+    try:
+        device_info = _detect_device_capabilities()
+        logger.info(
+            "  ✓ Device: %s (GPUs: %d, memory: %s)",
+            device_info.get("device", "cpu"),
+            device_info.get("gpu_count", 0),
+            device_info.get("gpu_memory", "N/A"),
+        )
+    except Exception as exc:
+        logger.debug("  Device detection: %s", exc)
+
     logger.info("MLOps startup complete")
 
 
@@ -96,24 +171,88 @@ async def mlops_on_shutdown(
     """
     logger.info("MLOps shutdown hook running...")
 
-    # 1. Deactivate plugins
+    # 1. Stop circuit breaker (reject new requests)
     try:
-        if di_container is not None:
+        if di_container is not None and hasattr(di_container, "resolve"):
+            from ._structures import CircuitBreaker
+
+            cb = di_container.resolve(CircuitBreaker)
+            if cb:
+                cb.force_open()
+                logger.info("  ✓ Circuit breaker opened (draining)")
+    except Exception as exc:
+        logger.debug("  Circuit breaker shutdown: %s", exc)
+
+    # 2. Flush metrics before unloading models
+    try:
+        if di_container is not None and hasattr(di_container, "resolve"):
+            from .observe.metrics import MetricsCollector
+
+            metrics = di_container.resolve(MetricsCollector)
+            if metrics:
+                summary = metrics.get_summary()
+                logger.info(
+                    "  ✓ Metrics flushed (total_inferences=%d, tokens=%d)",
+                    summary.get("total_inferences", 0),
+                    summary.get("total_tokens", 0),
+                )
+    except Exception as exc:
+        logger.debug("  Metrics flush: %s", exc)
+
+    # 3. Gracefully unload models / release GPU memory
+    try:
+        if di_container is not None and hasattr(di_container, "resolve"):
+            from .serving.server import ModelServingServer
+
+            server = di_container.resolve(ModelServingServer)
+            if server and hasattr(server, "_runtime") and server._runtime is not None:
+                runtime = server._runtime
+                if hasattr(runtime, "unload"):
+                    await runtime.unload()
+                    logger.info("  ✓ Model runtime unloaded")
+        # Release GPU cache if torch available
+        try:
+            import torch
+
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+                logger.info("  ✓ GPU cache released")
+        except ImportError:
+            pass
+    except Exception as exc:
+        logger.debug("  Model unload: %s", exc)
+
+    # 4. Deactivate plugins
+    try:
+        if di_container is not None and hasattr(di_container, "resolve"):
             from .plugins.host import PluginHost
 
-            host = di_container.resolve(PluginHost) if hasattr(di_container, "resolve") else None
+            host = di_container.resolve(PluginHost)
             if host:
                 host.deactivate_all()
                 logger.info("  ✓ Plugins deactivated")
     except Exception as exc:
         logger.debug("  Plugin shutdown: %s", exc)
 
-    # 2. Close registry
+    # 5. Shutdown CacheService
     try:
-        if di_container is not None:
+        if di_container is not None and hasattr(di_container, "resolve"):
+            from aquilia.cache import CacheService
+
+            cache = di_container.resolve(CacheService)
+            if cache and hasattr(cache, "shutdown"):
+                await cache.shutdown()
+                logger.info("  ✓ CacheService shutdown")
+    except Exception as exc:
+        logger.debug("  CacheService shutdown: %s", exc)
+
+    # 6. Close registry
+    try:
+        if di_container is not None and hasattr(di_container, "resolve"):
             from .registry.service import RegistryService
 
-            registry = di_container.resolve(RegistryService) if hasattr(di_container, "resolve") else None
+            registry = di_container.resolve(RegistryService)
             if registry:
                 await registry.close()
                 logger.info("  ✓ Registry closed")
@@ -139,6 +278,30 @@ def _flatten_mlops_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
     flat["max_batch_size"] = srv.get("max_batch_size", 16)
     flat["max_latency_ms"] = srv.get("max_latency_ms", 50.0)
     flat["batching_strategy"] = srv.get("batching_strategy", "hybrid")
+
+    # Resilience / Rate Limiting
+    res = cfg.get("resilience", {})
+    flat["rate_limit_rps"] = res.get("rate_limit_rps", srv.get("rate_limit_rps", 100.0))
+    flat["rate_limit_capacity"] = res.get("rate_limit_capacity", srv.get("rate_limit_capacity", 200))
+    flat["circuit_breaker_failure_threshold"] = res.get(
+        "failure_threshold",
+        srv.get("circuit_breaker_failure_threshold", 5),
+    )
+    flat["circuit_breaker_timeout"] = res.get(
+        "recovery_timeout",
+        srv.get("circuit_breaker_timeout", 30.0),
+    )
+
+    # Memory
+    mem = cfg.get("memory", {})
+    flat["memory_soft_limit_mb"] = mem.get(
+        "soft_limit_mb",
+        srv.get("memory_soft_limit_mb", 0),
+    )
+    flat["memory_hard_limit_mb"] = mem.get(
+        "hard_limit_mb",
+        srv.get("memory_hard_limit_mb", 0),
+    )
 
     # Observe
     obs = cfg.get("observe", {})
@@ -169,4 +332,57 @@ def _flatten_mlops_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
     # Scaling
     flat["scaling_policy"] = cfg.get("scaling_policy")
 
+    # LLM / Model
+    model = cfg.get("model", {})
+    flat["model_type"] = model.get("model_type", "SLM")
+    flat["device"] = model.get("device", "auto")
+    flat["default_max_tokens"] = model.get("default_max_tokens", 512)
+    flat["default_temperature"] = model.get("default_temperature", 1.0)
+
+    # Ecosystem integration
+    eco = cfg.get("ecosystem", {})
+    flat["cache_enabled"] = eco.get("cache_enabled", cfg.get("cache_enabled", True))
+    flat["cache_ttl"] = eco.get("cache_ttl", cfg.get("cache_ttl", 60))
+    flat["cache_namespace"] = eco.get("cache_namespace", cfg.get("cache_namespace", "mlops"))
+    flat["artifact_store_dir"] = eco.get(
+        "artifact_store_dir",
+        cfg.get("artifact_store_dir", cfg.get("registry", {}).get("blob_root", "artifacts")),
+    )
+    flat["fault_engine_debug"] = eco.get("fault_engine_debug", cfg.get("fault_engine_debug", False))
+
     return flat
+
+
+def _detect_device_capabilities() -> Dict[str, Any]:
+    """Detect available compute devices (CPU, CUDA, MPS, etc.)."""
+    info: Dict[str, Any] = {"device": "cpu", "gpu_count": 0, "gpu_memory": "N/A"}
+
+    try:
+        import torch
+
+        if torch.cuda.is_available():
+            gpu_count = torch.cuda.device_count()
+            info["device"] = "cuda"
+            info["gpu_count"] = gpu_count
+            total_mem = 0
+            info["gpus"] = []
+            for i in range(gpu_count):
+                props = torch.cuda.get_device_properties(i)
+                mem_gb = round(props.total_mem / (1024**3), 2)
+                total_mem += mem_gb
+                info["gpus"].append({
+                    "index": i,
+                    "name": props.name,
+                    "memory_gb": mem_gb,
+                    "major": props.major,
+                    "minor": props.minor,
+                })
+            info["gpu_memory"] = f"{total_mem:.1f} GB"
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            info["device"] = "mps"
+            info["gpu_count"] = 1
+            info["gpu_memory"] = "shared"
+    except ImportError:
+        pass
+
+    return info

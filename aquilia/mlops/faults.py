@@ -36,6 +36,16 @@ Fault Taxonomy::
     └── PluginFault
         ├── PluginLoadFault
         └── PluginHookFault
+    ├── CircuitBreakerFault
+    │   ├── CircuitBreakerOpenFault
+    │   └── CircuitBreakerExhaustedFault
+    ├── RateLimitFault
+    ├── StreamingFault
+    │   ├── StreamInterruptedFault
+    │   └── TokenLimitExceededFault
+    └── MemoryFault
+        ├── MemorySoftLimitFault
+        └── MemoryHardLimitFault
 """
 
 from __future__ import annotations
@@ -60,6 +70,9 @@ FaultDomain.MLOPS_RELEASE = FaultDomain("mlops.release", "Release/rollout faults
 FaultDomain.MLOPS_SCHEDULER = FaultDomain("mlops.scheduler", "Scheduler faults")
 FaultDomain.MLOPS_SECURITY = FaultDomain("mlops.security", "MLOps security faults")
 FaultDomain.MLOPS_PLUGIN = FaultDomain("mlops.plugin", "Plugin lifecycle faults")
+FaultDomain.MLOPS_RESILIENCE = FaultDomain("mlops.resilience", "Resilience / circuit breaker faults")
+FaultDomain.MLOPS_STREAMING = FaultDomain("mlops.streaming", "Streaming inference faults")
+FaultDomain.MLOPS_MEMORY = FaultDomain("mlops.memory", "Memory management faults")
 
 
 # ── Base ─────────────────────────────────────────────────────────────────
@@ -465,5 +478,156 @@ class PluginHookFault(PluginFault):
             severity=Severity.WARN,
             retryable=True,
             metadata={"plugin_name": plugin_name, "hook": hook, "reason": reason},
+            **kwargs,
+        )
+
+
+# ── Circuit Breaker / Resilience Faults ─────────────────────────────────
+
+class CircuitBreakerFault(MLOpsFault):
+    """Base fault for circuit breaker events."""
+
+    def __init__(self, code: str, message: str, **kwargs: Any):
+        kwargs.setdefault("domain", FaultDomain.MLOPS_RESILIENCE)
+        super().__init__(code=code, message=message, **kwargs)
+
+
+class CircuitBreakerOpenFault(CircuitBreakerFault):
+    """Circuit breaker is OPEN — requests are being rejected."""
+
+    def __init__(self, failure_count: int = 0, recovery_at: float = 0, **kwargs: Any):
+        extra_meta = kwargs.pop("metadata", {})
+        meta = {"failure_count": failure_count, "recovery_at": recovery_at, **extra_meta}
+        super().__init__(
+            code="CIRCUIT_BREAKER_OPEN",
+            message=f"Circuit breaker OPEN after {failure_count} failures — rejecting requests",
+            severity=Severity.WARN,
+            retryable=True,
+            public=True,
+            metadata=meta,
+            **kwargs,
+        )
+
+
+class CircuitBreakerExhaustedFault(CircuitBreakerFault):
+    """Circuit breaker half-open probe failed — returning to OPEN state."""
+
+    def __init__(self, probe_error: str = "", **kwargs: Any):
+        extra_meta = kwargs.pop("metadata", {})
+        meta = {"probe_error": probe_error, **extra_meta}
+        super().__init__(
+            code="CIRCUIT_BREAKER_EXHAUSTED",
+            message=f"Half-open probe failed: {probe_error}",
+            severity=Severity.ERROR,
+            retryable=True,
+            metadata=meta,
+            **kwargs,
+        )
+
+
+class RateLimitFault(MLOpsFault):
+    """Request rejected due to rate limiting."""
+
+    def __init__(self, limit_rps: float = 0, retry_after: float = 0, **kwargs: Any):
+        extra_meta = kwargs.pop("metadata", {})
+        meta = {"limit_rps": limit_rps, "retry_after": retry_after, **extra_meta}
+        super().__init__(
+            code="RATE_LIMIT_EXCEEDED",
+            message=f"Rate limit exceeded ({limit_rps:.1f} rps) — retry after {retry_after:.2f}s",
+            domain=FaultDomain.MLOPS_RESILIENCE,
+            severity=Severity.WARN,
+            retryable=True,
+            public=True,
+            metadata=meta,
+            **kwargs,
+        )
+
+
+# ── Streaming Faults ────────────────────────────────────────────────────
+
+class StreamingFault(MLOpsFault):
+    """Base fault for streaming inference."""
+
+    def __init__(self, code: str, message: str, **kwargs: Any):
+        kwargs.setdefault("domain", FaultDomain.MLOPS_STREAMING)
+        super().__init__(code=code, message=message, **kwargs)
+
+
+class StreamInterruptedFault(StreamingFault):
+    """Streaming generation was interrupted (client disconnect, timeout, etc.)."""
+
+    def __init__(self, request_id: str, tokens_generated: int = 0, reason: str = "", **kwargs: Any):
+        extra_meta = kwargs.pop("metadata", {})
+        meta = {
+            "request_id": request_id,
+            "tokens_generated": tokens_generated,
+            "reason": reason,
+            **extra_meta,
+        }
+        super().__init__(
+            code="STREAM_INTERRUPTED",
+            message=f"Stream interrupted for {request_id} after {tokens_generated} tokens: {reason}",
+            severity=Severity.WARN,
+            retryable=False,
+            metadata=meta,
+            **kwargs,
+        )
+
+
+class TokenLimitExceededFault(StreamingFault):
+    """Token generation exceeded max_tokens limit."""
+
+    def __init__(self, request_id: str, max_tokens: int = 0, **kwargs: Any):
+        extra_meta = kwargs.pop("metadata", {})
+        meta = {"request_id": request_id, "max_tokens": max_tokens, **extra_meta}
+        super().__init__(
+            code="TOKEN_LIMIT_EXCEEDED",
+            message=f"Request {request_id} hit max_tokens limit ({max_tokens})",
+            severity=Severity.INFO,
+            retryable=False,
+            metadata=meta,
+            **kwargs,
+        )
+
+
+# ── Memory Faults ───────────────────────────────────────────────────────
+
+class MemoryFault(MLOpsFault):
+    """Base fault for memory management."""
+
+    def __init__(self, code: str, message: str, **kwargs: Any):
+        kwargs.setdefault("domain", FaultDomain.MLOPS_MEMORY)
+        super().__init__(code=code, message=message, **kwargs)
+
+
+class MemorySoftLimitFault(MemoryFault):
+    """Memory usage crossed soft limit — eviction candidates available."""
+
+    def __init__(self, current_mb: float = 0, limit_mb: float = 0, **kwargs: Any):
+        extra_meta = kwargs.pop("metadata", {})
+        meta = {"current_mb": current_mb, "limit_mb": limit_mb, **extra_meta}
+        super().__init__(
+            code="MEMORY_SOFT_LIMIT",
+            message=f"Memory soft limit reached: {current_mb:.0f}MB / {limit_mb:.0f}MB",
+            severity=Severity.WARN,
+            retryable=True,
+            metadata=meta,
+            **kwargs,
+        )
+
+
+class MemoryHardLimitFault(MemoryFault):
+    """Memory usage crossed hard limit — requests must be rejected."""
+
+    def __init__(self, current_mb: float = 0, limit_mb: float = 0, **kwargs: Any):
+        extra_meta = kwargs.pop("metadata", {})
+        meta = {"current_mb": current_mb, "limit_mb": limit_mb, **extra_meta}
+        super().__init__(
+            code="MEMORY_HARD_LIMIT",
+            message=f"Memory hard limit exceeded: {current_mb:.0f}MB / {limit_mb:.0f}MB — rejecting requests",
+            severity=Severity.FATAL,
+            retryable=False,
+            public=True,
+            metadata=meta,
             **kwargs,
         )

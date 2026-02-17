@@ -36,7 +36,6 @@ from aquilia.serializers.fields import (
     DateTimeField,
     JSONField,
     ReadOnlyField,
-    SerializerField,
 )
 from aquilia.serializers.validators import (
     MinValueValidator,
@@ -52,6 +51,9 @@ from ._types import (
     RolloutStrategy,
     DriftMethod,
     QuantizePreset,
+    ModelType,
+    InferenceMode,
+    DeviceType,
 )
 
 
@@ -237,3 +239,140 @@ class MetricsSummarySerializer(Serializer):
     model_name = ReadOnlyField()
     model_version = ReadOnlyField()
     # All other metrics are dynamic, rendered via DictField
+
+
+# ── LLM / Streaming Serializers ─────────────────────────────────────────
+
+class LLMConfigSerializer(Serializer):
+    """Validates LLM configuration payloads."""
+    max_tokens = IntegerField(min_value=1, required=False, default=512)
+    temperature = FloatField(min_value=0.0, max_value=2.0, required=False, default=1.0)
+    top_k = IntegerField(min_value=1, required=False, default=50)
+    top_p = FloatField(min_value=0.0, max_value=1.0, required=False, default=1.0)
+    repetition_penalty = FloatField(min_value=0.0, required=False, default=1.0)
+    stop_sequences = ListField(required=False, default=list)
+    context_length = IntegerField(min_value=1, required=False, default=2048)
+    dtype = CharField(max_length=16, required=False, default="float16")
+    device_map = CharField(max_length=32, required=False, default="auto")
+    quantize = ChoiceField(
+        choices=[q.value for q in QuantizePreset],
+        required=False,
+        default="none",
+    )
+    trust_remote_code = BooleanField(required=False, default=False)
+
+
+class StreamChunkSerializer(Serializer):
+    """Renders a single streaming token/chunk for SSE responses."""
+    request_id = ReadOnlyField()
+    token = CharField(required=False, default="")
+    token_index = IntegerField(min_value=0)
+    finish_reason = CharField(required=False, default="")
+    logprob = FloatField(required=False)
+
+
+class TokenUsageSerializer(Serializer):
+    """Renders token usage statistics for LLM inference."""
+    prompt_tokens = IntegerField(min_value=0)
+    completion_tokens = IntegerField(min_value=0)
+    total_tokens = IntegerField(min_value=0)
+
+
+class LLMInferenceRequestSerializer(Serializer):
+    """
+    Validates incoming LLM inference request payloads.
+
+    Extends InferenceRequestSerializer with LLM-specific fields.
+    """
+    request_id = CharField(max_length=128)
+    inputs = DictField(required=True)
+    parameters = DictField(required=False, default=dict)
+    # LLM-specific
+    priority = IntegerField(min_value=0, max_value=10, required=False, default=5)
+    stream = BooleanField(required=False, default=False)
+    max_tokens = IntegerField(min_value=1, required=False, default=512)
+    timeout_ms = FloatField(min_value=0.0, required=False, default=30000.0)
+    temperature = FloatField(min_value=0.0, max_value=2.0, required=False, default=1.0)
+    top_k = IntegerField(min_value=1, required=False, default=50)
+
+
+class LLMInferenceResultSerializer(Serializer):
+    """Renders LLM inference results including token metrics."""
+    request_id = ReadOnlyField()
+    outputs = DictField()
+    latency_ms = FloatField(min_value=0.0)
+    token_count = IntegerField(min_value=0, required=False, default=0)
+    prompt_tokens = IntegerField(min_value=0, required=False, default=0)
+    finish_reason = CharField(required=False, default="")
+    metadata = DictField(required=False, default=dict)
+    usage = DictField(required=False, default=dict)
+
+
+class ChatMessageSerializer(Serializer):
+    """Validates a single chat message."""
+    role = ChoiceField(choices=["system", "user", "assistant", "function"], required=True)
+    content = CharField(required=True)
+    name = CharField(max_length=64, required=False, default="")
+
+
+class ChatRequestSerializer(Serializer):
+    """
+    Validates chat-style LLM request payloads.
+
+    Compatible with OpenAI-style chat completions API.
+    """
+    messages = ListField(required=True)
+    model = CharField(max_length=256, required=False, default="")
+    stream = BooleanField(required=False, default=False)
+    max_tokens = IntegerField(min_value=1, required=False, default=512)
+    temperature = FloatField(min_value=0.0, max_value=2.0, required=False, default=1.0)
+    top_k = IntegerField(min_value=1, required=False, default=50)
+    top_p = FloatField(min_value=0.0, max_value=1.0, required=False, default=1.0)
+    stop = ListField(required=False, default=list)
+
+
+class ChatResponseSerializer(Serializer):
+    """Renders chat-style LLM response."""
+    id = ReadOnlyField()
+    model = ReadOnlyField()
+    choices = ListField()
+    usage = DictField(required=False, default=dict)
+    created = FloatField(required=False)
+
+
+class CircuitBreakerStatusSerializer(Serializer):
+    """Renders circuit breaker state for API responses."""
+    state = ChoiceField(choices=["closed", "open", "half_open"])
+    failure_count = IntegerField(min_value=0)
+    success_count = IntegerField(min_value=0)
+    total_requests = IntegerField(min_value=0)
+    total_rejections = IntegerField(min_value=0)
+    last_failure_time = FloatField(required=False, default=0.0)
+
+
+class RateLimiterStatusSerializer(Serializer):
+    """Renders rate limiter state for API responses."""
+    rate_rps = FloatField(min_value=0.0)
+    capacity = IntegerField(min_value=0)
+    available_tokens = FloatField(min_value=0.0)
+
+
+class MemoryStatusSerializer(Serializer):
+    """Renders memory tracker state for API responses."""
+    current_mb = FloatField(min_value=0.0)
+    soft_limit_mb = FloatField(min_value=0.0)
+    hard_limit_mb = FloatField(min_value=0.0)
+    utilization_pct = FloatField(min_value=0.0, max_value=100.0)
+    exceeds_soft = BooleanField()
+    exceeds_hard = BooleanField()
+
+
+class ModelCapabilitiesSerializer(Serializer):
+    """Renders model capabilities for API responses."""
+    model_name = ReadOnlyField()
+    model_type = ChoiceField(choices=[t.value for t in ModelType], required=False, default="SLM")
+    supports_streaming = BooleanField(required=False, default=False)
+    supports_chat = BooleanField(required=False, default=False)
+    inference_modes = ListField(required=False, default=list)
+    device = CharField(required=False, default="cpu")
+    max_context_length = IntegerField(min_value=0, required=False, default=0)

@@ -89,6 +89,10 @@ class MetricsCollector:
         batch_size: int = 1,
         error: bool = False,
         model_name: str = "",
+        token_count: int = 0,
+        prompt_tokens: int = 0,
+        streaming: bool = False,
+        time_to_first_token_ms: float = 0.0,
     ) -> None:
         """Record an inference event (convenience method)."""
         self.inc("aquilia_inference_total")
@@ -96,6 +100,20 @@ class MetricsCollector:
         self.observe("aquilia_batch_size", float(batch_size))
         if error:
             self.inc("aquilia_inference_errors_total")
+        # LLM-specific metrics
+        if token_count > 0:
+            self.inc("aquilia_tokens_generated_total", token_count)
+            self.observe("aquilia_tokens_per_request", float(token_count))
+            # Tokens per second
+            if latency_ms > 0:
+                tps = token_count / (latency_ms / 1000.0)
+                self.observe("aquilia_tokens_per_second", tps)
+        if prompt_tokens > 0:
+            self.inc("aquilia_prompt_tokens_total", prompt_tokens)
+        if streaming:
+            self.inc("aquilia_stream_requests_total")
+        if time_to_first_token_ms > 0:
+            self.observe("aquilia_time_to_first_token_ms", time_to_first_token_ms)
         # Track hot models
         if model_name:
             self._hot_models.push(model_name, 1)

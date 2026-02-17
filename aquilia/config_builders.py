@@ -1242,6 +1242,12 @@ class Integration:
         auto_rollback: bool = True,
         metrics_model_name: str = "",
         metrics_model_version: str = "",
+        # Ecosystem integration
+        cache_enabled: bool = True,
+        cache_ttl: int = 60,
+        cache_namespace: str = "mlops",
+        artifact_store_dir: str = "artifacts",
+        fault_engine_debug: bool = False,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -1250,6 +1256,17 @@ class Integration:
         Wires model packaging, registry, serving, observability, release
         management, scheduling, security, and plugins into the Aquilia
         framework via DI, lifecycle hooks, and middleware.
+
+        Ecosystem wiring:
+        - **CacheService** — MLOps controller caches model metadata,
+          registry listings, and capability introspections.
+        - **FaultEngine** — All MLOps exceptions flow through the engine
+          with scoped handlers for observability and recovery.
+        - **ArtifactStore** — Model packs are managed via the Aquilia
+          artifact system with content-addressed storage and integrity
+          verification.
+        - **Effects** — Controller methods declare ``CacheEffect`` to
+          participate in the effect middleware pipeline.
 
         Args:
             enabled: Enable/disable MLOps integration.
@@ -1274,6 +1291,11 @@ class Integration:
             auto_rollback: Enable automatic rollback on metric degradation.
             metrics_model_name: Default model name for metrics labels.
             metrics_model_version: Default model version for metrics labels.
+            cache_enabled: Enable CacheService for MLOps caching.
+            cache_ttl: Default cache TTL in seconds.
+            cache_namespace: Cache namespace prefix.
+            artifact_store_dir: Directory for artifact storage.
+            fault_engine_debug: Enable FaultEngine debug mode.
             **kwargs: Additional MLOps configuration.
 
         Returns:
@@ -1287,6 +1309,8 @@ class Integration:
                 drift_threshold=0.25,
                 max_batch_size=32,
                 plugin_auto_discover=True,
+                cache_enabled=True,
+                cache_ttl=120,
             ))
         """
         return {
@@ -1325,6 +1349,13 @@ class Integration:
                 "auto_discover": plugin_auto_discover,
             },
             "scaling_policy": scaling_policy,
+            "ecosystem": {
+                "cache_enabled": cache_enabled,
+                "cache_ttl": cache_ttl,
+                "cache_namespace": cache_namespace,
+                "artifact_store_dir": artifact_store_dir,
+                "fault_engine_debug": fault_engine_debug,
+            },
             **kwargs,
         }
 

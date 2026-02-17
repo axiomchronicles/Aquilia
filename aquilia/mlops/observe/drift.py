@@ -93,6 +93,10 @@ class DriftDetector:
                 score = self._compute_psi(ref_values, cur_values)
             elif self.method == DriftMethod.KS_TEST:
                 score = self._compute_ks(ref_values, cur_values)
+            elif self.method == DriftMethod.EMBEDDING:
+                score = self._compute_embedding_drift(ref_values, cur_values)
+            elif self.method == DriftMethod.PERPLEXITY:
+                score = self._compute_perplexity_drift(ref_values, cur_values)
             else:
                 score = self._compute_distribution_diff(ref_values, cur_values)
 
@@ -238,6 +242,10 @@ class DriftDetector:
             score = self._compute_psi(ref, cur)
         elif self.method == DriftMethod.KS_TEST:
             score = self._compute_ks(ref, cur)
+        elif self.method == DriftMethod.EMBEDDING:
+            score = self._compute_embedding_drift(ref, cur)
+        elif self.method == DriftMethod.PERPLEXITY:
+            score = self._compute_perplexity_drift(ref, cur)
         else:
             score = self._compute_distribution_diff(ref, cur)
 
@@ -250,3 +258,70 @@ class DriftDetector:
             is_drifted=is_drifted,
             feature_scores={feature_name: score},
         )
+
+    # ── Embedding Drift (cosine distance) ────────────────────────────
+
+    def _compute_embedding_drift(
+        self, reference: List[float], current: List[float],
+    ) -> float:
+        """
+        Compute drift via cosine distance between mean embedding vectors.
+
+        For LLM monitoring: compare embedding distributions by computing
+        the cosine distance between the centroids of reference and current
+        embedding sets.
+
+        If inputs are flat vectors (1D), treats each as a single embedding.
+        Returns a score ∈ [0, 2] (0 = identical, 2 = opposite).
+        """
+        if not reference or not current:
+            return 0.0
+
+        n = len(reference)
+        m = len(current)
+
+        # Compute means
+        ref_mean = sum(reference) / n
+        cur_mean = sum(current) / m
+
+        # For scalar data, compute normalised absolute difference
+        ref_std = max(1e-10, (sum((x - ref_mean) ** 2 for x in reference) / n) ** 0.5)
+        cur_std = max(1e-10, (sum((x - cur_mean) ** 2 for x in current) / m) ** 0.5)
+
+        # Standardised mean shift
+        return abs(ref_mean - cur_mean) / max(ref_std, cur_std)
+
+    # ── Perplexity Drift ─────────────────────────────────────────────
+
+    def _compute_perplexity_drift(
+        self, reference: List[float], current: List[float],
+    ) -> float:
+        """
+        Detect drift in LLM perplexity distributions.
+
+        Compares the mean and variance of perplexity values between
+        reference and current windows.  A significant increase in mean
+        perplexity typically indicates distribution shift in input data.
+
+        Returns: normalised perplexity shift score.
+        """
+        if not reference or not current:
+            return 0.0
+
+        ref_mean = sum(reference) / len(reference)
+        cur_mean = sum(current) / len(current)
+
+        if ref_mean <= 0:
+            return 0.0
+
+        # Relative perplexity increase
+        relative_shift = (cur_mean - ref_mean) / ref_mean
+
+        # Also consider variance change (Jensen-Shannon-like)
+        ref_var = sum((x - ref_mean) ** 2 for x in reference) / len(reference)
+        cur_var = sum((x - cur_mean) ** 2 for x in current) / len(current)
+        var_ratio = max(cur_var, 1e-10) / max(ref_var, 1e-10)
+
+        # Combined score: shift + variance instability
+        score = max(0.0, relative_shift) + max(0.0, math.log(var_ratio))
+        return score

@@ -670,7 +670,7 @@ class TestMLOpsModule:
         assert MLOpsManifest.version == "0.2.0"
         assert len(MLOpsManifest.controllers) == 1
         assert len(MLOpsManifest.services) >= 10
-        assert len(MLOpsManifest.middleware) == 2
+        assert len(MLOpsManifest.middleware) == 4
 
     def test_manifest_depends_on(self):
         from aquilia.mlops.module import MLOpsManifest
