@@ -1,0 +1,4 @@
+sanic==24.*
+asyncpg==0.30.*
+orjson==3.*
+websockets==14.*

@@ -1,0 +1,216 @@
+"""
+Aquilia benchmark app — using REAL Aquilia framework.
+
+Uses actual Aquilia Controller-based routing, Workspace, Module, DI, and all framework features.
+This is the proper way to build an Aquilia app, not raw ASGI.
+"""
+
+import hashlib
+import os
+from datetime import datetime, timezone
+
+import asyncpg
+import orjson
+
+# Import from specific modules to avoid debug/__init__.py import errors
+from aquilia.config_builders import Workspace, Module
+from aquilia.controller import Controller, GET, POST, WS
+from aquilia.controller.base import RequestCtx
+from aquilia.response import Response
+from aquilia.server import AquiliaServer
+from aquilia.config import ConfigLoader
+
+
+
+# ── Configuration ────────────────────────────────────────────────────────────
+
+DB_DSN = os.environ.get("DATABASE_URL", "postgresql://bench:bench@postgres:5432/bench")
+
+
+# ── Database Service (DI-injectable) ─────────────────────────────────────────
+
+class DatabaseService:
+    """Database connection pool service — injected via DI."""
+    
+    def __init__(self):
+        self.pool: asyncpg.Pool | None = None
+    
+    async def startup(self):
+        """Initialize connection pool on app startup."""
+        self.pool = await asyncpg.create_pool(DB_DSN, min_size=5, max_size=20)
+    
+    async def shutdown(self):
+        """Close connection pool on app shutdown."""
+        if self.pool:
+            await self.pool.close()
+    
+    async def fetch_one(self, query: str, *args):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow(query, *args)
+    
+    async def execute(self, query: str, *args):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow(query, *args)
+
+
+# ── Benchmark Controller ─────────────────────────────────────────────────────
+
+class BenchmarkController(Controller):
+    """
+    Benchmark endpoints using real Aquilia Controller API.
+    
+    Demonstrates:
+    - GET/POST/WS decorators
+    - RequestCtx parameter injection
+    - Response.json() / Response.stream() helpers
+    - DI-injected service (DatabaseService)
+    - Async handlers with proper Aquilia patterns
+    """
+    
+    prefix = "/"
+    tags = ["benchmark"]
+    
+    def __init__(self, db: DatabaseService):
+        """Constructor receives DI-injected database service."""
+        self.db = db
+    
+    @GET("/ping")
+    async def ping(self, ctx: RequestCtx):
+        """Simple text response — measures pure routing overhead."""
+        return Response(content=b"pong", headers={"content-type": "text/plain"})
+    
+    @GET("/json")
+    async def json_endpoint(self, ctx: RequestCtx):
+        """JSON response with timestamp."""
+        return Response.json({
+            "message": "hello",
+            "ts": datetime.now(timezone.utc).isoformat(),
+        })
+    
+    @GET("/db-read")
+    async def db_read(self, ctx: RequestCtx):
+        """Single-row SELECT by ID from query parameter."""
+        item_id = ctx.query_params.get("id")
+        if not item_id:
+            return Response.json({"error": "Missing id parameter"}, status=400)
+        
+        row = await self.db.fetch_one(
+            "SELECT id, name, description, price, created_at FROM items WHERE id = $1",
+            int(item_id)
+        )
+        
+        if row:
+            result = {
+                "id": row["id"],
+                "name": row["name"],
+                "description": row["description"],
+                "price": float(row["price"]),
+                "created_at": row["created_at"].isoformat(),
+            }
+        else:
+            result = {"error": "not found"}
+        
+        return Response.json(result)
+    
+    @POST("/db-write")
+    async def db_write(self, ctx: RequestCtx):
+        """Single-row INSERT."""
+        data = await ctx.json()
+        name = data.get("name", "unnamed")
+        description = data.get("description", "")
+        price = data.get("price", 0.0)
+        
+        row = await self.db.execute(
+            "INSERT INTO items (name, description, price) VALUES ($1, $2, $3) RETURNING id",
+            name, description, price
+        )
+        
+        return Response.json({"id": row["id"]}, status=201)
+    
+    @POST("/upload")
+    async def upload(self, ctx: RequestCtx):
+        """File upload — compute SHA256 of body."""
+        body = await ctx.body()
+        sha = hashlib.sha256(body).hexdigest()
+        return Response.json({"sha256": sha, "size": len(body)})
+    
+    @GET("/stream")
+    async def stream(self, ctx: RequestCtx):
+        """Stream 10MB binary data in 64KB chunks."""
+        CHUNK = 64 * 1024
+        TOTAL = 10 * 1024 * 1024
+        chunk_data = b"X" * CHUNK
+        
+        async def generator():
+            sent = 0
+            while sent < TOTAL:
+                to_send = min(CHUNK, TOTAL - sent)
+                yield chunk_data[:to_send]
+                sent += to_send
+        
+        return Response.stream(generator(), content_type="application/octet-stream")
+    
+    @WS("/ws-echo")
+    async def ws_echo(self, ctx: RequestCtx):
+        """WebSocket echo endpoint — echoes all messages back."""
+        ws = ctx.websocket
+        if not ws:
+            return Response(content=b"Not a WebSocket", status=400)
+        
+        await ws.accept()
+        try:
+            async for message in ws:
+                if isinstance(message, str):
+                    await ws.send_text(message)
+                else:
+                    await ws.send_bytes(message)
+        except Exception:
+            pass
+
+
+# ── Workspace Definition ─────────────────────────────────────────────────────
+
+workspace = (
+    Workspace(name="bench", version="1.0.0", description="Aquilia benchmark")
+    .module(
+        Module("benchmark", version="1.0.0", description="Benchmark endpoints")
+        .register_controllers("app:BenchmarkController")
+        .register_services("app:DatabaseService")
+    )
+)
+
+
+# ── Server Bootstrap ─────────────────────────────────────────────────────────
+
+# Create minimal config with debug disabled (production mode)
+import yaml
+config_dict = {
+    "debug": False,  # Disable debug pages to avoid import errors
+    "log_level": "WARNING",  # Minimal logging for benchmarks
+}
+config = ConfigLoader()
+config._config = config_dict
+
+# Build Aquilia server with real framework
+server = AquiliaServer(manifests=[workspace], config=config)
+
+# Register lifecycle hooks for DB connection pool
+db_service_instance = None
+
+async def on_startup():
+    """Initialize DB pool on startup."""
+    global db_service_instance
+    # Get DatabaseService from DI container
+    db_service_instance = server.runtime_registry.container.get(DatabaseService)
+    await db_service_instance.startup()
+
+async def on_shutdown():
+    """Close DB pool on shutdown."""
+    if db_service_instance:
+        await db_service_instance.shutdown()
+
+server.lifecycle.on_startup(on_startup)
+server.lifecycle.on_shutdown(on_shutdown)
+
+# Get ASGI application callable
+app = server.get_asgi_app()

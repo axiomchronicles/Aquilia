@@ -1,0 +1,6 @@
+# Aquilia is installed from local source in its Dockerfile
+uvicorn[standard]==0.34.*
+asyncpg==0.30.*
+orjson==3.*
+websockets==14.*
+pytest==8.*  # Required by aquilia.testing imports

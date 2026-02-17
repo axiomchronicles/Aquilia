@@ -1,0 +1,5 @@
+# Benchmark results are machine-specific — don't commit raw data
+*.txt
+*.csv
+*.json
+!.gitkeep
