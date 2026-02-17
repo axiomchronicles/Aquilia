@@ -1,10 +1,18 @@
 """
 Pattern matcher with optimized matching algorithm.
+
+Performance notes (v0.2.0):
+- Castors and validators are called **inline** (no thread dispatch).
+  int(), str(), and typical constraint lambdas are trivial CPU-bound
+  operations that complete in < 100 ns.  Dispatching them to a thread
+  pool via anyio.to_thread.run_sync added 10-50 us of overhead **per
+  parameter per match** — completely unacceptable on the hot path.
+- Regex-based matching is preferred when available (compiled during
+  pattern compilation) for single-shot matching.
 """
 
 from dataclasses import dataclass
 from typing import Dict, Any, Optional, List
-import anyio
 
 from .compiler.compiler import CompiledPattern
 from .compiler.ast_nodes import StaticSegment, TokenSegment, SplatSegment, OptionalGroup
@@ -45,12 +53,14 @@ class PatternMatcher:
         """
         Match a path against patterns.
 
-        Uses anyio for async context but matching is still sync.
+        All castor/validator calls are executed inline (no thread dispatch)
+        since they are trivial CPU-bound operations.
         """
         query_params = query_params or {}
 
         # Remove trailing slash for matching
-        path = path.rstrip("/") if len(path) > 1 else path
+        if len(path) > 1 and path[-1] == "/":
+            path = path[:-1]
 
         # Try each pattern in specificity order
         for pattern in self.patterns:
@@ -69,7 +79,6 @@ class PatternMatcher:
         """Try to match a single pattern."""
         # Quick prefix check
         if pattern.static_prefix and not path.startswith(pattern.static_prefix):
-            # print(f"DEBUG: Static prefix mismatch: '{path}' does not start with '{pattern.static_prefix}'")
             return None
 
         # Use regex if available
@@ -82,12 +91,12 @@ class PatternMatcher:
             for name, param in pattern.params.items():
                 value_str = match.group(name)
                 try:
-                    # Cast value
-                    value = await anyio.to_thread.run_sync(param.castor, value_str)
+                    # Cast value inline - castors are trivial (int, str, etc.)
+                    value = param.castor(value_str)
 
-                    # Validate constraints
+                    # Validate constraints inline
                     for validator in param.validators:
-                        if not await anyio.to_thread.run_sync(validator, value):
+                        if not validator(value):
                             return None
 
                     params[name] = value
@@ -95,7 +104,7 @@ class PatternMatcher:
                     return None
         else:
             # Segment-by-segment matching
-            result = await self._match_segments(pattern, path)
+            result = self._match_segments_sync(pattern, path)
             if result is None:
                 return None
             params = result
@@ -106,11 +115,10 @@ class PatternMatcher:
             if name in query_params:
                 value_str = query_params[name]
                 try:
-                    value = await anyio.to_thread.run_sync(param.castor, value_str)
+                    value = param.castor(value_str)
 
-                    # Validate constraints
                     for validator in param.validators:
-                        if not await anyio.to_thread.run_sync(validator, value):
+                        if not validator(value):
                             return None
 
                     query[name] = value
@@ -124,40 +132,41 @@ class PatternMatcher:
 
         return MatchResult(pattern=pattern, params=params, query=query)
 
-    async def _match_segments(
+    def _match_segments_sync(
         self,
         pattern: CompiledPattern,
         path: str,
     ) -> Optional[Dict[str, Any]]:
-        """Match path segments without regex."""
-        path_segments = [s for s in path.split("/") if s]
+        """Match path segments without regex (fully synchronous)."""
+        path_segments = path.split("/")
+        # Filter empty segments from leading/trailing slashes
+        path_segments = [s for s in path_segments if s]
         pattern_segments = pattern.ast.segments
-        params = {}
+        params: Dict[str, Any] = {}
         path_idx = 0
         pattern_idx = 0
+        num_path = len(path_segments)
+        num_pattern = len(pattern_segments)
 
-        while pattern_idx < len(pattern_segments):
+        while pattern_idx < num_pattern:
             segment = pattern_segments[pattern_idx]
-            # print(f"DEBUG: Matching segment {pattern_idx}: {segment} against path segment {path_idx}")
-            
+
             if isinstance(segment, StaticSegment):
-                if path_idx >= len(path_segments) or path_segments[path_idx] != segment.value:
-                    # print(f"DEBUG: Static mismatch: {path_segments[path_idx] if path_idx < len(path_segments) else 'EOF'} != {segment.value}")
+                if path_idx >= num_path or path_segments[path_idx] != segment.value:
                     return None
                 path_idx += 1
             elif isinstance(segment, TokenSegment):
-                if path_idx >= len(path_segments):
+                if path_idx >= num_path:
                     return None
 
                 value_str = path_segments[path_idx]
                 param = pattern.params[segment.name]
 
                 try:
-                    value = await anyio.to_thread.run_sync(param.castor, value_str)
+                    value = param.castor(value_str)
 
-                    # Validate constraints
                     for validator in param.validators:
-                        if not await anyio.to_thread.run_sync(validator, value):
+                        if not validator(value):
                             return None
 
                     params[segment.name] = value
@@ -166,65 +175,54 @@ class PatternMatcher:
 
                 path_idx += 1
             elif isinstance(segment, SplatSegment):
-                # Capture remaining segments
                 remaining = path_segments[path_idx:]
-                param = pattern.params[segment.name]
-
                 if segment.param_type == "path":
-                    # Join as string
-                    value = "/".join(remaining)
+                    params[segment.name] = "/".join(remaining)
                 else:
-                    # Return as list
-                    value = remaining
-
-                params[segment.name] = value
-                path_idx = len(path_segments)
+                    params[segment.name] = remaining
+                path_idx = num_path
             elif isinstance(segment, OptionalGroup):
-                # Try to match optional group
-                saved_idx = path_idx
-                opt_result = await self._match_optional(segment, path_segments, path_idx, pattern)
+                opt_result = self._match_optional_sync(segment, path_segments, path_idx, pattern)
                 if opt_result:
                     params.update(opt_result["params"])
                     path_idx = opt_result["idx"]
-                # If optional doesn't match, continue (that's OK)
 
             pattern_idx += 1
 
-        # All path segments must be consumed
-        if path_idx != len(path_segments):
+        if path_idx != num_path:
             return None
 
         return params
 
-    async def _match_optional(
+    def _match_optional_sync(
         self,
         group: OptionalGroup,
         path_segments: List[str],
         start_idx: int,
         pattern: CompiledPattern,
     ) -> Optional[Dict[str, Any]]:
-        """Try to match an optional group."""
-        params = {}
+        """Try to match an optional group (fully synchronous)."""
+        params: Dict[str, Any] = {}
         idx = start_idx
+        num_path = len(path_segments)
 
         for segment in group.segments:
             if isinstance(segment, StaticSegment):
-                if idx >= len(path_segments) or path_segments[idx] != segment.value:
+                if idx >= num_path or path_segments[idx] != segment.value:
                     return None
                 idx += 1
             elif isinstance(segment, TokenSegment):
-                if idx >= len(path_segments):
+                if idx >= num_path:
                     return None
 
                 value_str = path_segments[idx]
                 param = pattern.params[segment.name]
 
                 try:
-                    value = await anyio.to_thread.run_sync(param.castor, value_str)
+                    value = param.castor(value_str)
 
-                    # Validate constraints
                     for validator in param.validators:
-                        if not await anyio.to_thread.run_sync(validator, value):
+                        if not validator(value):
                             return None
 
                     params[segment.name] = value

@@ -683,26 +683,34 @@ class Q:
     # ── Internal ─────────────────────────────────────────────────────
 
     def _clone(self) -> Q:
-        """Create an immutable copy of this queryset."""
-        c = Q(self._table, self._model_cls, self._db)
-        c._wheres = self._wheres.copy()
-        c._params = self._params.copy()
-        c._order_clauses = self._order_clauses.copy()
+        """Create an immutable copy of this queryset.
+        
+        Optimized: only copies non-empty collections to reduce allocation
+        pressure on chained queries where most fields are default/empty.
+        """
+        c = Q.__new__(Q)
+        c._table = self._table
+        c._model_cls = self._model_cls
+        c._db = self._db
+        # Copy-on-write: only copy non-empty lists
+        c._wheres = self._wheres.copy() if self._wheres else []
+        c._params = self._params.copy() if self._params else []
+        c._order_clauses = self._order_clauses.copy() if self._order_clauses else []
         c._limit_val = self._limit_val
         c._offset_val = self._offset_val
         c._db_alias = self._db_alias
-        c._annotations = self._annotations.copy()
-        c._group_by = self._group_by.copy()
-        c._having = self._having.copy()
-        c._having_params = self._having_params.copy()
+        c._annotations = self._annotations.copy() if self._annotations else {}
+        c._group_by = self._group_by.copy() if self._group_by else []
+        c._having = self._having.copy() if self._having else []
+        c._having_params = self._having_params.copy() if self._having_params else []
         c._distinct = self._distinct
-        c._select_related = self._select_related.copy()
-        c._prefetch_related = self._prefetch_related.copy()
-        c._only_fields = self._only_fields.copy()
-        c._defer_fields = self._defer_fields.copy()
+        c._select_related = self._select_related.copy() if self._select_related else []
+        c._prefetch_related = self._prefetch_related.copy() if self._prefetch_related else []
+        c._only_fields = self._only_fields.copy() if self._only_fields else []
+        c._defer_fields = self._defer_fields.copy() if self._defer_fields else []
         c._select_for_update = self._select_for_update
         c._is_none = self._is_none
-        c._set_operations = self._set_operations[:]
+        c._set_operations = self._set_operations[:] if self._set_operations else []
         return c
 
     def _build_select(self, count: bool = False) -> Tuple[str, List[Any]]:

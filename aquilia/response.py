@@ -385,7 +385,9 @@ class Response:
         if encoder:
             content = encoder(obj)
         elif JSON_ENCODER == "orjson":
-            content = orjson.dumps(obj, default=default_serializer, **kwargs).decode("utf-8")
+            # orjson.dumps() returns bytes — use directly to avoid
+            # a decode→re-encode round-trip in send_asgi.
+            content = orjson.dumps(obj, default=default_serializer, **kwargs)
         else:
             try:
                 content = orjson.dumps(obj, default=default_serializer, **kwargs)
@@ -1290,18 +1292,24 @@ class Response:
         return _range_stream()
 
     def _prepare_headers(self) -> List[tuple]:
-        """Prepare headers for ASGI (convert to list of byte tuples)."""
+        """Prepare headers for ASGI (convert to list of byte tuples).
+        
+        Uses local variable binding for encode method to reduce
+        attribute lookups in the loop.
+        """
         headers_list = []
+        _append = headers_list.append
+        _str_encode = str.encode
         
         for name, value in self._headers.items():
-            name_bytes = name.encode("latin1")
+            name_bytes = _str_encode(name, "latin1")
             
             if isinstance(value, list):
                 # Multiple values (e.g., Set-Cookie)
                 for v in value:
-                    headers_list.append((name_bytes, v.encode("latin1")))
+                    _append((name_bytes, _str_encode(v, "latin1")))
             else:
-                headers_list.append((name_bytes, value.encode("latin1")))
+                _append((name_bytes, _str_encode(value, "latin1")))
         
         return headers_list
     

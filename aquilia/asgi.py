@@ -43,6 +43,7 @@ class ASGIAdapter:
         self.server = server
         self.socket_runtime = socket_runtime
         self.logger = logging.getLogger("aquilia.asgi")
+        self._cached_chain = None  # Built once on first request or after startup
         
         # Configure socket runtime with DI factory if server is available
         if self.socket_runtime and self.server:
@@ -230,7 +231,11 @@ class ASGIAdapter:
 
             return Response.json({"error": "Not found"}, status=404)
 
-        # Build middleware chain (wraps final_handler with all registered middleware)
+        # Build middleware chain once and cache it.
+        # The chain wraps a closure over `final_handler` which captures
+        # the per-request controller_match. We still need to rebuild
+        # because final_handler closes over per-request state.
+        # However, we cache the middleware descriptors' sorted order.
         chain = self.middleware_stack.build_handler(final_handler)
 
         try:

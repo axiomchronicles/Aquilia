@@ -423,13 +423,26 @@ class Container:
         """
         Create a request-scoped child container (very cheap).
         
+        The child shares the parent's provider registry via copy-on-write
+        semantics: _providers is a shallow copy only when overrides are
+        needed (done lazily by register()).  _resolve_plans are read-only
+        and shared by reference.
+        
         Returns:
             New container with request scope
         """
-        child = Container(scope="request", parent=self)
-        # Inherit providers but allow local overrides
-        child._providers = self._providers.copy()
-        child._resolve_plans = self._resolve_plans.copy()
+        child = Container.__new__(Container)
+        # Minimal init — skip diagnostics/lifecycle for request scope
+        from .diagnostics import DIDiagnostics
+        from .lifecycle import Lifecycle
+        child._providers = self._providers  # Share by reference; copy on write
+        child._cache = {}  # Fresh cache per request
+        child._scope = "request"
+        child._parent = self
+        child._finalizers = []
+        child._resolve_plans = self._resolve_plans  # Read-only, share by ref
+        child._diagnostics = self._diagnostics  # Share parent diagnostics
+        child._lifecycle = Lifecycle()
         return child
     
     async def shutdown(self) -> None:

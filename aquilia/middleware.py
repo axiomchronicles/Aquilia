@@ -40,6 +40,7 @@ class MiddlewareStack:
     
     def __init__(self):
         self.middlewares: List[MiddlewareDescriptor] = []
+        self._sorted = True  # Track if sorting is needed
     
     def add(
         self,
@@ -60,7 +61,7 @@ class MiddlewareStack:
         )
         
         self.middlewares.append(descriptor)
-        self._sort_middlewares()
+        self._sorted = False  # Defer sorting until build_handler()
     
     def _sort_middlewares(self):
         """Sort middlewares by scope and priority."""
@@ -75,6 +76,11 @@ class MiddlewareStack:
     
     def build_handler(self, final_handler: Handler) -> Handler:
         """Build middleware chain wrapping the final handler."""
+        # Sort only if needed (deferred from add())
+        if not self._sorted:
+            self._sort_middlewares()
+            self._sorted = True
+        
         handler = final_handler
         
         # Wrap in reverse order so first middleware is outermost
