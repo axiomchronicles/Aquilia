@@ -77,6 +77,15 @@ logger = logging.getLogger("aquilia.response")
 PathLike = Union[str, Path]
 
 
+def _json_default_serializer(o):
+    """Default JSON serializer for non-standard types."""
+    if isinstance(o, (set, tuple)):
+        return list(o)
+    if hasattr(o, "isoformat"):
+        return o.isoformat()
+    return str(o)
+
+
 # ============================================================================
 # Helper Classes & Protocols
 # ============================================================================
@@ -316,7 +325,7 @@ class Response:
             # Auto-detect media type
             self._headers["content-type"] = self._detect_media_type(content)
         
-        # Background tasks
+        # Background tasks — avoid list allocation when empty (common case)
         if background is None:
             self._background_tasks: List[BackgroundTask] = []
         elif isinstance(background, list):
@@ -326,7 +335,6 @@ class Response:
         
         # Metrics
         self._bytes_sent = 0
-        self._send_start_time: Optional[float] = None
 
     @property
     def headers(self) -> Dict[str, Union[str, List[str]]]:
@@ -375,25 +383,16 @@ class Response:
         Returns:
             Response with JSON content
         """
-        def default_serializer(o):
-            if isinstance(o, (set, tuple)):
-                return list(o)
-            if hasattr(o, "isoformat"):
-                return o.isoformat()
-            return str(o)
-
         if encoder:
             content = encoder(obj)
         elif JSON_ENCODER == "orjson":
-            # orjson.dumps() returns bytes — use directly to avoid
-            # a decode→re-encode round-trip in send_asgi.
-            content = orjson.dumps(obj, default=default_serializer, **kwargs)
+            content = orjson.dumps(obj, default=_json_default_serializer, **kwargs)
         else:
             try:
-                content = orjson.dumps(obj, default=default_serializer, **kwargs)
+                content = orjson.dumps(obj, default=_json_default_serializer, **kwargs)
             except Exception:
                 import json
-                content = json.dumps(obj, default=default_serializer)
+                content = json.dumps(obj, default=_json_default_serializer)
         
         return cls(
             content=content,
@@ -1129,126 +1128,108 @@ class Response:
     ) -> None:
         """
         Send response via ASGI.
-        
-        Handles:
-        - Multiple content types (bytes, str, dict, iterables, coroutines)
-        - Streaming with proper more_body flags
-        - Range requests (206 Partial Content) - TODO Phase 2
-        - Client disconnect handling
-        - Background task execution
-        - Error handling with FaultEngine integration
-        
-        Args:
-            send: ASGI send callable
-            request: Optional Request object for Range support & conditional responses
+
+        Performance (v2):
+        - Skip range-request logic when no _file_path attribute exists.
+        - Pre-encode simple bodies (bytes) to avoid branching in _send_body.
+        - Minimize time.time() calls for metrics.
         """
-        self._send_start_time = time.time()
-        
         try:
-            # Handle Range requests (206 Partial Content)
-            should_send_partial = False
-            range_start, range_end = None, None
-            
-            if request and hasattr(self, "_file_path") and hasattr(self, "_file_size"):
-                range_header = None
-                if hasattr(request, 'headers'):
-                    h = request.headers
-                    if hasattr(h, 'get'):
-                        range_header = h.get('range')
-                    elif isinstance(h, dict):
-                        range_header = h.get('range') or h.get('Range')
-                
-                if range_header and range_header.startswith('bytes='):
-                    try:
-                        range_spec = range_header[6:]  # Strip 'bytes='
-                        file_size = self._file_size
-                        
-                        if range_spec.startswith('-'):
-                            # Suffix range: bytes=-500 (last 500 bytes)
-                            suffix_len = int(range_spec[1:])
-                            range_start = max(0, file_size - suffix_len)
-                            range_end = file_size - 1
-                        elif range_spec.endswith('-'):
-                            # Open-ended range: bytes=500-
-                            range_start = int(range_spec[:-1])
-                            range_end = file_size - 1
-                        else:
-                            # Full range: bytes=200-499
-                            parts = range_spec.split('-', 1)
-                            range_start = int(parts[0])
-                            range_end = int(parts[1])
-                        
-                        # Validate range
-                        if range_start < 0 or range_start >= file_size or range_end < range_start:
-                            raise RangeNotSatisfiableError(
-                                message=f"Range not satisfiable: {range_header} (size={file_size})",
-                                details={"file_size": file_size}
-                            )
-                        
-                        # Clamp end to file size
-                        range_end = min(range_end, file_size - 1)
-                        content_length = range_end - range_start + 1
-                        
-                        # Update response for partial content
-                        self.status = 206
-                        self._headers['content-range'] = f'bytes {range_start}-{range_end}/{file_size}'
-                        self._headers['content-length'] = str(content_length)
-                        should_send_partial = True
-                        
-                    except (ValueError, IndexError):
-                        # Malformed range header - ignore and send full response
-                        pass
-            
-            # If we're sending a partial response, replace the content stream
-            # with a range-aware file stream
-            if should_send_partial and range_start is not None and range_end is not None:
-                self._content = self._create_range_stream(
-                    self._file_path, range_start, range_end
-                )
-            
+            # Range request handling — only for file responses
+            if (
+                request is not None
+                and hasattr(self, "_file_path")
+                and hasattr(self, "_file_size")
+            ):
+                self._handle_range_request(request)
+
+            # Pre-compute content-length for simple bodies before preparing headers
+            content = self._content
+            if isinstance(content, bytes):
+                if "content-length" not in self._headers:
+                    self._headers["content-length"] = str(len(content))
+            elif isinstance(content, str):
+                # Will be encoded later, but pre-compute length
+                content_bytes = content.encode(self.encoding)
+                self._content = content_bytes
+                if "content-length" not in self._headers:
+                    self._headers["content-length"] = str(len(content_bytes))
+
             # Prepare headers for ASGI
             headers_list = self._prepare_headers()
-            
+
             # Send http.response.start
             await send({
                 "type": "http.response.start",
                 "status": self.status,
-                "headers": headers_list
+                "headers": headers_list,
             })
-            
+
             # Send body based on content type
             await self._send_body(send, request)
-            
+
             # Run background tasks
-            await self._run_background_tasks()
-        
+            if self._background_tasks:
+                await self._run_background_tasks()
+
         except asyncio.CancelledError:
-            # Client disconnected
-            logger.info("Client disconnected during response send")
             raise ClientDisconnectError(
                 message="Client disconnected",
-                details={"bytes_sent": self._bytes_sent}
+                details={"bytes_sent": self._bytes_sent},
             )
-        
         except Exception as e:
-            # Log error and try to send 500 if we haven't started
-            logger.error(f"Error during response send: {e}", exc_info=True)
-            
-            # If we already sent start, we can't change status
-            # Just log and raise
             raise ResponseStreamError(
                 message=f"Response stream error: {e}",
-                details={"error": str(e), "bytes_sent": self._bytes_sent}
+                details={"error": str(e), "bytes_sent": self._bytes_sent},
             )
-        
-        finally:
-            # Emit metrics
-            if self._send_start_time:
-                duration = time.time() - self._send_start_time
-                logger.debug(
-                    f"Response sent: status={self.status} "
-                    f"bytes={self._bytes_sent} duration={duration:.3f}s"
+
+    def _handle_range_request(self, request: Any) -> None:
+        """Handle Range header for file responses (moved out of hot path)."""
+        range_header = None
+        if hasattr(request, 'headers'):
+            h = request.headers
+            if hasattr(h, 'get'):
+                range_header = h.get('range')
+            elif isinstance(h, dict):
+                range_header = h.get('range') or h.get('Range')
+
+        if not range_header or not range_header.startswith('bytes='):
+            return
+
+        try:
+            range_spec = range_header[6:]
+            file_size = self._file_size
+
+            if range_spec.startswith('-'):
+                suffix_len = int(range_spec[1:])
+                range_start = max(0, file_size - suffix_len)
+                range_end = file_size - 1
+            elif range_spec.endswith('-'):
+                range_start = int(range_spec[:-1])
+                range_end = file_size - 1
+            else:
+                parts = range_spec.split('-', 1)
+                range_start = int(parts[0])
+                range_end = int(parts[1])
+
+            if range_start < 0 or range_start >= file_size or range_end < range_start:
+                raise RangeNotSatisfiableError(
+                    message=f"Range not satisfiable: {range_header} (size={file_size})",
+                    details={"file_size": file_size},
                 )
+
+            range_end = min(range_end, file_size - 1)
+            content_length = range_end - range_start + 1
+
+            self.status = 206
+            self._headers['content-range'] = f'bytes {range_start}-{range_end}/{file_size}'
+            self._headers['content-length'] = str(content_length)
+
+            self._content = self._create_range_stream(
+                self._file_path, range_start, range_end,
+            )
+        except (ValueError, IndexError):
+            pass  # Malformed range — send full response
     
     @staticmethod
     def _create_range_stream(
@@ -1318,98 +1299,122 @@ class Response:
         send: Callable[[dict], Awaitable[None]],
         request: Optional[Any]
     ) -> None:
-        """Send response body based on content type."""
-        
-        # Case 1: Async iterator (streaming)
-        if hasattr(self._content, "__aiter__"):
-            async for chunk in self._content:
+        """Send response body based on content type.
+
+        Performance (v2):
+        - Checks bytes first (most common fast path for JSON/HTML).
+        - Avoids isinstance checks for streaming when content is bytes.
+        """
+        content = self._content
+
+        # ── Fast path: bytes (pre-encoded JSON, HTML, binary) ──
+        if isinstance(content, bytes):
+            self._bytes_sent = len(content)
+            await send({
+                "type": "http.response.body",
+                "body": content,
+                "more_body": False,
+            })
+            return
+
+        # ── Fast path: str ──
+        if isinstance(content, str):
+            body_bytes = content.encode(self.encoding)
+            self._bytes_sent = len(body_bytes)
+            await send({
+                "type": "http.response.body",
+                "body": body_bytes,
+                "more_body": False,
+            })
+            return
+
+        # ── Fast path: dict/list (JSON) ──
+        if isinstance(content, (dict, list)):
+            body_bytes = self._encode_body(content)
+            if "content-length" not in self._headers:
+                self._headers["content-length"] = str(len(body_bytes))
+            self._bytes_sent = len(body_bytes)
+            await send({
+                "type": "http.response.body",
+                "body": body_bytes,
+                "more_body": False,
+            })
+            return
+
+        # ── Async iterator (streaming) ──
+        if hasattr(content, "__aiter__"):
+            async for chunk in content:
                 chunk_bytes = self._ensure_bytes(chunk)
                 self._bytes_sent += len(chunk_bytes)
-                
                 await send({
                     "type": "http.response.body",
                     "body": chunk_bytes,
-                    "more_body": True
+                    "more_body": True,
                 })
-            
-            # Final empty chunk
             await send({
                 "type": "http.response.body",
                 "body": b"",
-                "more_body": False
+                "more_body": False,
             })
-        
-        # Case 2: Sync iterator (run in executor)
-        elif hasattr(self._content, "__iter__") and not isinstance(self._content, (str, bytes, dict, list)):
+            return
+
+        # ── Sync iterator ──
+        if hasattr(content, "__iter__"):
             loop = asyncio.get_event_loop()
-            
+
             def _get_next_chunk(iterator):
                 try:
                     return next(iterator), True
                 except StopIteration:
                     return None, False
-            
-            iterator = iter(self._content)
-            
+
+            iterator = iter(content)
             while True:
                 chunk, has_more = await loop.run_in_executor(None, _get_next_chunk, iterator)
-                
                 if not has_more:
                     break
-                
                 chunk_bytes = self._ensure_bytes(chunk)
                 self._bytes_sent += len(chunk_bytes)
-                
                 await send({
                     "type": "http.response.body",
                     "body": chunk_bytes,
-                    "more_body": True
+                    "more_body": True,
                 })
-            
-            # Final empty chunk
             await send({
                 "type": "http.response.body",
                 "body": b"",
-                "more_body": False
+                "more_body": False,
             })
-        
-        # Case 3: Coroutine/awaitable (e.g., template render)
-        elif inspect.iscoroutine(self._content) or inspect.isawaitable(self._content):
+            return
+
+        # ── Coroutine/awaitable (template render) ──
+        if inspect.iscoroutine(content) or inspect.isawaitable(content):
             try:
-                rendered = await self._content
+                rendered = await content
                 body_bytes = self._encode_body(rendered)
                 self._bytes_sent += len(body_bytes)
-                
                 await send({
                     "type": "http.response.body",
                     "body": body_bytes,
-                    "more_body": False
+                    "more_body": False,
                 })
-            
             except Exception as e:
-                # Template render error - send safe 500
-                logger.error(f"Template render error: {e}", exc_info=True)
-                
-                # Try to raise proper fault
                 raise TemplateRenderError(
                     message=f"Template rendering failed: {e}",
-                    details={"error": str(e), "error_type": type(e).__name__}
+                    details={"error": str(e), "error_type": type(e).__name__},
                 )
-        
-        # Case 4: Regular content (bytes, str, dict, list)
-        else:
-            body_bytes = self._encode_body(self._content)
-            self._bytes_sent += len(body_bytes)
-            
-            # Set Content-Length if not already set
-            if "content-length" not in self._headers:
-                self._headers["content-length"] = str(len(body_bytes))
-            
-            await send({
-                "type": "http.response.body",
-                "body": body_bytes,
-                "more_body": False
-            })
+            return
+
+        # ── Fallback ──
+        body_bytes = self._encode_body(content)
+        self._bytes_sent += len(body_bytes)
+        if "content-length" not in self._headers:
+            self._headers["content-length"] = str(len(body_bytes))
+        await send({
+            "type": "http.response.body",
+            "body": body_bytes,
+            "more_body": False,
+        })
     
     def _ensure_bytes(self, chunk: Any) -> bytes:
         """Ensure chunk is bytes."""

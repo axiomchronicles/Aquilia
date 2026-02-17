@@ -209,30 +209,25 @@ class AquiliaServer:
         )
         
         # Add request scope middleware with RuntimeRegistry
+        # Note: The ASGI adapter already creates a request-scoped container.
+        # This middleware just stores references and handles cleanup.
         from .middleware_ext.request_scope import SimplifiedRequestScopeMiddleware
         
+        runtime_ref = self.runtime  # capture for closure
+        
         async def request_scope_mw(request, ctx, next_handler):
-            """Request scope middleware with RuntimeRegistry DI containers."""
-            # Get app-scoped container from runtime
+            """Request scope middleware — stores container refs and cleans up."""
+            request.state["di_container"] = ctx.container
             app_name = request.state.get("app_name", "default")
-            app_container = self.runtime.di_containers.get(app_name)
-            
+            app_container = runtime_ref.di_containers.get(app_name)
             if app_container:
-                # Create request-scoped container
-                request_container = app_container.create_request_scope()
-                request.state["di_container"] = request_container
                 request.state["app_container"] = app_container
-                
-                # Update ctx container to use request scope
-                ctx.container = request_container
-                
-                try:
-                    return await next_handler(request, ctx)
-                finally:
-                    # Cleanup request scope
-                    await request_container.shutdown()
-            else:
+            try:
                 return await next_handler(request, ctx)
+            finally:
+                # Cleanup request scope
+                if ctx.container and hasattr(ctx.container, 'shutdown'):
+                    await ctx.container.shutdown()
         
         self.middleware_stack.add(
             request_scope_mw,

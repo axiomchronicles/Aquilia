@@ -325,21 +325,19 @@ class Container:
     ) -> T:
         """
         Async resolve (primary resolution path).
-        
-        Args:
-            token: Type or string key
-            tag: Optional tag for disambiguation
-            optional: If True, return None if not found
-            
-        Returns:
-            The resolved instance
+
+        Performance (v2):
+        - Fast-path cache lookup before any diagnostics.
+        - Diagnostics only emitted when actually instantiating.
+        - No f-string formatting on hot path.
         """
         token_key = self._token_to_key(token)
         cache_key = self._make_cache_key(token_key, tag)
         
-        # Fast path: check cache
-        if cache_key in self._cache:
-            return self._cache[cache_key]
+        # Fast path: check cache (no diagnostics overhead)
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
         
         # Lookup provider
         provider = self._lookup_provider(token_key, tag)
@@ -349,39 +347,21 @@ class Container:
                 return None
             self._raise_not_found(token_key, tag)
         
-        # Scope Delegation: If scope is singleton/app and we have a parent,
-        # delegate to parent to ensure we use the shared instance.
-        # Request scope must always be resolved in the current (child) container.
+        # Scope Delegation: singleton/app → parent
         if self._parent and provider.meta.scope in ("singleton", "app"):
             return await self._parent.resolve_async(token, tag=tag, optional=optional)
         
-        # Emit diagnostic event
-        from .diagnostics import DIEventType
-        self._diagnostics.emit(DIEventType.RESOLUTION_START, token=token, tag=tag)
-
         # Create resolution context
         ctx = ResolveCtx(container=self)
         ctx.push(cache_key)
         
         try:
-            # Measure instantiation
-            with self._diagnostics.measure(
-                DIEventType.RESOLUTION_SUCCESS, 
-                token=token, 
-                tag=tag,
-                provider_name=provider.meta.name
-            ):
-                # Instantiate
-                instance = await provider.instantiate(ctx)
+            instance = await provider.instantiate(ctx)
             
             # Cache if appropriate for scope
             if self._should_cache(provider.meta.scope):
                 self._cache[cache_key] = instance
-                
-                # Check for lifecycle hooks
                 await self._check_lifecycle_hooks(instance, provider.meta.name)
-
-                # Register finalizer for cleanup (compatibility with existing)
                 if hasattr(instance, "__aexit__") or hasattr(instance, "shutdown"):
                     self._register_finalizer(instance)
             
@@ -422,33 +402,33 @@ class Container:
     def create_request_scope(self) -> "Container":
         """
         Create a request-scoped child container (very cheap).
-        
-        The child shares the parent's provider registry via copy-on-write
-        semantics: _providers is a shallow copy only when overrides are
-        needed (done lazily by register()).  _resolve_plans are read-only
-        and shared by reference.
-        
-        Returns:
-            New container with request scope
+
+        Performance (v2):
+        - No import of DIDiagnostics/Lifecycle at call time (cached).
+        - Lifecycle is a lightweight NullLifecycle for request scope.
+        - Shared diagnostics reference from parent.
         """
         child = Container.__new__(Container)
-        # Minimal init — skip diagnostics/lifecycle for request scope
-        from .diagnostics import DIDiagnostics
-        from .lifecycle import Lifecycle
-        child._providers = self._providers  # Share by reference; copy on write
+        child._providers = self._providers  # Share by reference
         child._cache = {}  # Fresh cache per request
         child._scope = "request"
         child._parent = self
         child._finalizers = []
         child._resolve_plans = self._resolve_plans  # Read-only, share by ref
         child._diagnostics = self._diagnostics  # Share parent diagnostics
-        child._lifecycle = Lifecycle()
+        child._lifecycle = _NullLifecycle  # Singleton no-op lifecycle
         return child
     
     async def shutdown(self) -> None:
         """
         Shutdown container - run lifecycle hooks and finalizers in LIFO order.
+
+        Performance (v2): Short-circuit for empty request-scoped containers.
         """
+        # Fast path: request scope with nothing to clean up
+        if self._scope == "request" and not self._finalizers and not self._cache:
+            return
+
         from .diagnostics import DIEventType
         self._diagnostics.emit(DIEventType.LIFECYCLE_SHUTDOWN, metadata={"scope": self._scope})
 
@@ -461,9 +441,8 @@ class Container:
             try:
                 await finalizer()
             except Exception as e:
-                # Log but don't fail shutdown
                 print(f"Error during finalizer: {e}")
-        
+
         self._finalizers.clear()
         self._cache.clear()
         self._lifecycle.clear()
@@ -838,3 +817,20 @@ class Registry:
                                 provider_app=provider_app,
                                 provider_token=dep_token,
                             )
+
+
+# ── Lightweight null lifecycle for request-scoped containers ──
+
+class _NullLifecycleType:
+    """No-op lifecycle singleton — avoids allocating a real Lifecycle
+    per request container."""
+    __slots__ = ()
+
+    async def run_startup_hooks(self): pass
+    async def run_shutdown_hooks(self): pass
+    async def run_finalizers(self): pass
+    def on_startup(self, *a, **kw): pass
+    def on_shutdown(self, *a, **kw): pass
+    def clear(self): pass
+
+_NullLifecycle = _NullLifecycleType()

@@ -172,45 +172,48 @@ class Request:
     - Client IP detection with proxy trust
     - Content negotiation helpers
     """
-    
+
+    __slots__ = (
+        'scope', '_receive', '_send',
+        'max_body_size', 'max_field_count', 'max_file_size',
+        'upload_tempdir', 'trust_proxy', 'chunk_size',
+        'json_max_size', 'json_max_depth', 'form_memory_threshold',
+        'state',
+        '_body', '_body_consumed', '_json', '_form_data',
+        '_query_params', '_headers', '_cookies', '_url',
+        '_disconnected', '_temp_files',
+    )
+
+    # Class-level defaults — avoid setting per instance when unchanged
+    _DEFAULT_MAX_BODY_SIZE = 10_485_760
+    _DEFAULT_MAX_FIELD_COUNT = 1000
+    _DEFAULT_MAX_FILE_SIZE = 2_147_483_648
+    _DEFAULT_CHUNK_SIZE = 65536
+    _DEFAULT_JSON_MAX_SIZE = 10_485_760
+    _DEFAULT_JSON_MAX_DEPTH = 64
+    _DEFAULT_FORM_MEMORY_THRESHOLD = 1048576
+
     def __init__(
         self,
         scope: Mapping[str, Any],
         receive: Callable[..., Awaitable[dict]],
         send: Optional[Callable] = None,
         *,
-        max_body_size: int = 10_485_760,  # 10 MiB
+        max_body_size: int = 10_485_760,
         max_field_count: int = 1000,
-        max_file_size: int = 2_147_483_648,  # 2 GiB
+        max_file_size: int = 2_147_483_648,
         upload_tempdir: Optional[PathLike] = None,
         trust_proxy: Union[bool, List[str]] = False,
         chunk_size: int = 64 * 1024,
-        json_max_size: int = 10_485_760,  # 10 MiB
+        json_max_size: int = 10_485_760,
         json_max_depth: int = 64,
-        form_memory_threshold: int = 1024 * 1024,  # 1 MiB
+        form_memory_threshold: int = 1024 * 1024,
     ):
-        """
-        Initialize Request.
-        
-        Args:
-            scope: ASGI scope dict
-            receive: ASGI receive callable
-            send: ASGI send callable (optional)
-            max_body_size: Maximum request body size in bytes
-            max_field_count: Maximum number of form fields/parts
-            max_file_size: Maximum file upload size in bytes
-            upload_tempdir: Directory for temporary upload files
-            trust_proxy: Trust proxy headers (True/False or list of IPs)
-            chunk_size: Default chunk size for streaming
-            json_max_size: Maximum JSON payload size
-            json_max_depth: Maximum JSON nesting depth
-            form_memory_threshold: Threshold for spilling uploads to disk
-        """
         self.scope = scope
         self._receive = receive
         self._send = send
-        
-        # Configuration
+
+        # Configuration — only set non-defaults
         self.max_body_size = max_body_size
         self.max_field_count = max_field_count
         self.max_file_size = max_file_size
@@ -220,11 +223,11 @@ class Request:
         self.json_max_size = json_max_size
         self.json_max_depth = json_max_depth
         self.form_memory_threshold = form_memory_threshold
-        
+
         # State
         self.state: Dict[str, Any] = {}
-        
-        # Cached values
+
+        # Cached values (None = not yet computed)
         self._body: Optional[bytes] = None
         self._body_consumed = False
         self._json: Optional[Any] = None
@@ -234,8 +237,6 @@ class Request:
         self._cookies: Optional[Dict[str, str]] = None
         self._url: Optional[URL] = None
         self._disconnected = False
-        
-        # Cleanup tracking
         self._temp_files: List[Path] = []
     
     async def __call__(self) -> "Request":
@@ -1293,6 +1294,11 @@ class Request:
             Session object if available, None otherwise
         """
         return self.state.get("session")
+    
+    @session.setter
+    def session(self, value):
+        """Set session in request state."""
+        self.state["session"] = value
     
     def require_session(self) -> Any:  # Returns Session
         """

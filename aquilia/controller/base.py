@@ -5,7 +5,6 @@ Provides the base Controller class and RequestCtx abstraction.
 """
 
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
-from dataclasses import dataclass, field
 
 if TYPE_CHECKING:
     from aquilia.request import Request
@@ -14,27 +13,29 @@ if TYPE_CHECKING:
     from aquilia.auth.core import Identity
 
 
-@dataclass
 class RequestCtx:
     """
     Request context provided to controller methods.
-    
-    Provides unified access to request state, identity, session,
-    and DI container.
-    
-    Attributes:
-        request: The HTTP request
-        identity: Authenticated identity (if auth successful)
-        session: Active session (if sessions enabled)
-        container: Request-scoped DI container
-        state: Additional state dictionary
+
+    Uses manual __init__ instead of @dataclass for faster construction.
+    No __slots__ to allow dynamic attribute setting by middleware/plugins.
     """
-    
-    request: "Request"
-    identity: Optional["Identity"] = None
-    session: Optional["Session"] = None
-    container: Optional[Any] = None  # DI Container
-    state: Dict[str, Any] = field(default_factory=dict)
+
+    def __init__(
+        self,
+        request: "Request",
+        identity: Optional["Identity"] = None,
+        session: Optional["Session"] = None,
+        container: Optional[Any] = None,
+        state: Optional[Dict[str, Any]] = None,
+        request_id: Optional[str] = None,
+    ):
+        self.request = request
+        self.identity = identity
+        self.session = session
+        self.container = container
+        self.state = state if state is not None else {}
+        self.request_id = request_id
     
     @property
     def path(self) -> str:

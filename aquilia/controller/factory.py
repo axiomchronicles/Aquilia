@@ -5,7 +5,7 @@ Handles controller instantiation with DI support.
 Supports both per-request and singleton instantiation modes.
 """
 
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type, get_origin, get_args
 from enum import Enum
 import asyncio
 import inspect
@@ -27,23 +27,12 @@ class ControllerFactory:
     - Per-request vs singleton instantiation
     - Lifecycle management (startup/shutdown hooks)
     - Scope validation
-    
-    Example:
-        factory = ControllerFactory(container=app_container)
-        controller = await factory.create(
-            UsersController,
-            mode=InstantiationMode.PER_REQUEST,
-            request_container=request_container
-        )
     """
+
+    # Class-level caches for constructor analysis
+    _ctor_info_cache: Dict[Type, Any] = {}  # class -> (sig, type_hints, param_specs)
     
     def __init__(self, app_container: Optional[Any] = None):
-        """
-        Initialize factory.
-        
-        Args:
-            app_container: App-level DI container
-        """
         self.app_container = app_container
         self._singletons: Dict[Type, Any] = {}
         self._startup_called: set = set()
@@ -109,6 +98,9 @@ class ControllerFactory:
         self._singletons[controller_class] = instance
         return instance
     
+    # Cache for controllers that don't have on_request hook
+    _no_on_request: set = set()
+
     async def _create_per_request(
         self,
         controller_class: Type,
@@ -116,8 +108,6 @@ class ControllerFactory:
         ctx: Optional[Any] = None,
     ) -> Any:
         """Create new instance for each request."""
-        # Resolve constructor dependencies from request container
-        # Request container has access to both app and request-scoped providers
         container = request_container or self.app_container
         
         instance = await self._resolve_and_instantiate(
@@ -125,12 +115,21 @@ class ControllerFactory:
             container,
         )
         
-        # Call on_request hook
-        if hasattr(instance, 'on_request'):
-            if inspect.iscoroutinefunction(instance.on_request):
-                await instance.on_request(ctx)
+        # Fast path: skip on_request for controllers that don't override it from Controller base
+        if controller_class not in ControllerFactory._no_on_request:
+            # Check if on_request is actually overridden (not just inherited from Controller base)
+            has_custom_on_request = (
+                'on_request' in controller_class.__dict__
+                or any('on_request' in B.__dict__ for B in controller_class.__mro__[1:]
+                       if B.__name__ != 'Controller' and B is not object)
+            )
+            if has_custom_on_request:
+                if inspect.iscoroutinefunction(instance.on_request):
+                    await instance.on_request(ctx)
+                else:
+                    instance.on_request(ctx)
             else:
-                instance.on_request(ctx)
+                ControllerFactory._no_on_request.add(controller_class)
         
         return instance
     
@@ -153,62 +152,74 @@ class ControllerFactory:
             # No DI - simple instantiation
             return controller_class()
         
-        # Extract constructor signature
-        import inspect
+        # Get cached constructor info (inspect.signature + get_type_hints are expensive)
+        ctor_info = ControllerFactory._ctor_info_cache.get(controller_class)
+        if ctor_info is None:
+            ctor_info = self._analyze_constructor(controller_class)
+            ControllerFactory._ctor_info_cache[controller_class] = ctor_info
+        
+        if not ctor_info:
+            # No injectable params — simple instantiation
+            return controller_class()
+
         try:
-            sig = inspect.signature(controller_class.__init__)
-            
-            # Resolve type hints (handles string forward references)
-            from typing import get_type_hints
-            try:
-                type_hints = get_type_hints(controller_class.__init__, include_extras=True)
-            except Exception:
-                # Fallback if get_type_hints fails (e.g. missing imports)
-                type_hints = {}
-                
             params = {}
+            _EMPTY = inspect.Parameter.empty
             
-            for param_name, param in sig.parameters.items():
-                if param_name == 'self':
-                    continue
-                
-                # Try to resolve from container
+            for param_name, param_type, has_default, default_val in ctor_info:
                 try:
-                    # Get type annotation from hints if available, else raw annotation
-                    param_type = type_hints.get(param_name, param.annotation)
-                    
-                    # INTELLIGENT INFERENCE:
-                    # If no type hint is provided, but the default value is a class (type),
-                    # assume the user wants an instance of that class injected.
-                    if param_type == inspect.Parameter.empty and param.default != inspect.Parameter.empty:
-                        if isinstance(param.default, type):
-                            param_type = param.default
-                    
-                    if param_type != inspect.Parameter.empty:
-                        # Resolve from container
+                    if param_type is not _EMPTY:
                         resolved = await self._resolve_parameter(
                             param_type,
                             container,
                         )
                         params[param_name] = resolved
-                    elif param.default != inspect.Parameter.empty:
-                        # Use default
-                        params[param_name] = param.default
-                except Exception as e:
-                    # If resolution fails and no default, fail hard
-                    if param.default != inspect.Parameter.empty:
-                        params[param_name] = param.default
+                    elif has_default:
+                        params[param_name] = default_val
+                except Exception:
+                    if has_default:
+                        params[param_name] = default_val
                     else:
-                        raise RuntimeError(
-                            f"Failed to resolve required parameter '{param_name}' "
-                            f"for {controller_class.__name__}: {e}"
-                        ) from e
+                        raise
             
             return controller_class(**params)
         
-        except Exception as e:
-            # Fallback to simple instantiation
+        except Exception:
             return controller_class()
+    
+    @staticmethod
+    def _analyze_constructor(controller_class: Type):
+        """Analyze constructor once and return a list of (name, type, has_default, default) tuples."""
+        try:
+            sig = inspect.signature(controller_class.__init__)
+            
+            from typing import get_type_hints
+            try:
+                type_hints = get_type_hints(controller_class.__init__, include_extras=True)
+            except Exception:
+                type_hints = {}
+            
+            _EMPTY = inspect.Parameter.empty
+            result = []
+            
+            for param_name, param in sig.parameters.items():
+                if param_name == 'self':
+                    continue
+                
+                param_type = type_hints.get(param_name, param.annotation)
+                
+                # Intelligent inference: default is a class → inject it
+                if param_type is _EMPTY and param.default is not _EMPTY:
+                    if isinstance(param.default, type):
+                        param_type = param.default
+                
+                has_default = param.default is not _EMPTY
+                default_val = param.default if has_default else None
+                result.append((param_name, param_type, has_default, default_val))
+            
+            return result
+        except Exception:
+            return None
     
     async def _resolve_parameter(
         self,
@@ -221,8 +232,6 @@ class ControllerFactory:
         Handles Annotated[T, Inject(...)] syntax.
         """
         try:
-            from typing import get_origin, get_args
-            
             origin = get_origin(param_type)
             if origin is not None:
                 # Handle Annotated[T, Inject(...)]

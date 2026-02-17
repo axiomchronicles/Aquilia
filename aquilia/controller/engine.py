@@ -35,20 +35,18 @@ class ControllerEngine:
     - Lifecycle management
     """
     
+    # Class-level caches shared across instances
+    _signature_cache: Dict[Any, inspect.Signature] = {}
+    _pipeline_param_cache: Dict[int, set] = {}  # id(callable) -> set of param names
+    _has_lifecycle_hooks: Dict[type, tuple] = {}  # class -> (has_on_request, has_on_response)
+    _simple_route_cache: Dict[int, bool] = {}  # id(route) -> is_simple
+    
     def __init__(
         self,
         factory: ControllerFactory,
         enable_lifecycle: bool = True,
         fault_engine: Optional[Any] = None,
     ):
-        """
-        Initialize engine.
-        
-        Args:
-            factory: Controller factory for instantiation
-            enable_lifecycle: Whether to call lifecycle hooks
-            fault_engine: FaultEngine for structured error handling
-        """
         self.factory = factory
         self.enable_lifecycle = enable_lifecycle
         self.fault_engine = fault_engine
@@ -64,38 +62,42 @@ class ControllerEngine:
     ) -> Response:
         """
         Execute a controller route.
-        
-        Args:
-            route: Compiled route to execute
-            request: HTTP request
-            path_params: Extracted path parameters
-            container: Request-scoped DI container
-            
-        Returns:
-            HTTP response
+
+        Performance (v2):
+        - Fast path for monkeypatched handlers (no lifecycle, no DI).
+        - Skip lifecycle init check for per-request controllers.
+        - Build RequestCtx inline without extra method call for simple cases.
+        - Cache inspect.signature results via _bind_parameters.
         """
         controller_class = route.controller_class
         route_metadata = route.route_metadata
-        
-        # Fast path: monkeypatched handler (e.g. OpenAPI docs routes).
-        # These bypass the full controller lifecycle entirely.
+
+        # Fast path: monkeypatched handler (OpenAPI docs, etc.)
         if hasattr(route, "handler") and callable(route.handler):
-            ctx = await self._build_request_context(request, container)
+            ctx = RequestCtx(
+                request=request,
+                identity=request.state.get("identity"),
+                session=request.state.get("session"),
+                container=container,
+            )
             result = await route.handler(request, ctx)
             return self._to_response(result)
-        
-        # Initialize controller lifecycle hooks if needed
-        # Only for Singleton controllers or if we want to support startup hooks generally?
-        # Docs say on_startup is singleton only.
+
+        # Build RequestCtx
+        ctx = RequestCtx(
+            request=request,
+            identity=request.state.get("identity"),
+            session=request.state.get("session"),
+            container=container,
+            state=request.state,
+        )
+
+        # Singleton lifecycle init (once per controller class)
         is_singleton = getattr(controller_class, "instantiation_mode", "per_request") == "singleton"
-        
         if self.enable_lifecycle and is_singleton and controller_class not in self._lifecycle_initialized:
             await self._init_controller_lifecycle(controller_class, container)
             self._lifecycle_initialized.add(controller_class)
-        
-        # Build RequestCtx before controller instantiation so it's available for on_request hook
-        ctx = await self._build_request_context(request, container)
-        
+
         # Instantiate controller
         controller = await self.factory.create(
             controller_class,
@@ -103,82 +105,126 @@ class ControllerEngine:
             request_container=container,
             ctx=ctx,
         )
-        
+
         # Execute class-level pipeline
         if route.controller_metadata.pipeline:
             for pipeline_node in route.controller_metadata.pipeline:
                 result = await self._execute_pipeline_node(
-                    pipeline_node,
-                    request,
-                    ctx,
-                    controller,
+                    pipeline_node, request, ctx, controller,
                 )
                 if isinstance(result, Response):
-                    # Pipeline returned early response (e.g., auth failed)
                     return result
-        
+
         # Execute method-level pipeline
         if route_metadata.pipeline:
             for pipeline_node in route_metadata.pipeline:
                 result = await self._execute_pipeline_node(
-                    pipeline_node,
-                    request,
-                    ctx,
-                    controller,
+                    pipeline_node, request, ctx, controller,
                 )
                 if isinstance(result, Response):
                     return result
-        
-        # Bind parameters
-        kwargs = await self._bind_parameters(
-            route_metadata,
-            request,
-            ctx,
-            path_params,
-            container,
-        )
-        
+
         # Get handler method
         handler_method = getattr(controller, route_metadata.handler_name)
-        
+
+        # ── Fast path for simple handlers ──
+        # Handlers with no pipeline, no serializer, and only ctx/path params
+        # can skip the full _bind_parameters machinery.
+        route_id = id(route)
+        is_simple = ControllerEngine._simple_route_cache.get(route_id)
+        if is_simple is None:
+            params = route_metadata.parameters
+            has_serializer = (
+                getattr(route_metadata, 'request_serializer', None)
+                or getattr(route_metadata, 'response_serializer', None)
+            )
+            is_simple = (
+                not route.controller_metadata.pipeline
+                and not route_metadata.pipeline
+                and not has_serializer
+                and (not params or all(
+                    p.name == 'ctx' or p.source == 'path' for p in params
+                ))
+            )
+            ControllerEngine._simple_route_cache[route_id] = is_simple
+
+        if is_simple:
+            # Direct call — skip _bind_parameters, lifecycle hooks, serializer
+            try:
+                if path_params:
+                    result = await self._safe_call(handler_method, ctx, **path_params)
+                else:
+                    result = await self._safe_call(handler_method, ctx)
+                return self._to_response(result)
+            except Exception as e:
+                self.logger.error(
+                    f"Error executing {controller_class.__name__}.{route_metadata.handler_name}: {e}",
+                    exc_info=True,
+                )
+                if self.fault_engine:
+                    try:
+                        app_name = getattr(route, 'app_name', None)
+                        rid = request.state.get('request_id') if isinstance(request.state, dict) else None
+                        await self.fault_engine.process(
+                            e, app=app_name, route=route.full_path, request_id=rid,
+                        )
+                    except Exception:
+                        pass
+                raise
+
+        # Bind parameters
+        kwargs = await self._bind_parameters(
+            route_metadata, request, ctx, path_params, container,
+        )
+
         # Execute handler
         try:
-            # Call on_request hook if exists
-            if hasattr(controller, "on_request"):
+            # Check lifecycle hooks (cached per class)
+            # We check if the method is actually OVERRIDDEN from Controller base,
+            # since Controller defines on_request/on_response as no-ops.
+            hooks = ControllerEngine._has_lifecycle_hooks.get(controller_class)
+            if hooks is None:
+                has_on_request = (
+                    'on_request' in controller_class.__dict__
+                    or any('on_request' in B.__dict__ for B in controller_class.__mro__[1:]
+                           if B is not Controller and B is not object)
+                )
+                has_on_response = (
+                    'on_response' in controller_class.__dict__
+                    or any('on_response' in B.__dict__ for B in controller_class.__mro__[1:]
+                           if B is not Controller and B is not object)
+                )
+                hooks = (has_on_request, has_on_response)
+                ControllerEngine._has_lifecycle_hooks[controller_class] = hooks
+
+            has_on_request, has_on_response = hooks
+
+            if has_on_request:
                 await self._safe_call(controller.on_request, ctx)
-            
-            # Execute handler
+
             result = await self._safe_call(handler_method, ctx, **kwargs)
-            
-            # Auto-serialize response if response_serializer is set
             result = self._apply_response_serializer(result, route_metadata, ctx)
-            
-            # Convert result to Response if needed
             response = self._to_response(result)
-            
-            # Call on_response hook if exists
-            if hasattr(controller, "on_response"):
+
+            if has_on_response:
                 await self._safe_call(controller.on_response, ctx, response)
-            
+
             return response
-        
+
         except Exception as e:
             self.logger.error(
                 f"Error executing {controller_class.__name__}.{route_metadata.handler_name}: {e}",
                 exc_info=True,
             )
-            # Process through fault engine if available
             if self.fault_engine:
                 try:
                     app_name = getattr(route, 'app_name', None)
+                    rid = request.state.get('request_id') if isinstance(request.state, dict) else None
                     await self.fault_engine.process(
-                        e,
-                        app=app_name,
-                        route=route.full_path,
-                        request_id=getattr(request.state, 'get', lambda k, d=None: d)('request_id'),
+                        e, app=app_name, route=route.full_path, request_id=rid,
                     )
                 except Exception:
-                    pass  # Fault engine processing is best-effort
+                    pass
             raise
     
     async def _init_controller_lifecycle(
@@ -239,35 +285,29 @@ class ControllerEngine:
         request: Request,
         container: Container,
     ) -> RequestCtx:
-        """
-        Build RequestCtx with auth, session, and state.
-        
-        Looks for:
-        - Identity from request.state["identity"] or DI container
-        - Session from request.state["session"] or DI container
-        """
-        # Try to get identity - prefer request state (set by middleware)
+        """Build RequestCtx with auth, session, and state."""
         identity = request.state.get("identity")
+        session = request.state.get("session")
+
+        # Only do DI fallback if middleware didn't set identity/session
         if identity is None:
             try:
                 identity = await container.resolve_async("identity", optional=True)
-            except:
+            except Exception:
                 pass
-        
-        # Try to get session - prefer request state (set by session middleware)
-        session = request.state.get("session")
+
         if session is None:
             try:
                 session = await container.resolve_async("session", optional=True)
-            except:
+            except Exception:
                 pass
-        
+
         return RequestCtx(
             request=request,
             identity=identity,
             session=session,
             container=container,
-            state=dict(request.state),  # Copy state
+            state=request.state,
         )
     
     async def _execute_pipeline_node(
@@ -277,37 +317,35 @@ class ControllerEngine:
         ctx: RequestCtx,
         controller: Controller,
     ) -> Optional[Response]:
-        """
-        Execute a pipeline node (middleware/guard).
-        
-        Returns Response if node returns early, None to continue.
-        """
-        # Pipeline nodes can be:
-        # - Callables
-        # - Middleware instances
-        # - Guard functions
-        
-        if callable(pipeline_node):
+        """Execute a pipeline node (middleware/guard) with cached signatures."""
+        if not callable(pipeline_node):
+            return None
+
+        # Cache parameter names by id of callable
+        node_id = id(pipeline_node)
+        param_names = self._pipeline_param_cache.get(node_id)
+        if param_names is None:
             sig = inspect.signature(pipeline_node)
-            
-            # Build arguments based on signature
-            kwargs = {}
-            for param_name in sig.parameters:
-                if param_name == "request" or param_name == "req":
-                    kwargs[param_name] = request
-                elif param_name == "ctx" or param_name == "context":
-                    kwargs[param_name] = ctx
-                elif param_name == "controller":
-                    kwargs[param_name] = controller
-            
-            result = await self._safe_call(pipeline_node, **kwargs)
-            
-            # If result is False or Response, stop pipeline
-            if result is False:
-                return Response.json({"error": "Pipeline guard failed"}, status=403)
-            elif isinstance(result, Response):
-                return result
-        
+            param_names = set(sig.parameters.keys())
+            self._pipeline_param_cache[node_id] = param_names
+
+        kwargs = {}
+        if "request" in param_names or "req" in param_names:
+            key = "request" if "request" in param_names else "req"
+            kwargs[key] = request
+        if "ctx" in param_names or "context" in param_names:
+            key = "ctx" if "ctx" in param_names else "context"
+            kwargs[key] = ctx
+        if "controller" in param_names:
+            kwargs["controller"] = controller
+
+        result = await self._safe_call(pipeline_node, **kwargs)
+
+        if result is False:
+            return Response.json({"error": "Pipeline guard failed"}, status=403)
+        elif isinstance(result, Response):
+            return result
+
         return None
     
     async def _bind_parameters(
@@ -459,9 +497,7 @@ class ControllerEngine:
             elif param.source == "di":
                 try:
                     # For Session and Identity, we use optional=True so we can raise our own Faults
-                    from aquilia.sessions import Session as SessionClass
                     is_session_param = (
-                        param.type is SessionClass or 
                         param_name == "session" or
                         (hasattr(param.type, "__name__") and param.type.__name__ == "Session")
                     )
@@ -528,42 +564,37 @@ class ControllerEngine:
         else:
             return value
     
+    _serializer_base_class = None  # Cached Serializer class
+
     def _is_serializer_class(self, annotation: Any) -> bool:
         """Check if annotation is a Serializer subclass (FastAPI-style detection)."""
-        try:
-            from aquilia.serializers.base import Serializer
-            return (
-                isinstance(annotation, type)
-                and issubclass(annotation, Serializer)
-                and annotation is not Serializer
-            )
-        except ImportError:
+        if ControllerEngine._serializer_base_class is None:
+            try:
+                from aquilia.serializers.base import Serializer
+                ControllerEngine._serializer_base_class = Serializer
+            except ImportError:
+                ControllerEngine._serializer_base_class = type(None)  # sentinel
+                return False
+        
+        base = ControllerEngine._serializer_base_class
+        if base is type(None):
             return False
-    
+        return (
+            isinstance(annotation, type)
+            and issubclass(annotation, base)
+            and annotation is not base
+        )
+
     def _apply_response_serializer(
         self,
         result: Any,
         route_metadata: Any,
         ctx: RequestCtx,
     ) -> Any:
-        """
-        Auto-serialize handler return value via response_serializer.
-
-        If the route has a ``response_serializer`` in its metadata (set via
-        ``@POST("/", response_serializer=MySerializer)``), the return value
-        is passed through the serializer's ``to_representation()`` before
-        being converted to a ``Response``.
-
-        Supports:
-        - Single instance → ``Serializer(instance=result).data``
-        - List/tuple → ``Serializer.many(instance=result).data``
-        - Already a Response → passthrough (no serialization)
-        - Already a dict → passthrough (assume pre-serialized)
-        """
-        # Get response serializer from route metadata
+        """Auto-serialize handler return value via response_serializer."""
+        # Fast path: check direct attribute first (avoids dict lookups for common case)
         response_serializer = getattr(route_metadata, 'response_serializer', None)
         if response_serializer is None:
-            # Check raw metadata dict (from decorator)
             raw_meta = getattr(route_metadata, '_raw_metadata', None)
             if raw_meta and isinstance(raw_meta, dict):
                 response_serializer = raw_meta.get('response_serializer')
@@ -592,9 +623,18 @@ class ControllerEngine:
             )
             return result
     
+    # Cache for coroutine function checks
+    _is_coro_cache: Dict[int, bool] = {}  # id(func) -> is_coroutine
+    
     async def _safe_call(self, func: Any, *args, **kwargs) -> Any:
         """Safely call function (sync or async)."""
-        if inspect.iscoroutinefunction(func):
+        fid = id(func)
+        is_coro = ControllerEngine._is_coro_cache.get(fid)
+        if is_coro is None:
+            is_coro = inspect.iscoroutinefunction(func)
+            ControllerEngine._is_coro_cache[fid] = is_coro
+        
+        if is_coro:
             return await func(*args, **kwargs)
         else:
             result = func(*args, **kwargs)

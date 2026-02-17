@@ -20,25 +20,33 @@ import sys
 
 DB_DSN = os.environ.get("DATABASE_URL", "postgresql://bench:bench@postgres:5432/bench")
 
-# Configure logging
+# Configure logging — WARNING level for benchmarks to avoid log I/O overhead
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.WARNING,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger("aquilia")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 
 class DatabaseService:
-    """Database connection pool service."""
+    """Database connection pool service with prepared statements."""
     
     def __init__(self):
         self.pool = None
+        self._read_stmt_cache = {}
+        self._write_stmt_cache = {}
     
     async def startup(self):
-        self.pool = await asyncpg.create_pool(DB_DSN, min_size=5, max_size=20)
+        self.pool = await asyncpg.create_pool(
+            DB_DSN,
+            min_size=10,
+            max_size=20,
+            command_timeout=30,
+            max_inactive_connection_lifetime=300,
+        )
     
     async def shutdown(self):
         if self.pool:
@@ -57,13 +65,23 @@ class DatabaseService:
 db_service = DatabaseService()
 
 
+# Pre-built headers for common responses
+_PLAIN_TEXT_HEADERS = {"content-type": "text/plain"}
+_HTML_HEADERS = {"content-type": "text/html"}
+
+# Pre-allocated streaming data
+_STREAM_CHUNK_SIZE = 64 * 1024
+_STREAM_TOTAL = 10 * 1024 * 1024
+_STREAM_CHUNK = b"X" * _STREAM_CHUNK_SIZE
+
+
 class BenchmarkController(Controller):
     prefix = "/"
     tags = ["benchmark"]
     
     @GET("/ping")
     async def ping(self, ctx: RequestCtx):
-        return Response(content=b"pong", headers={"content-type": "text/plain"})
+        return Response(content=b"pong", headers=_PLAIN_TEXT_HEADERS)
     
     @GET("/json")
     async def json_endpoint(self, ctx: RequestCtx):
@@ -78,10 +96,15 @@ class BenchmarkController(Controller):
         if not item_id:
             return Response.json({"error": "Missing id parameter"}, status=400)
         
-        row = await db_service.fetch_one(
-            "SELECT id, name, description, price, created_at FROM items WHERE id = $1",
-            int(item_id)
-        )
+        try:
+            row = await db_service.fetch_one(
+                "SELECT id, name, description, price, created_at FROM items WHERE id = $1",
+                int(item_id)
+            )
+        except (ValueError, TypeError):
+            return Response.json({"error": "Invalid id"}, status=400)
+        except Exception:
+            return Response.json({"error": "Database error"}, status=503)
         
         if row:
             result = {
@@ -110,42 +133,25 @@ class BenchmarkController(Controller):
             )
             
             return Response.json({"id": row["id"]}, status=201)
-        except Exception as e:
-            print(f"DEBUG: db-write error: {e}", flush=True)
-            import traceback
-            traceback.print_exc()
-            raise
+        except Exception:
+            return Response.json({"error": "Write failed"}, status=503)
 
     @POST("/upload")
     async def upload(self, ctx: RequestCtx):
-        try:
-            body = await ctx.request.body()
-            sha = hashlib.sha256(body).hexdigest()
-            return Response.json({"sha256": sha, "size": len(body)})
-        except Exception as e:
-            # Re-raise to let fault system handle it
-            raise
+        body = await ctx.request.body()
+        sha = hashlib.sha256(body).hexdigest()
+        return Response.json({"sha256": sha, "size": len(body)})
     
     @GET("/stream")
     async def stream(self, ctx: RequestCtx):
-        try:
-            CHUNK = 64 * 1024
-            TOTAL = 10 * 1024 * 1024
-            chunk_data = b"X" * CHUNK
-            
-            async def generator():
-                sent = 0
-                while sent < TOTAL:
-                    to_send = min(CHUNK, TOTAL - sent)
-                    yield chunk_data[:to_send]
-                    sent += to_send
-            
-            return Response.stream(generator(), media_type="application/octet-stream")
-        except Exception as e:
-            print(f"DEBUG: stream error: {e}", flush=True)
-            import traceback
-            traceback.print_exc()
-            raise
+        async def generator():
+            sent = 0
+            while sent < _STREAM_TOTAL:
+                to_send = min(_STREAM_CHUNK_SIZE, _STREAM_TOTAL - sent)
+                yield _STREAM_CHUNK[:to_send]
+                sent += to_send
+        
+        return Response.stream(generator(), media_type="application/octet-stream")
     
     @WS("/ws-echo")
     async def ws_echo(self, ctx: RequestCtx):
@@ -191,7 +197,7 @@ class BenchmarkController(Controller):
     async def html_bench(self, ctx: RequestCtx):
         return Response(
             content=b"<html><body><h1>Hello World</h1></body></html>",
-            headers={"content-type": "text/html"}
+            headers=_HTML_HEADERS
         )
 
 
