@@ -262,7 +262,7 @@ class Container:
             >>> await container.register_instance(Session, session, scope="request")
         """
         from .providers import ValueProvider
-        
+
         # Create a ValueProvider for the instance
         provider = ValueProvider(
             token=token,
@@ -270,7 +270,15 @@ class Container:
             scope=scope,
             name=f"{token.__name__ if hasattr(token, '__name__') else token}_instance",
         )
-        
+
+        # Per-request instances must always replace the previous one —
+        # evict any existing provider/cache entry for this token so that
+        # register() doesn't raise "already registered".
+        token_key = self._token_to_key(token)
+        cache_key = self._make_cache_key(token_key, tag)
+        self._providers.pop(cache_key, None)
+        self._cache.pop(cache_key, None)
+
         # Register the provider
         self.register(provider, tag=tag)
     

@@ -70,6 +70,7 @@ class RouteMetadata:
     response_model: Optional[Type] = None
     status_code: int = 200
     specificity: int = 0
+    _raw_metadata: Dict[str, Any] = field(default_factory=dict, repr=False)
     
     def compute_specificity(self) -> int:
         """
@@ -318,6 +319,7 @@ def _extract_route_metadata(
         deprecated=route_meta['deprecated'],
         response_model=route_meta['response_model'],
         status_code=route_meta['status_code'],
+        _raw_metadata=route_meta,
     )
 
 
@@ -358,6 +360,9 @@ def _extract_method_params(
             elif _is_serializer_type(param_type):
                 # Serializer subclass → auto-parse request body (FastAPI-style)
                 source = 'body'
+            elif _is_blueprint_type(param_type):
+                # Blueprint subclass → auto-parse request body
+                source = 'body'
             elif get_origin(param_type) is not None:
                 # Check for Inject annotation
                 source = 'di'
@@ -397,6 +402,30 @@ def _is_serializer_type(annotation: Any) -> bool:
             isinstance(annotation, type)
             and issubclass(annotation, Serializer)
             and annotation is not Serializer
+        )
+    except ImportError:
+        return False
+
+
+def _is_blueprint_type(annotation: Any) -> bool:
+    """
+    Check if a type annotation is an Aquilia Blueprint subclass
+    or a ProjectedRef (Blueprint["projection"]).
+
+    Used by the metadata extractor to auto-detect handler parameters
+    that should be populated from the request body and sealed.
+    """
+    try:
+        from aquilia.blueprints.core import Blueprint
+        from aquilia.blueprints.lenses import _ProjectedRef
+
+        if isinstance(annotation, _ProjectedRef):
+            return True
+
+        return (
+            isinstance(annotation, type)
+            and issubclass(annotation, Blueprint)
+            and annotation is not Blueprint
         )
     except ImportError:
         return False

@@ -79,6 +79,23 @@ from .controller import (
     InstantiationMode,
     OpenAPIGenerator,
     OpenAPIConfig,
+    # Filtering & Search
+    FilterSet,
+    SearchFilter,
+    OrderingFilter,
+    BaseFilterBackend,
+    # Pagination
+    PageNumberPagination,
+    LimitOffsetPagination,
+    CursorPagination,
+    NoPagination,
+    # Content Negotiation & Rendering
+    JSONRenderer,
+    XMLRenderer,
+    YAMLRenderer,
+    PlainTextRenderer,
+    HTMLRenderer,
+    ContentNegotiator,
 )
 
 # ============================================================================
@@ -433,6 +450,7 @@ from .blueprints import (
     # Integration
     is_blueprint_class,
     render_blueprint_response,
+    bind_blueprint_to_request,
 )
 
 # ============================================================================
@@ -673,6 +691,26 @@ __all__ = [
     "ControllerFactory",
     "InstantiationMode",
     
+    # Filtering & Search
+    "FilterSet",
+    "SearchFilter",
+    "OrderingFilter",
+    "BaseFilterBackend",
+    
+    # Pagination
+    "PageNumberPagination",
+    "LimitOffsetPagination",
+    "CursorPagination",
+    "NoPagination",
+    
+    # Content Negotiation & Rendering
+    "JSONRenderer",
+    "XMLRenderer",
+    "YAMLRenderer",
+    "PlainTextRenderer",
+    "HTMLRenderer",
+    "ContentNegotiator",
+    
     
     # DI
     "Container",
@@ -864,6 +902,47 @@ __all__ = [
     
     # Discovery
     "PackageScanner",
+    
+    # Blueprints (Model ↔ World Contracts)
+    "Blueprint",
+    "BlueprintMeta",
+    "Facet",
+    "TextFacet",
+    "IntFacet",
+    "FloatFacet",
+    "DecimalFacet",
+    "BoolFacet",
+    "DateFacet",
+    "TimeFacet",
+    "DateTimeFacet",
+    "DurationFacet",
+    "UUIDFacet",
+    "EmailFacet",
+    "URLFacet",
+    "SlugFacet",
+    "IPFacet",
+    "ListFacet",
+    "DictFacet",
+    "JSONFacet",
+    "FileFacet",
+    "ChoiceFacet",
+    "Computed",
+    "Constant",
+    "WriteOnly",
+    "ReadOnly",
+    "Hidden",
+    "Inject",
+    "Lens",
+    "BlueprintFault",
+    "CastFault",
+    "SealFault",
+    "ImprintFault",
+    "ProjectionFault",
+    "generate_schema",
+    "generate_component_schemas",
+    "is_blueprint_class",
+    "render_blueprint_response",
+    "bind_blueprint_to_request",
     
     # Serializers
     "Serializer",

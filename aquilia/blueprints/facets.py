@@ -1037,26 +1037,47 @@ class Inject(Facet):
         self.attr = attr
 
     def resolve_from_context(self, context: Dict[str, Any]) -> Any:
-        """Resolve value from DI container in Blueprint context."""
+        """Resolve value from DI container or context in Blueprint context.
+
+        Resolution order:
+        1. DI container (container.resolve(token))
+        2. Direct context key (context[token]) — handles "identity",
+           "request", and other context-injected objects without a
+           full DI container.
+        """
+        # Try DI container first
         container = context.get("container")
-        if container is None:
-            return UNSET
+        if container is not None:
+            try:
+                service = container.resolve(self.token, optional=True)
+            except Exception:
+                service = None
 
-        try:
-            service = container.resolve(self.token, optional=True)
-        except Exception:
-            return UNSET
+            if service is not None:
+                if self.via:
+                    method = getattr(service, self.via, None)
+                    if method and callable(method):
+                        return method()
+                    return UNSET
+                if self.attr:
+                    return getattr(service, self.attr, UNSET)
+                return service
 
-        if service is None:
-            return UNSET
-        if self.via:
-            method = getattr(service, self.via, None)
-            if method and callable(method):
-                return method()
-            return UNSET
-        if self.attr:
-            return getattr(service, self.attr, UNSET)
-        return service
+        # Fallback: resolve token directly from context dict
+        # (handles "identity", "request" etc. injected by the engine)
+        if isinstance(self.token, str):
+            obj = context.get(self.token)
+            if obj is not None:
+                if self.via:
+                    method = getattr(obj, self.via, None)
+                    if method and callable(method):
+                        return method()
+                    return UNSET
+                if self.attr:
+                    return getattr(obj, self.attr, UNSET)
+                return obj
+
+        return UNSET
 
 
 # ── Model Field → Facet Mapping ──────────────────────────────────────────

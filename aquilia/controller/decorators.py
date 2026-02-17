@@ -5,7 +5,7 @@ HTTP method decorators for controller methods.
 Attach metadata without import-time side effects.
 """
 
-from typing import Any, Callable, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 from functools import wraps
 import inspect
 
@@ -33,6 +33,17 @@ class RouteDecorator:
         status_code: int = 200,
         request_serializer: Optional[type] = None,
         response_serializer: Optional[type] = None,
+        request_blueprint: Optional[type] = None,
+        response_blueprint: Optional[type] = None,
+        # ── Filtering, Searching, Ordering ───────────────────────────
+        filterset_class: Optional[type] = None,
+        filterset_fields: Optional[Union[List[str], Any]] = None,
+        search_fields: Optional[List[str]] = None,
+        ordering_fields: Optional[List[str]] = None,
+        # ── Pagination ───────────────────────────────────────────────
+        pagination_class: Optional[type] = None,
+        # ── Content Negotiation ──────────────────────────────────────
+        renderer_classes: Optional[List[Any]] = None,
     ):
         """
         Initialize route decorator.
@@ -51,6 +62,22 @@ class RouteDecorator:
                                 validation/deserialization
             response_serializer: Aquilia Serializer class for response
                                  serialization
+            request_blueprint: Aquilia Blueprint class for request body
+                               casting and sealing
+            response_blueprint: Aquilia Blueprint class (or ProjectedRef via
+                                Blueprint["projection"]) for response molding
+            filterset_class: FilterSet subclass for declarative filtering
+            filterset_fields: List of field names (exact-match shorthand)
+                              or dict mapping fields to lookup lists
+            search_fields: List of field names for text search
+                           (activated via ?search=<term>)
+            ordering_fields: List of field names allowed for dynamic ordering
+                             (activated via ?ordering=<field>)
+            pagination_class: Pagination backend class
+                              (PageNumberPagination, LimitOffsetPagination,
+                              CursorPagination)
+            renderer_classes: List of renderer instances/classes for
+                              content negotiation
         """
         self.path = path
         self.pipeline = pipeline or []
@@ -62,6 +89,14 @@ class RouteDecorator:
         self.status_code = status_code
         self.request_serializer = request_serializer
         self.response_serializer = response_serializer
+        self.request_blueprint = request_blueprint
+        self.response_blueprint = response_blueprint
+        self.filterset_class = filterset_class
+        self.filterset_fields = filterset_fields
+        self.search_fields = search_fields
+        self.ordering_fields = ordering_fields
+        self.pagination_class = pagination_class
+        self.renderer_classes = renderer_classes
         self.method: Optional[str] = None
     
     def __call__(self, func: F) -> F:
@@ -88,6 +123,14 @@ class RouteDecorator:
             'signature': inspect.signature(func),
             'request_serializer': self.request_serializer,
             'response_serializer': self.response_serializer,
+            'request_blueprint': self.request_blueprint,
+            'response_blueprint': self.response_blueprint,
+            'filterset_class': self.filterset_class,
+            'filterset_fields': self.filterset_fields,
+            'search_fields': self.search_fields,
+            'ordering_fields': self.ordering_fields,
+            'pagination_class': self.pagination_class,
+            'renderer_classes': self.renderer_classes,
         }
         
         func.__route_metadata__.append(metadata)

@@ -134,14 +134,29 @@ class ControllerEngine:
         is_simple = ControllerEngine._simple_route_cache.get(route_id)
         if is_simple is None:
             params = route_metadata.parameters
+            _rm = getattr(route_metadata, '_raw_metadata', {}) or {}
             has_serializer = (
-                getattr(route_metadata, 'request_serializer', None)
-                or getattr(route_metadata, 'response_serializer', None)
+                getattr(route_metadata, 'request_serializer', None) or _rm.get('request_serializer')
+                or getattr(route_metadata, 'response_serializer', None) or _rm.get('response_serializer')
+            )
+            has_blueprint = (
+                getattr(route_metadata, 'request_blueprint', None) or _rm.get('request_blueprint')
+                or getattr(route_metadata, 'response_blueprint', None) or _rm.get('response_blueprint')
+            )
+            has_filters_or_pagination = (
+                getattr(route_metadata, 'filterset_class', None) or _rm.get('filterset_class')
+                or getattr(route_metadata, 'filterset_fields', None) or _rm.get('filterset_fields')
+                or getattr(route_metadata, 'search_fields', None) or _rm.get('search_fields')
+                or getattr(route_metadata, 'ordering_fields', None) or _rm.get('ordering_fields')
+                or getattr(route_metadata, 'pagination_class', None) or _rm.get('pagination_class')
+                or getattr(route_metadata, 'renderer_classes', None) or _rm.get('renderer_classes')
             )
             is_simple = (
                 not route.controller_metadata.pipeline
                 and not route_metadata.pipeline
                 and not has_serializer
+                and not has_blueprint
+                and not has_filters_or_pagination
                 and (not params or all(
                     p.name == 'ctx' or p.source == 'path' for p in params
                 ))
@@ -203,8 +218,12 @@ class ControllerEngine:
                 await self._safe_call(controller.on_request, ctx)
 
             result = await self._safe_call(handler_method, ctx, **kwargs)
+            result = await self._apply_filters_and_pagination(result, route_metadata, request)
             result = self._apply_response_serializer(result, route_metadata, ctx)
-            response = self._to_response(result)
+            result = self._apply_response_blueprint(result, route_metadata, ctx)
+            response = self._apply_content_negotiation(result, route_metadata, request)
+            if response is None:
+                response = self._to_response(result)
 
             if has_on_response:
                 await self._safe_call(controller.on_response, ctx, response)
@@ -366,6 +385,7 @@ class ControllerEngine:
         - DI container
         - Special: ctx, request
         - **Serializer subclasses**: Auto-parsed from request body (FastAPI-style)
+        - **Blueprint subclasses**: Auto-parsed, cast+sealed from request body
 
         When a parameter is typed as a ``Serializer`` subclass, the engine
         will:
@@ -379,8 +399,20 @@ class ControllerEngine:
         validated data.  This gives the handler access to ``.save()``,
         ``.errors``, etc.
 
-        Similarly, if a ``request_serializer`` is declared on the route
-        decorator, it takes precedence and is used for body parsing.
+        When a parameter is typed as a ``Blueprint`` subclass, the engine
+        will:
+        1. Parse the request body (JSON or form)
+        2. Create the Blueprint with ``data=body, context={request, container}``
+        3. Call ``is_sealed(raise_fault=True)``
+        4. Inject the Blueprint instance or ``.validated_data``
+
+        If the parameter name is ``blueprint`` or ends with ``_blueprint``
+        or ``_bp``, the full Blueprint instance is injected. Otherwise,
+        ``blueprint.validated_data`` is injected.
+
+        Similarly, if a ``request_serializer`` or ``request_blueprint``
+        is declared on the route decorator, it takes precedence and is
+        used for body parsing.
         """
         kwargs = {}
         
@@ -390,6 +422,13 @@ class ControllerEngine:
             raw_meta = getattr(route_metadata, '_raw_metadata', None)
             if raw_meta and isinstance(raw_meta, dict):
                 decorator_request_serializer = raw_meta.get('request_serializer')
+
+        # Check for request_blueprint from decorator metadata
+        decorator_request_blueprint = getattr(route_metadata, 'request_blueprint', None)
+        if decorator_request_blueprint is None:
+            raw_meta = getattr(route_metadata, '_raw_metadata', None)
+            if raw_meta and isinstance(raw_meta, dict):
+                decorator_request_blueprint = raw_meta.get('request_blueprint')
         
         # Track if body has been consumed by a serializer
         _body_consumed = False
@@ -419,18 +458,82 @@ class ControllerEngine:
             # If the parameter type is a Serializer subclass, auto-parse
             # the request body through it.
             param_is_serializer = self._is_serializer_class(param.type)
+
+            # ── Blueprint injection ──────────────────────────────────────
+            # If the parameter type is a Blueprint subclass, auto-parse
+            # the request body through it.
+            param_is_blueprint = self._is_blueprint_class(param.type)
             
             # Also check for decorator-level request_serializer
             use_serializer = None
+            use_blueprint = None
+
             if param_is_serializer:
                 use_serializer = param.type
+            elif param_is_blueprint:
+                use_blueprint = param.type
+            elif (
+                decorator_request_blueprint
+                and self._is_blueprint_class(decorator_request_blueprint)
+                and param.source == 'body'
+                and not _body_consumed
+            ):
+                use_blueprint = decorator_request_blueprint
             elif (
                 decorator_request_serializer
                 and self._is_serializer_class(decorator_request_serializer)
-                and param.source == "body"
+                and param.source == 'body'
                 and not _body_consumed
             ):
                 use_serializer = decorator_request_serializer
+
+            # ── Blueprint body binding ───────────────────────────────────
+            if use_blueprint is not None and not _body_consumed:
+                body = await _get_body()
+                _body_consumed = True
+
+                # Build context with request + container
+                bp_context = {"request": request}
+                if container:
+                    bp_context["container"] = container
+                if ctx.identity:
+                    bp_context["identity"] = ctx.identity
+
+                # Handle ProjectedRef (Blueprint["projection"])
+                projection = None
+                bp_cls = use_blueprint
+                try:
+                    from aquilia.blueprints.lenses import _ProjectedRef
+                    if isinstance(use_blueprint, _ProjectedRef):
+                        projection = use_blueprint.projection
+                        bp_cls = use_blueprint.blueprint_cls
+                except ImportError:
+                    pass
+
+                # Determine if PATCH → partial
+                is_partial = request.method == "PATCH"
+
+                bp_instance = bp_cls(
+                    data=body,
+                    partial=is_partial,
+                    projection=projection,
+                    context=bp_context,
+                )
+                bp_instance.is_sealed(raise_fault=True)
+
+                # If param name suggests they want the Blueprint instance,
+                # inject the full Blueprint. Otherwise inject validated_data.
+                inject_instance = (
+                    param_name == "blueprint"
+                    or param_name.endswith("_blueprint")
+                    or param_name.endswith("_bp")
+                )
+
+                if inject_instance:
+                    kwargs[param_name] = bp_instance
+                else:
+                    kwargs[param_name] = bp_instance.validated_data
+                continue
             
             if use_serializer is not None and not _body_consumed:
                 body = await _get_body()
@@ -565,6 +668,7 @@ class ControllerEngine:
             return value
     
     _serializer_base_class = None  # Cached Serializer class
+    _blueprint_base_class = None   # Cached Blueprint class
 
     def _is_serializer_class(self, annotation: Any) -> bool:
         """Check if annotation is a Serializer subclass (FastAPI-style detection)."""
@@ -579,6 +683,34 @@ class ControllerEngine:
         base = ControllerEngine._serializer_base_class
         if base is type(None):
             return False
+        return (
+            isinstance(annotation, type)
+            and issubclass(annotation, base)
+            and annotation is not base
+        )
+
+    def _is_blueprint_class(self, annotation: Any) -> bool:
+        """Check if annotation is a Blueprint subclass or ProjectedRef."""
+        if ControllerEngine._blueprint_base_class is None:
+            try:
+                from aquilia.blueprints.core import Blueprint
+                ControllerEngine._blueprint_base_class = Blueprint
+            except ImportError:
+                ControllerEngine._blueprint_base_class = type(None)  # sentinel
+                return False
+
+        base = ControllerEngine._blueprint_base_class
+        if base is type(None):
+            return False
+
+        # Check for ProjectedRef (Blueprint["projection"])
+        try:
+            from aquilia.blueprints.lenses import _ProjectedRef
+            if isinstance(annotation, _ProjectedRef):
+                return True
+        except ImportError:
+            pass
+
         return (
             isinstance(annotation, type)
             and issubclass(annotation, base)
@@ -622,7 +754,211 @@ class ControllerEngine:
                 f"Response serialization failed: {e}. Returning raw result."
             )
             return result
+
+    def _apply_response_blueprint(
+        self,
+        result: Any,
+        route_metadata: Any,
+        ctx: RequestCtx,
+    ) -> Any:
+        """Auto-mold handler return value via response_blueprint."""
+        # Fast path: check direct attribute first
+        response_blueprint = getattr(route_metadata, 'response_blueprint', None)
+        if response_blueprint is None:
+            raw_meta = getattr(route_metadata, '_raw_metadata', None)
+            if raw_meta and isinstance(raw_meta, dict):
+                response_blueprint = raw_meta.get('response_blueprint')
+
+        if response_blueprint is None:
+            return result
+
+        # Don't re-mold Response objects
+        if isinstance(result, Response):
+            return result
+
+        try:
+            from aquilia.blueprints.integration import render_blueprint_response
+
+            many = isinstance(result, (list, tuple))
+            return render_blueprint_response(
+                response_blueprint,
+                data=result,
+                many=many,
+            )
+        except ImportError:
+            self.logger.warning(
+                "Blueprint system not available. Returning raw result."
+            )
+            return result
+        except Exception as e:
+            self.logger.warning(
+                f"Response Blueprint molding failed: {e}. Returning raw result."
+            )
+            return result
     
+    async def _apply_filters_and_pagination(
+        self,
+        result: Any,
+        route_metadata: Any,
+        request: Request,
+    ) -> Any:
+        """
+        Apply FilterSet / SearchFilter / OrderingFilter / Pagination
+        to the handler's return value.
+
+        Only activates when the route has filtering/pagination metadata
+        AND the result is a list (or QuerySet-like object).
+        """
+        # Resolve metadata attrs (direct or _raw_metadata fallback)
+        def _meta(key):
+            v = getattr(route_metadata, key, None)
+            if v is None:
+                raw = getattr(route_metadata, '_raw_metadata', None)
+                if raw and isinstance(raw, dict):
+                    v = raw.get(key)
+            return v
+
+        filterset_class = _meta('filterset_class')
+        filterset_fields = _meta('filterset_fields')
+        search_fields = _meta('search_fields')
+        ordering_fields = _meta('ordering_fields')
+        pagination_class = _meta('pagination_class')
+
+        has_filters = any([
+            filterset_class, filterset_fields, search_fields, ordering_fields,
+        ])
+
+        if not has_filters and not pagination_class:
+            return result
+
+        # Don't filter/paginate Response objects
+        if isinstance(result, Response):
+            return result
+
+        try:
+            from .filters import filter_data as _filter_data
+            from .pagination import BasePagination
+        except ImportError:
+            return result
+
+        # Check if result is a list-like (in-memory) or a queryset
+        is_queryset = hasattr(result, 'filter') and hasattr(result, 'all')
+        is_list = isinstance(result, (list, tuple))
+
+        if not is_list and not is_queryset:
+            return result
+
+        # ── Apply filters ────────────────────────────────────────────
+        if has_filters:
+            if is_queryset:
+                try:
+                    from .filters import filter_queryset as _filter_qs
+                    result = await _filter_qs(
+                        result,
+                        request,
+                        filterset_class=filterset_class,
+                        filterset_fields=filterset_fields,
+                        search_fields=search_fields,
+                        ordering_fields=ordering_fields,
+                    )
+                except Exception as e:
+                    self.logger.warning(f"QuerySet filtering failed: {e}")
+            elif is_list:
+                result = _filter_data(
+                    list(result),
+                    request,
+                    filterset_class=filterset_class,
+                    filterset_fields=filterset_fields,
+                    search_fields=search_fields,
+                    ordering_fields=ordering_fields,
+                )
+
+        # ── Apply pagination ─────────────────────────────────────────
+        if pagination_class:
+            try:
+                paginator = (
+                    pagination_class()
+                    if isinstance(pagination_class, type)
+                    else pagination_class
+                )
+                if hasattr(result, 'all') and hasattr(paginator, 'paginate_queryset'):
+                    result = await paginator.paginate_queryset(result, request)
+                else:
+                    # Materialise queryset if needed
+                    if hasattr(result, 'all'):
+                        items = await result.all()
+                        data = [
+                            i.to_dict() if hasattr(i, 'to_dict') else i
+                            for i in items
+                        ]
+                    else:
+                        data = list(result)
+                    result = paginator.paginate_list(data, request)
+            except Exception as e:
+                self.logger.warning(f"Pagination failed: {e}")
+
+        return result
+
+    def _apply_content_negotiation(
+        self,
+        result: Any,
+        route_metadata: Any,
+        request: Request,
+    ) -> Optional[Response]:
+        """
+        Select a renderer via content negotiation and build a Response.
+
+        Returns ``None`` if no renderer_classes are configured (default
+        path uses ``_to_response``), or a fully-rendered ``Response``.
+        """
+        # Already a Response — skip
+        if isinstance(result, Response):
+            return result
+
+        renderer_classes = getattr(route_metadata, 'renderer_classes', None)
+        if renderer_classes is None:
+            raw = getattr(route_metadata, '_raw_metadata', None)
+            if raw and isinstance(raw, dict):
+                renderer_classes = raw.get('renderer_classes')
+
+        if not renderer_classes:
+            return None  # caller falls through to _to_response
+
+        try:
+            from .renderers import ContentNegotiator, BaseRenderer
+        except ImportError:
+            return None
+
+        # Instantiate renderer classes if they are types
+        instances = []
+        for rc in renderer_classes:
+            if isinstance(rc, type) and issubclass(rc, BaseRenderer):
+                instances.append(rc())
+            elif isinstance(rc, BaseRenderer):
+                instances.append(rc)
+
+        if not instances:
+            return None
+
+        negotiator = ContentNegotiator(renderers=instances)
+        renderer, media_type = negotiator.select_renderer(request)
+
+        body = renderer.render(
+            result,
+            request=request,
+            response_status=200,
+        )
+
+        content_type = media_type
+        if renderer.charset:
+            content_type = f"{media_type}; charset={renderer.charset}"
+
+        return Response(
+            content=body,
+            status=200,
+            media_type=content_type,
+        )
+
     # Cache for coroutine function checks
     _is_coro_cache: Dict[int, bool] = {}  # id(func) -> is_coroutine
     
