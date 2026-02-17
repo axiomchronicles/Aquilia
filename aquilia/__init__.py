@@ -385,6 +385,57 @@ from .patterns import (
 from .discovery import PackageScanner
 
 # ============================================================================
+# Blueprints (Model ↔ World Contracts)
+# ============================================================================
+
+from .blueprints import (
+    Blueprint,
+    BlueprintMeta,
+    # Facets
+    Facet,
+    TextFacet,
+    IntFacet,
+    FloatFacet,
+    DecimalFacet,
+    BoolFacet,
+    DateFacet,
+    TimeFacet,
+    DateTimeFacet,
+    DurationFacet,
+    UUIDFacet,
+    EmailFacet,
+    URLFacet,
+    SlugFacet,
+    IPFacet,
+    ListFacet,
+    DictFacet,
+    JSONFacet,
+    FileFacet,
+    ChoiceFacet,
+    # Special Facets
+    Computed,
+    Constant,
+    WriteOnly,
+    ReadOnly,
+    Hidden,
+    Inject,
+    # Lenses
+    Lens,
+    # Exceptions
+    BlueprintFault,
+    CastFault,
+    SealFault,
+    ImprintFault,
+    ProjectionFault,
+    # Schema
+    generate_schema,
+    generate_component_schemas,
+    # Integration
+    is_blueprint_class,
+    render_blueprint_response,
+)
+
+# ============================================================================
 # Serializers (DRF-inspired)
 # ============================================================================
 
