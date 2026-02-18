@@ -1093,8 +1093,15 @@ class AquiliaServer:
                 )
             # else: store is already a concrete SessionStore object — use as-is
                 
-            # Resolve transport: object → keep, dict → build, None → resolve from policy
-            if transport_config is None:
+            # Resolve transport: object → keep, dict → build, None → resolve from policy.
+            # When policy is a full SessionPolicy object (from Workspace), always prefer
+            # policy.transport to avoid the merged default_session_config dict (which has
+            # cookie_secure=True) overriding the workspace's explicit cookie_secure=False.
+            if transport_config is None or (
+                isinstance(transport_config, dict)
+                and hasattr(policy, "transport")
+                and policy.transport is not None
+            ):
                 transport = self._resolve_transport_from_policy(policy.transport)
             elif isinstance(transport_config, dict):
                 tp = TransportPolicy(**transport_config)

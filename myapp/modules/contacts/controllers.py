@@ -5,7 +5,9 @@ Uses Aquilia Controller, TemplateEngine, FilterSet, Pagination.
 
 from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
 from aquilia.templates import TemplateEngine
+from aquilia.sessions import authenticated
 
+from modules.shared.auth_guard import login_required
 from modules.shared.serializers import ContactCreateSerializer
 from .services import ContactService
 
@@ -23,6 +25,8 @@ class ContactController(Controller):
     @GET("/")
     async def contacts_list_page(self, ctx: RequestCtx):
         """Render contacts list page."""
+        if guard := login_required(ctx):
+            return guard
         page = int(ctx.query_param("page", "1"))
         search = ctx.query_param("search", "")
         status = ctx.query_param("status", "")
@@ -53,6 +57,8 @@ class ContactController(Controller):
     @GET("/«id:int»")
     async def contact_detail_page(self, ctx: RequestCtx, id: int):
         """Render contact detail page."""
+        if guard := login_required(ctx):
+            return guard
         contact = await self.service.get_contact(id)
         return await self.templates.render_to_response(
             "contacts/detail.html",
@@ -63,6 +69,8 @@ class ContactController(Controller):
     @GET("/new")
     async def contact_new_page(self, ctx: RequestCtx):
         """Render new contact form."""
+        if guard := login_required(ctx):
+            return guard
         return await self.templates.render_to_response(
             "contacts/form.html",
             {"page_title": "New Contact — CRM", "contact": None, "mode": "create"},
@@ -72,6 +80,8 @@ class ContactController(Controller):
     @GET("/«id:int»/edit")
     async def contact_edit_page(self, ctx: RequestCtx, id: int):
         """Render edit contact form."""
+        if guard := login_required(ctx):
+            return guard
         contact = await self.service.get_contact(id)
         return await self.templates.render_to_response(
             "contacts/form.html",
@@ -90,6 +100,7 @@ class ContactAPIController(Controller):
         self.service = service
 
     @GET("/")
+    @authenticated
     async def api_list_contacts(self, ctx: RequestCtx):
         """List contacts with filters."""
         result = await self.service.list_contacts(
@@ -102,6 +113,7 @@ class ContactAPIController(Controller):
         return Response.json(result)
 
     @POST("/")
+    @authenticated
     async def api_create_contact(self, ctx: RequestCtx):
         """Create a new contact."""
         data = await ctx.json()
@@ -117,12 +129,14 @@ class ContactAPIController(Controller):
         return Response.json({"contact": contact, "message": "Contact created"}, status=201)
 
     @GET("/«id:int»")
+    @authenticated
     async def api_get_contact(self, ctx: RequestCtx, id: int):
         """Get contact by ID."""
         contact = await self.service.get_contact(id)
         return Response.json({"contact": contact})
 
     @PUT("/«id:int»")
+    @authenticated
     async def api_update_contact(self, ctx: RequestCtx, id: int):
         """Update a contact."""
         data = await ctx.json()
@@ -131,12 +145,14 @@ class ContactAPIController(Controller):
         return Response.json({"contact": contact, "message": "Contact updated"})
 
     @DELETE("/«id:int»")
+    @authenticated
     async def api_delete_contact(self, ctx: RequestCtx, id: int):
         """Delete a contact."""
         await self.service.delete_contact(id)
         return Response.json({"message": "Contact deleted"})
 
     @GET("/stats")
+    @authenticated
     async def api_contact_stats(self, ctx: RequestCtx):
         """Get contact statistics."""
         stats = await self.service.get_contact_stats()

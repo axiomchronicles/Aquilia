@@ -4,7 +4,9 @@ Mail Controller — Campaign pages + API.
 
 from aquilia import Controller, GET, POST, RequestCtx, Response
 from aquilia.templates import TemplateEngine
+from aquilia.sessions import authenticated
 
+from modules.shared.auth_guard import login_required
 from modules.shared.serializers import CampaignCreateSerializer
 from .services import CRMMailService
 
@@ -21,6 +23,8 @@ class MailController(Controller):
 
     @GET("/")
     async def campaigns_page(self, ctx: RequestCtx):
+        if guard := login_required(ctx):
+            return guard
         page = int(ctx.query_param("page", "1"))
         result = await self.service.list_campaigns(page=page)
         return await self.templates.render_to_response(
@@ -37,6 +41,8 @@ class MailController(Controller):
 
     @GET("/new")
     async def new_campaign_page(self, ctx: RequestCtx):
+        if guard := login_required(ctx):
+            return guard
         return await self.templates.render_to_response(
             "mail/compose.html",
             {"page_title": "New Campaign — CRM"},
@@ -44,6 +50,7 @@ class MailController(Controller):
         )
 
     @POST("/api/campaigns")
+    @authenticated
     async def api_create_campaign(self, ctx: RequestCtx):
         data = await ctx.json()
         serializer = CampaignCreateSerializer(data=data)
@@ -54,11 +61,13 @@ class MailController(Controller):
         return Response.json({"campaign": campaign}, status=201)
 
     @POST("/api/campaigns/«id:int»/send")
+    @authenticated
     async def api_send_campaign(self, ctx: RequestCtx, id: int):
         result = await self.service.send_campaign(id)
         return Response.json(result)
 
     @POST("/api/send")
+    @authenticated
     async def api_send_email(self, ctx: RequestCtx):
         """Send a direct email to a contact."""
         data = await ctx.json()

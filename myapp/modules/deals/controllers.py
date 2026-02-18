@@ -4,7 +4,9 @@ Deal Controllers — Page + API, including pipeline Kanban view.
 
 from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
 from aquilia.templates import TemplateEngine
+from aquilia.sessions import authenticated
 
+from modules.shared.auth_guard import login_required
 from modules.shared.serializers import DealCreateSerializer
 from .services import DealService
 
@@ -21,6 +23,8 @@ class DealController(Controller):
 
     @GET("/")
     async def deals_list_page(self, ctx: RequestCtx):
+        if guard := login_required(ctx):
+            return guard
         page = int(ctx.query_param("page", "1"))
         search = ctx.query_param("search", "")
         stage = ctx.query_param("stage", "")
@@ -51,6 +55,8 @@ class DealController(Controller):
     @GET("/pipeline")
     async def pipeline_board_page(self, ctx: RequestCtx):
         """Render Kanban-style pipeline board."""
+        if guard := login_required(ctx):
+            return guard
         board = await self.service.get_pipeline_board()
         stats = await self.service.get_pipeline_stats()
 
@@ -66,6 +72,8 @@ class DealController(Controller):
 
     @GET("/«id:int»")
     async def deal_detail_page(self, ctx: RequestCtx, id: int):
+        if guard := login_required(ctx):
+            return guard
         deal = await self.service.get_deal(id)
         return await self.templates.render_to_response(
             "deals/detail.html",
@@ -75,6 +83,8 @@ class DealController(Controller):
 
     @GET("/new")
     async def deal_new_page(self, ctx: RequestCtx):
+        if guard := login_required(ctx):
+            return guard
         return await self.templates.render_to_response(
             "deals/form.html",
             {"page_title": "New Deal — CRM", "deal": None, "mode": "create"},
@@ -83,6 +93,8 @@ class DealController(Controller):
 
     @GET("/«id:int»/edit")
     async def deal_edit_page(self, ctx: RequestCtx, id: int):
+        if guard := login_required(ctx):
+            return guard
         deal = await self.service.get_deal(id)
         return await self.templates.render_to_response(
             "deals/form.html",
@@ -101,6 +113,7 @@ class DealAPIController(Controller):
         self.service = service
 
     @GET("/")
+    @authenticated
     async def api_list(self, ctx: RequestCtx):
         result = await self.service.list_deals(
             search=ctx.query_param("search"),
@@ -111,6 +124,7 @@ class DealAPIController(Controller):
         return Response.json(result)
 
     @POST("/")
+    @authenticated
     async def api_create(self, ctx: RequestCtx):
         data = await ctx.json()
         serializer = DealCreateSerializer(data=data)
@@ -121,17 +135,20 @@ class DealAPIController(Controller):
         return Response.json({"deal": deal}, status=201)
 
     @GET("/«id:int»")
+    @authenticated
     async def api_get(self, ctx: RequestCtx, id: int):
         deal = await self.service.get_deal(id)
         return Response.json({"deal": deal})
 
     @PUT("/«id:int»")
+    @authenticated
     async def api_update(self, ctx: RequestCtx, id: int):
         data = await ctx.json()
         deal = await self.service.update_deal(id, data)
         return Response.json({"deal": deal})
 
     @PUT("/«id:int»/stage")
+    @authenticated
     async def api_update_stage(self, ctx: RequestCtx, id: int):
         """Update deal stage (Kanban drag-and-drop)."""
         data = await ctx.json()
@@ -139,11 +156,13 @@ class DealAPIController(Controller):
         return Response.json({"deal": deal})
 
     @DELETE("/«id:int»")
+    @authenticated
     async def api_delete(self, ctx: RequestCtx, id: int):
         await self.service.delete_deal(id)
         return Response.json({"message": "Deal deleted"})
 
     @GET("/pipeline")
+    @authenticated
     async def api_pipeline(self, ctx: RequestCtx):
         board = await self.service.get_pipeline_board()
         return Response.json({"pipeline": board})

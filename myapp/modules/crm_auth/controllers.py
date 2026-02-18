@@ -6,7 +6,9 @@ Uses Aquilia Controller, Guards, Sessions, Templates, and Effects.
 from aquilia import Controller, GET, POST, RequestCtx, Response
 from aquilia.templates import TemplateEngine
 from aquilia.effects import DBTx
+from aquilia.sessions import authenticated
 
+from modules.shared.auth_guard import login_required
 from modules.shared.serializers import RegisterSerializer, LoginSerializer
 from modules.shared.faults import UnauthorizedFault
 from .services import CRMAuthService
@@ -27,7 +29,9 @@ class AuthPageController(Controller):
 
     @GET("/login")
     async def login_page(self, ctx: RequestCtx):
-        """Render login page."""
+        """Render login page (redirect to dashboard if already authenticated)."""
+        if ctx.session and ctx.session.is_authenticated:
+            return Response.redirect("/dashboard")
         return await self.templates.render_to_response(
             "auth/login.html",
             {"page_title": "Login — CRM"},
@@ -36,7 +40,9 @@ class AuthPageController(Controller):
 
     @GET("/register")
     async def register_page(self, ctx: RequestCtx):
-        """Render registration page."""
+        """Render registration page (redirect to dashboard if already authenticated)."""
+        if ctx.session and ctx.session.is_authenticated:
+            return Response.redirect("/dashboard")
         return await self.templates.render_to_response(
             "auth/register.html",
             {"page_title": "Register — CRM"},
@@ -46,9 +52,11 @@ class AuthPageController(Controller):
     @GET("/profile")
     async def profile_page(self, ctx: RequestCtx):
         """Render user profile page (requires auth via session)."""
-        user = ctx.state.get("user")
-        if not user:
-            return Response.redirect("/auth/login")
+        if guard := login_required(ctx, redirect_to="/auth/login"):
+            return guard
+        user = await self.auth_service.get_user_by_id(
+            ctx.session.data.get("user_id")
+        )
         return await self.templates.render_to_response(
             "auth/profile.html",
             {"page_title": "Profile — CRM", "user": user},
@@ -136,14 +144,10 @@ class AuthAPIController(Controller):
         return response
 
     @GET("/me")
+    @authenticated
     async def api_me(self, ctx: RequestCtx):
         """Get current authenticated user."""
-        user_id = None
-        if ctx.session:
-            user_id = ctx.session.data.get("user_id")
-
-        if not user_id:
-            return Response.json({"error": "Not authenticated"}, status=401)
+        user_id = ctx.session.data.get("user_id")
 
         user = await self.auth_service.get_user_by_id(user_id)
         if not user:
@@ -152,6 +156,7 @@ class AuthAPIController(Controller):
         return Response.json({"user": user})
 
     @GET("/users")
+    @authenticated
     async def api_list_users(self, ctx: RequestCtx):
         """List all CRM users (admin/manager only)."""
         users = await self.auth_service.get_all_users()

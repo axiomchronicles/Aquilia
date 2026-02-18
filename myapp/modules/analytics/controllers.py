@@ -4,7 +4,9 @@ Dashboard Controller — Main CRM dashboard page.
 
 from aquilia import Controller, GET, RequestCtx, Response
 from aquilia.templates import TemplateEngine
+from aquilia.sessions import authenticated
 
+from modules.shared.auth_guard import login_required
 from .services import AnalyticsService
 
 
@@ -21,6 +23,8 @@ class DashboardController(Controller):
     @GET("/")
     async def dashboard_page(self, ctx: RequestCtx):
         """Render the main CRM dashboard."""
+        if guard := login_required(ctx):
+            return guard
         data = await self.analytics.get_dashboard_data()
 
         return await self.templates.render_to_response(
@@ -40,6 +44,7 @@ class DashboardController(Controller):
         )
 
     @GET("/api/stats")
+    @authenticated
     async def api_dashboard_stats(self, ctx: RequestCtx):
         """JSON endpoint for dashboard data (for AJAX refresh)."""
         data = await self.analytics.get_dashboard_data()

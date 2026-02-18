@@ -228,6 +228,13 @@ class ExceptionMiddleware:
 
         except Fault as e:
             # Typed Fault
+            # Authentication faults (unauthenticated) → 401
+            # Authorization faults (authenticated but forbidden) → 403
+            _UNAUTHENTICATED_CODES = {
+                "AUTH_010",           # AUTH_REQUIRED
+                "AUTHENTICATION_REQUIRED",  # AuthenticationRequiredFault / session decorators
+                "SESSION_REQUIRED",   # SessionRequiredFault
+            }
             status_map = {
                 FaultDomain.ROUTING: 404,
                 FaultDomain.SECURITY: 403,
@@ -239,7 +246,10 @@ class ExceptionMiddleware:
                 FaultDomain.FLOW: 500,
                 FaultDomain.SYSTEM: 500,
             }
-            status = status_map.get(e.domain, 500)
+            if getattr(e, "code", None) in _UNAUTHENTICATED_CODES:
+                status = 401
+            else:
+                status = status_map.get(e.domain, 500)
             
             message = e.message if (e.public or self.debug) else "Internal server error"
             

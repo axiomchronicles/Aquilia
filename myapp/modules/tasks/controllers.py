@@ -4,7 +4,9 @@ Task Controllers — Page + API.
 
 from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
 from aquilia.templates import TemplateEngine
+from aquilia.sessions import authenticated
 
+from modules.shared.auth_guard import login_required
 from modules.shared.serializers import TaskCreateSerializer
 from .services import TaskService
 
@@ -21,6 +23,8 @@ class TaskController(Controller):
 
     @GET("/")
     async def tasks_list_page(self, ctx: RequestCtx):
+        if guard := login_required(ctx):
+            return guard
         page = int(ctx.query_param("page", "1"))
         search = ctx.query_param("search", "")
         status = ctx.query_param("status", "")
@@ -50,6 +54,8 @@ class TaskController(Controller):
 
     @GET("/«id:int»")
     async def task_detail_page(self, ctx: RequestCtx, id: int):
+        if guard := login_required(ctx):
+            return guard
         task = await self.service.get_task(id)
         return await self.templates.render_to_response(
             "tasks/detail.html",
@@ -59,6 +65,8 @@ class TaskController(Controller):
 
     @GET("/new")
     async def task_new_page(self, ctx: RequestCtx):
+        if guard := login_required(ctx):
+            return guard
         return await self.templates.render_to_response(
             "tasks/form.html",
             {"page_title": "New Task — CRM", "task": None, "mode": "create"},
@@ -76,6 +84,7 @@ class TaskAPIController(Controller):
         self.service = service
 
     @GET("/")
+    @authenticated
     async def api_list(self, ctx: RequestCtx):
         result = await self.service.list_tasks(
             search=ctx.query_param("search"),
@@ -87,6 +96,7 @@ class TaskAPIController(Controller):
         return Response.json(result)
 
     @POST("/")
+    @authenticated
     async def api_create(self, ctx: RequestCtx):
         data = await ctx.json()
         serializer = TaskCreateSerializer(data=data)
@@ -97,23 +107,27 @@ class TaskAPIController(Controller):
         return Response.json({"task": task}, status=201)
 
     @GET("/«id:int»")
+    @authenticated
     async def api_get(self, ctx: RequestCtx, id: int):
         task = await self.service.get_task(id)
         return Response.json({"task": task})
 
     @PUT("/«id:int»")
+    @authenticated
     async def api_update(self, ctx: RequestCtx, id: int):
         data = await ctx.json()
         task = await self.service.update_task(id, data)
         return Response.json({"task": task})
 
     @PUT("/«id:int»/complete")
+    @authenticated
     async def api_complete(self, ctx: RequestCtx, id: int):
         """Mark task as completed."""
         task = await self.service.update_task(id, {"status": "completed"})
         return Response.json({"task": task, "message": "Task completed"})
 
     @DELETE("/«id:int»")
+    @authenticated
     async def api_delete(self, ctx: RequestCtx, id: int):
         await self.service.delete_task(id)
         return Response.json({"message": "Task deleted"})
