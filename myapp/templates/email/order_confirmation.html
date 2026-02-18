@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation — #{{ order_number }}</title>
+</head>
+<body style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 2rem auto; color: #1e293b; line-height: 1.8;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="color: #22c55e;">Order Confirmed ✓</h1>
+    </div>
+
+    <p>Hello {{ username }},</p>
+
+    <p>Your order <strong>#{{ order_number }}</strong> has been placed successfully.</p>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 1.5rem 0;">
+        <thead>
+            <tr style="border-bottom: 2px solid #e2e8f0;">
+                <th style="text-align: left; padding: 0.5rem;">Item</th>
+                <th style="text-align: right; padding: 0.5rem;">Qty</th>
+                <th style="text-align: right; padding: 0.5rem;">Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 0.5rem;">{{ item.product_name }}</td>
+                <td style="text-align: right; padding: 0.5rem;">{{ item.quantity }}</td>
+                <td style="text-align: right; padding: 0.5rem;">${{ "%.2f" | format(item.total_price) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="background: #f8fafc; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+        <p><strong>Subtotal:</strong> ${{ "%.2f" | format(subtotal) }}</p>
+        <p><strong>Tax:</strong> ${{ "%.2f" | format(tax) }}</p>
+        <p><strong>Shipping:</strong> ${{ "%.2f" | format(shipping) }}</p>
+        <p style="font-size: 1.25rem;"><strong>Total: ${{ "%.2f" | format(total) }}</strong></p>
+    </div>
+
+    <p>You can track your order in real-time from your dashboard.</p>
+
+    <p style="margin-top: 2rem; color: #64748b; font-size: 0.875rem;">
+        — The Nexus Team<br>
+        <em>Powered by Aquilia Framework</em>
+    </p>
+</body>
+</html>

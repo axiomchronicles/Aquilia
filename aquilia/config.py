@@ -463,6 +463,17 @@ class ConfigLoader:
             merged["enabled"] = user_config.get("enabled", True)
             self._merge_dict(merged, user_config)
             
+            # ── Normalize "store" field ──
+            # YAML configs may specify store as a plain string (e.g., "memory")
+            # instead of a dict (e.g., {"type": "memory", "max_sessions": 10000}).
+            # Normalize to dict form so downstream code always gets a dict or object.
+            if isinstance(merged.get("store"), str):
+                store_str = merged["store"]
+                merged["store"] = {
+                    "type": store_str,
+                    "max_sessions": 10000,
+                }
+            
             # Special handling for workspace policies - if policies list exists and contains SessionPolicy objects,
             # use the first one as the primary policy for the server
             if "policies" in user_config and user_config["policies"]:

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Admin Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --border: #334155;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .dashboard { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+        .subtitle { color: var(--text-muted); margin-bottom: 2rem; }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--surface); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-label { color: var(--text-muted); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 2rem; font-weight: 700; margin: 0.5rem 0; }
+        .stat-value.primary { color: var(--primary); }
+        .stat-value.success { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+        .stat-value.info { color: var(--info); }
+
+        /* Panels */
+        .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        @media (max-width: 768px) { .panels { grid-template-columns: 1fr; } }
+        .panel { background: var(--surface); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border); }
+        .panel h2 { font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .panel h2 .badge { background: var(--primary); color: white; font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 9999px; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+        td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+        tr:hover td { background: var(--surface-hover); }
+
+        /* Status Badge */
+        .status { display: inline-block; padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-confirmed { background: #dbeafe; color: #1e40af; }
+        .status-processing { background: #e0e7ff; color: #3730a3; }
+        .status-shipped { background: #cffafe; color: #155e75; }
+        .status-delivered { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+        /* Health */
+        .health-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+        .health-item:last-child { border-bottom: none; }
+        .health-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 0.5rem; }
+        .health-dot.healthy { background: var(--success); }
+        .health-dot.degraded { background: var(--warning); }
+        .health-dot.unhealthy { background: var(--danger); }
+
+        .footer { text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>⚡ Nexus Admin Dashboard</h1>
+        <p class="subtitle">Powered by Aquilia Framework — Real-time system overview</p>
+
+        <!-- KPI Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value primary">{{ stats.users.total | default(0) }}</div>
+                <div class="stat-label">{{ stats.users.active | default(0) }} active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Products</div>
+                <div class="stat-value info">{{ stats.products.total | default(0) }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Orders</div>
+                <div class="stat-value warning">{{ stats.orders.total | default(0) }}</div>
+                <div class="stat-label">{{ stats.orders.pending | default(0) }} pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Revenue</div>
+                <div class="stat-value success">${{ "%.2f" | format(stats.orders.revenue | default(0)) }}</div>
+            </div>
+        </div>
+
+        <div class="panels">
+            <!-- Top Products -->
+            <div class="panel">
+                <h2>🏆 Top Products <span class="badge">by sales</span></h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Purchases</th>
+                            <th>Revenue</th>
+                            <th>Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in top_products %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.purchases }}</td>
+                            <td>${{ "%.2f" | format(product.revenue | default(0)) }}</td>
+                            <td>{{ "%.1f" | format(product.rating | default(0)) }} ⭐</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not top_products %}
+                        <tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No data yet</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Order Distribution -->
+            <div class="panel">
+                <h2>📊 Order Status Distribution</h2>
+                {% for status, count in order_distribution.items() %}
+                <div class="health-item">
+                    <span>
+                        <span class="status status-{{ status }}">{{ status }}</span>
+                    </span>
+                    <strong>{{ count }}</strong>
+                </div>
+                {% endfor %}
+                {% if not order_distribution %}
+                <p style="text-align:center; color: var(--text-muted); padding: 2rem;">No orders yet</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Nexus v1.0.0 • Aquilia Framework • Admin: {{ user.id }} • Generated at {{ stats.generated_at | default('N/A') }}</p>
+        </div>
+    </div>
+
+    <!-- Live updates via SSE -->
+    <script>
+        const evtSource = new EventSource('/analytics/revenue/stream');
+        evtSource.addEventListener('revenue_update', (event) => {
+            const data = JSON.parse(event.data);
+            document.querySelector('.stat-value.success').textContent = '$' + data.revenue.toFixed(2);
+            document.querySelector('.stat-value.warning').textContent = data.orders;
+        });
+        evtSource.onerror = () => { evtSource.close(); };
+    </script>
+</body>
+</html>

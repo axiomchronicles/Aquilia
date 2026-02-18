@@ -971,9 +971,87 @@ class AquiliaServer:
             self._cache_service = None
             self.logger.error(f"Cache subsystem init failed (non-fatal): {e}", exc_info=True)
 
+    def _resolve_store_from_name(self, store_name: str, **kwargs):
+        """
+        Resolve a PersistencePolicy.store_name string to an actual SessionStore instance.
+        
+        This is the canonical mapping from store name labels to concrete store objects.
+        Handles all known store types and provides a safe fallback to MemoryStore.
+        
+        Args:
+            store_name: The store name label (e.g., "memory", "default", "file", "redis")
+            **kwargs: Additional store-specific configuration (unknown keys are ignored)
+            
+        Returns:
+            A concrete SessionStore instance
+        """
+        from aquilia.sessions import MemoryStore, FileStore
+        
+        store_name = (store_name or "memory").lower().strip()
+        
+        # "default" is an alias for "memory"
+        if store_name in ("memory", "default", "mem", "in-memory"):
+            max_sessions = kwargs.get("max_sessions", 10000)
+            if not isinstance(max_sessions, int):
+                max_sessions = 10000
+            return MemoryStore(max_sessions=max_sessions)
+        elif store_name in ("file", "filesystem", "fs"):
+            directory = kwargs.get("directory", "/tmp/aquilia_sessions")
+            if not directory:
+                directory = "/tmp/aquilia_sessions"
+            return FileStore(directory=directory)
+        else:
+            self.logger.warning(
+                f"Unknown session store name '{store_name}', falling back to MemoryStore. "
+                f"Valid store names: 'memory', 'default', 'file'"
+            )
+            return MemoryStore(max_sessions=kwargs.get("max_sessions", 10000) if isinstance(kwargs.get("max_sessions"), int) else 10000)
+    
+    def _resolve_transport_from_policy(self, transport_policy):
+        """
+        Resolve a TransportPolicy to an actual SessionTransport instance.
+        
+        This is the canonical mapping from TransportPolicy.adapter strings to concrete
+        transport objects.
+        
+        Args:
+            transport_policy: A TransportPolicy instance with adapter, cookie_*, header_* settings
+            
+        Returns:
+            A concrete SessionTransport instance
+        """
+        from aquilia.sessions import CookieTransport, HeaderTransport
+        
+        adapter = getattr(transport_policy, "adapter", "cookie")
+        
+        if adapter in ("cookie", "cookies"):
+            return CookieTransport(transport_policy)
+        elif adapter in ("header", "headers"):
+            return HeaderTransport(transport_policy)
+        elif adapter == "token":
+            # Token-based typically uses header transport with the token header
+            return HeaderTransport(transport_policy)
+        else:
+            self.logger.warning(
+                f"Unknown transport adapter '{adapter}', falling back to CookieTransport. "
+                f"Valid adapters: 'cookie', 'header', 'token'"
+            )
+            return CookieTransport(transport_policy)
+    
     def _create_session_engine(self, session_config: dict):
         """
         Create SessionEngine from configuration.
+        
+        Handles three configuration formats:
+        
+        1. Integration.sessions() format — "policy" (singular) key with direct objects:
+           {"enabled": True, "policy": <SessionPolicy>, "store": <MemoryStore>, "transport": <CookieTransport>}
+           
+        2. Workspace.sessions(policies=[...]) format — "policies" (plural) key with a list:
+           {"enabled": True, "policies": [<SessionPolicy>, <SessionPolicy>, ...]}
+           
+        3. Traditional dict format — raw dictionaries for each sub-config:
+           {"enabled": True, "policy": {"name": "...", "ttl_days": 7, ...}, "store": {"type": "memory"}, ...}
         
         Args:
             session_config: Session configuration dictionary
@@ -994,101 +1072,142 @@ class AquiliaServer:
             HeaderTransport,
         )
         
-        # Handle different config formats - workspace vs traditional config
+        # ── Format 1: Integration.sessions() — direct policy object (singular) ──
         if "policy" in session_config and not isinstance(session_config["policy"], dict):
-            # Workspace format - direct policy objects
             policy = session_config["policy"]
             store = session_config.get("store")
             transport_config = session_config.get("transport")
             
-            # Create store from config or default
+            # Resolve store: object → keep, dict → build, str → resolve, None → resolve from policy
             if store is None:
-                store = MemoryStore(max_sessions=10000)
+                store = self._resolve_store_from_name(
+                    policy.persistence.store_name if policy.persistence else "memory"
+                )
+            elif isinstance(store, str):
+                # String store name from YAML config (e.g., "memory") — resolve to object
+                store = self._resolve_store_from_name(store)
             elif isinstance(store, dict):
-                # Store config is a dictionary - create store object
-                store_type = store.get("type", "memory")
-                if store_type == "memory":
-                    store = MemoryStore(max_sessions=store.get("max_sessions", 10000))
-                elif store_type == "file":
-                    directory = store.get("directory", "/tmp/aquilia_sessions")
-                    store = FileStore(directory=directory)
-                else:
-                    # Default to memory
-                    store = MemoryStore(max_sessions=10000)
+                store = self._resolve_store_from_name(
+                    store.get("type", "memory"),
+                    **{k: v for k, v in store.items() if k != "type" and v is not None}
+                )
+            # else: store is already a concrete SessionStore object — use as-is
                 
-            # Create transport from policy or config
+            # Resolve transport: object → keep, dict → build, None → resolve from policy
             if transport_config is None:
-                transport = CookieTransport(policy.transport)
+                transport = self._resolve_transport_from_policy(policy.transport)
             elif isinstance(transport_config, dict):
-                # Transport config is a dictionary - create transport object
-                adapter = transport_config.get("adapter", "cookie")
-                if adapter == "cookie":
-                    transport = CookieTransport(policy.transport)
-                elif adapter == "header":
-                    transport = HeaderTransport(policy.transport)
-                else:
-                    # Default to cookie
-                    transport = CookieTransport(policy.transport)
+                tp = TransportPolicy(**transport_config)
+                transport = self._resolve_transport_from_policy(tp)
             else:
-                # Transport config is already a transport object
                 transport = transport_config
-                
+            
+            self.logger.info(
+                f"SessionEngine initialized (Integration format): policy={policy.name}, "
+                f"store={type(store).__name__}, transport={type(transport).__name__}"
+            )
             return SessionEngine(policy=policy, store=store, transport=transport)
         
-        # Traditional config format - build from dictionaries
+        # ── Format 2: Workspace.sessions(policies=[...]) — policy list (plural) ──
+        if "policies" in session_config:
+            policies_list = session_config["policies"]
+            
+            if not policies_list:
+                self.logger.warning(
+                    "Workspace sessions config has empty policies list, "
+                    "creating default SessionPolicy"
+                )
+                policies_list = [SessionPolicy(name="default")]
+            
+            # Use the first policy as the primary engine policy.
+            # In production multi-policy setups, a PolicyRouter would select
+            # the appropriate policy per-request; for now we use the first one
+            # (typically the "web" policy) as default.
+            policy = policies_list[0]
+            
+            if len(policies_list) > 1:
+                self.logger.info(
+                    f"Multiple session policies configured: "
+                    f"{[p.name for p in policies_list]}. "
+                    f"Using '{policy.name}' as primary engine policy."
+                )
+            
+            # Resolve store from PersistencePolicy.store_name
+            # The store_name is a label string (e.g., "memory", "default", "redis"),
+            # NOT a store object — we must resolve it to a concrete SessionStore.
+            store_name = "memory"
+            if policy.persistence and hasattr(policy.persistence, "store_name"):
+                store_name = policy.persistence.store_name
+            
+            # Allow extra store kwargs from session_config
+            store_kwargs = {}
+            if isinstance(session_config.get("store"), dict):
+                store_kwargs = {
+                    k: v for k, v in session_config["store"].items() if k != "type"
+                }
+            
+            store = self._resolve_store_from_name(store_name, **store_kwargs)
+            
+            # Resolve transport from TransportPolicy object on the policy
+            transport = self._resolve_transport_from_policy(policy.transport)
+            
+            engine = SessionEngine(policy=policy, store=store, transport=transport)
+            
+            self.logger.info(
+                f"SessionEngine initialized (Workspace format): policy={policy.name}, "
+                f"store={type(store).__name__} (from store_name='{store_name}'), "
+                f"transport={type(transport).__name__} (adapter='{policy.transport.adapter}')"
+            )
+            
+            return engine
+        
+        # ── Format 3: Traditional dict format — build everything from dicts ──
         policy_config = session_config.get("policy", {})
-        policy = SessionPolicy(
-            name=policy_config.get("name", "user_default"),
-            ttl=timedelta(days=policy_config.get("ttl_days", 7)),
-            idle_timeout=timedelta(minutes=policy_config.get("idle_timeout_minutes", 30)),
-            rotate_on_use=False,
-            rotate_on_privilege_change=policy_config.get("rotate_on_privilege_change", True),
-            persistence=PersistencePolicy(
-                enabled=True,
-                store_name="default",
-                write_through=True,
-            ),
-            concurrency=ConcurrencyPolicy(
-                max_sessions_per_principal=policy_config.get("max_sessions_per_principal", 5),
-                behavior_on_limit="evict_oldest",
-            ),
-            transport=TransportPolicy(
-                adapter=session_config.get("transport", {}).get("adapter", "cookie"),
-                cookie_name=session_config.get("transport", {}).get("cookie_name", "aquilia_session"),
-                cookie_httponly=session_config.get("transport", {}).get("cookie_httponly", True),
-                cookie_secure=session_config.get("transport", {}).get("cookie_secure", True),
-                cookie_samesite=session_config.get("transport", {}).get("cookie_samesite", "lax"),
-                header_name=session_config.get("transport", {}).get("header_name", "X-Session-ID"),
-            ),
-            scope="user",
-        )
+        if isinstance(policy_config, dict):
+            policy = SessionPolicy(
+                name=policy_config.get("name", "user_default"),
+                ttl=timedelta(days=policy_config.get("ttl_days", 7)),
+                idle_timeout=timedelta(minutes=policy_config.get("idle_timeout_minutes", 30)),
+                rotate_on_use=False,
+                rotate_on_privilege_change=policy_config.get("rotate_on_privilege_change", True),
+                persistence=PersistencePolicy(
+                    enabled=True,
+                    store_name=policy_config.get("store_name", "default"),
+                    write_through=True,
+                ),
+                concurrency=ConcurrencyPolicy(
+                    max_sessions_per_principal=policy_config.get("max_sessions_per_principal", 5),
+                    behavior_on_limit="evict_oldest",
+                ),
+                transport=TransportPolicy(
+                    adapter=session_config.get("transport", {}).get("adapter", "cookie"),
+                    cookie_name=session_config.get("transport", {}).get("cookie_name", "aquilia_session"),
+                    cookie_httponly=session_config.get("transport", {}).get("cookie_httponly", True),
+                    cookie_secure=session_config.get("transport", {}).get("cookie_secure", True),
+                    cookie_samesite=session_config.get("transport", {}).get("cookie_samesite", "lax"),
+                    header_name=session_config.get("transport", {}).get("header_name", "X-Session-ID"),
+                ),
+                scope="user",
+            )
+        else:
+            # Unexpected: policy is neither a dict nor a SessionPolicy object
+            # This shouldn't happen, but handle defensively
+            self.logger.warning(
+                f"Unexpected policy config type: {type(policy_config)}, using defaults"
+            )
+            policy = SessionPolicy(name="user_default")
         
-        # Create store
+        # Resolve store using the canonical resolver
         store_config = session_config.get("store", {})
-        store_type = store_config.get("type", "memory")
-        
-        if store_type == "memory":
-            store = MemoryStore(max_sessions=store_config.get("max_sessions", 10000))
-        elif store_type == "file":
-            directory = store_config.get("directory", "/tmp/aquilia_sessions")
-            store = FileStore(directory=directory)
+        if isinstance(store_config, dict):
+            store_type = store_config.get("type", "memory")
+            store_kwargs = {k: v for k, v in store_config.items() if k != "type"}
+            store = self._resolve_store_from_name(store_type, **store_kwargs)
         else:
-            # Default to memory
-            self.logger.warning(f"Unknown store type '{store_type}', using memory store")
-            store = MemoryStore(max_sessions=10000)
+            store = self._resolve_store_from_name("memory")
         
-        # Create transport
-        transport_config = session_config.get("transport", {})
-        adapter = transport_config.get("adapter", "cookie")
-        
-        if adapter == "cookie":
-            transport = CookieTransport(policy.transport)
-        elif adapter == "header":
-            transport = HeaderTransport(policy.transport)
-        else:
-            # Default to cookie
-            self.logger.warning(f"Unknown transport adapter '{adapter}', using cookie transport")
-            transport = CookieTransport(policy.transport)
+        # Resolve transport using the canonical resolver
+        transport = self._resolve_transport_from_policy(policy.transport)
         
         # Create engine
         engine = SessionEngine(
@@ -1098,8 +1217,8 @@ class AquiliaServer:
         )
         
         self.logger.info(
-            f"SessionEngine initialized: policy={policy.name}, "
-            f"store={store_type}, transport={adapter}"
+            f"SessionEngine initialized (dict format): policy={policy.name}, "
+            f"store={type(store).__name__}, transport={type(transport).__name__}"
         )
         
         return engine

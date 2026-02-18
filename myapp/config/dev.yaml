@@ -1,14 +1,42 @@
-# Development Environment - Server Configuration
-# Overrides base.yaml for development
+# ═══════════════════════════════════════════════════════════════════
+# Nexus Platform — Development Configuration
+# Overrides base.yaml for local development
+# ═══════════════════════════════════════════════════════════════════
 
 server:
   mode: dev
-  debug: true                 # Enable beautiful debug pages
-  host: 127.0.0.1
-  port: 8000
-  reload: true                # Hot-reload on file changes
-  workers: 1                  # Single worker for debugging
-  backlog: 2048
-  timeout_keep_alive: 10
-  timeout_notify: 30
+  reload: true
   access_log: true
+
+app:
+  secret_key: "dev-secret-key-not-for-production"
+
+database:
+  url: "sqlite:///nexus_dev.db"
+  echo: true
+
+auth:
+  secret_key: "dev-auth-secret"
+
+cache:
+  backend: memory
+  default_ttl: 60
+
+mail:
+  backend: console
+
+templates:
+  auto_reload: true
+
+security:
+  cors:
+    allow_origins:
+      - "http://localhost:3000"
+      - "http://localhost:5173"
+      - "http://127.0.0.1:8000"
+  csrf:
+    enabled: false
+
+logging:
+  level: DEBUG
+  colorize: true

@@ -1,5 +1,8 @@
-# Base Server Configuration - Shared Across All Environments
-# Environment-specific files (dev.yaml, prod.yaml) override these values
+# ═══════════════════════════════════════════════════════════════════
+# Nexus Platform — Base Configuration
+# All environments inherit these settings.
+# Override in dev.yaml / prod.yaml / staging.yaml
+# ═══════════════════════════════════════════════════════════════════
 
 server:
   mode: dev
@@ -11,3 +14,122 @@ server:
   timeout_keep_alive: 5
   timeout_notify: 30
   access_log: true
+
+# ── Application ──────────────────────────────────────────────────
+app:
+  name: nexus
+  version: "1.0.0"
+  description: "Industry-grade E-Commerce + ML Platform"
+  secret_key: "CHANGE-ME-IN-PRODUCTION"
+  allowed_hosts:
+    - "*"
+
+# ── Database ─────────────────────────────────────────────────────
+database:
+  url: "sqlite:///nexus.db"
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+  pool_recycle: 1800
+  echo: false
+
+# ── Auth ─────────────────────────────────────────────────────────
+auth:
+  secret_key: "nexus-auth-key-change-in-production"
+  token_expiry: 3600       # 1 hour
+  refresh_expiry: 1209600  # 14 days
+  algorithm: "HS256"
+  password_hash: "argon2id"
+  max_login_attempts: 5
+  lockout_duration: 900    # 15 minutes
+
+# ── Cache ────────────────────────────────────────────────────────
+cache:
+  backend: memory
+  default_ttl: 300
+  max_size: 10000
+  eviction_policy: lru
+  namespace: nexus
+  key_prefix: "nx:"
+
+# ── Sessions ─────────────────────────────────────────────────────
+sessions:
+  default_ttl: 1209600
+  store:
+    type: memory
+    max_sessions: 10000
+  cookie_name: nexus_session
+  cookie_httponly: true
+  cookie_secure: false
+  cookie_samesite: lax
+
+# ── Mail ─────────────────────────────────────────────────────────
+mail:
+  default_from: "noreply@nexus-platform.com"
+  backend: console
+  subject_prefix: "[Nexus] "
+
+# ── Templates ────────────────────────────────────────────────────
+templates:
+  directory: templates
+  auto_reload: true
+  cache: memory
+  sandbox: true
+
+# ── Static Files ─────────────────────────────────────────────────
+static:
+  directory: static
+  url_prefix: /static
+  cache_max_age: 86400
+
+# ── Security ─────────────────────────────────────────────────────
+security:
+  cors:
+    enabled: true
+    allow_origins:
+      - "http://localhost:3000"
+      - "http://localhost:5173"
+    allow_credentials: true
+    max_age: 3600
+  csrf:
+    enabled: false
+  rate_limit:
+    enabled: true
+    limit: 200
+    window: 60
+    algorithm: sliding_window
+    exempt_paths:
+      - /health
+      - /docs
+      - /openapi.json
+
+# ── MLOps ────────────────────────────────────────────────────────
+mlops:
+  enabled: true
+  registry_db: "models_registry.db"
+  blob_root: ".nexus-models"
+  drift_method: psi
+  drift_threshold: 0.25
+  max_batch_size: 32
+  cache_enabled: true
+  cache_ttl: 120
+
+# ── Logging ──────────────────────────────────────────────────────
+logging:
+  level: INFO
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  slow_threshold_ms: 500
+  colorize: true
+  skip_paths:
+    - /health
+    - /healthz
+    - /metrics
+
+# ── OpenAPI ──────────────────────────────────────────────────────
+openapi:
+  title: "Nexus Platform API"
+  version: "1.0.0"
+  description: "E-Commerce + ML Platform powered by Aquilia"
+  docs_url: /docs
+  redoc_url: /redoc
+  openapi_url: /openapi.json
