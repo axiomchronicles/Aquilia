@@ -230,12 +230,12 @@ class ScopeValidator:
             </tr></thead>
             <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
               {[
-                ['singleton', '✅', '✅', '✅', '✅', '✅'],
-                ['app', '✅', '✅', '✅', '✅', '✅'],
-                ['request', '❌', '❌', '✅', '✅', '✅'],
-                ['transient', '✅', '✅', '✅', '✅', '✅'],
-                ['pooled', '✅', '✅', '✅', '✅', '✅'],
-                ['ephemeral', '❌', '❌', '❌', '✅', '✅'],
+                ['singleton', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes'],
+                ['app', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes'],
+                ['request', 'No', 'No', 'Yes', 'Yes', 'Yes'],
+                ['transient', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes'],
+                ['pooled', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes'],
+                ['ephemeral', 'No', 'No', 'No', 'Yes', 'Yes'],
               ].map(([scope, ...cells], i) => (
                 <tr key={i}>
                   <td className="text-left py-3 pr-4"><code className="text-aquilia-500 text-xs">{scope}</code></td>
@@ -248,14 +248,14 @@ class ScopeValidator:
           </table>
         </div>
         <p className={`mt-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          ❌ = <code className="text-red-400">ScopeViolationError</code> raised at build time. Transient and pooled providers are always injectable because they carry no cached state that could leak.
+          No = <code className="text-red-400">ScopeViolationError</code> raised at build time. Transient and pooled providers are always injectable because they carry no cached state that could leak.
         </p>
       </section>
 
       {/* Scope Violation Examples */}
       <section className="mb-16">
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Scope Violation Example</h2>
-        <CodeBlock language="python" filename="❌ Invalid — request-scoped into singleton">{`@service(scope="request")
+        <CodeBlock language="python" filename="Invalid — request-scoped into singleton">{`@service(scope="request")
 class RequestLogger:
     def __init__(self, req: Request):
         self.req = req
@@ -274,7 +274,7 @@ class GlobalAnalytics:
 #   - Change 'RequestLogger' to singleton scope
 #   - Use factory/provider pattern to defer instantiation`}</CodeBlock>
 
-        <CodeBlock language="python" filename="✅ Fix — use factory pattern">{`@service(scope="singleton")
+        <CodeBlock language="python" filename="Fix — use factory pattern">{`@service(scope="singleton")
 class GlobalAnalytics:
     def __init__(self):
         pass
@@ -311,7 +311,7 @@ async def resolve_async(self, token, *, tag=None, optional=False):
       {/* Choosing the Right Scope */}
       <section className="mb-16">
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Choosing the Right Scope</h2>
-        <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-0">
           <div className="space-y-4">
             {[
               { scope: 'singleton', when: 'When the service is expensive to create and stateless or thread-safe. Database pools, config loaders, HTTP clients.', example: '@service(scope="singleton")' },

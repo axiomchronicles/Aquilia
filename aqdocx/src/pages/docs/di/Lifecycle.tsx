@@ -125,7 +125,7 @@ class LifecycleHook:
         </div>
 
         {/* on_startup */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-0">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>on_startup(name, callback, *, priority=0, phase=None)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Register a startup hook. Hooks are sorted by <code className="text-aquilia-500">priority</code> (ascending) before execution. The hook list is re-sorted on each addition.
@@ -152,7 +152,7 @@ lifecycle.on_startup(
         </div>
 
         {/* on_shutdown */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-0">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>on_shutdown(name, callback, *, priority=0, phase=None)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Register a shutdown hook. Same priority-sorted behavior as startup hooks. Shutdown hooks <strong>log errors but continue</strong> — all hooks run even if one fails.
@@ -171,7 +171,7 @@ lifecycle.on_shutdown(
         </div>
 
         {/* register_finalizer */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-0">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>register_finalizer(callback)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Register a finalizer callback. Finalizers are instance-level cleanup functions — the Container calls this automatically when caching resolved instances. Finalizers are executed according to the <code className="text-aquilia-500">_disposal_strategy</code>.
@@ -191,7 +191,7 @@ lifecycle.register_finalizer(connection.disconnect)`}</CodeBlock>
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Execution Behavior</h2>
 
         <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>run_startup_hooks()</h3>
-        <div className={`mb-6 p-5 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-6">
           <ul className={`list-disc pl-6 space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <li>Sorts hooks by <code className="text-aquilia-500">priority</code> ascending (0 first)</li>
             <li>Executes each hook's <code className="text-aquilia-500">callback()</code> sequentially (awaited if async)</li>
@@ -202,7 +202,7 @@ lifecycle.register_finalizer(connection.disconnect)`}</CodeBlock>
         </div>
 
         <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>run_shutdown_hooks()</h3>
-        <div className={`mb-6 p-5 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-6">
           <ul className={`list-disc pl-6 space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <li>Sorts hooks by <code className="text-aquilia-500">priority</code> ascending</li>
             <li>Executes each hook's <code className="text-aquilia-500">callback()</code> sequentially</li>
@@ -212,7 +212,7 @@ lifecycle.register_finalizer(connection.disconnect)`}</CodeBlock>
         </div>
 
         <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>run_finalizers()</h3>
-        <div className={`mb-6 p-5 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-6">
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Dispatches to the configured disposal strategy:
           </p>
@@ -242,7 +242,7 @@ lifecycle.register_finalizer(connection.disconnect)`}</CodeBlock>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           When <code className="text-aquilia-500">container.shutdown()</code> is called, three phases execute in order:
         </p>
-        <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-0">
           <div className="space-y-4">
             {[
               { step: '1', title: 'Run Finalizers (LIFO)', desc: 'Execute all registered finalizers in LIFO order. These are instance-level cleanup callbacks — closing connections, flushing buffers, releasing file handles.' },

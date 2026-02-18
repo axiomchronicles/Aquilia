@@ -64,7 +64,7 @@ provider = ClassProvider(
 )`}</CodeBlock>
 
         <h3 className={`text-lg font-semibold mb-3 mt-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>Instantiation Flow</h3>
-        <div className={`p-5 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-8">
           <ol className={`list-decimal pl-6 space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <li>Iterate extracted dependencies, resolve each via <code className="text-aquilia-500">ctx.container.resolve_async()</code></li>
             <li>Check <code className="text-aquilia-500">ctx.in_cycle(dep_token)</code> — if True, raise or use LazyProxy</li>

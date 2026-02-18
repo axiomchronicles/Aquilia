@@ -100,8 +100,8 @@ listener = ConsoleDiagnosticListener(log_level=logging.DEBUG)
 # Output examples:
 # DEBUG - Registered provider 'UserService' for token=UserService (tag=None)
 # DEBUG - Resolving token=UserService (tag=None)...
-# DEBUG - ✓ Resolved token=UserService in 0.0012s
-# ERROR - ✗ Failed to resolve token=MissingService: ProviderNotFoundError(...)
+# DEBUG - Resolved token=UserService in 0.0012s
+# ERROR - Failed to resolve token=MissingService: ProviderNotFoundError(...)
 # INFO  - Container startup: users_app`}</CodeBlock>
       </section>
 
@@ -131,12 +131,6 @@ diagnostics.emit(
 with diagnostics.measure(DIEventType.RESOLUTION_START, token=UserService):
     instance = await provider.instantiate(ctx)
 # → Automatically emits RESOLUTION_SUCCESS or RESOLUTION_FAILURE with duration`}</CodeBlock>
-
-        <div className={`mt-4 p-4 rounded-xl border ${isDark ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-yellow-50 border-yellow-200'}`}>
-          <p className={`text-sm ${isDark ? 'text-yellow-400' : 'text-yellow-800'}`}>
-            <strong>Safety:</strong> Listener errors are caught and logged — diagnostics will never crash your application. If <code className="text-aquilia-500">on_event()</code> raises, the error is logged to <code className="text-aquilia-500">aquilia.di.diagnostics</code> and execution continues.
-          </p>
-        </div>
       </section>
 
       {/* Custom Listener Example */}
@@ -463,7 +457,7 @@ clear_request_container()             # Clear on request end
         </p>
 
         {/* di-check */}
-        <div className={`mb-6 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-6">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-check</h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Static DI validation. Loads manifests, builds the registry with full validation, and reports:
@@ -475,8 +469,8 @@ clear_request_container()             # Clear on request end
             <li>Cross-app dependencies properly declared</li>
           </ul>
           <CodeBlock language="bash">{`aq di-check --settings settings.py
-# ✅ DI configuration is valid!
-# 📊 Summary:
+# DI configuration is valid!
+# Summary:
 #   - Providers: 42
 #   - singleton: 8
 #   - app: 12
@@ -487,13 +481,13 @@ aq di-check --settings settings.py --no-cross-app-check
         </div>
 
         {/* di-tree */}
-        <div className={`mb-6 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-6">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-tree</h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Renders the dependency tree as text. Optionally start from a specific root token:
           </p>
           <CodeBlock language="bash">{`aq di-tree --settings settings.py
-# 🌳 Dependency Tree
+# Dependency Tree
 # ├── UserService (request)
 # │   ├── UserRepository (app)
 # │   │   └── DatabasePool (singleton)
@@ -503,14 +497,14 @@ aq di-tree --settings settings.py --root UserService --out tree.txt`}</CodeBlock
         </div>
 
         {/* di-graph */}
-        <div className={`mb-6 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-6">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-graph</h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Exports the dependency graph as Graphviz DOT format. Nodes are color-coded by scope:
           </p>
           <CodeBlock language="bash">{`aq di-graph --settings settings.py --out graph.dot
-# ✅ Graph exported to graph.dot
-# 💡 Visualize with: dot -Tpng graph.dot -o graph.png
+# Graph exported to graph.dot
+# Visualize with: dot -Tpng graph.dot -o graph.png
 
 # Scope colors:
 # singleton/app → lightblue
@@ -521,35 +515,35 @@ aq di-tree --settings settings.py --root UserService --out tree.txt`}</CodeBlock
         </div>
 
         {/* di-profile */}
-        <div className={`mb-6 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-6">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-profile</h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Benchmarks DI performance — registry build, container build, and cached resolution latency:
           </p>
           <CodeBlock language="bash">{`aq di-profile --settings settings.py --bench resolve --runs 1000
-# ⚡ Profiling DI performance...
+# Profiling DI performance...
 #
-# 1️⃣  Registry build (cold):
-#    ⏱️  12.34ms
+# 1. Registry build (cold):
+#    12.34ms
 #
-# 2️⃣  Container build:
-#    ⏱️  0.45ms
+# 2. Container build:
+#    0.45ms
 #
-# 3️⃣  Cached resolution (1000 iterations):
-#    ⏱️  Average: 1.82µs
-#    ⏱️  Median:  1.65µs
-#    ⏱️  P95:     2.41µs
-#    ✅ Target <3µs: PASSED`}</CodeBlock>
+# 3. Cached resolution (1000 iterations):
+#    Average: 1.82µs
+#    Median:  1.65µs
+#    P95:     2.41µs
+#    Target <3µs: PASSED`}</CodeBlock>
         </div>
 
         {/* di-manifest */}
-        <div className={`mb-6 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-6">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-manifest</h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Generates a JSON manifest for LSP/IDE integration — hover info, autocomplete for <code className="text-aquilia-500">Inject(tag="...")</code>, and "find provider" navigation:
           </p>
           <CodeBlock language="bash">{`aq di-manifest --settings settings.py --out di_manifest.json
-# ✅ Manifest exported to di_manifest.json
+# Manifest exported to di_manifest.json
 #    42 providers
 
 # Output format:
