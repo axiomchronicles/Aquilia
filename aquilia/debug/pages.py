@@ -115,6 +115,27 @@ body {
   opacity: 0.6;
 }
 
+/* Animations from temp/landing.html */
+@keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+@keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pulse-glow { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+@keyframes spin-gyro-1 { from { transform: rotate3d(1, 1, 1, 0deg); } to { transform: rotate3d(1, 1, 1, 360deg); } }
+@keyframes spin-gyro-2 { from { transform: rotate3d(1, -1, 0, 0deg); } to { transform: rotate3d(1, -1, 0, 360deg); } }
+@keyframes spin-gyro-3 { from { transform: rotate3d(0, 1, -1, 0deg); } to { transform: rotate3d(0, 1, -1, 360deg); } }
+@keyframes float-majestic { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+@keyframes pulse-breathing { 0%, 100% { opacity: 0.3; filter: blur(20px); } 50% { opacity: 0.6; filter: blur(25px); } }
+@keyframes drift { 0% { transform: translate(0, 0); } 50% { transform: translate(10px, -10px); } 100% { transform: translate(0, 0); } }
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 20s linear infinite; }
+.animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+.animate-gyro-1 { animation: spin-gyro-1 60s linear infinite; }
+.animate-gyro-2 { animation: spin-gyro-2 45s linear infinite; }
+.animate-gyro-3 { animation: spin-gyro-3 50s linear infinite; }
+.animate-float-majestic { animation: float-majestic 10s ease-in-out infinite; }
+.animate-breathing { animation: pulse-breathing 8s ease-in-out infinite; }
+.animate-drift { animation: drift 20s ease-in-out infinite; }
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 { font-weight: 600; color: var(--tx-text); letter-spacing: -0.02em; }
 code, pre { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 13px; }
@@ -404,10 +425,14 @@ a { color: inherit; text-decoration: none; transition: width 0.2s; }
 .http-title { font-size: 24px; margin-bottom: 12px; font-weight: 700; }
 .http-desc { color: var(--tx-text-muted); margin-bottom: 32px; font-size: 15px; }
 
-/* Welcome Page */
+/* Welcome Page (Updated for exact match) */
 .welcome-hero {
-  padding: 100px 0 60px;
-  text-align: center;
+  padding: 60px 0 60px;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
 }
 .welcome-badge {
     display: inline-flex;
@@ -423,21 +448,18 @@ a { color: inherit; text-decoration: none; transition: width 0.2s; }
     margin-bottom: 24px;
 }
 .welcome-title {
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 800;
   letter-spacing: -0.03em;
   margin-bottom: 24px;
   line-height: 1.1;
-  background: linear-gradient(to bottom, var(--tx-text) 60%, var(--tx-text-muted));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--tx-text);
 }
 .welcome-subtitle {
   font-size: 18px;
   color: var(--tx-text-muted);
   max-width: 580px;
-  margin: 0 auto;
+  margin-bottom: 40px;
 }
 
 .feature-grid {
@@ -465,16 +487,16 @@ a { color: inherit; text-decoration: none; transition: width 0.2s; }
 }
 
 .cmd-block {
-    background: #000;
+    background: var(--tx-bg-alt);
     border: 1px solid var(--tx-border);
     border-radius: 8px;
     padding: 20px;
     font-family: monospace;
     font-size: 13px;
-    color: #a1a1aa;
+    color: var(--tx-text-muted);
     text-align: left;
     max-width: 500px;
-    margin: 40px auto 0;
+    margin-top: 20px;
 }
 
 /* Button primary */
@@ -487,11 +509,37 @@ a { color: inherit; text-decoration: none; transition: width 0.2s; }
   padding: 0 24px;
   background: var(--tx-text);
   color: var(--tx-bg);
-  border-radius: 22px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
 }
 .btn-primary:hover { opacity: 0.9; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 24px;
+  background: var(--tx-bg-alt);
+  color: var(--tx-text);
+  border: 1px solid var(--tx-border);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.btn-secondary:hover { background: var(--tx-surface); border-color: var(--tx-text-muted); }
+
+/* Zen Gyroscope Simulation */
+.zen-gyro {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 """
 
 _BASE_JS = r"""
@@ -694,7 +742,11 @@ def _icon(name: str, cls: str = "icon") -> str:
         'activity': '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>',
         'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
         'home': '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>',
-        'server-crash': '<path d="M6 10H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path><path d="M6 14H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2"></path><polyline points="6 6 12 6 12 12 6 12"></polyline>'
+        'server-crash': '<path d="M6 10H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path><path d="M6 14H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2"></path><polyline points="6 6 12 6 12 12 6 12"></polyline>',
+        'arrow-right': '<line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>',
+        'github': '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>',
+        'book': '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
+        'lock': '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>'
     }
     return f'<svg class="{cls}" viewBox="0 0 24 24">{icons.get(name, "")}</svg>'
 
@@ -746,7 +798,7 @@ def render_debug_exception_page(exc: BaseException, request: Any = None, *, aqui
             else:
                 req_html.append(f'<div class="card" style="margin-bottom:16px;padding:16px;"><strong>{_esc(section)}:</strong> {_esc(str(data))}</div>')
 
-    str_version = f"v{aquilia_version}" if aquilia_version else "Dev"
+    logo_url = "https://raw.githubusercontent.com/axiomchronicles/Aquilia/master/assets/logo.png"
     
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -755,27 +807,30 @@ def render_debug_exception_page(exc: BaseException, request: Any = None, *, aqui
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Error</title>
     <style>{_BASE_CSS}</style>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/axiomchronicles/Aquilia/master/assets/favicon.ico">
 </head>
 <body>
     <div class="bg-grid"></div>
     <div class="bg-glow"></div>
     
     <header class="header glass">
-        <div class="container" style="justify-content:space-between">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
             <div class="logo">
-                <div style="width:24px;height:24px;border-radius:6px;background:var(--tx-accent);display:flex;align-items:center;justify-content:center;color:#000;">{_icon('zap')}</div>
+                <img src="{logo_url}" alt="Aquilia" style="width:32px;height:32px;">
                 <span>Aquilia Debug</span>
             </div>
-            <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
-                <div id="icon-moon">{_icon('moon')}</div>
-                <div id="icon-sun" style="display:none">{_icon('sun')}</div>
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div class="badge red">500 Server Error</div>
+                <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+                    <div id="icon-moon">{_icon('moon')}</div>
+                    <div id="icon-sun" style="display:none">{_icon('sun')}</div>
+                </div>
             </div>
         </div>
     </header>
     
     <main class="container">
         <div class="exc-header">
-            <div class="badge red">{_icon('alert', 'icon')} 500 Server Error</div>
             <h1 class="exc-title">{type(exc).__name__}</h1>
             <div class="exc-msg">{_esc(str(exc))}</div>
             
@@ -807,12 +862,14 @@ def render_debug_exception_page(exc: BaseException, request: Any = None, *, aqui
 </html>"""
 
 def render_http_error_page(status_code: int, message: str = "", detail: str = "", request: Any = None, *, aquilia_version: str = "") -> str:
+    logo_url = "https://raw.githubusercontent.com/axiomchronicles/Aquilia/master/assets/logo.png"
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>{status_code} {message}</title>
     <style>{_BASE_CSS}</style>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/axiomchronicles/Aquilia/master/assets/favicon.ico">
 </head>
 <body>
     <div class="bg-grid"></div>
@@ -821,7 +878,7 @@ def render_http_error_page(status_code: int, message: str = "", detail: str = ""
     <div class="http-page">
         <div class="http-container">
             <div class="http-icon-bg">
-                {_icon('server-crash', 'icon-xl')}
+                {_icon('server-crash', 'icon icon-xl')}
             </div>
             <div class="badge red" style="margin-bottom:24px;">{status_code}</div>
             <h1 class="http-title">{_esc(message or 'Error')}</h1>
@@ -842,22 +899,55 @@ def render_http_error_page(status_code: int, message: str = "", detail: str = ""
 
 def render_welcome_page(*, aquilia_version: str = "") -> str:
     str_version = f"v{aquilia_version}" if aquilia_version else "Dev"
+    logo_url = "https://raw.githubusercontent.com/axiomchronicles/Aquilia/master/assets/logo.png"
     
+    # Inline Gyroscope SVG (copied from temp/landing.html, with minor tweaks for Py string embedding)
+    gyro_svg = r'''
+    <svg class="w-full h-full" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+        <defs>
+            <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#22c55e" stop-opacity="0.1" />
+                <stop offset="50%" stop-color="#22c55e" stop-opacity="0.6" />
+                <stop offset="100%" stop-color="#22c55e" stop-opacity="0.1" />
+            </linearGradient>
+        </defs>
+        <g class="animate-gyro-1" style="transform-origin:center;">
+            <circle cx="250" cy="250" r="220" stroke="url(#ring-gradient)" stroke-width="1" stroke-dasharray="1 10" />
+            <circle cx="250" cy="250" r="218" stroke="#22c55e" stroke-width="0.5" stroke-opacity="0.2" />
+        </g>
+        <g class="animate-gyro-2" style="transform-origin:center;">
+            <ellipse cx="250" cy="250" rx="180" ry="180" stroke="#22c55e" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="20 40" />
+            <path d="M70 250 A 180 180 0 0 1 430 250" stroke="#22c55e" stroke-width="1" stroke-opacity="0.1" fill="none" />
+        </g>
+        <g class="animate-gyro-3" style="transform-origin:center;">
+            <circle cx="250" cy="250" r="120" stroke="#22c55e" stroke-width="2" stroke-opacity="0.6" stroke-dasharray="60 100" />
+            <circle cx="250" cy="250" r="110" stroke="#22c55e" stroke-width="0.5" stroke-opacity="0.3" />
+            <circle cx="130" cy="250" r="3" fill="#86efac" />
+            <circle cx="370" cy="250" r="3" fill="#86efac" />
+        </g>
+        <g class="animate-drift">
+            <circle cx="100" cy="100" r="1.5" fill="#4ade80" opacity="0.6" />
+            <circle cx="400" cy="400" r="2" fill="#4ade80" opacity="0.4" />
+        </g>
+    </svg>
+    '''
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Welcome to Aquilia</title>
     <style>{_BASE_CSS}</style>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/axiomchronicles/Aquilia/master/assets/favicon.ico">
 </head>
 <body>
     <div class="bg-grid"></div>
     <div class="bg-glow"></div>
     
     <header class="header glass">
-        <div class="container" style="justify-content:space-between">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
             <div class="logo">
-                <div style="width:24px;height:24px;border-radius:6px;background:var(--tx-accent);display:flex;align-items:center;justify-content:center;color:#000;">{_icon('zap')}</div>
+                <img src="{logo_url}" alt="Aquilia" style="width:32px;height:32px;">
                 <span>Aquilia</span>
             </div>
             <div style="display:flex;align-items:center;gap:16px;">
@@ -871,36 +961,75 @@ def render_welcome_page(*, aquilia_version: str = "") -> str:
     </header>
     
     <main class="container">
+        <!-- Hero Split -->
         <div class="welcome-hero">
-            <div class="welcome-badge">{_icon('activity')} Server Active</div>
-            <h1 class="welcome-title">Ready for <span style="color:var(--tx-accent)">Orbit</span></h1>
-            <p class="welcome-subtitle">Aquilia is running in debug mode. No root route has been defined yet.</p>
-            
-            <div class="cmd-block">
-                <div style="color:var(--tx-text-muted);margin-bottom:8px;"># Create a new controller</div>
-                <div style="display:flex;justify-content:space-between;">
-                    <span><span style="color:var(--tx-accent)">$</span> aq add controller users</span>
-                    <span style="cursor:pointer;" onclick="copyText(this.id, 'c1')" id="btn-c1">{_icon('copy')}</span>
-                    <span id="c1" style="display:none">aq add controller users</span>
+            <div>
+                <div class="welcome-badge">{_icon('activity')} Server Active</div>
+                <h1 class="welcome-title">The <span style="color:var(--tx-accent);">Production-Ready</span><br>Async Web Framework</h1>
+                <p class="welcome-subtitle">Aquilia is running in debug mode. No root route has been defined yet. Start building your high-performance application now.</p>
+                
+                <div style="display:flex;gap:16px;">
+                    <a href="https://aquilia.dev" target="_blank" class="btn-primary">
+                        {_icon('book')} Documentation
+                    </a>
+                    <a href="https://github.com/axiomchronicles/Aquilia" target="_blank" class="btn-secondary">
+                        {_icon('github')} GitHub
+                    </a>
                 </div>
+
+                <div class="cmd-block">
+                    <div style="color:var(--tx-text-muted);margin-bottom:8px;"># Create a new module</div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span><span style="color:var(--tx-accent)">$</span> aq add module users</span>
+                        <span style="cursor:pointer;" onclick="copyText(this.id, 'c1')" id="btn-c1">{_icon('copy')}</span>
+                        <span id="c1" style="display:none">aq add module users</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Visual -->
+            <div style="position:relative;display:flex;justify-content:center;align-items:center;">
+                 <div style="position:absolute;inset:0;background:var(--tx-accent);opacity:0.1;filter:blur(100px);border-radius:50%;"></div>
+                 <div class="zen-gyro animate-float-majestic">
+                    {gyro_svg}
+                    <div style="position:absolute;inset:0;display:flex;justify-content:center;align-items:center;pointer-events:none;">
+                        <img src="{logo_url}" style="width:64px;height:64px;filter:drop-shadow(0 0 20px rgba(34,197,94,0.5));">
+                    </div>
+                 </div>
             </div>
         </div>
         
+        <!-- Features Grid -->
         <div class="feature-grid">
             <div class="feature-card">
-                <div class="feature-icon">{_icon('zap', 'icon-lg')}</div>
+                <div class="feature-icon">{_icon('zap', 'icon icon-lg')}</div>
                 <h3 style="margin-bottom:8px;">Async Native</h3>
                 <p style="color:var(--tx-text-muted);font-size:14px;">Built on ASGI for high-performance concurrent request handling with zero overhead.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="color:var(--tx-info);border-color:rgba(59,130,246,0.2);background:rgba(59,130,246,0.1)">{_icon('shield', 'icon-lg')}</div>
-                <h3 style="margin-bottom:8px;">Type Safe</h3>
-                <p style="color:var(--tx-text-muted);font-size:14px;">Leverage Python type hints for validation, dependency injection, and auto-docs.</p>
+                <div class="feature-icon" style="color:var(--tx-info);border-color:rgba(59,130,246,0.2);background:rgba(59,130,246,0.1)">{_icon('shield', 'icon icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">AquilAuth</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Integrated OAuth2, OIDC, RBAC/ABAC authorization, and cryptographic session management.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="color:var(--tx-warning);border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.1)">{_icon('box', 'icon-lg')}</div>
-                <h3 style="margin-bottom:8px;">Modular</h3>
-                <p style="color:var(--tx-text-muted);font-size:14px;">Organize your application into isolated, reusable modules with manifest discovery.</p>
+                <div class="feature-icon" style="color:var(--tx-warning);border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.1)">{_icon('box', 'icon icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">Modular Registry</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Aquilary manifest system for dependency resolution and simplified app composition.</p>
+            </div>
+            <div class="feature-card">
+                 <div class="feature-icon" style="color:#a855f7;border-color:rgba(168,85,247,0.2);background:rgba(168,85,247,0.1)">{_icon('activity', 'icon icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">Fault Domains</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Structured error handling with Typed Faults and automated recovery patterns.</p>
+            </div>
+             <div class="feature-card">
+                 <div class="feature-icon" style="color:#ec4899;border-color:rgba(236,72,153,0.2);background:rgba(236,72,153,0.1)">{_icon('server-crash', 'icon icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">Smart Caching</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Multi-backend caching service with cache-aside, write-through, and stampede protection.</p>
+            </div>
+             <div class="feature-card">
+                 <div class="feature-icon" style="color:#14b8a6;border-color:rgba(20,184,166,0.2);background:rgba(20,184,166,0.1)">{_icon('terminal', 'icon icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">CLI Tooling</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Powerful `aq` CLI for scaffolding workspaces, modules, and running dev servers.</p>
             </div>
         </div>
     </main>
