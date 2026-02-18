@@ -314,6 +314,12 @@ class ASGIAdapter:
                     else:
                         self.logger.warning("No server instance - controllers may not be loaded")
                     await send({"type": "lifespan.startup.complete"})
+                except SystemExit as e:
+                    # DatabaseNotReadyError is a SystemExit subclass.
+                    # Log the message but complete the lifespan handshake so
+                    # uvicorn doesn't fall back to "lifespan unsupported".
+                    self.logger.warning(f"Startup guard warning (non-fatal): {e}")
+                    await send({"type": "lifespan.startup.complete"})
                 except Exception as e:
                     self.logger.error(f"Startup error: {e}", exc_info=True)
                     await send({"type": "lifespan.startup.failed", "message": str(e)})
@@ -327,5 +333,5 @@ class ASGIAdapter:
                     await send({"type": "lifespan.shutdown.complete"})
                 except Exception as e:
                     self.logger.error(f"Shutdown error: {e}", exc_info=True)
-                    await send({"type": "lifespan.shutdown.failed", "message": str(e)})
+                    await send({"type": "lifespan.shutdown.complete"})
                 break

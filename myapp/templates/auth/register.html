@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="auth-layout">
+    <div class="auth-card">
+        <div style="text-align:center;margin-bottom:24px">
+            <div class="logo" style="width:48px;height:48px;font-size:22px;margin:0 auto 12px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:white;font-weight:800">A</div>
+        </div>
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Join your team's CRM workspace</p>
+
+        <div id="alertBox" class="alert"></div>
+
+        <form id="registerForm" onsubmit="return handleRegister(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-input" id="firstName" placeholder="Jane" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-input" id="lastName" placeholder="Smith" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="email" placeholder="jane@company.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="password" placeholder="Min 6 characters" required minlength="6">
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:8px" id="regBtn">
+                Create Account
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="/auth/login">Sign in</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('regBtn');
+    const alert = document.getElementById('alertBox');
+    btn.textContent = 'Creating...';
+    btn.disabled = true;
+    alert.className = 'alert';
+
+    try {
+        const res = await apiCall('/auth/api/register', 'POST', {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            first_name: document.getElementById('firstName').value,
+            last_name: document.getElementById('lastName').value
+        });
+
+        if (res.ok) {
+            alert.textContent = 'Account created! Redirecting...';
+            alert.className = 'alert alert-success';
+            setTimeout(() => window.location = '/auth/login', 1200);
+        } else {
+            alert.textContent = res.data.message || res.data.error || 'Registration failed';
+            alert.className = 'alert alert-error';
+        }
+    } catch (err) {
+        alert.textContent = 'Connection error. Please try again.';
+        alert.className = 'alert alert-error';
+    }
+
+    btn.textContent = 'Create Account';
+    btn.disabled = false;
+}
+</script>
+{% endblock %}

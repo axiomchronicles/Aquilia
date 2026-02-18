@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block topbar_title %}Deals{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Deals</h2>
+        <p class="subtitle">Track and manage your sales opportunities</p>
+    </div>
+    <div class="btn-group">
+        <a href="/deals/pipeline" class="btn btn-outline">📈 Pipeline View</a>
+        <a href="/deals/new" class="btn btn-primary">+ New Deal</a>
+    </div>
+</div>
+
+{% if stats %}
+<div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card kpi-accent" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Total Deals</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.total | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-success" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Won</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.by_stage.closed_won | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-warning" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Active Pipeline</div>
+        <div class="kpi-value" style="font-size:22px" id="pipelineVal">$0</div>
+    </div>
+    <div class="kpi-card kpi-purple" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Weighted</div>
+        <div class="kpi-value" style="font-size:22px" id="weightedVal">$0</div>
+    </div>
+</div>
+{% endif %}
+
+<div class="filter-bar">
+    <input type="text" class="form-input" placeholder="Search deals..." id="searchInput" value="{{ search | default('') }}">
+    <select class="form-select" id="stageFilter">
+        <option value="">All Stages</option>
+        {% for s in ['discovery', 'qualification', 'proposal', 'negotiation', 'closed_won', 'closed_lost'] %}
+        <option value="{{ s }}" {% if stage == s %}selected{% endif %}>{{ s | replace('_', ' ') | title }}</option>
+        {% endfor %}
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="applyFilters()">Filter</button>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Deal</th>
+                    <th>Value</th>
+                    <th>Stage</th>
+                    <th>Probability</th>
+                    <th>Contact</th>
+                    <th>Company</th>
+                    <th>Close Date</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deal in deals %}
+                <tr>
+                    <td><a href="/deals/{{ deal.id }}" class="font-bold">{{ deal.title }}</a></td>
+                    <td class="font-bold text-success">${{ "{:,.0f}".format((deal.value or 0) | float) }}</td>
+                    <td><span class="badge stage-{{ deal.stage }}">{{ deal.stage | replace('_', ' ') | title }}</span></td>
+                    <td>{{ deal.probability | default(0) }}%</td>
+                    <td>{{ deal.contact_name | default('-') }}</td>
+                    <td>{{ deal.company_name | default('-') }}</td>
+                    <td class="text-muted">{{ deal.expected_close_date | default('-') }}</td>
+                    <td class="text-right">
+                        <a href="/deals/{{ deal.id }}/edit" class="btn btn-ghost btn-sm">Edit</a>
+                        <button class="btn btn-ghost btn-sm text-danger" onclick="deleteDeal({{ deal.id }})">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not deals %}
+                <tr><td colspan="8">
+                    <div class="empty-state">
+                        <div class="icon">💰</div>
+                        <h3>No deals found</h3>
+                        <p>Create your first deal to start tracking revenue</p>
+                        <a href="/deals/new" class="btn btn-primary">+ New Deal</a>
+                    </div>
+                </td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages and total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}<a href="?page={{ page - 1 }}&search={{ search }}&stage={{ stage }}">← Prev</a>{% endif %}
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}<span class="active">{{ p }}</span>
+            {% else %}<a href="?page={{ p }}&search={{ search }}&stage={{ stage }}">{{ p }}</a>{% endif %}
+        {% endfor %}
+        {% if page < total_pages %}<a href="?page={{ page + 1 }}&search={{ search }}&stage={{ stage }}">Next →</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if stats %}
+document.getElementById('pipelineVal').textContent = formatCurrency({{ stats.pipeline_value | default(0) }});
+document.getElementById('weightedVal').textContent = formatCurrency({{ stats.weighted_pipeline | default(0) }});
+{% endif %}
+
+function applyFilters() {
+    const search = document.getElementById('searchInput').value;
+    const stage = document.getElementById('stageFilter').value;
+    let url = '/deals/?page=1';
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (stage) url += `&stage=${stage}`;
+    window.location = url;
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') applyFilters();
+});
+
+async function deleteDeal(id) {
+    if (!confirm('Delete this deal?')) return;
+    const res = await apiCall(`/deals/api/${id}`, 'DELETE');
+    if (res.ok) window.location.reload();
+}
+</script>
+{% endblock %}

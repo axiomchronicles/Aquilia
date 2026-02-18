@@ -1,0 +1,972 @@
+{
+  "checksum": "ef70c28ed8ca5044",
+  "models": {
+    "Activity": {
+      "fields": {
+        "action": {
+          "column": "action",
+          "field_class": "CharField",
+          "max_length": 50,
+          "type": "VARCHAR(50)"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "description": {
+          "column": "description",
+          "field_class": "TextField",
+          "nullable": true,
+          "type": "TEXT"
+        },
+        "entity_id": {
+          "column": "entity_id",
+          "field_class": "IntegerField",
+          "type": "INTEGER"
+        },
+        "entity_type": {
+          "column": "entity_type",
+          "field_class": "CharField",
+          "max_length": 50,
+          "type": "VARCHAR(50)"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "BigAutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "metadata_json": {
+          "column": "metadata_json",
+          "field_class": "TextField",
+          "nullable": true,
+          "type": "TEXT"
+        },
+        "user_id": {
+          "column": "user_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "entity_id"
+          ],
+          "name": "idx_crm_activities_entity_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "user_id"
+          ],
+          "name": "idx_crm_activities_user_id",
+          "unique": false
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-created_at"
+        ]
+      },
+      "table": "crm_activities"
+    },
+    "Company": {
+      "fields": {
+        "address": {
+          "column": "address",
+          "field_class": "TextField",
+          "nullable": true,
+          "type": "TEXT"
+        },
+        "annual_revenue": {
+          "column": "annual_revenue",
+          "decimal_places": 2,
+          "field_class": "DecimalField",
+          "max_digits": 15,
+          "nullable": true,
+          "type": "DECIMAL(15,2)"
+        },
+        "city": {
+          "column": "city",
+          "field_class": "CharField",
+          "max_length": 100,
+          "nullable": true,
+          "type": "VARCHAR(100)"
+        },
+        "country": {
+          "column": "country",
+          "field_class": "CharField",
+          "max_length": 100,
+          "nullable": true,
+          "type": "VARCHAR(100)"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "description": {
+          "column": "description",
+          "field_class": "TextField",
+          "nullable": true,
+          "type": "TEXT"
+        },
+        "email": {
+          "column": "email",
+          "field_class": "EmailField",
+          "max_length": 254,
+          "nullable": true,
+          "type": "VARCHAR(254)"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "BigAutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "industry": {
+          "column": "industry",
+          "default": "technology",
+          "field_class": "CharField",
+          "max_length": 30,
+          "type": "VARCHAR(30)"
+        },
+        "logo_url": {
+          "column": "logo_url",
+          "field_class": "URLField",
+          "max_length": 200,
+          "nullable": true,
+          "type": "VARCHAR(200)"
+        },
+        "name": {
+          "column": "name",
+          "field_class": "CharField",
+          "max_length": 255,
+          "type": "VARCHAR(255)",
+          "unique": true
+        },
+        "owner_id": {
+          "column": "owner_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "phone": {
+          "column": "phone",
+          "field_class": "CharField",
+          "max_length": 30,
+          "nullable": true,
+          "type": "VARCHAR(30)"
+        },
+        "size": {
+          "column": "size",
+          "default": "1-10",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "state": {
+          "column": "state",
+          "field_class": "CharField",
+          "max_length": 100,
+          "nullable": true,
+          "type": "VARCHAR(100)"
+        },
+        "tags": {
+          "column": "tags",
+          "field_class": "CharField",
+          "max_length": 500,
+          "nullable": true,
+          "type": "VARCHAR(500)"
+        },
+        "updated_at": {
+          "column": "updated_at",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "website": {
+          "column": "website",
+          "field_class": "URLField",
+          "max_length": 200,
+          "nullable": true,
+          "type": "VARCHAR(200)"
+        },
+        "zip_code": {
+          "column": "zip_code",
+          "field_class": "CharField",
+          "max_length": 20,
+          "nullable": true,
+          "type": "VARCHAR(20)"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "name"
+          ],
+          "name": "idx_crm_companies_name",
+          "unique": true
+        },
+        {
+          "columns": [
+            "owner_id"
+          ],
+          "name": "idx_crm_companies_owner_id",
+          "unique": false
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "name"
+        ]
+      },
+      "table": "crm_companies"
+    },
+    "Contact": {
+      "fields": {
+        "address": {
+          "column": "address",
+          "field_class": "TextField",
+          "nullable": true,
+          "type": "TEXT"
+        },
+        "city": {
+          "column": "city",
+          "field_class": "CharField",
+          "max_length": 100,
+          "nullable": true,
+          "type": "VARCHAR(100)"
+        },
+        "company_id": {
+          "column": "company_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "country": {
+          "column": "country",
+          "field_class": "CharField",
+          "max_length": 100,
+          "nullable": true,
+          "type": "VARCHAR(100)"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "department": {
+          "column": "department",
+          "field_class": "CharField",
+          "max_length": 100,
+          "nullable": true,
+          "type": "VARCHAR(100)"
+        },
+        "email": {
+          "column": "email",
+          "field_class": "EmailField",
+          "max_length": 254,
+          "type": "VARCHAR(254)",
+          "unique": true
+        },
+        "first_name": {
+          "column": "first_name",
+          "field_class": "CharField",
+          "max_length": 100,
+          "type": "VARCHAR(100)"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "BigAutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "job_title": {
+          "column": "job_title",
+          "field_class": "CharField",
+          "max_length": 150,
+          "nullable": true,
+          "type": "VARCHAR(150)"
+        },
+        "last_name": {
+          "column": "last_name",
+          "field_class": "CharField",
+          "max_length": 100,
+          "type": "VARCHAR(100)"
+        },
+        "mobile": {
+          "column": "mobile",
+          "field_class": "CharField",
+          "max_length": 30,
+          "nullable": true,
+          "type": "VARCHAR(30)"
+        },
+        "notes": {
+          "column": "notes",
+          "field_class": "TextField",
+          "nullable": true,
+          "type": "TEXT"
+        },
+        "owner_id": {
+          "column": "owner_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "phone": {
+          "column": "phone",
+          "field_class": "CharField",
+          "max_length": 30,
+          "nullable": true,
+          "type": "VARCHAR(30)"
+        },
+        "score": {
+          "column": "score",
+          "default": 0,
+          "field_class": "IntegerField",
+          "type": "INTEGER"
+        },
+        "source": {
+          "column": "source",
+          "default": "website",
+          "field_class": "CharField",
+          "max_length": 30,
+          "type": "VARCHAR(30)"
+        },
+        "state": {
+          "column": "state",
+          "field_class": "CharField",
+          "max_length": 100,
+          "nullable": true,
+          "type": "VARCHAR(100)"
+        },
+        "status": {
+          "column": "status",
+          "default": "lead",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "tags": {
+          "column": "tags",
+          "field_class": "CharField",
+          "max_length": 500,
+          "nullable": true,
+          "type": "VARCHAR(500)"
+        },
+        "updated_at": {
+          "column": "updated_at",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "zip_code": {
+          "column": "zip_code",
+          "field_class": "CharField",
+          "max_length": 20,
+          "nullable": true,
+          "type": "VARCHAR(20)"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "email"
+          ],
+          "name": "idx_crm_contacts_email",
+          "unique": true
+        },
+        {
+          "columns": [
+            "company_id"
+          ],
+          "name": "idx_crm_contacts_company_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "owner_id"
+          ],
+          "name": "idx_crm_contacts_owner_id",
+          "unique": false
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-created_at"
+        ]
+      },
+      "table": "crm_contacts"
+    },
+    "Deal": {
+      "fields": {
+        "actual_close_date": {
+          "column": "actual_close_date",
+          "field_class": "DateField",
+          "nullable": true,
+          "type": "DATE"
+        },
+        "company_id": {
+          "column": "company_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "contact_id": {
+          "column": "contact_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "currency": {
+          "column": "currency",
+          "default": "USD",
+          "field_class": "CharField",
+          "max_length": 3,
+          "type": "VARCHAR(3)"
+        },
+        "description": {
+          "column": "description",
+          "field_class": "TextField",
+          "nullable": true,
+          "type": "TEXT"
+        },
+        "expected_close_date": {
+          "column": "expected_close_date",
+          "field_class": "DateField",
+          "nullable": true,
+          "type": "DATE"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "BigAutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "owner_id": {
+          "column": "owner_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "priority": {
+          "column": "priority",
+          "default": "medium",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "probability": {
+          "column": "probability",
+          "default": 10,
+          "field_class": "IntegerField",
+          "type": "INTEGER"
+        },
+        "source": {
+          "column": "source",
+          "field_class": "CharField",
+          "max_length": 100,
+          "nullable": true,
+          "type": "VARCHAR(100)"
+        },
+        "stage": {
+          "column": "stage",
+          "default": "discovery",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "tags": {
+          "column": "tags",
+          "field_class": "CharField",
+          "max_length": 500,
+          "nullable": true,
+          "type": "VARCHAR(500)"
+        },
+        "title": {
+          "column": "title",
+          "field_class": "CharField",
+          "max_length": 255,
+          "type": "VARCHAR(255)"
+        },
+        "updated_at": {
+          "column": "updated_at",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "value": {
+          "column": "value",
+          "decimal_places": 2,
+          "default": 0,
+          "field_class": "DecimalField",
+          "max_digits": 15,
+          "type": "DECIMAL(15,2)"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "title"
+          ],
+          "name": "idx_crm_deals_title",
+          "unique": false
+        },
+        {
+          "columns": [
+            "contact_id"
+          ],
+          "name": "idx_crm_deals_contact_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "company_id"
+          ],
+          "name": "idx_crm_deals_company_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "owner_id"
+          ],
+          "name": "idx_crm_deals_owner_id",
+          "unique": false
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-created_at"
+        ]
+      },
+      "table": "crm_deals"
+    },
+    "EmailCampaign": {
+      "fields": {
+        "body_html": {
+          "column": "body_html",
+          "field_class": "TextField",
+          "type": "TEXT"
+        },
+        "click_count": {
+          "column": "click_count",
+          "default": 0,
+          "field_class": "IntegerField",
+          "type": "INTEGER"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "BigAutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "name": {
+          "column": "name",
+          "field_class": "CharField",
+          "max_length": 255,
+          "type": "VARCHAR(255)"
+        },
+        "open_count": {
+          "column": "open_count",
+          "default": 0,
+          "field_class": "IntegerField",
+          "type": "INTEGER"
+        },
+        "recipient_count": {
+          "column": "recipient_count",
+          "default": 0,
+          "field_class": "IntegerField",
+          "type": "INTEGER"
+        },
+        "scheduled_at": {
+          "column": "scheduled_at",
+          "field_class": "DateTimeField",
+          "nullable": true,
+          "type": "TIMESTAMP"
+        },
+        "sender_id": {
+          "column": "sender_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "sent_at": {
+          "column": "sent_at",
+          "field_class": "DateTimeField",
+          "nullable": true,
+          "type": "TIMESTAMP"
+        },
+        "status": {
+          "column": "status",
+          "default": "draft",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "subject": {
+          "column": "subject",
+          "field_class": "CharField",
+          "max_length": 500,
+          "type": "VARCHAR(500)"
+        },
+        "updated_at": {
+          "column": "updated_at",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "sender_id"
+          ],
+          "name": "idx_crm_email_campaigns_sender_id",
+          "unique": false
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-created_at"
+        ]
+      },
+      "table": "crm_email_campaigns"
+    },
+    "Note": {
+      "fields": {
+        "author_id": {
+          "column": "author_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "content": {
+          "column": "content",
+          "field_class": "TextField",
+          "type": "TEXT"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "entity_id": {
+          "column": "entity_id",
+          "field_class": "IntegerField",
+          "type": "INTEGER"
+        },
+        "entity_type": {
+          "column": "entity_type",
+          "field_class": "CharField",
+          "max_length": 50,
+          "type": "VARCHAR(50)"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "BigAutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "is_pinned": {
+          "column": "is_pinned",
+          "default": false,
+          "field_class": "BooleanField",
+          "type": "INTEGER"
+        },
+        "updated_at": {
+          "column": "updated_at",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "entity_id"
+          ],
+          "name": "idx_crm_notes_entity_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "author_id"
+          ],
+          "name": "idx_crm_notes_author_id",
+          "unique": false
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-created_at"
+        ]
+      },
+      "table": "crm_notes"
+    },
+    "Task": {
+      "fields": {
+        "assigned_to_id": {
+          "column": "assigned_to_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "company_id": {
+          "column": "company_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "completed_at": {
+          "column": "completed_at",
+          "field_class": "DateTimeField",
+          "nullable": true,
+          "type": "TIMESTAMP"
+        },
+        "contact_id": {
+          "column": "contact_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "created_by_id": {
+          "column": "created_by_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "deal_id": {
+          "column": "deal_id",
+          "field_class": "IntegerField",
+          "nullable": true,
+          "type": "INTEGER"
+        },
+        "description": {
+          "column": "description",
+          "field_class": "TextField",
+          "nullable": true,
+          "type": "TEXT"
+        },
+        "due_date": {
+          "column": "due_date",
+          "field_class": "DateTimeField",
+          "nullable": true,
+          "type": "TIMESTAMP"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "BigAutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "priority": {
+          "column": "priority",
+          "default": "medium",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "status": {
+          "column": "status",
+          "default": "pending",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "task_type": {
+          "column": "task_type",
+          "default": "other",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "title": {
+          "column": "title",
+          "field_class": "CharField",
+          "max_length": 255,
+          "type": "VARCHAR(255)"
+        },
+        "updated_at": {
+          "column": "updated_at",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "assigned_to_id"
+          ],
+          "name": "idx_crm_tasks_assigned_to_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "created_by_id"
+          ],
+          "name": "idx_crm_tasks_created_by_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "contact_id"
+          ],
+          "name": "idx_crm_tasks_contact_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "deal_id"
+          ],
+          "name": "idx_crm_tasks_deal_id",
+          "unique": false
+        },
+        {
+          "columns": [
+            "company_id"
+          ],
+          "name": "idx_crm_tasks_company_id",
+          "unique": false
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-due_date"
+        ]
+      },
+      "table": "crm_tasks"
+    },
+    "User": {
+      "fields": {
+        "avatar_url": {
+          "column": "avatar_url",
+          "field_class": "URLField",
+          "max_length": 200,
+          "nullable": true,
+          "type": "VARCHAR(200)"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "email": {
+          "column": "email",
+          "field_class": "EmailField",
+          "max_length": 254,
+          "type": "VARCHAR(254)",
+          "unique": true
+        },
+        "first_name": {
+          "column": "first_name",
+          "field_class": "CharField",
+          "max_length": 100,
+          "type": "VARCHAR(100)"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "BigAutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "is_active": {
+          "column": "is_active",
+          "default": true,
+          "field_class": "BooleanField",
+          "type": "INTEGER"
+        },
+        "last_login": {
+          "column": "last_login",
+          "field_class": "DateTimeField",
+          "nullable": true,
+          "type": "TIMESTAMP"
+        },
+        "last_name": {
+          "column": "last_name",
+          "field_class": "CharField",
+          "max_length": 100,
+          "type": "VARCHAR(100)"
+        },
+        "password_hash": {
+          "column": "password_hash",
+          "field_class": "CharField",
+          "max_length": 255,
+          "type": "VARCHAR(255)"
+        },
+        "phone": {
+          "column": "phone",
+          "field_class": "CharField",
+          "max_length": 30,
+          "nullable": true,
+          "type": "VARCHAR(30)"
+        },
+        "role": {
+          "column": "role",
+          "default": "rep",
+          "field_class": "CharField",
+          "max_length": 20,
+          "type": "VARCHAR(20)"
+        },
+        "updated_at": {
+          "column": "updated_at",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "email"
+          ],
+          "name": "idx_crm_users_email",
+          "unique": true
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-created_at"
+        ]
+      },
+      "table": "crm_users"
+    }
+  },
+  "version": 1
+}

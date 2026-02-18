@@ -256,14 +256,16 @@ class PatternCompiler:
 
     def _needs_regex(self, ast: PatternAST) -> bool:
         """Check if pattern requires regex matching."""
-        # For now, simple patterns use segment-by-segment matching
-        # Complex patterns with optional groups might need regex
-        has_optional = any(isinstance(seg, OptionalGroup) for seg in ast.segments)
-        return has_optional
+        # Patterns with any dynamic segments (tokens, splats, optional groups)
+        # need regex for route matching at runtime.
+        for segment in ast.segments:
+            if isinstance(segment, (TokenSegment, SplatSegment, OptionalGroup)):
+                return True
+        return False
 
     def _compile_regex(self, ast: PatternAST) -> Pattern:
         """Compile AST into a regex pattern."""
-        parts = ["^"]
+        parts = ["^/"]
 
         def build_regex(segments: List[BaseSegment], optional: bool = False):
             group_parts = []
@@ -299,7 +301,7 @@ class PatternCompiler:
 
         regex_str = build_regex(ast.segments)
         parts.append(regex_str)
-        parts.append("$")
+        parts.append("/?$")
 
         return re.compile("".join(parts))
 

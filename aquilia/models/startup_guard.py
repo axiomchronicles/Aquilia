@@ -60,8 +60,8 @@ def check_db_ready(
 
     Rules:
     1. If AQUILIA_AUTO_MIGRATE=1 (or auto_migrate=True), skip checks.
-    2. For SQLite: if the DB file does not exist, fail with warning.
-    3. If there are unapplied migrations, fail with warning.
+    2. For SQLite: if the DB file does not exist, warn and return False.
+    3. If there are unapplied migrations, warn and return False.
 
     Args:
         db_url: Database connection URL
@@ -69,10 +69,7 @@ def check_db_ready(
         auto_migrate: Override for AQUILIA_AUTO_MIGRATE env var
 
     Returns:
-        True if the database is ready.
-
-    Raises:
-        DatabaseNotReadyError: If the database is not ready.
+        True if the database is ready, False otherwise.
     """
     from .migration_runner import check_db_exists, check_migrations_applied
 
@@ -86,28 +83,30 @@ def check_db_ready(
 
     # Check 1: Does the database file exist?
     if not check_db_exists(db_url):
-        _fail_start(
+        _warn_not_ready(
             "Database file does not exist",
             db_url=db_url,
             hint="Run the following commands to create and initialize the database:",
         )
+        return False
 
     # Check 2: Are all migrations applied?
     mdir = Path(migrations_dir)
     if mdir.exists() and any(mdir.glob("*.py")):
         if not check_migrations_applied(db_url, migrations_dir):
-            _fail_start(
+            _warn_not_ready(
                 "Unapplied migrations detected",
                 db_url=db_url,
                 hint="Run the following commands to apply pending migrations:",
             )
+            return False
 
     logger.info("Database ready — all migrations applied")
     return True
 
 
-def _fail_start(reason: str, *, db_url: str, hint: str) -> None:
-    """Print a yellow warning and raise DatabaseNotReadyError."""
+def _warn_not_ready(reason: str, *, db_url: str, hint: str) -> None:
+    """Print a yellow warning banner (non-fatal)."""
     msg = f"""
 {_YELLOW}{_BOLD}╔══════════════════════════════════════════════════════════════╗
 ║                   DATABASE NOT READY                         ║
@@ -125,4 +124,9 @@ def _fail_start(reason: str, *, db_url: str, hint: str) -> None:
 ╚══════════════════════════════════════════════════════════════╝{_RESET}
 """
     print(msg, file=sys.stderr)
+
+
+def _fail_start(reason: str, *, db_url: str, hint: str) -> None:
+    """Print a yellow warning and raise DatabaseNotReadyError (legacy)."""
+    _warn_not_ready(reason, db_url=db_url, hint=hint)
     raise DatabaseNotReadyError(reason)

@@ -194,9 +194,17 @@ class SerializerField:
             raise ValueError("; ".join(errors))
 
     def get_default(self) -> Any:
-        """Return default value (call if callable)."""
+        """Return default value (call if callable).
+
+        When ``required=False`` and no explicit default is set, returns
+        ``None`` so that optional fields with no default are silently
+        omitted rather than raising a spurious "required" error.
+        """
         if self.default is empty:
-            raise ValueError(self.error_messages["required"])
+            if self.required:
+                raise ValueError(self.error_messages["required"])
+            # Optional field with no explicit default → omit / None
+            return None
         if callable(self.default):
             return self.default()
         return copy.deepcopy(self.default)

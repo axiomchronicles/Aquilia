@@ -845,15 +845,15 @@ class TestStartupGuard:
     """Test the startup guard that prevents implicit DB creation."""
 
     def test_missing_db_raises(self, tmp_path):
-        """Server should refuse to start if DB file doesn't exist."""
+        """Server should warn (return False) if DB file doesn't exist."""
         from aquilia.models.startup_guard import check_db_ready, DatabaseNotReadyError
 
         db_url = f"sqlite:///{tmp_path / 'nonexistent.db'}"
         migrations_dir = str(tmp_path / "migrations")
         os.makedirs(migrations_dir, exist_ok=True)
 
-        with pytest.raises(SystemExit):
-            check_db_ready(db_url, migrations_dir, auto_migrate=False)
+        result = check_db_ready(db_url, migrations_dir, auto_migrate=False)
+        assert result is False
 
     def test_existing_db_no_migrations_dir_passes(self, tmp_path):
         """If there's no migrations dir, guard passes (nothing to check)."""

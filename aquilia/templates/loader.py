@@ -69,16 +69,34 @@ class TemplateLoader(BaseLoader):
         """
         Load template source.
         
+        Resolution order:
+            1. Try the raw template name through filesystem loaders first.
+               This handles the common case of sub-directory templates
+               (e.g. "dashboard/index.html" → templates/dashboard/index.html)
+               without incorrectly treating path segments as module namespaces.
+            2. If explicit module syntax is used (@ or : prefix), try
+               package loaders and then module-resolved filesystem paths.
+            3. Fall back to module-heuristic parsing for backwards compatibility.
+        
         Returns:
             Tuple of (source, filename, uptodate_func)
             
         Raises:
             TemplateNotFound: If template cannot be found
         """
-        # Parse template name
+        # Step 1: Try raw template name through filesystem loaders first.
+        # This prevents false-positive module detection for plain directory paths
+        # like "dashboard/index.html" which should resolve to templates/dashboard/index.html.
+        for loader in self._fs_loaders:
+            try:
+                return loader.get_source(environment, template)
+            except TemplateNotFound:
+                continue
+        
+        # Step 2: Parse template name for module-qualified resolution
         module_name, template_path = self._parse_template_name(template)
         
-        # Try package loader first if module specified
+        # Try package loader if module specified
         if module_name and module_name in self._pkg_loaders:
             try:
                 return self._pkg_loaders[module_name].get_source(
@@ -88,14 +106,14 @@ class TemplateLoader(BaseLoader):
             except TemplateNotFound:
                 pass
         
-        # Try filesystem loaders
+        # Step 3: Try module-resolved path through filesystem loaders
         resolved_path = self._resolve_template_path(module_name, template_path)
-        
-        for loader in self._fs_loaders:
-            try:
-                return loader.get_source(environment, resolved_path)
-            except TemplateNotFound:
-                continue
+        if resolved_path != template:  # Only if resolution changed the path
+            for loader in self._fs_loaders:
+                try:
+                    return loader.get_source(environment, resolved_path)
+                except TemplateNotFound:
+                    continue
         
         # Not found
         raise TemplateNotFound(template)

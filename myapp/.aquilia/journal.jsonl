@@ -1,7 +1,1191 @@
-{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:16:23.533786+00:00", "pid": 9729}
-{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:16:23.536537+00:00", "pid": 9729}
-{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 3.64, "ts": "2026-02-18T09:16:23.536863+00:00", "pid": 9729}
-{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.52, "ts": "2026-02-18T09:16:23.537532+00:00", "pid": 9729}
-{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:16:23.537672+00:00", "pid": 9729}
-{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.2, "ts": "2026-02-18T09:16:23.537970+00:00", "pid": 9729}
-{"event": "shutdown", "mode": "dev", "uptime_s": 110.545, "ts": "2026-02-18T09:16:23.538135+00:00", "pid": 9729}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.36, "ts": "2026-02-18T09:27:19.318036+00:00", "pid": 14407}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.82, "ts": "2026-02-18T09:27:19.318995+00:00", "pid": 14407}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.86, "ts": "2026-02-18T09:27:19.319918+00:00", "pid": 14407}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:27:19.319974+00:00", "pid": 14407}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:27:19.320016+00:00", "pid": 14407}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-18T09:27:19.320052+00:00", "pid": 14407}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.49, "ts": "2026-02-18T09:27:19.320569+00:00", "pid": 14407}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T09:27:19.320631+00:00", "pid": 14407}
+{"event": "boot", "mode": "dev", "fingerprint": "4434b56c64dc72edba4c5cfd32a151083a7ba4dc042be4cece5565e93106a1cf", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 3.01, "ts": "2026-02-18T09:27:19.333478+00:00", "pid": 14407}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:27:54.699143+00:00", "pid": 14407}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:27:54.700100+00:00", "pid": 14407}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.34, "ts": "2026-02-18T09:27:54.700430+00:00", "pid": 14407}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.1, "ts": "2026-02-18T09:27:54.700749+00:00", "pid": 14407}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:27:54.700932+00:00", "pid": 14407}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-18T09:27:54.701141+00:00", "pid": 14407}
+{"event": "shutdown", "mode": "dev", "uptime_s": 35.368, "ts": "2026-02-18T09:27:54.701313+00:00", "pid": 14407}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.36, "ts": "2026-02-18T09:27:56.055049+00:00", "pid": 14723}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-18T09:27:56.055864+00:00", "pid": 14723}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.73, "ts": "2026-02-18T09:27:56.056649+00:00", "pid": 14723}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:27:56.056700+00:00", "pid": 14723}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:27:56.056741+00:00", "pid": 14723}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-18T09:27:56.056775+00:00", "pid": 14723}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.48, "ts": "2026-02-18T09:27:56.057283+00:00", "pid": 14723}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-18T09:27:56.057335+00:00", "pid": 14723}
+{"event": "boot", "mode": "dev", "fingerprint": "4434b56c64dc72edba4c5cfd32a151083a7ba4dc042be4cece5565e93106a1cf", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 2.7, "ts": "2026-02-18T09:27:56.068478+00:00", "pid": 14723}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:28:31.124958+00:00", "pid": 14723}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:28:31.125934+00:00", "pid": 14723}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.38, "ts": "2026-02-18T09:28:31.126267+00:00", "pid": 14723}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.15, "ts": "2026-02-18T09:28:31.126651+00:00", "pid": 14723}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:28:31.126884+00:00", "pid": 14723}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.1, "ts": "2026-02-18T09:28:31.127180+00:00", "pid": 14723}
+{"event": "shutdown", "mode": "dev", "uptime_s": 35.059, "ts": "2026-02-18T09:28:31.127405+00:00", "pid": 14723}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.44, "ts": "2026-02-18T09:28:31.405611+00:00", "pid": 15030}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.63, "ts": "2026-02-18T09:28:31.406351+00:00", "pid": 15030}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.55, "ts": "2026-02-18T09:28:31.406968+00:00", "pid": 15030}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:28:31.407026+00:00", "pid": 15030}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:28:31.407073+00:00", "pid": 15030}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:28:31.407112+00:00", "pid": 15030}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.31, "ts": "2026-02-18T09:28:31.407455+00:00", "pid": 15030}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-18T09:28:31.407512+00:00", "pid": 15030}
+{"event": "boot", "mode": "dev", "fingerprint": "4434b56c64dc72edba4c5cfd32a151083a7ba4dc042be4cece5565e93106a1cf", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 2.39, "ts": "2026-02-18T09:28:31.417183+00:00", "pid": 15030}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:28:34.349533+00:00", "pid": 15030}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:28:34.350619+00:00", "pid": 15030}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.64, "ts": "2026-02-18T09:28:34.351053+00:00", "pid": 15030}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.18, "ts": "2026-02-18T09:28:34.351457+00:00", "pid": 15030}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:28:34.351678+00:00", "pid": 15030}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-18T09:28:34.351935+00:00", "pid": 15030}
+{"event": "shutdown", "mode": "dev", "uptime_s": 2.935, "ts": "2026-02-18T09:28:34.352134+00:00", "pid": 15030}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.32, "ts": "2026-02-18T09:28:35.677268+00:00", "pid": 15240}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.62, "ts": "2026-02-18T09:28:35.677971+00:00", "pid": 15240}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.55, "ts": "2026-02-18T09:28:35.678583+00:00", "pid": 15240}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:28:35.678638+00:00", "pid": 15240}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:28:35.678682+00:00", "pid": 15240}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:28:35.678731+00:00", "pid": 15240}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.41, "ts": "2026-02-18T09:28:35.679182+00:00", "pid": 15240}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T09:28:35.679253+00:00", "pid": 15240}
+{"event": "boot", "mode": "dev", "fingerprint": "4434b56c64dc72edba4c5cfd32a151083a7ba4dc042be4cece5565e93106a1cf", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 2.37, "ts": "2026-02-18T09:28:35.692113+00:00", "pid": 15240}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:34:10.520951+00:00", "pid": 15240}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:34:10.521919+00:00", "pid": 15240}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.2, "ts": "2026-02-18T09:34:10.522130+00:00", "pid": 15240}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.05, "ts": "2026-02-18T09:34:10.522295+00:00", "pid": 15240}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:34:10.522395+00:00", "pid": 15240}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T09:34:10.522514+00:00", "pid": 15240}
+{"event": "shutdown", "mode": "dev", "uptime_s": 334.831, "ts": "2026-02-18T09:34:10.522618+00:00", "pid": 15240}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.34, "ts": "2026-02-18T09:34:10.902903+00:00", "pid": 17060}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.75, "ts": "2026-02-18T09:34:10.903747+00:00", "pid": 17060}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.81, "ts": "2026-02-18T09:34:10.904620+00:00", "pid": 17060}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:34:10.904674+00:00", "pid": 17060}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:34:10.904718+00:00", "pid": 17060}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-18T09:34:10.904754+00:00", "pid": 17060}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.43, "ts": "2026-02-18T09:34:10.905220+00:00", "pid": 17060}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T09:34:10.905307+00:00", "pid": 17060}
+{"event": "boot", "mode": "dev", "fingerprint": "4434b56c64dc72edba4c5cfd32a151083a7ba4dc042be4cece5565e93106a1cf", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 2.81, "ts": "2026-02-18T09:34:10.918724+00:00", "pid": 17060}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:34:11.728624+00:00", "pid": 17060}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:34:11.728935+00:00", "pid": 17060}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.48, "ts": "2026-02-18T09:34:11.729073+00:00", "pid": 17060}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.07, "ts": "2026-02-18T09:34:11.729261+00:00", "pid": 17060}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:34:11.729375+00:00", "pid": 17060}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T09:34:11.729518+00:00", "pid": 17060}
+{"event": "shutdown", "mode": "dev", "uptime_s": 0.811, "ts": "2026-02-18T09:34:11.729646+00:00", "pid": 17060}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.47, "ts": "2026-02-18T09:34:11.975279+00:00", "pid": 17070}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.85, "ts": "2026-02-18T09:34:11.976318+00:00", "pid": 17070}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.67, "ts": "2026-02-18T09:34:11.977073+00:00", "pid": 17070}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:34:11.977147+00:00", "pid": 17070}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:34:11.977203+00:00", "pid": 17070}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:34:11.977246+00:00", "pid": 17070}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.37, "ts": "2026-02-18T09:34:11.977652+00:00", "pid": 17070}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T09:34:11.977720+00:00", "pid": 17070}
+{"event": "boot", "mode": "dev", "fingerprint": "4434b56c64dc72edba4c5cfd32a151083a7ba4dc042be4cece5565e93106a1cf", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 2.98, "ts": "2026-02-18T09:34:11.990000+00:00", "pid": 17070}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:34:14.318544+00:00", "pid": 17070}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:34:14.318903+00:00", "pid": 17070}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.62, "ts": "2026-02-18T09:34:14.319130+00:00", "pid": 17070}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.11, "ts": "2026-02-18T09:34:14.319424+00:00", "pid": 17070}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:34:14.319602+00:00", "pid": 17070}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T09:34:14.319876+00:00", "pid": 17070}
+{"event": "shutdown", "mode": "dev", "uptime_s": 2.33, "ts": "2026-02-18T09:34:14.320171+00:00", "pid": 17070}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.35, "ts": "2026-02-18T09:34:14.564424+00:00", "pid": 17437}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.58, "ts": "2026-02-18T09:34:14.565147+00:00", "pid": 17437}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.5, "ts": "2026-02-18T09:34:14.565714+00:00", "pid": 17437}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:34:14.565770+00:00", "pid": 17437}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:34:14.565827+00:00", "pid": 17437}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:34:14.565874+00:00", "pid": 17437}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.32, "ts": "2026-02-18T09:34:14.566234+00:00", "pid": 17437}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-18T09:34:14.566299+00:00", "pid": 17437}
+{"event": "boot", "mode": "dev", "fingerprint": "4434b56c64dc72edba4c5cfd32a151083a7ba4dc042be4cece5565e93106a1cf", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 2.29, "ts": "2026-02-18T09:34:14.576046+00:00", "pid": 17437}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:34:16.093781+00:00", "pid": 17437}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:34:16.094761+00:00", "pid": 17437}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.44, "ts": "2026-02-18T09:34:16.095139+00:00", "pid": 17437}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.2, "ts": "2026-02-18T09:34:16.095594+00:00", "pid": 17437}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:34:16.095859+00:00", "pid": 17437}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.11, "ts": "2026-02-18T09:34:16.096221+00:00", "pid": 17437}
+{"event": "shutdown", "mode": "dev", "uptime_s": 1.52, "ts": "2026-02-18T09:34:16.096486+00:00", "pid": 17437}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.32, "ts": "2026-02-18T09:34:16.429132+00:00", "pid": 17681}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.61, "ts": "2026-02-18T09:34:16.429835+00:00", "pid": 17681}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.53, "ts": "2026-02-18T09:34:16.430435+00:00", "pid": 17681}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:34:16.430500+00:00", "pid": 17681}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:34:16.430557+00:00", "pid": 17681}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:34:16.430605+00:00", "pid": 17681}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.32, "ts": "2026-02-18T09:34:59.165388+00:00", "pid": 18018}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.86, "ts": "2026-02-18T09:34:59.166420+00:00", "pid": 18018}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.93, "ts": "2026-02-18T09:34:59.167712+00:00", "pid": 18018}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:34:59.168031+00:00", "pid": 18018}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:34:59.168266+00:00", "pid": 18018}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.48, "ts": "2026-02-18T09:34:59.168501+00:00", "pid": 18018}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.29, "ts": "2026-02-18T09:35:00.275470+00:00", "pid": 18024}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.62, "ts": "2026-02-18T09:35:00.276241+00:00", "pid": 18024}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.57, "ts": "2026-02-18T09:35:00.276882+00:00", "pid": 18024}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:35:00.276954+00:00", "pid": 18024}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:35:00.277013+00:00", "pid": 18024}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.15, "ts": "2026-02-18T09:35:00.277097+00:00", "pid": 18024}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:35:05.813557+00:00", "pid": 18256}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.67, "ts": "2026-02-18T09:35:05.814424+00:00", "pid": 18256}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.57, "ts": "2026-02-18T09:35:05.815054+00:00", "pid": 18256}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:35:05.815109+00:00", "pid": 18256}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:35:05.815151+00:00", "pid": 18256}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-18T09:35:05.815186+00:00", "pid": 18256}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:35:06.365758+00:00", "pid": 18258}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.7, "ts": "2026-02-18T09:35:06.366612+00:00", "pid": 18258}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.77, "ts": "2026-02-18T09:35:06.367460+00:00", "pid": 18258}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:35:06.367565+00:00", "pid": 18258}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:35:06.367627+00:00", "pid": 18258}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:35:06.367673+00:00", "pid": 18258}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.46, "ts": "2026-02-18T09:35:06.861954+00:00", "pid": 18267}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.78, "ts": "2026-02-18T09:35:06.862888+00:00", "pid": 18267}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.35, "ts": "2026-02-18T09:35:06.864453+00:00", "pid": 18267}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:35:06.864572+00:00", "pid": 18267}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:35:06.864643+00:00", "pid": 18267}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-18T09:35:06.864699+00:00", "pid": 18267}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.33, "ts": "2026-02-18T09:35:28.297625+00:00", "pid": 18553}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.75, "ts": "2026-02-18T09:35:28.298528+00:00", "pid": 18553}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.67, "ts": "2026-02-18T09:35:28.299270+00:00", "pid": 18553}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:35:28.299334+00:00", "pid": 18553}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:35:28.299380+00:00", "pid": 18553}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:35:28.299419+00:00", "pid": 18553}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.35, "ts": "2026-02-18T09:35:29.323804+00:00", "pid": 18561}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.73, "ts": "2026-02-18T09:35:29.324668+00:00", "pid": 18561}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.66, "ts": "2026-02-18T09:35:29.325401+00:00", "pid": 18561}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:35:29.325468+00:00", "pid": 18561}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:35:29.325519+00:00", "pid": 18561}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:35:29.325558+00:00", "pid": 18561}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.29, "ts": "2026-02-18T09:35:56.756575+00:00", "pid": 18874}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 5.46, "ts": "2026-02-18T09:35:56.762219+00:00", "pid": 18874}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.85, "ts": "2026-02-18T09:35:56.763468+00:00", "pid": 18874}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:35:56.763614+00:00", "pid": 18874}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:35:56.763942+00:00", "pid": 18874}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.52, "ts": "2026-02-18T09:35:56.764105+00:00", "pid": 18874}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.29, "ts": "2026-02-18T09:35:57.739161+00:00", "pid": 18882}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.72, "ts": "2026-02-18T09:35:57.740034+00:00", "pid": 18882}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.6, "ts": "2026-02-18T09:35:57.740717+00:00", "pid": 18882}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:35:57.740778+00:00", "pid": 18882}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:35:57.740824+00:00", "pid": 18882}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:35:57.740862+00:00", "pid": 18882}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.27, "ts": "2026-02-18T09:36:01.895520+00:00", "pid": 19134}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.6, "ts": "2026-02-18T09:36:01.896269+00:00", "pid": 19134}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.53, "ts": "2026-02-18T09:36:01.896863+00:00", "pid": 19134}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:36:01.896918+00:00", "pid": 19134}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:36:01.896963+00:00", "pid": 19134}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:36:01.897002+00:00", "pid": 19134}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.49, "ts": "2026-02-18T09:36:46.585506+00:00", "pid": 19507}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.82, "ts": "2026-02-18T09:36:46.586513+00:00", "pid": 19507}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.73, "ts": "2026-02-18T09:36:46.587335+00:00", "pid": 19507}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:36:46.587442+00:00", "pid": 19507}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:36:46.587534+00:00", "pid": 19507}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.18, "ts": "2026-02-18T09:36:46.587593+00:00", "pid": 19507}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:36:47.577438+00:00", "pid": 19509}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.69, "ts": "2026-02-18T09:36:47.578280+00:00", "pid": 19509}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.64, "ts": "2026-02-18T09:36:47.578996+00:00", "pid": 19509}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:36:47.579062+00:00", "pid": 19509}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:36:47.579112+00:00", "pid": 19509}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:36:47.579154+00:00", "pid": 19509}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.38, "ts": "2026-02-18T09:36:51.513471+00:00", "pid": 19767}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.73, "ts": "2026-02-18T09:36:51.514320+00:00", "pid": 19767}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.63, "ts": "2026-02-18T09:36:51.515028+00:00", "pid": 19767}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:36:51.515098+00:00", "pid": 19767}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:36:51.515149+00:00", "pid": 19767}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:36:51.515190+00:00", "pid": 19767}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-18T09:36:52.020038+00:00", "pid": 19774}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.87, "ts": "2026-02-18T09:36:52.021085+00:00", "pid": 19774}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.1, "ts": "2026-02-18T09:36:52.022483+00:00", "pid": 19774}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:36:52.022805+00:00", "pid": 19774}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:36:52.023016+00:00", "pid": 19774}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.38, "ts": "2026-02-18T09:36:52.023175+00:00", "pid": 19774}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.28, "ts": "2026-02-18T09:36:58.172048+00:00", "pid": 20052}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.61, "ts": "2026-02-18T09:36:58.172802+00:00", "pid": 20052}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.55, "ts": "2026-02-18T09:36:58.173428+00:00", "pid": 20052}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:36:58.173493+00:00", "pid": 20052}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:36:58.173541+00:00", "pid": 20052}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:36:58.173580+00:00", "pid": 20052}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.38, "ts": "2026-02-18T09:37:12.127778+00:00", "pid": 20354}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.8, "ts": "2026-02-18T09:37:12.128737+00:00", "pid": 20354}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.7, "ts": "2026-02-18T09:37:12.129527+00:00", "pid": 20354}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:37:12.129603+00:00", "pid": 20354}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:37:12.129664+00:00", "pid": 20354}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:37:12.129709+00:00", "pid": 20354}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:37:13.255166+00:00", "pid": 20356}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.75, "ts": "2026-02-18T09:37:13.256083+00:00", "pid": 20356}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.68, "ts": "2026-02-18T09:37:13.256843+00:00", "pid": 20356}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:37:13.256926+00:00", "pid": 20356}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:37:13.256991+00:00", "pid": 20356}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-18T09:37:13.257043+00:00", "pid": 20356}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.35, "ts": "2026-02-18T09:37:33.804693+00:00", "pid": 20680}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.78, "ts": "2026-02-18T09:37:33.805628+00:00", "pid": 20680}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.67, "ts": "2026-02-18T09:37:33.806395+00:00", "pid": 20680}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:37:33.806470+00:00", "pid": 20680}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:37:33.806527+00:00", "pid": 20680}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:37:33.806569+00:00", "pid": 20680}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.34, "ts": "2026-02-18T09:37:34.844422+00:00", "pid": 20688}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.78, "ts": "2026-02-18T09:37:34.845373+00:00", "pid": 20688}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.7, "ts": "2026-02-18T09:37:34.846173+00:00", "pid": 20688}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:37:34.846259+00:00", "pid": 20688}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:37:34.846319+00:00", "pid": 20688}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:37:34.846365+00:00", "pid": 20688}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.3, "ts": "2026-02-18T09:37:37.517019+00:00", "pid": 20963}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.67, "ts": "2026-02-18T09:37:37.517842+00:00", "pid": 20963}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.65, "ts": "2026-02-18T09:37:37.518599+00:00", "pid": 20963}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:37:37.518674+00:00", "pid": 20963}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:37:37.518726+00:00", "pid": 20963}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:37:37.518769+00:00", "pid": 20963}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.32, "ts": "2026-02-18T09:37:38.039303+00:00", "pid": 20964}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-18T09:37:38.040208+00:00", "pid": 20964}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.66, "ts": "2026-02-18T09:37:38.040952+00:00", "pid": 20964}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:37:38.041025+00:00", "pid": 20964}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:37:38.041081+00:00", "pid": 20964}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:37:38.041130+00:00", "pid": 20964}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.29, "ts": "2026-02-18T09:38:00.909328+00:00", "pid": 21327}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-18T09:38:00.910219+00:00", "pid": 21327}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.66, "ts": "2026-02-18T09:38:00.910969+00:00", "pid": 21327}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:38:00.911042+00:00", "pid": 21327}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:38:00.911099+00:00", "pid": 21327}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:38:00.911146+00:00", "pid": 21327}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.32, "ts": "2026-02-18T09:38:02.019874+00:00", "pid": 21329}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.85, "ts": "2026-02-18T09:38:02.020931+00:00", "pid": 21329}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.75, "ts": "2026-02-18T09:38:02.021785+00:00", "pid": 21329}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:38:02.021873+00:00", "pid": 21329}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:38:02.021930+00:00", "pid": 21329}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:38:02.021977+00:00", "pid": 21329}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.79, "ts": "2026-02-18T09:38:20.750472+00:00", "pid": 21681}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.93, "ts": "2026-02-18T09:38:20.751619+00:00", "pid": 21681}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.71, "ts": "2026-02-18T09:38:20.752425+00:00", "pid": 21681}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:38:20.752509+00:00", "pid": 21681}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:38:20.752564+00:00", "pid": 21681}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-18T09:38:20.752628+00:00", "pid": 21681}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:38:21.817473+00:00", "pid": 21690}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.7, "ts": "2026-02-18T09:38:21.818329+00:00", "pid": 21690}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.64, "ts": "2026-02-18T09:38:21.819053+00:00", "pid": 21690}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:38:21.819132+00:00", "pid": 21690}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:38:21.819191+00:00", "pid": 21690}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:38:21.819234+00:00", "pid": 21690}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.41, "ts": "2026-02-18T09:38:23.907099+00:00", "pid": 21894}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.79, "ts": "2026-02-18T09:38:23.908053+00:00", "pid": 21894}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.67, "ts": "2026-02-18T09:38:23.908798+00:00", "pid": 21894}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:38:23.908869+00:00", "pid": 21894}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:38:23.908921+00:00", "pid": 21894}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:38:23.908967+00:00", "pid": 21894}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-18T09:38:24.289469+00:00", "pid": 21993}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.96, "ts": "2026-02-18T09:38:24.290555+00:00", "pid": 21993}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.73, "ts": "2026-02-18T09:38:24.291389+00:00", "pid": 21993}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:38:24.291556+00:00", "pid": 21993}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:38:24.291781+00:00", "pid": 21993}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.35, "ts": "2026-02-18T09:38:24.291887+00:00", "pid": 21993}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-18T09:38:46.787932+00:00", "pid": 22677}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.82, "ts": "2026-02-18T09:38:46.788940+00:00", "pid": 22677}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.64, "ts": "2026-02-18T09:38:46.789664+00:00", "pid": 22677}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:38:46.789735+00:00", "pid": 22677}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:38:46.789786+00:00", "pid": 22677}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:38:46.789829+00:00", "pid": 22677}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.33, "ts": "2026-02-18T09:38:47.864566+00:00", "pid": 22684}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.78, "ts": "2026-02-18T09:38:47.865509+00:00", "pid": 22684}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.67, "ts": "2026-02-18T09:38:47.866255+00:00", "pid": 22684}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:38:47.866327+00:00", "pid": 22684}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:38:47.866378+00:00", "pid": 22684}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:38:47.866417+00:00", "pid": 22684}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.29, "ts": "2026-02-18T09:39:03.871205+00:00", "pid": 23054}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.69, "ts": "2026-02-18T09:39:03.872035+00:00", "pid": 23054}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.63, "ts": "2026-02-18T09:39:03.872739+00:00", "pid": 23054}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:39:03.872804+00:00", "pid": 23054}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:39:03.872850+00:00", "pid": 23054}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:39:03.872888+00:00", "pid": 23054}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:39:04.909614+00:00", "pid": 23055}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.69, "ts": "2026-02-18T09:39:04.910462+00:00", "pid": 23055}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.63, "ts": "2026-02-18T09:39:04.911162+00:00", "pid": 23055}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:39:04.911225+00:00", "pid": 23055}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:39:04.911277+00:00", "pid": 23055}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.16, "ts": "2026-02-18T09:39:04.911376+00:00", "pid": 23055}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.27, "ts": "2026-02-18T09:39:07.352411+00:00", "pid": 23385}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.64, "ts": "2026-02-18T09:39:07.353201+00:00", "pid": 23385}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.55, "ts": "2026-02-18T09:39:07.353809+00:00", "pid": 23385}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:39:07.353875+00:00", "pid": 23385}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:39:07.353928+00:00", "pid": 23385}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:39:07.353974+00:00", "pid": 23385}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:39:07.947907+00:00", "pid": 23396}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.83, "ts": "2026-02-18T09:39:07.948897+00:00", "pid": 23396}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.31, "ts": "2026-02-18T09:39:07.950310+00:00", "pid": 23396}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:39:07.950524+00:00", "pid": 23396}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:39:07.950603+00:00", "pid": 23396}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.14, "ts": "2026-02-18T09:39:07.950653+00:00", "pid": 23396}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.28, "ts": "2026-02-18T09:39:40.080378+00:00", "pid": 23838}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.62, "ts": "2026-02-18T09:39:40.081136+00:00", "pid": 23838}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.58, "ts": "2026-02-18T09:39:40.081778+00:00", "pid": 23838}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:39:40.081839+00:00", "pid": 23838}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:39:40.081887+00:00", "pid": 23838}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:39:40.081928+00:00", "pid": 23838}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.34, "ts": "2026-02-18T09:39:41.258721+00:00", "pid": 23840}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.96, "ts": "2026-02-18T09:39:41.259893+00:00", "pid": 23840}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.75, "ts": "2026-02-18T09:39:41.260739+00:00", "pid": 23840}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:39:41.260823+00:00", "pid": 23840}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:39:41.260879+00:00", "pid": 23840}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:39:41.260922+00:00", "pid": 23840}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.27, "ts": "2026-02-18T09:40:01.376444+00:00", "pid": 24247}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.68, "ts": "2026-02-18T09:40:01.377266+00:00", "pid": 24247}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.6, "ts": "2026-02-18T09:40:01.377936+00:00", "pid": 24247}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:01.378002+00:00", "pid": 24247}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:01.378054+00:00", "pid": 24247}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:40:01.378090+00:00", "pid": 24247}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-18T09:40:02.437952+00:00", "pid": 24254}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.95, "ts": "2026-02-18T09:40:02.439085+00:00", "pid": 24254}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.71, "ts": "2026-02-18T09:40:02.439900+00:00", "pid": 24254}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:02.439980+00:00", "pid": 24254}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:02.440079+00:00", "pid": 24254}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.15, "ts": "2026-02-18T09:40:02.440124+00:00", "pid": 24254}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.56, "ts": "2026-02-18T09:40:04.863156+00:00", "pid": 24611}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.77, "ts": "2026-02-18T09:40:04.864102+00:00", "pid": 24611}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.7, "ts": "2026-02-18T09:40:04.864892+00:00", "pid": 24611}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:04.864965+00:00", "pid": 24611}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:04.865029+00:00", "pid": 24611}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-18T09:40:04.865075+00:00", "pid": 24611}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:40:05.348886+00:00", "pid": 24616}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.71, "ts": "2026-02-18T09:40:05.349765+00:00", "pid": 24616}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.95, "ts": "2026-02-18T09:40:05.350789+00:00", "pid": 24616}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:05.350865+00:00", "pid": 24616}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:05.350926+00:00", "pid": 24616}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-18T09:40:05.350975+00:00", "pid": 24616}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.27, "ts": "2026-02-18T09:40:28.181537+00:00", "pid": 25050}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.63, "ts": "2026-02-18T09:40:28.182317+00:00", "pid": 25050}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.59, "ts": "2026-02-18T09:40:28.182969+00:00", "pid": 25050}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:28.183032+00:00", "pid": 25050}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:28.183085+00:00", "pid": 25050}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:40:28.183129+00:00", "pid": 25050}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.29, "ts": "2026-02-18T09:40:29.339999+00:00", "pid": 25058}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.7, "ts": "2026-02-18T09:40:29.340831+00:00", "pid": 25058}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.63, "ts": "2026-02-18T09:40:29.341532+00:00", "pid": 25058}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:29.341598+00:00", "pid": 25058}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:29.341649+00:00", "pid": 25058}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:40:29.341690+00:00", "pid": 25058}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.29, "ts": "2026-02-18T09:40:46.143368+00:00", "pid": 25476}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.62, "ts": "2026-02-18T09:40:46.144140+00:00", "pid": 25476}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.58, "ts": "2026-02-18T09:40:46.144787+00:00", "pid": 25476}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:46.144856+00:00", "pid": 25476}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:46.144910+00:00", "pid": 25476}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:40:46.144952+00:00", "pid": 25476}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.7, "ts": "2026-02-18T09:40:47.319060+00:00", "pid": 25484}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.01, "ts": "2026-02-18T09:40:47.320334+00:00", "pid": 25484}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.71, "ts": "2026-02-18T09:40:47.321168+00:00", "pid": 25484}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:47.321288+00:00", "pid": 25484}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:47.321345+00:00", "pid": 25484}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:40:47.321389+00:00", "pid": 25484}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.34, "ts": "2026-02-18T09:40:49.527404+00:00", "pid": 25752}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.8, "ts": "2026-02-18T09:40:49.528371+00:00", "pid": 25752}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.72, "ts": "2026-02-18T09:40:49.529170+00:00", "pid": 25752}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:49.529262+00:00", "pid": 25752}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:49.529323+00:00", "pid": 25752}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:40:49.529370+00:00", "pid": 25752}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.13, "ts": "2026-02-18T09:40:50.053424+00:00", "pid": 25867}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.26, "ts": "2026-02-18T09:40:50.054893+00:00", "pid": 25867}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.77, "ts": "2026-02-18T09:40:50.055806+00:00", "pid": 25867}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:40:50.055902+00:00", "pid": 25867}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:40:50.055964+00:00", "pid": 25867}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.16, "ts": "2026-02-18T09:40:50.056059+00:00", "pid": 25867}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.32, "ts": "2026-02-18T09:41:14.628508+00:00", "pid": 26714}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.72, "ts": "2026-02-18T09:41:14.629379+00:00", "pid": 26714}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.66, "ts": "2026-02-18T09:41:14.630121+00:00", "pid": 26714}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:14.630188+00:00", "pid": 26714}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:14.630245+00:00", "pid": 26714}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:41:14.630298+00:00", "pid": 26714}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.79, "ts": "2026-02-18T09:41:15.735861+00:00", "pid": 26722}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.38, "ts": "2026-02-18T09:41:15.737539+00:00", "pid": 26722}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.72, "ts": "2026-02-18T09:41:15.738399+00:00", "pid": 26722}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:15.738501+00:00", "pid": 26722}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:15.738562+00:00", "pid": 26722}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-18T09:41:15.738615+00:00", "pid": 26722}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:41:23.214621+00:00", "pid": 27142}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.69, "ts": "2026-02-18T09:41:23.215468+00:00", "pid": 27142}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.7, "ts": "2026-02-18T09:41:23.216246+00:00", "pid": 27142}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:23.216318+00:00", "pid": 27142}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:23.216369+00:00", "pid": 27142}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:41:23.216410+00:00", "pid": 27142}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.3, "ts": "2026-02-18T09:41:24.113172+00:00", "pid": 27149}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.72, "ts": "2026-02-18T09:41:24.114095+00:00", "pid": 27149}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.63, "ts": "2026-02-18T09:41:24.114798+00:00", "pid": 27149}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:24.114860+00:00", "pid": 27149}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:24.114910+00:00", "pid": 27149}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:41:24.114947+00:00", "pid": 27149}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.12, "ts": "2026-02-18T09:41:26.875411+00:00", "pid": 27566}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 2.78, "ts": "2026-02-18T09:41:26.878554+00:00", "pid": 27566}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 2.15, "ts": "2026-02-18T09:41:26.881185+00:00", "pid": 27566}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:26.881476+00:00", "pid": 27566}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:26.881629+00:00", "pid": 27566}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.28, "ts": "2026-02-18T09:41:26.881741+00:00", "pid": 27566}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.31, "ts": "2026-02-18T09:41:27.448552+00:00", "pid": 27573}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.79, "ts": "2026-02-18T09:41:27.449500+00:00", "pid": 27573}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.66, "ts": "2026-02-18T09:41:27.450232+00:00", "pid": 27573}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:27.450297+00:00", "pid": 27573}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:27.450348+00:00", "pid": 27573}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:41:27.450388+00:00", "pid": 27573}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.34, "ts": "2026-02-18T09:41:44.369658+00:00", "pid": 28039}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.92, "ts": "2026-02-18T09:41:44.370824+00:00", "pid": 28039}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.97, "ts": "2026-02-18T09:41:44.371865+00:00", "pid": 28039}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:44.371947+00:00", "pid": 28039}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:44.372002+00:00", "pid": 28039}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:41:44.372046+00:00", "pid": 28039}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.33, "ts": "2026-02-18T09:41:45.293174+00:00", "pid": 28040}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.83, "ts": "2026-02-18T09:41:45.294131+00:00", "pid": 28040}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.67, "ts": "2026-02-18T09:41:45.294872+00:00", "pid": 28040}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:45.294939+00:00", "pid": 28040}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:45.294999+00:00", "pid": 28040}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T09:41:45.295043+00:00", "pid": 28040}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.29, "ts": "2026-02-18T09:41:56.925973+00:00", "pid": 28513}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.67, "ts": "2026-02-18T09:41:56.926784+00:00", "pid": 28513}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.6, "ts": "2026-02-18T09:41:56.927461+00:00", "pid": 28513}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:56.927525+00:00", "pid": 28513}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:56.927578+00:00", "pid": 28513}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:41:56.927622+00:00", "pid": 28513}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.74, "ts": "2026-02-18T09:41:57.946088+00:00", "pid": 28521}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.79, "ts": "2026-02-18T09:41:57.947026+00:00", "pid": 28521}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.65, "ts": "2026-02-18T09:41:57.947745+00:00", "pid": 28521}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:41:57.947814+00:00", "pid": 28521}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:41:57.947861+00:00", "pid": 28521}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:41:57.947904+00:00", "pid": 28521}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.27, "ts": "2026-02-18T09:52:33.766282+00:00", "pid": 33153}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.08, "ts": "2026-02-18T09:52:33.767451+00:00", "pid": 33153}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.85, "ts": "2026-02-18T09:52:33.768356+00:00", "pid": 33153}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:52:33.768413+00:00", "pid": 33153}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:52:33.768459+00:00", "pid": 33153}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:52:33.768495+00:00", "pid": 33153}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.68, "ts": "2026-02-18T09:52:48.965782+00:00", "pid": 33831}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.92, "ts": "2026-02-18T09:52:48.966833+00:00", "pid": 33831}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.74, "ts": "2026-02-18T09:52:48.967655+00:00", "pid": 33831}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:52:48.967728+00:00", "pid": 33831}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:52:48.967780+00:00", "pid": 33831}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:52:48.967820+00:00", "pid": 33831}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.36, "ts": "2026-02-18T09:52:49.968820+00:00", "pid": 33832}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.76, "ts": "2026-02-18T09:52:49.969702+00:00", "pid": 33832}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.66, "ts": "2026-02-18T09:52:49.970433+00:00", "pid": 33832}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:52:49.970499+00:00", "pid": 33832}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:52:49.970554+00:00", "pid": 33832}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:52:49.970594+00:00", "pid": 33832}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.57, "ts": "2026-02-18T09:53:16.330734+00:00", "pid": 34549}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.19, "ts": "2026-02-18T09:53:16.332187+00:00", "pid": 34549}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.24, "ts": "2026-02-18T09:53:16.333502+00:00", "pid": 34549}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:53:16.333585+00:00", "pid": 34549}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:53:16.333638+00:00", "pid": 34549}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:53:16.333678+00:00", "pid": 34549}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.22, "ts": "2026-02-18T09:53:57.581457+00:00", "pid": 35972}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.79, "ts": "2026-02-18T09:53:57.583606+00:00", "pid": 35972}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.03, "ts": "2026-02-18T09:53:57.584739+00:00", "pid": 35972}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:53:57.584827+00:00", "pid": 35972}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:53:57.584881+00:00", "pid": 35972}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-18T09:53:57.584943+00:00", "pid": 35972}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.33, "ts": "2026-02-18T09:58:39.921794+00:00", "pid": 37513}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.19, "ts": "2026-02-18T09:58:39.923280+00:00", "pid": 37513}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.93, "ts": "2026-02-18T09:58:39.924298+00:00", "pid": 37513}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:58:39.924366+00:00", "pid": 37513}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:58:39.924417+00:00", "pid": 37513}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T09:58:39.924457+00:00", "pid": 37513}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.27, "ts": "2026-02-18T09:58:46.780100+00:00", "pid": 38245}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.77, "ts": "2026-02-18T09:58:46.780955+00:00", "pid": 38245}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.78, "ts": "2026-02-18T09:58:46.781805+00:00", "pid": 38245}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T09:58:46.781864+00:00", "pid": 38245}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T09:58:46.781912+00:00", "pid": 38245}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T09:58:46.781949+00:00", "pid": 38245}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 2.25, "ts": "2026-02-18T10:03:24.007616+00:00", "pid": 45157}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.19, "ts": "2026-02-18T10:03:24.011053+00:00", "pid": 45157}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.21, "ts": "2026-02-18T10:03:24.012334+00:00", "pid": 45157}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:03:24.012421+00:00", "pid": 45157}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:03:24.012483+00:00", "pid": 45157}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T10:03:24.012527+00:00", "pid": 45157}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.68, "ts": "2026-02-18T10:06:58.519639+00:00", "pid": 49603}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.24, "ts": "2026-02-18T10:06:58.524070+00:00", "pid": 49603}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.09, "ts": "2026-02-18T10:06:58.525233+00:00", "pid": 49603}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:06:58.525303+00:00", "pid": 49603}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:06:58.525358+00:00", "pid": 49603}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:06:58.525396+00:00", "pid": 49603}
+{"event": "phase", "phase": "models_registered", "duration_ms": 5.28, "ts": "2026-02-18T10:06:58.530710+00:00", "pid": 49603}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:06:58.530780+00:00", "pid": 49603}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:06:58.530853+00:00", "pid": 49603}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:06:58.530909+00:00", "pid": 49603}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 13.03, "ts": "2026-02-18T10:06:58.546254+00:00", "pid": 49603}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:07:16.890362+00:00", "pid": 49603}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:07:16.891999+00:00", "pid": 49603}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.95, "ts": "2026-02-18T10:07:16.892265+00:00", "pid": 49603}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T10:07:16.892591+00:00", "pid": 49603}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.22, "ts": "2026-02-18T10:07:16.892950+00:00", "pid": 49603}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.19, "ts": "2026-02-18T10:07:16.893263+00:00", "pid": 49603}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:07:16.893397+00:00", "pid": 49603}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T10:07:16.893565+00:00", "pid": 49603}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.74, "ts": "2026-02-18T10:07:16.894422+00:00", "pid": 49603}
+{"event": "shutdown", "mode": "dev", "uptime_s": 18.348, "ts": "2026-02-18T10:07:16.894629+00:00", "pid": 49603}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 2.13, "ts": "2026-02-18T10:07:25.245944+00:00", "pid": 51135}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 6.43, "ts": "2026-02-18T10:07:25.252584+00:00", "pid": 51135}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.91, "ts": "2026-02-18T10:07:25.254636+00:00", "pid": 51135}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:07:25.254813+00:00", "pid": 51135}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:07:25.254912+00:00", "pid": 51135}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.21, "ts": "2026-02-18T10:07:25.254991+00:00", "pid": 51135}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.32, "ts": "2026-02-18T10:07:25.258536+00:00", "pid": 51135}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:07:25.258643+00:00", "pid": 51135}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:07:25.258722+00:00", "pid": 51135}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:07:25.258779+00:00", "pid": 51135}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 15.06, "ts": "2026-02-18T10:07:25.273288+00:00", "pid": 51135}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:08:24.895901+00:00", "pid": 51135}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:08:24.897714+00:00", "pid": 51135}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.2, "ts": "2026-02-18T10:08:24.898042+00:00", "pid": 51135}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T10:08:24.898232+00:00", "pid": 51135}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.19, "ts": "2026-02-18T10:08:24.898548+00:00", "pid": 51135}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.75, "ts": "2026-02-18T10:08:24.899423+00:00", "pid": 51135}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:08:24.899637+00:00", "pid": 51135}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T10:08:24.899823+00:00", "pid": 51135}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.0, "ts": "2026-02-18T10:08:24.899946+00:00", "pid": 51135}
+{"event": "shutdown", "mode": "dev", "uptime_s": 59.627, "ts": "2026-02-18T10:08:24.900087+00:00", "pid": 51135}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.74, "ts": "2026-02-18T10:08:27.847836+00:00", "pid": 52682}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.49, "ts": "2026-02-18T10:08:27.851437+00:00", "pid": 52682}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.09, "ts": "2026-02-18T10:08:27.852618+00:00", "pid": 52682}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:08:27.852707+00:00", "pid": 52682}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:08:27.852769+00:00", "pid": 52682}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.15, "ts": "2026-02-18T10:08:27.852849+00:00", "pid": 52682}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.23, "ts": "2026-02-18T10:08:27.856121+00:00", "pid": 52682}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:08:27.856177+00:00", "pid": 52682}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:08:27.856228+00:00", "pid": 52682}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:08:27.856275+00:00", "pid": 52682}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.24, "ts": "2026-02-18T10:08:27.871816+00:00", "pid": 52682}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:08:38.495487+00:00", "pid": 52682}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:08:38.495733+00:00", "pid": 52682}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.4, "ts": "2026-02-18T10:08:38.495823+00:00", "pid": 52682}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:08:38.495901+00:00", "pid": 52682}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.12, "ts": "2026-02-18T10:08:38.496073+00:00", "pid": 52682}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.1, "ts": "2026-02-18T10:08:38.496225+00:00", "pid": 52682}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:08:38.496276+00:00", "pid": 52682}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:08:38.496340+00:00", "pid": 52682}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.34, "ts": "2026-02-18T10:08:38.496729+00:00", "pid": 52682}
+{"event": "shutdown", "mode": "dev", "uptime_s": 10.625, "ts": "2026-02-18T10:08:38.496859+00:00", "pid": 52682}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.65, "ts": "2026-02-18T10:08:47.304017+00:00", "pid": 54416}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.04, "ts": "2026-02-18T10:08:47.307182+00:00", "pid": 54416}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.72, "ts": "2026-02-18T10:08:47.307973+00:00", "pid": 54416}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:08:47.308041+00:00", "pid": 54416}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:08:47.308090+00:00", "pid": 54416}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:08:47.308127+00:00", "pid": 54416}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.29, "ts": "2026-02-18T10:08:47.311453+00:00", "pid": 54416}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:08:47.311522+00:00", "pid": 54416}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:08:47.311582+00:00", "pid": 54416}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:08:47.311625+00:00", "pid": 54416}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.32, "ts": "2026-02-18T10:08:47.322034+00:00", "pid": 54416}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:09:03.810338+00:00", "pid": 54416}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:09:03.811397+00:00", "pid": 54416}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.51, "ts": "2026-02-18T10:09:03.811716+00:00", "pid": 54416}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.06, "ts": "2026-02-18T10:09:03.811956+00:00", "pid": 54416}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.35, "ts": "2026-02-18T10:09:03.812445+00:00", "pid": 54416}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.23, "ts": "2026-02-18T10:09:03.813034+00:00", "pid": 54416}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:09:03.813207+00:00", "pid": 54416}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-18T10:09:03.813375+00:00", "pid": 54416}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.74, "ts": "2026-02-18T10:09:03.814218+00:00", "pid": 54416}
+{"event": "shutdown", "mode": "dev", "uptime_s": 16.492, "ts": "2026-02-18T10:09:03.814379+00:00", "pid": 54416}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.89, "ts": "2026-02-18T10:09:49.399469+00:00", "pid": 56894}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.13, "ts": "2026-02-18T10:09:49.402836+00:00", "pid": 56894}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.99, "ts": "2026-02-18T10:09:49.403895+00:00", "pid": 56894}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:09:49.403953+00:00", "pid": 56894}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:09:49.404008+00:00", "pid": 56894}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:09:49.404046+00:00", "pid": 56894}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.14, "ts": "2026-02-18T10:09:49.407225+00:00", "pid": 56894}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:09:49.407293+00:00", "pid": 56894}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:09:49.407364+00:00", "pid": 56894}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:09:49.407420+00:00", "pid": 56894}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.91, "ts": "2026-02-18T10:09:49.424460+00:00", "pid": 56894}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:10:00.952446+00:00", "pid": 56894}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:10:00.952824+00:00", "pid": 56894}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.65, "ts": "2026-02-18T10:10:00.953036+00:00", "pid": 56894}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:10:00.953174+00:00", "pid": 56894}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.14, "ts": "2026-02-18T10:10:00.953403+00:00", "pid": 56894}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-18T10:10:00.953622+00:00", "pid": 56894}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:10:00.953718+00:00", "pid": 56894}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:10:00.953835+00:00", "pid": 56894}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.5, "ts": "2026-02-18T10:10:00.954416+00:00", "pid": 56894}
+{"event": "shutdown", "mode": "dev", "uptime_s": 11.53, "ts": "2026-02-18T10:10:00.954627+00:00", "pid": 56894}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.8, "ts": "2026-02-18T10:11:45.411278+00:00", "pid": 60236}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.55, "ts": "2026-02-18T10:11:45.414924+00:00", "pid": 60236}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.44, "ts": "2026-02-18T10:11:45.416461+00:00", "pid": 60236}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:11:45.416579+00:00", "pid": 60236}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:11:45.416672+00:00", "pid": 60236}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.16, "ts": "2026-02-18T10:11:45.416727+00:00", "pid": 60236}
+{"event": "phase", "phase": "models_registered", "duration_ms": 5.55, "ts": "2026-02-18T10:11:45.422320+00:00", "pid": 60236}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:11:45.422412+00:00", "pid": 60236}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:11:45.422499+00:00", "pid": 60236}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:11:45.422568+00:00", "pid": 60236}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 13.17, "ts": "2026-02-18T10:11:45.437212+00:00", "pid": 60236}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:12:02.429805+00:00", "pid": 60236}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:12:02.431056+00:00", "pid": 60236}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.43, "ts": "2026-02-18T10:12:02.431179+00:00", "pid": 60236}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:12:02.431284+00:00", "pid": 60236}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.18, "ts": "2026-02-18T10:12:02.431541+00:00", "pid": 60236}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-18T10:12:02.431822+00:00", "pid": 60236}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:12:02.431927+00:00", "pid": 60236}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:12:02.432028+00:00", "pid": 60236}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.39, "ts": "2026-02-18T10:12:02.432504+00:00", "pid": 60236}
+{"event": "shutdown", "mode": "dev", "uptime_s": 16.995, "ts": "2026-02-18T10:12:02.432673+00:00", "pid": 60236}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.62, "ts": "2026-02-18T10:12:29.151421+00:00", "pid": 61919}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.02, "ts": "2026-02-18T10:12:29.154535+00:00", "pid": 61919}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.91, "ts": "2026-02-18T10:12:29.155513+00:00", "pid": 61919}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:12:29.155570+00:00", "pid": 61919}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:12:29.155623+00:00", "pid": 61919}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:12:29.155661+00:00", "pid": 61919}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.07, "ts": "2026-02-18T10:12:29.158768+00:00", "pid": 61919}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:12:29.158840+00:00", "pid": 61919}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:12:29.158914+00:00", "pid": 61919}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:12:29.158969+00:00", "pid": 61919}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.24, "ts": "2026-02-18T10:12:29.172301+00:00", "pid": 61919}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:15:58.134839+00:00", "pid": 61919}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:15:58.135133+00:00", "pid": 61919}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.55, "ts": "2026-02-18T10:15:58.135377+00:00", "pid": 61919}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:15:58.135463+00:00", "pid": 61919}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.09, "ts": "2026-02-18T10:15:58.135613+00:00", "pid": 61919}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.34, "ts": "2026-02-18T10:15:58.136016+00:00", "pid": 61919}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:15:58.136094+00:00", "pid": 61919}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:15:58.136171+00:00", "pid": 61919}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.0, "ts": "2026-02-18T10:15:58.136219+00:00", "pid": 61919}
+{"event": "shutdown", "mode": "dev", "uptime_s": 208.963, "ts": "2026-02-18T10:15:58.136272+00:00", "pid": 61919}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.65, "ts": "2026-02-18T10:25:09.432426+00:00", "pid": 68943}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.17, "ts": "2026-02-18T10:25:09.435840+00:00", "pid": 68943}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.1, "ts": "2026-02-18T10:25:09.436999+00:00", "pid": 68943}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:25:09.437081+00:00", "pid": 68943}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:25:09.437140+00:00", "pid": 68943}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T10:25:09.437183+00:00", "pid": 68943}
+{"event": "phase", "phase": "models_registered", "duration_ms": 5.7, "ts": "2026-02-18T10:25:09.442929+00:00", "pid": 68943}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:25:09.443008+00:00", "pid": 68943}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:25:09.443072+00:00", "pid": 68943}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:25:09.443124+00:00", "pid": 68943}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 12.41, "ts": "2026-02-18T10:25:09.458764+00:00", "pid": 68943}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:26:03.418794+00:00", "pid": 68943}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:26:03.419401+00:00", "pid": 68943}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.83, "ts": "2026-02-18T10:26:03.419576+00:00", "pid": 68943}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:26:03.419730+00:00", "pid": 68943}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.14, "ts": "2026-02-18T10:26:03.419984+00:00", "pid": 68943}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-18T10:26:03.420219+00:00", "pid": 68943}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:26:03.420330+00:00", "pid": 68943}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:26:03.420451+00:00", "pid": 68943}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.43, "ts": "2026-02-18T10:26:03.420962+00:00", "pid": 68943}
+{"event": "shutdown", "mode": "dev", "uptime_s": 53.962, "ts": "2026-02-18T10:26:03.421079+00:00", "pid": 68943}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.75, "ts": "2026-02-18T10:27:22.025885+00:00", "pid": 72436}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.19, "ts": "2026-02-18T10:27:22.029303+00:00", "pid": 72436}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.02, "ts": "2026-02-18T10:27:22.030394+00:00", "pid": 72436}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:27:22.030470+00:00", "pid": 72436}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:27:22.030527+00:00", "pid": 72436}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:27:22.030568+00:00", "pid": 72436}
+{"event": "phase", "phase": "models_registered", "duration_ms": 5.07, "ts": "2026-02-18T10:27:22.035672+00:00", "pid": 72436}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:27:22.035747+00:00", "pid": 72436}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:27:22.035815+00:00", "pid": 72436}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:27:22.035865+00:00", "pid": 72436}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 11.8, "ts": "2026-02-18T10:27:22.052301+00:00", "pid": 72436}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:27:49.336183+00:00", "pid": 72436}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:27:49.337011+00:00", "pid": 72436}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.16, "ts": "2026-02-18T10:27:49.337276+00:00", "pid": 72436}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T10:27:49.337466+00:00", "pid": 72436}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.2, "ts": "2026-02-18T10:27:49.337801+00:00", "pid": 72436}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.2, "ts": "2026-02-18T10:27:49.338114+00:00", "pid": 72436}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:27:49.338254+00:00", "pid": 72436}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T10:27:49.338400+00:00", "pid": 72436}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.64, "ts": "2026-02-18T10:27:49.339137+00:00", "pid": 72436}
+{"event": "shutdown", "mode": "dev", "uptime_s": 27.287, "ts": "2026-02-18T10:27:49.339362+00:00", "pid": 72436}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.68, "ts": "2026-02-18T10:28:48.862305+00:00", "pid": 75050}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.26, "ts": "2026-02-18T10:28:48.865817+00:00", "pid": 75050}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.06, "ts": "2026-02-18T10:28:48.866949+00:00", "pid": 75050}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:28:48.867033+00:00", "pid": 75050}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:28:48.867091+00:00", "pid": 75050}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T10:28:48.867136+00:00", "pid": 75050}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.87, "ts": "2026-02-18T10:28:48.870040+00:00", "pid": 75050}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:28:48.870089+00:00", "pid": 75050}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:28:48.870150+00:00", "pid": 75050}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:28:48.870199+00:00", "pid": 75050}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.64, "ts": "2026-02-18T10:28:48.887397+00:00", "pid": 75050}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:29:05.692840+00:00", "pid": 75050}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:29:05.693312+00:00", "pid": 75050}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.67, "ts": "2026-02-18T10:29:05.693460+00:00", "pid": 75050}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:29:05.693587+00:00", "pid": 75050}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.28, "ts": "2026-02-18T10:29:05.693988+00:00", "pid": 75050}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-18T10:29:05.694213+00:00", "pid": 75050}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:29:05.694312+00:00", "pid": 75050}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T10:29:05.694432+00:00", "pid": 75050}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.54, "ts": "2026-02-18T10:29:05.695066+00:00", "pid": 75050}
+{"event": "shutdown", "mode": "dev", "uptime_s": 16.808, "ts": "2026-02-18T10:29:05.695439+00:00", "pid": 75050}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.76, "ts": "2026-02-18T10:29:09.940823+00:00", "pid": 76599}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.09, "ts": "2026-02-18T10:29:09.944002+00:00", "pid": 76599}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.93, "ts": "2026-02-18T10:29:09.945000+00:00", "pid": 76599}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:29:09.945060+00:00", "pid": 76599}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:29:09.945108+00:00", "pid": 76599}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:29:09.945145+00:00", "pid": 76599}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.75, "ts": "2026-02-18T10:29:09.947928+00:00", "pid": 76599}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:29:09.947980+00:00", "pid": 76599}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-18T10:29:09.948029+00:00", "pid": 76599}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:29:09.948069+00:00", "pid": 76599}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.07, "ts": "2026-02-18T10:29:09.960275+00:00", "pid": 76599}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:36:38.852065+00:00", "pid": 76599}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:36:38.852564+00:00", "pid": 76599}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.71, "ts": "2026-02-18T10:36:38.852754+00:00", "pid": 76599}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.01, "ts": "2026-02-18T10:36:38.852897+00:00", "pid": 76599}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.12, "ts": "2026-02-18T10:36:38.853127+00:00", "pid": 76599}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.52, "ts": "2026-02-18T10:36:38.853779+00:00", "pid": 76599}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:36:38.853942+00:00", "pid": 76599}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:36:38.854066+00:00", "pid": 76599}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.0, "ts": "2026-02-18T10:36:38.854168+00:00", "pid": 76599}
+{"event": "shutdown", "mode": "dev", "uptime_s": 448.893, "ts": "2026-02-18T10:36:38.854278+00:00", "pid": 76599}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.71, "ts": "2026-02-18T10:37:36.324316+00:00", "pid": 89673}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.57, "ts": "2026-02-18T10:37:36.328121+00:00", "pid": 89673}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.17, "ts": "2026-02-18T10:37:36.329348+00:00", "pid": 89673}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:37:36.329418+00:00", "pid": 89673}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:37:36.329467+00:00", "pid": 89673}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:37:36.329505+00:00", "pid": 89673}
+{"event": "phase", "phase": "models_registered", "duration_ms": 5.57, "ts": "2026-02-18T10:37:36.335108+00:00", "pid": 89673}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:37:36.335173+00:00", "pid": 89673}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:37:36.335239+00:00", "pid": 89673}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:37:36.335292+00:00", "pid": 89673}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 12.76, "ts": "2026-02-18T10:37:36.350796+00:00", "pid": 89673}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:37:53.964694+00:00", "pid": 89673}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:37:53.966077+00:00", "pid": 89673}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.74, "ts": "2026-02-18T10:37:53.966352+00:00", "pid": 89673}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:37:53.966521+00:00", "pid": 89673}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.25, "ts": "2026-02-18T10:37:53.966876+00:00", "pid": 89673}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.21, "ts": "2026-02-18T10:37:53.967226+00:00", "pid": 89673}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:37:53.967356+00:00", "pid": 89673}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T10:37:53.967508+00:00", "pid": 89673}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.6, "ts": "2026-02-18T10:37:53.968203+00:00", "pid": 89673}
+{"event": "shutdown", "mode": "dev", "uptime_s": 17.618, "ts": "2026-02-18T10:37:53.968334+00:00", "pid": 89673}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.64, "ts": "2026-02-18T10:37:57.944770+00:00", "pid": 91239}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.58, "ts": "2026-02-18T10:37:57.948447+00:00", "pid": 91239}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.91, "ts": "2026-02-18T10:37:57.949416+00:00", "pid": 91239}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:37:57.949474+00:00", "pid": 91239}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:37:57.949524+00:00", "pid": 91239}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:37:57.949559+00:00", "pid": 91239}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.89, "ts": "2026-02-18T10:37:57.952481+00:00", "pid": 91239}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:37:57.952551+00:00", "pid": 91239}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:37:57.952610+00:00", "pid": 91239}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:37:57.952659+00:00", "pid": 91239}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.59, "ts": "2026-02-18T10:37:57.965714+00:00", "pid": 91239}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:42:15.193314+00:00", "pid": 91239}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:42:15.194309+00:00", "pid": 91239}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.21, "ts": "2026-02-18T10:42:15.194497+00:00", "pid": 91239}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:42:15.194760+00:00", "pid": 91239}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.17, "ts": "2026-02-18T10:42:15.195139+00:00", "pid": 91239}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.57, "ts": "2026-02-18T10:42:15.195923+00:00", "pid": 91239}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:42:15.196094+00:00", "pid": 91239}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:42:15.196236+00:00", "pid": 91239}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.0, "ts": "2026-02-18T10:42:15.196339+00:00", "pid": 91239}
+{"event": "shutdown", "mode": "dev", "uptime_s": 257.231, "ts": "2026-02-18T10:42:15.196459+00:00", "pid": 91239}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.75, "ts": "2026-02-18T10:42:15.535606+00:00", "pid": 96673}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.69, "ts": "2026-02-18T10:42:15.539393+00:00", "pid": 96673}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.05, "ts": "2026-02-18T10:42:15.540517+00:00", "pid": 96673}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:42:15.540573+00:00", "pid": 96673}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:42:15.540621+00:00", "pid": 96673}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T10:42:15.540657+00:00", "pid": 96673}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.26, "ts": "2026-02-18T10:42:15.543952+00:00", "pid": 96673}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:42:15.544050+00:00", "pid": 96673}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:42:15.544123+00:00", "pid": 96673}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:42:15.544179+00:00", "pid": 96673}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.4, "ts": "2026-02-18T10:42:15.557813+00:00", "pid": 96673}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:43:08.402279+00:00", "pid": 96673}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:43:08.403224+00:00", "pid": 96673}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.42, "ts": "2026-02-18T10:43:08.403581+00:00", "pid": 96673}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T10:43:08.403882+00:00", "pid": 96673}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.4, "ts": "2026-02-18T10:43:08.404500+00:00", "pid": 96673}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.4, "ts": "2026-02-18T10:43:08.405372+00:00", "pid": 96673}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.02, "ts": "2026-02-18T10:43:08.405783+00:00", "pid": 96673}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-18T10:43:08.406110+00:00", "pid": 96673}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.22, "ts": "2026-02-18T10:43:08.407579+00:00", "pid": 96673}
+{"event": "shutdown", "mode": "dev", "uptime_s": 52.85, "ts": "2026-02-18T10:43:08.407937+00:00", "pid": 96673}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.79, "ts": "2026-02-18T10:43:08.848633+00:00", "pid": 824}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 4.14, "ts": "2026-02-18T10:43:08.852891+00:00", "pid": 824}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.96, "ts": "2026-02-18T10:43:08.853941+00:00", "pid": 824}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:43:08.854004+00:00", "pid": 824}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:43:08.854056+00:00", "pid": 824}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:43:08.854096+00:00", "pid": 824}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.91, "ts": "2026-02-18T10:43:08.857041+00:00", "pid": 824}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:43:08.857124+00:00", "pid": 824}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:43:08.857200+00:00", "pid": 824}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:43:08.857256+00:00", "pid": 824}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.48, "ts": "2026-02-18T10:43:08.872880+00:00", "pid": 824}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:43:50.298794+00:00", "pid": 824}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:43:50.299445+00:00", "pid": 824}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.99, "ts": "2026-02-18T10:43:50.299706+00:00", "pid": 824}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T10:43:50.299918+00:00", "pid": 824}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.22, "ts": "2026-02-18T10:43:50.300275+00:00", "pid": 824}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.22, "ts": "2026-02-18T10:43:50.300629+00:00", "pid": 824}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:43:50.300755+00:00", "pid": 824}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T10:43:50.300910+00:00", "pid": 824}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.71, "ts": "2026-02-18T10:43:50.301729+00:00", "pid": 824}
+{"event": "shutdown", "mode": "dev", "uptime_s": 41.429, "ts": "2026-02-18T10:43:50.302028+00:00", "pid": 824}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.93, "ts": "2026-02-18T10:44:02.361609+00:00", "pid": 3375}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.7, "ts": "2026-02-18T10:44:02.365555+00:00", "pid": 3375}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.06, "ts": "2026-02-18T10:44:02.366684+00:00", "pid": 3375}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:44:02.366748+00:00", "pid": 3375}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:44:02.366797+00:00", "pid": 3375}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T10:44:02.366834+00:00", "pid": 3375}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.85, "ts": "2026-02-18T10:44:02.369717+00:00", "pid": 3375}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:44:02.369766+00:00", "pid": 3375}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:44:02.369826+00:00", "pid": 3375}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:44:02.369872+00:00", "pid": 3375}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.26, "ts": "2026-02-18T10:44:02.385682+00:00", "pid": 3375}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:44:22.106737+00:00", "pid": 3375}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:44:22.107109+00:00", "pid": 3375}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.66, "ts": "2026-02-18T10:44:22.107325+00:00", "pid": 3375}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:44:22.107460+00:00", "pid": 3375}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.15, "ts": "2026-02-18T10:44:22.107712+00:00", "pid": 3375}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.13, "ts": "2026-02-18T10:44:22.107936+00:00", "pid": 3375}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:44:22.108039+00:00", "pid": 3375}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:44:22.108164+00:00", "pid": 3375}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.44, "ts": "2026-02-18T10:44:22.108704+00:00", "pid": 3375}
+{"event": "shutdown", "mode": "dev", "uptime_s": 19.723, "ts": "2026-02-18T10:44:22.108821+00:00", "pid": 3375}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.8, "ts": "2026-02-18T10:44:26.845250+00:00", "pid": 4962}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.79, "ts": "2026-02-18T10:44:26.849149+00:00", "pid": 4962}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.02, "ts": "2026-02-18T10:44:26.850236+00:00", "pid": 4962}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:44:26.850300+00:00", "pid": 4962}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:44:26.850351+00:00", "pid": 4962}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:44:26.850393+00:00", "pid": 4962}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.97, "ts": "2026-02-18T10:44:26.853396+00:00", "pid": 4962}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:44:26.853469+00:00", "pid": 4962}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:44:26.853531+00:00", "pid": 4962}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:44:26.853578+00:00", "pid": 4962}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.2, "ts": "2026-02-18T10:44:26.866621+00:00", "pid": 4962}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:55:35.343578+00:00", "pid": 4962}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:55:35.344130+00:00", "pid": 4962}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.77, "ts": "2026-02-18T10:55:35.344314+00:00", "pid": 4962}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.01, "ts": "2026-02-18T10:55:35.344459+00:00", "pid": 4962}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.17, "ts": "2026-02-18T10:55:35.344726+00:00", "pid": 4962}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.66, "ts": "2026-02-18T10:55:35.345521+00:00", "pid": 4962}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:55:35.345653+00:00", "pid": 4962}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:55:35.345762+00:00", "pid": 4962}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.0, "ts": "2026-02-18T10:55:35.345844+00:00", "pid": 4962}
+{"event": "shutdown", "mode": "dev", "uptime_s": 668.478, "ts": "2026-02-18T10:55:35.345933+00:00", "pid": 4962}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.62, "ts": "2026-02-18T10:55:35.849026+00:00", "pid": 12079}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.64, "ts": "2026-02-18T10:55:35.852762+00:00", "pid": 12079}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.04, "ts": "2026-02-18T10:55:35.853870+00:00", "pid": 12079}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:55:35.853924+00:00", "pid": 12079}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:55:35.853971+00:00", "pid": 12079}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T10:55:35.854005+00:00", "pid": 12079}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.98, "ts": "2026-02-18T10:55:35.857017+00:00", "pid": 12079}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:55:35.857068+00:00", "pid": 12079}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:55:35.857119+00:00", "pid": 12079}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:55:35.857161+00:00", "pid": 12079}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.81, "ts": "2026-02-18T10:55:35.870315+00:00", "pid": 12079}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:55:39.207587+00:00", "pid": 12079}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:55:39.207950+00:00", "pid": 12079}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.55, "ts": "2026-02-18T10:55:39.208088+00:00", "pid": 12079}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:55:39.208210+00:00", "pid": 12079}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.17, "ts": "2026-02-18T10:55:39.208479+00:00", "pid": 12079}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-18T10:55:39.208785+00:00", "pid": 12079}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-18T10:55:39.208903+00:00", "pid": 12079}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T10:55:39.209021+00:00", "pid": 12079}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.84, "ts": "2026-02-18T10:55:39.209953+00:00", "pid": 12079}
+{"event": "shutdown", "mode": "dev", "uptime_s": 3.34, "ts": "2026-02-18T10:55:39.210230+00:00", "pid": 12079}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.71, "ts": "2026-02-18T10:55:39.573802+00:00", "pid": 12836}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.6, "ts": "2026-02-18T10:55:39.577552+00:00", "pid": 12836}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.68, "ts": "2026-02-18T10:55:39.578321+00:00", "pid": 12836}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:55:39.578388+00:00", "pid": 12836}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:55:39.578441+00:00", "pid": 12836}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:55:39.578478+00:00", "pid": 12836}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.88, "ts": "2026-02-18T10:55:39.581389+00:00", "pid": 12836}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:55:39.581442+00:00", "pid": 12836}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:55:39.581505+00:00", "pid": 12836}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:55:39.581552+00:00", "pid": 12836}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.53, "ts": "2026-02-18T10:55:39.592265+00:00", "pid": 12836}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:56:19.605471+00:00", "pid": 12836}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:56:19.606920+00:00", "pid": 12836}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.26, "ts": "2026-02-18T10:56:19.607558+00:00", "pid": 12836}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.15, "ts": "2026-02-18T10:56:19.608044+00:00", "pid": 12836}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.34, "ts": "2026-02-18T10:56:19.608794+00:00", "pid": 12836}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.31, "ts": "2026-02-18T10:56:19.609391+00:00", "pid": 12836}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:56:19.609627+00:00", "pid": 12836}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T10:56:19.609881+00:00", "pid": 12836}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.74, "ts": "2026-02-18T10:56:19.610822+00:00", "pid": 12836}
+{"event": "shutdown", "mode": "dev", "uptime_s": 40.019, "ts": "2026-02-18T10:56:19.610977+00:00", "pid": 12836}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.67, "ts": "2026-02-18T10:56:20.056748+00:00", "pid": 13703}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 4.02, "ts": "2026-02-18T10:56:20.060871+00:00", "pid": 13703}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.22, "ts": "2026-02-18T10:56:20.062211+00:00", "pid": 13703}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:56:20.062329+00:00", "pid": 13703}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:56:20.062397+00:00", "pid": 13703}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-18T10:56:20.062445+00:00", "pid": 13703}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.92, "ts": "2026-02-18T10:56:20.065404+00:00", "pid": 13703}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:56:20.065468+00:00", "pid": 13703}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:56:20.065531+00:00", "pid": 13703}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:56:20.065580+00:00", "pid": 13703}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.57, "ts": "2026-02-18T10:56:20.079192+00:00", "pid": 13703}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:56:55.740016+00:00", "pid": 13703}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:56:55.740838+00:00", "pid": 13703}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.25, "ts": "2026-02-18T10:56:55.741137+00:00", "pid": 13703}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T10:56:55.741420+00:00", "pid": 13703}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.2, "ts": "2026-02-18T10:56:55.741840+00:00", "pid": 13703}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.19, "ts": "2026-02-18T10:56:55.742164+00:00", "pid": 13703}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:56:55.742326+00:00", "pid": 13703}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T10:56:55.742455+00:00", "pid": 13703}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.48, "ts": "2026-02-18T10:56:55.743016+00:00", "pid": 13703}
+{"event": "shutdown", "mode": "dev", "uptime_s": 35.664, "ts": "2026-02-18T10:56:55.743189+00:00", "pid": 13703}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.84, "ts": "2026-02-18T10:56:56.202481+00:00", "pid": 14565}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 4.6, "ts": "2026-02-18T10:56:56.207191+00:00", "pid": 14565}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.36, "ts": "2026-02-18T10:56:56.208674+00:00", "pid": 14565}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:56:56.208794+00:00", "pid": 14565}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:56:56.208857+00:00", "pid": 14565}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-18T10:56:56.208904+00:00", "pid": 14565}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.13, "ts": "2026-02-18T10:56:56.212081+00:00", "pid": 14565}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:56:56.212168+00:00", "pid": 14565}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:56:56.212231+00:00", "pid": 14565}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:56:56.212282+00:00", "pid": 14565}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 11.72, "ts": "2026-02-18T10:56:56.225915+00:00", "pid": 14565}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:57:49.292480+00:00", "pid": 14565}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:57:49.293020+00:00", "pid": 14565}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.85, "ts": "2026-02-18T10:57:49.293196+00:00", "pid": 14565}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:57:49.293347+00:00", "pid": 14565}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.23, "ts": "2026-02-18T10:57:49.293737+00:00", "pid": 14565}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.28, "ts": "2026-02-18T10:57:49.294238+00:00", "pid": 14565}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:57:49.294467+00:00", "pid": 14565}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.14, "ts": "2026-02-18T10:57:49.294808+00:00", "pid": 14565}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.91, "ts": "2026-02-18T10:57:49.295923+00:00", "pid": 14565}
+{"event": "shutdown", "mode": "dev", "uptime_s": 53.07, "ts": "2026-02-18T10:57:49.296201+00:00", "pid": 14565}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.73, "ts": "2026-02-18T10:57:49.790036+00:00", "pid": 15468}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 4.17, "ts": "2026-02-18T10:57:49.794325+00:00", "pid": 15468}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.17, "ts": "2026-02-18T10:57:49.795616+00:00", "pid": 15468}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:57:49.795706+00:00", "pid": 15468}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:57:49.795764+00:00", "pid": 15468}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T10:57:49.795804+00:00", "pid": 15468}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.87, "ts": "2026-02-18T10:57:49.798713+00:00", "pid": 15468}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:57:49.798805+00:00", "pid": 15468}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:57:49.798877+00:00", "pid": 15468}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:57:49.798931+00:00", "pid": 15468}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.71, "ts": "2026-02-18T10:57:49.812830+00:00", "pid": 15468}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:58:29.627310+00:00", "pid": 15468}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:58:29.628374+00:00", "pid": 15468}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.36, "ts": "2026-02-18T10:58:29.628594+00:00", "pid": 15468}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.02, "ts": "2026-02-18T10:58:29.628739+00:00", "pid": 15468}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.18, "ts": "2026-02-18T10:58:29.629005+00:00", "pid": 15468}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.11, "ts": "2026-02-18T10:58:29.629262+00:00", "pid": 15468}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:58:29.629381+00:00", "pid": 15468}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:58:29.629509+00:00", "pid": 15468}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.39, "ts": "2026-02-18T10:58:29.629992+00:00", "pid": 15468}
+{"event": "shutdown", "mode": "dev", "uptime_s": 39.817, "ts": "2026-02-18T10:58:29.630179+00:00", "pid": 15468}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.7, "ts": "2026-02-18T10:58:30.265561+00:00", "pid": 16350}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.78, "ts": "2026-02-18T10:58:30.269445+00:00", "pid": 16350}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.19, "ts": "2026-02-18T10:58:30.270709+00:00", "pid": 16350}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:58:30.270765+00:00", "pid": 16350}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:58:30.270813+00:00", "pid": 16350}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T10:58:30.270848+00:00", "pid": 16350}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.19, "ts": "2026-02-18T10:58:30.274069+00:00", "pid": 16350}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T10:58:30.274150+00:00", "pid": 16350}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:58:30.274215+00:00", "pid": 16350}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:58:30.274267+00:00", "pid": 16350}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.47, "ts": "2026-02-18T10:58:30.291041+00:00", "pid": 16350}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:58:56.771587+00:00", "pid": 16350}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:58:56.772750+00:00", "pid": 16350}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.49, "ts": "2026-02-18T10:58:56.772979+00:00", "pid": 16350}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T10:58:56.773123+00:00", "pid": 16350}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.19, "ts": "2026-02-18T10:58:56.773417+00:00", "pid": 16350}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.15, "ts": "2026-02-18T10:58:56.773659+00:00", "pid": 16350}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:58:56.773748+00:00", "pid": 16350}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T10:58:56.773860+00:00", "pid": 16350}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.49, "ts": "2026-02-18T10:58:56.774438+00:00", "pid": 16350}
+{"event": "shutdown", "mode": "dev", "uptime_s": 26.484, "ts": "2026-02-18T10:58:56.774859+00:00", "pid": 16350}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.76, "ts": "2026-02-18T10:58:57.197774+00:00", "pid": 17177}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.7, "ts": "2026-02-18T10:58:57.201581+00:00", "pid": 17177}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.94, "ts": "2026-02-18T10:58:57.202587+00:00", "pid": 17177}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:58:57.202645+00:00", "pid": 17177}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:58:57.202697+00:00", "pid": 17177}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:58:57.202735+00:00", "pid": 17177}
+{"event": "phase", "phase": "models_registered", "duration_ms": 2.89, "ts": "2026-02-18T10:58:57.205662+00:00", "pid": 17177}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:58:57.205714+00:00", "pid": 17177}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:58:57.205767+00:00", "pid": 17177}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:58:57.205810+00:00", "pid": 17177}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 9.86, "ts": "2026-02-18T10:58:57.219156+00:00", "pid": 17177}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T10:59:48.861127+00:00", "pid": 17177}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T10:59:48.862335+00:00", "pid": 17177}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.68, "ts": "2026-02-18T10:59:48.862679+00:00", "pid": 17177}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.06, "ts": "2026-02-18T10:59:48.862964+00:00", "pid": 17177}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.27, "ts": "2026-02-18T10:59:48.863446+00:00", "pid": 17177}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.37, "ts": "2026-02-18T10:59:48.864059+00:00", "pid": 17177}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T10:59:48.864286+00:00", "pid": 17177}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-18T10:59:48.864571+00:00", "pid": 17177}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.0, "ts": "2026-02-18T10:59:48.865782+00:00", "pid": 17177}
+{"event": "shutdown", "mode": "dev", "uptime_s": 51.647, "ts": "2026-02-18T10:59:48.866144+00:00", "pid": 17177}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 2.15, "ts": "2026-02-18T10:59:49.297946+00:00", "pid": 18081}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.68, "ts": "2026-02-18T10:59:49.301721+00:00", "pid": 18081}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.96, "ts": "2026-02-18T10:59:49.302753+00:00", "pid": 18081}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T10:59:49.302811+00:00", "pid": 18081}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T10:59:49.302868+00:00", "pid": 18081}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T10:59:49.302910+00:00", "pid": 18081}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.32, "ts": "2026-02-18T10:59:49.306272+00:00", "pid": 18081}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T10:59:49.306323+00:00", "pid": 18081}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T10:59:49.306373+00:00", "pid": 18081}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T10:59:49.306414+00:00", "pid": 18081}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.67, "ts": "2026-02-18T10:59:49.318875+00:00", "pid": 18081}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T11:01:07.833920+00:00", "pid": 18081}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T11:01:07.834716+00:00", "pid": 18081}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.2, "ts": "2026-02-18T11:01:07.835016+00:00", "pid": 18081}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.03, "ts": "2026-02-18T11:01:07.835271+00:00", "pid": 18081}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.19, "ts": "2026-02-18T11:01:07.835669+00:00", "pid": 18081}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.37, "ts": "2026-02-18T11:01:07.836260+00:00", "pid": 18081}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.03, "ts": "2026-02-18T11:01:07.836701+00:00", "pid": 18081}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-18T11:01:07.837070+00:00", "pid": 18081}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.87, "ts": "2026-02-18T11:01:07.838180+00:00", "pid": 18081}
+{"event": "shutdown", "mode": "dev", "uptime_s": 78.52, "ts": "2026-02-18T11:01:07.838596+00:00", "pid": 18081}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.83, "ts": "2026-02-18T11:01:08.267977+00:00", "pid": 19075}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.82, "ts": "2026-02-18T11:01:08.271895+00:00", "pid": 19075}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.02, "ts": "2026-02-18T11:01:08.272986+00:00", "pid": 19075}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:01:08.273049+00:00", "pid": 19075}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:01:08.273098+00:00", "pid": 19075}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:01:08.273140+00:00", "pid": 19075}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.33, "ts": "2026-02-18T11:01:08.276513+00:00", "pid": 19075}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T11:01:08.276627+00:00", "pid": 19075}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T11:01:08.276699+00:00", "pid": 19075}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T11:01:08.276753+00:00", "pid": 19075}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.69, "ts": "2026-02-18T11:01:08.292417+00:00", "pid": 19075}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T11:01:33.049911+00:00", "pid": 19075}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T11:01:33.051878+00:00", "pid": 19075}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.6, "ts": "2026-02-18T11:01:33.052315+00:00", "pid": 19075}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.07, "ts": "2026-02-18T11:01:33.052633+00:00", "pid": 19075}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.34, "ts": "2026-02-18T11:01:33.053205+00:00", "pid": 19075}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.38, "ts": "2026-02-18T11:01:33.053818+00:00", "pid": 19075}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T11:01:33.054057+00:00", "pid": 19075}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.09, "ts": "2026-02-18T11:01:33.054350+00:00", "pid": 19075}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.93, "ts": "2026-02-18T11:01:33.055480+00:00", "pid": 19075}
+{"event": "shutdown", "mode": "dev", "uptime_s": 24.763, "ts": "2026-02-18T11:01:33.055772+00:00", "pid": 19075}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.72, "ts": "2026-02-18T11:01:33.450181+00:00", "pid": 19915}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.51, "ts": "2026-02-18T11:01:33.453774+00:00", "pid": 19915}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.97, "ts": "2026-02-18T11:01:33.454809+00:00", "pid": 19915}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:01:33.454866+00:00", "pid": 19915}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:01:33.454913+00:00", "pid": 19915}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T11:01:33.454953+00:00", "pid": 19915}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.67, "ts": "2026-02-18T11:16:50.025756+00:00", "pid": 27558}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.53, "ts": "2026-02-18T11:16:50.029373+00:00", "pid": 27558}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.98, "ts": "2026-02-18T11:16:50.030418+00:00", "pid": 27558}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:16:50.030471+00:00", "pid": 27558}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:16:50.030517+00:00", "pid": 27558}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-18T11:16:50.030550+00:00", "pid": 27558}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.64, "ts": "2026-02-18T11:17:00.155315+00:00", "pid": 28345}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.31, "ts": "2026-02-18T11:17:00.158761+00:00", "pid": 28345}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.66, "ts": "2026-02-18T11:17:00.159490+00:00", "pid": 28345}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:17:00.159549+00:00", "pid": 28345}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:17:00.159594+00:00", "pid": 28345}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T11:17:00.159627+00:00", "pid": 28345}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.69, "ts": "2026-02-18T11:17:06.616343+00:00", "pid": 29113}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.45, "ts": "2026-02-18T11:17:06.619898+00:00", "pid": 29113}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.7, "ts": "2026-02-18T11:17:06.620669+00:00", "pid": 29113}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:17:06.620739+00:00", "pid": 29113}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:17:06.620792+00:00", "pid": 29113}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T11:17:06.620834+00:00", "pid": 29113}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.67, "ts": "2026-02-18T11:17:17.865773+00:00", "pid": 29902}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.43, "ts": "2026-02-18T11:17:17.869345+00:00", "pid": 29902}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.71, "ts": "2026-02-18T11:17:17.870123+00:00", "pid": 29902}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:17:17.870177+00:00", "pid": 29902}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:17:17.870232+00:00", "pid": 29902}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:17:17.870269+00:00", "pid": 29902}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.68, "ts": "2026-02-18T11:17:26.349068+00:00", "pid": 30684}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.43, "ts": "2026-02-18T11:17:26.352591+00:00", "pid": 30684}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.68, "ts": "2026-02-18T11:17:26.353343+00:00", "pid": 30684}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:17:26.353408+00:00", "pid": 30684}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:17:26.353461+00:00", "pid": 30684}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:17:26.353497+00:00", "pid": 30684}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.77, "ts": "2026-02-18T11:17:34.806304+00:00", "pid": 31465}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 4.09, "ts": "2026-02-18T11:17:34.810558+00:00", "pid": 31465}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.86, "ts": "2026-02-18T11:17:34.811539+00:00", "pid": 31465}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:17:34.811623+00:00", "pid": 31465}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:17:34.811676+00:00", "pid": 31465}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:17:34.811717+00:00", "pid": 31465}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.66, "ts": "2026-02-18T11:17:39.743144+00:00", "pid": 32226}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.42, "ts": "2026-02-18T11:17:39.746677+00:00", "pid": 32226}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.68, "ts": "2026-02-18T11:17:39.747427+00:00", "pid": 32226}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:17:39.747478+00:00", "pid": 32226}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:17:39.747531+00:00", "pid": 32226}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:17:39.747570+00:00", "pid": 32226}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.91, "ts": "2026-02-18T11:17:52.703138+00:00", "pid": 33021}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 4.01, "ts": "2026-02-18T11:17:52.707315+00:00", "pid": 33021}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.79, "ts": "2026-02-18T11:17:52.708197+00:00", "pid": 33021}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:17:52.708261+00:00", "pid": 33021}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:17:52.708312+00:00", "pid": 33021}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:17:52.708357+00:00", "pid": 33021}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.66, "ts": "2026-02-18T11:17:58.545605+00:00", "pid": 33798}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.42, "ts": "2026-02-18T11:17:58.549136+00:00", "pid": 33798}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.67, "ts": "2026-02-18T11:17:58.549874+00:00", "pid": 33798}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:17:58.549937+00:00", "pid": 33798}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:17:58.549990+00:00", "pid": 33798}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:17:58.550032+00:00", "pid": 33798}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.76, "ts": "2026-02-18T11:18:05.980733+00:00", "pid": 34570}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.55, "ts": "2026-02-18T11:18:05.984429+00:00", "pid": 34570}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.74, "ts": "2026-02-18T11:18:05.985249+00:00", "pid": 34570}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:18:05.985317+00:00", "pid": 34570}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:18:05.985371+00:00", "pid": 34570}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:18:05.985412+00:00", "pid": 34570}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.75, "ts": "2026-02-18T11:18:16.086164+00:00", "pid": 35360}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.75, "ts": "2026-02-18T11:18:16.090045+00:00", "pid": 35360}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.8, "ts": "2026-02-18T11:18:16.090957+00:00", "pid": 35360}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:18:16.091027+00:00", "pid": 35360}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:18:16.091088+00:00", "pid": 35360}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T11:18:16.091131+00:00", "pid": 35360}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.7, "ts": "2026-02-18T11:19:14.762406+00:00", "pid": 36298}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.45, "ts": "2026-02-18T11:19:14.766093+00:00", "pid": 36298}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.01, "ts": "2026-02-18T11:19:14.767171+00:00", "pid": 36298}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:19:14.767227+00:00", "pid": 36298}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:19:14.767274+00:00", "pid": 36298}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T11:19:14.767309+00:00", "pid": 36298}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.87, "ts": "2026-02-18T11:21:37.626138+00:00", "pid": 37526}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 4.02, "ts": "2026-02-18T11:21:37.630408+00:00", "pid": 37526}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.33, "ts": "2026-02-18T11:21:37.631817+00:00", "pid": 37526}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:21:37.631911+00:00", "pid": 37526}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:21:37.631973+00:00", "pid": 37526}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T11:21:37.632018+00:00", "pid": 37526}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.68, "ts": "2026-02-18T11:24:29.035991+00:00", "pid": 41313}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.53, "ts": "2026-02-18T11:24:29.039746+00:00", "pid": 41313}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.01, "ts": "2026-02-18T11:24:29.040811+00:00", "pid": 41313}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:24:29.040866+00:00", "pid": 41313}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:24:29.040915+00:00", "pid": 41313}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T11:24:29.040952+00:00", "pid": 41313}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 2.5, "ts": "2026-02-18T11:24:58.346945+00:00", "pid": 41434}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.59, "ts": "2026-02-18T11:24:58.350700+00:00", "pid": 41434}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.73, "ts": "2026-02-18T11:24:58.351518+00:00", "pid": 41434}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T11:24:58.351582+00:00", "pid": 41434}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T11:24:58.351639+00:00", "pid": 41434}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-18T11:24:58.351679+00:00", "pid": 41434}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.89, "ts": "2026-02-18T14:24:08.553203+00:00", "pid": 56449}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 4.08, "ts": "2026-02-18T14:24:08.557403+00:00", "pid": 56449}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.58, "ts": "2026-02-18T14:24:08.559068+00:00", "pid": 56449}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T14:24:08.559185+00:00", "pid": 56449}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T14:24:08.559255+00:00", "pid": 56449}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-18T14:24:08.559309+00:00", "pid": 56449}
+{"event": "phase", "phase": "models_registered", "duration_ms": 10.78, "ts": "2026-02-18T14:24:08.570142+00:00", "pid": 56449}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.03, "ts": "2026-02-18T14:24:08.570367+00:00", "pid": 56449}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.03, "detail": "0 providers", "ts": "2026-02-18T14:24:08.570489+00:00", "pid": 56449}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.02, "ts": "2026-02-18T14:24:08.570570+00:00", "pid": 56449}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 19.35, "ts": "2026-02-18T14:24:08.587167+00:00", "pid": 56449}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T14:24:30.043577+00:00", "pid": 56449}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T14:24:30.045486+00:00", "pid": 56449}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.39, "ts": "2026-02-18T14:24:30.045810+00:00", "pid": 56449}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.04, "ts": "2026-02-18T14:24:30.046300+00:00", "pid": 56449}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.49, "ts": "2026-02-18T14:24:30.047003+00:00", "pid": 56449}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.15, "ts": "2026-02-18T14:24:30.047405+00:00", "pid": 56449}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T14:24:30.047573+00:00", "pid": 56449}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-18T14:24:30.047750+00:00", "pid": 56449}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.54, "ts": "2026-02-18T14:24:30.049639+00:00", "pid": 56449}
+{"event": "shutdown", "mode": "dev", "uptime_s": 21.463, "ts": "2026-02-18T14:24:30.049997+00:00", "pid": 56449}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.7, "ts": "2026-02-18T14:24:32.656071+00:00", "pid": 57328}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.35, "ts": "2026-02-18T14:24:32.659508+00:00", "pid": 57328}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.1, "ts": "2026-02-18T14:24:32.660679+00:00", "pid": 57328}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T14:24:32.660737+00:00", "pid": 57328}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T14:24:32.660784+00:00", "pid": 57328}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-18T14:24:32.660819+00:00", "pid": 57328}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.43, "ts": "2026-02-18T14:24:32.664284+00:00", "pid": 57328}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.0, "ts": "2026-02-18T14:24:32.664339+00:00", "pid": 57328}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T14:24:32.664393+00:00", "pid": 57328}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T14:24:32.664437+00:00", "pid": 57328}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 10.13, "ts": "2026-02-18T14:24:32.678240+00:00", "pid": 57328}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T14:30:50.306495+00:00", "pid": 57328}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T14:30:50.308527+00:00", "pid": 57328}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.49, "ts": "2026-02-18T14:30:50.308808+00:00", "pid": 57328}
+{"event": "phase", "phase": "mail_shutdown", "duration_ms": 0.08, "ts": "2026-02-18T14:30:50.309036+00:00", "pid": 57328}
+{"event": "phase", "phase": "cache_shutdown", "duration_ms": 0.21, "ts": "2026-02-18T14:30:50.309392+00:00", "pid": 57328}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.36, "ts": "2026-02-18T14:30:50.309886+00:00", "pid": 57328}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T14:30:50.310024+00:00", "pid": 57328}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.09, "ts": "2026-02-18T14:30:50.310226+00:00", "pid": 57328}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.28, "ts": "2026-02-18T14:30:50.311613+00:00", "pid": 57328}
+{"event": "shutdown", "mode": "dev", "uptime_s": 377.635, "ts": "2026-02-18T14:30:50.311856+00:00", "pid": 57328}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.73, "ts": "2026-02-18T14:30:52.617614+00:00", "pid": 61487}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 3.71, "ts": "2026-02-18T14:30:52.621435+00:00", "pid": 61487}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.41, "ts": "2026-02-18T14:30:52.622929+00:00", "pid": 61487}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-18T14:30:52.623028+00:00", "pid": 61487}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-18T14:30:52.623087+00:00", "pid": 61487}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-18T14:30:52.623130+00:00", "pid": 61487}
+{"event": "phase", "phase": "models_registered", "duration_ms": 4.21, "ts": "2026-02-18T14:30:52.627385+00:00", "pid": 61487}
+{"event": "phase", "phase": "mail_started", "duration_ms": 0.01, "ts": "2026-02-18T14:30:52.627452+00:00", "pid": 61487}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-18T14:30:52.627517+00:00", "pid": 61487}
+{"event": "phase", "phase": "cache_started", "duration_ms": 0.01, "ts": "2026-02-18T14:30:52.627567+00:00", "pid": 61487}
+{"event": "boot", "mode": "dev", "fingerprint": "72949d9393a3f4e14ce755368a47ed600077f65f73aac16b16fe4ec4e245131b", "app_count": 8, "route_count": 65, "di_providers": 216, "duration_ms": 11.76, "ts": "2026-02-18T14:30:52.641521+00:00", "pid": 61487}

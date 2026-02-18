@@ -31,6 +31,31 @@ from .utils.colors import (
     _CHECK, _CROSS,
 )
 
+import re as _re
+
+_DEFAULT_DB_URL = "sqlite:///db.sqlite3"
+
+
+def _detect_workspace_db_url() -> str:
+    """Auto-detect the database URL from workspace.py in the current directory.
+
+    Scans workspace.py for ``.database(url="...")`` or
+    ``Integration.database(url="...")`` patterns and returns the first URL
+    found.  Falls back to the framework default ``sqlite:///db.sqlite3``.
+    """
+    workspace_file = Path("workspace.py")
+    if not workspace_file.exists():
+        return _DEFAULT_DB_URL
+    try:
+        text = workspace_file.read_text()
+        # Match .database(url="<url>") or .database(url='<url>')
+        m = _re.search(r'\.database\(\s*url\s*=\s*["\']([^"\']+)["\']', text)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return _DEFAULT_DB_URL
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Custom Click help formatter
@@ -904,16 +929,18 @@ def db_makemigrations(ctx, app: Optional[str], migrations_dir: str, dsl: bool):
 
 @db.command('migrate')
 @click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
-@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--database-url', type=str, default=None, help='Database URL (auto-detected from workspace.py)')
 @click.option('--database', type=str, default=None, help='Database alias (for multi-db)')
 @click.option('--target', type=str, default=None, help='Target revision (or "zero" to rollback all)')
 @click.option('--fake', is_flag=True, help='Mark migrations as applied without running SQL')
 @click.option('--plan', is_flag=True, help='Preview SQL without executing (dry-run)')
 @click.pass_context
-def db_migrate(ctx, migrations_dir: str, database_url: str, database: Optional[str],
+def db_migrate(ctx, migrations_dir: str, database_url: Optional[str], database: Optional[str],
                target: Optional[str], fake: bool, plan: bool):
     """
     Apply pending migrations to the database.
+
+    The database URL is auto-detected from workspace.py if not specified.
 
     Examples:
       aq db migrate
@@ -923,6 +950,10 @@ def db_migrate(ctx, migrations_dir: str, database_url: str, database: Optional[s
       aq db migrate --target=zero
     """
     from .commands.model_cmds import cmd_migrate
+
+    # Auto-detect database URL from workspace.py if not provided
+    if database_url is None:
+        database_url = _detect_workspace_db_url()
 
     try:
         cmd_migrate(
@@ -966,9 +997,9 @@ def db_dump(ctx, emit: str, output_dir: Optional[str]):
 
 
 @db.command('shell')
-@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--database-url', type=str, default=None, help='Database URL (auto-detected from workspace.py)')
 @click.pass_context
-def db_shell(ctx, database_url: str):
+def db_shell(ctx, database_url: Optional[str]):
     """
     Open an async REPL with models pre-loaded.
 
@@ -981,6 +1012,9 @@ def db_shell(ctx, database_url: str):
     """
     from .commands.model_cmds import cmd_shell
 
+    if database_url is None:
+        database_url = _detect_workspace_db_url()
+
     try:
         cmd_shell(
             database_url=database_url,
@@ -992,11 +1026,11 @@ def db_shell(ctx, database_url: str):
 
 
 @db.command('inspectdb')
-@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--database-url', type=str, default=None, help='Database URL (auto-detected from workspace.py)')
 @click.option('--table', type=str, multiple=True, help='Specific tables to inspect')
 @click.option('--output', type=click.Path(), default=None, help='Output file path')
 @click.pass_context
-def db_inspectdb(ctx, database_url: str, table: tuple, output: Optional[str]):
+def db_inspectdb(ctx, database_url: Optional[str], table: tuple, output: Optional[str]):
     """
     Introspect database and generate Model definitions.
 
@@ -1009,6 +1043,9 @@ def db_inspectdb(ctx, database_url: str, table: tuple, output: Optional[str]):
       aq db inspectdb --output=models/generated.py
     """
     from .commands.model_cmds import cmd_inspectdb
+
+    if database_url is None:
+        database_url = _detect_workspace_db_url()
 
     try:
         tables = list(table) if table else None
@@ -1028,10 +1065,10 @@ def db_inspectdb(ctx, database_url: str, table: tuple, output: Optional[str]):
 
 @db.command('showmigrations')
 @click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
-@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--database-url', type=str, default=None, help='Database URL (auto-detected from workspace.py)')
 @click.option('--database', type=str, default=None, help='Database alias')
 @click.pass_context
-def db_showmigrations(ctx, migrations_dir: str, database_url: str, database: Optional[str]):
+def db_showmigrations(ctx, migrations_dir: str, database_url: Optional[str], database: Optional[str]):
     """
     Show all migrations and their applied/pending status.
 
@@ -1040,6 +1077,9 @@ def db_showmigrations(ctx, migrations_dir: str, database_url: str, database: Opt
       aq db showmigrations --migrations-dir=db/migrations
     """
     from .commands.model_cmds import cmd_showmigrations
+
+    if database_url is None:
+        database_url = _detect_workspace_db_url()
 
     try:
         cmd_showmigrations(
@@ -1082,9 +1122,9 @@ def db_sqlmigrate(ctx, migration_name: str, migrations_dir: str, database: Optio
 
 
 @db.command('status')
-@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--database-url', type=str, default=None, help='Database URL (auto-detected from workspace.py)')
 @click.pass_context
-def db_status(ctx, database_url: str):
+def db_status(ctx, database_url: Optional[str]):
     """
     Show database status — tables, row counts, columns.
 
@@ -1093,6 +1133,9 @@ def db_status(ctx, database_url: str):
       aq db status --database-url=sqlite:///prod.db
     """
     from .commands.model_cmds import cmd_db_status
+
+    if database_url is None:
+        database_url = _detect_workspace_db_url()
 
     try:
         cmd_db_status(

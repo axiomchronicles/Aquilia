@@ -322,4 +322,20 @@ def create_safe_filters() -> Dict[str, Callable]:
         "format_currency": format_currency,
         "pluralize": pluralize,
         "sanitize_html": sanitize_html,
+        "tojson": _tojson_filter,
     }
+
+
+def _tojson_filter(value, indent=None):
+    """
+    Serialize a value to a JSON-safe string for embedding in templates.
+
+    Escapes ``<``, ``>``, and ``&`` so the result can be safely placed
+    inside ``<script>`` blocks without XSS risk.
+    """
+    import json
+    from markupsafe import Markup
+
+    rv = json.dumps(value, indent=indent, sort_keys=True, default=str)
+    rv = rv.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return Markup(rv)

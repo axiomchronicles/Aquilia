@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block topbar_title %}Companies{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Companies</h2>
+        <p class="subtitle">Manage your client organizations</p>
+    </div>
+    <a href="/companies/new" class="btn btn-primary">+ New Company</a>
+</div>
+
+{% if stats %}
+<div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card kpi-accent" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Total Companies</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.total | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-success" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Total Revenue</div>
+        <div class="kpi-value" style="font-size:22px" id="totalRevenue">$0</div>
+    </div>
+    <div class="kpi-card kpi-info" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Industries</div>
+        <div class="kpi-value" style="font-size:22px">{{ (stats.by_industry | default({})).keys() | list | length }}</div>
+    </div>
+</div>
+{% endif %}
+
+<div class="filter-bar">
+    <input type="text" class="form-input" placeholder="Search companies..." id="searchInput" value="{{ search | default('') }}">
+    <select class="form-select" id="industryFilter">
+        <option value="">All Industries</option>
+        {% for ind in ['technology', 'healthcare', 'finance', 'manufacturing', 'retail', 'consulting', 'education', 'other'] %}
+        <option value="{{ ind }}" {% if industry == ind %}selected{% endif %}>{{ ind | title }}</option>
+        {% endfor %}
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="applyFilters()">Filter</button>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Industry</th>
+                    <th>Size</th>
+                    <th>Contacts</th>
+                    <th>Deals</th>
+                    <th>Website</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in companies %}
+                <tr>
+                    <td>
+                        <a href="/companies/{{ company.id }}" class="font-bold">{{ company.name }}</a>
+                        {% if company.city %}<div class="text-muted" style="font-size:12px">{{ company.city }}{% if company.country %}, {{ company.country }}{% endif %}</div>{% endif %}
+                    </td>
+                    <td><span class="badge badge-accent">{{ company.industry | default('-') | title }}</span></td>
+                    <td class="text-muted">{{ company.size | default('-') | title }}</td>
+                    <td>{{ company.contact_count | default(0) }}</td>
+                    <td>{{ company.deal_count | default(0) }}</td>
+                    <td>
+                        {% if company.website %}
+                        <a href="{{ company.website }}" target="_blank" class="text-muted" style="font-size:13px">{{ company.website | truncate(30) }}</a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="text-right">
+                        <a href="/companies/{{ company.id }}/edit" class="btn btn-ghost btn-sm">Edit</a>
+                        <button class="btn btn-ghost btn-sm text-danger" onclick="deleteCompany({{ company.id }})">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not companies %}
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="icon">🏢</div>
+                        <h3>No companies found</h3>
+                        <p>Add your first company to organize contacts</p>
+                        <a href="/companies/new" class="btn btn-primary">+ New Company</a>
+                    </div>
+                </td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages and total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}<a href="?page={{ page - 1 }}&search={{ search }}">← Prev</a>{% endif %}
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}<span class="active">{{ p }}</span>
+            {% else %}<a href="?page={{ p }}&search={{ search }}">{{ p }}</a>{% endif %}
+        {% endfor %}
+        {% if page < total_pages %}<a href="?page={{ page + 1 }}&search={{ search }}">Next →</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if stats %}
+document.getElementById('totalRevenue').textContent = formatCurrency({{ stats.total_revenue | default(0) }});
+{% endif %}
+
+function applyFilters() {
+    const search = document.getElementById('searchInput').value;
+    const industry = document.getElementById('industryFilter').value;
+    let url = '/companies/?page=1';
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (industry) url += `&industry=${industry}`;
+    window.location = url;
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') applyFilters();
+});
+
+async function deleteCompany(id) {
+    if (!confirm('Delete this company?')) return;
+    const res = await apiCall(`/companies/api/${id}`, 'DELETE');
+    if (res.ok) window.location.reload();
+}
+</script>
+{% endblock %}

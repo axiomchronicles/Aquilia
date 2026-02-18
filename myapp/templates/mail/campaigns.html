@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block topbar_title %}Email Campaigns{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Email Campaigns</h2>
+        <p class="subtitle">Manage and send email campaigns to your contacts</p>
+    </div>
+    <div class="btn-group">
+        <a href="/mail/compose" class="btn btn-outline">✉ Direct Email</a>
+        <a href="/mail/new" class="btn btn-primary">+ New Campaign</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Campaign Name</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Recipients</th>
+                    <th>Created</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for campaign in campaigns %}
+                <tr>
+                    <td class="font-bold">{{ campaign.name }}</td>
+                    <td class="text-muted">{{ campaign.subject | default('-') | truncate(50) }}</td>
+                    <td><span class="badge {% if campaign.status == 'sent' %}badge-success{% elif campaign.status == 'draft' %}badge-muted{% else %}badge-warning{% endif %}">{{ campaign.status | title }}</span></td>
+                    <td>{{ campaign.recipient_count | default(0) }}</td>
+                    <td class="text-muted">{{ campaign.created_at | default('-') }}</td>
+                    <td class="text-right">
+                        {% if campaign.status == 'draft' %}
+                        <button class="btn btn-primary btn-sm" onclick="sendCampaign({{ campaign.id }})">🚀 Send</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not campaigns %}
+                <tr><td colspan="6">
+                    <div class="empty-state">
+                        <div class="icon">📧</div>
+                        <h3>No campaigns yet</h3>
+                        <p>Create your first email campaign</p>
+                        <a href="/mail/new" class="btn btn-primary">+ New Campaign</a>
+                    </div>
+                </td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function sendCampaign(id) {
+    if (!confirm('Send this campaign to all contacts? This cannot be undone.')) return;
+    const res = await apiCall(`/mail/api/campaigns/${id}/send`, 'POST');
+    if (res.ok) {
+        alert('Campaign sent successfully!');
+        window.location.reload();
+    } else {
+        alert(res.data.message || 'Failed to send campaign');
+    }
+}
+</script>
+{% endblock %}

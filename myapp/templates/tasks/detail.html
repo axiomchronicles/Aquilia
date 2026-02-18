@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block topbar_title %}Task Detail{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <div>
+        <div class="detail-title" {% if task.status == 'completed' %}style="text-decoration:line-through;opacity:0.7"{% endif %}>{{ task.title }}</div>
+        <div class="detail-subtitle">
+            <span class="badge status-{{ task.status }}" style="font-size:13px;padding:4px 14px">{{ task.status | replace('_', ' ') | title }}</span>
+            <span class="priority-{{ task.priority }}" style="margin-left:8px;font-weight:600">
+                {% if task.priority == 'urgent' %}🔴{% elif task.priority == 'high' %}🟠{% elif task.priority == 'medium' %}🟡{% else %}🟢{% endif %}
+                {{ task.priority | title }} Priority
+            </span>
+        </div>
+    </div>
+    <div class="btn-group">
+        {% if task.status != 'completed' %}
+        <button class="btn btn-success" onclick="completeTask()">✓ Complete</button>
+        {% endif %}
+        <a href="/tasks/{{ task.id }}/edit" class="btn btn-primary">Edit</a>
+        <button class="btn btn-danger" onclick="deleteTask()">Delete</button>
+        <a href="/tasks/" class="btn btn-outline">← Back</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div>
+        <div class="card mb-3">
+            <div class="card-header"><h3>Task Details</h3></div>
+            <div class="form-row">
+                <div class="detail-field">
+                    <div class="label">Type</div>
+                    <div class="value">{{ task.task_type | default('-') | replace('_', ' ') | title }}</div>
+                </div>
+                <div class="detail-field">
+                    <div class="label">Due Date</div>
+                    <div class="value {% if task.is_overdue %}text-danger font-bold{% endif %}">
+                        {{ task.due_date | default('No due date') }}
+                        {% if task.is_overdue %} (Overdue){% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="detail-field">
+                    <div class="label">Assignee</div>
+                    <div class="value">{{ task.assignee_name | default('Unassigned') }}</div>
+                </div>
+                <div class="detail-field">
+                    <div class="label">Contact</div>
+                    <div class="value">
+                        {% if task.contact_id %}<a href="/contacts/{{ task.contact_id }}">{{ task.contact_name | default('Unknown') }}</a>
+                        {% else %}-{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="detail-field">
+                    <div class="label">Deal</div>
+                    <div class="value">
+                        {% if task.deal_id %}<a href="/deals/{{ task.deal_id }}">{{ task.deal_name | default('Unknown') }}</a>
+                        {% else %}-{% endif %}
+                    </div>
+                </div>
+                <div class="detail-field">
+                    <div class="label">Created</div>
+                    <div class="value">{{ task.created_at | default('-') }}</div>
+                </div>
+            </div>
+            {% if task.description %}
+            <div class="detail-field">
+                <div class="label">Description</div>
+                <div class="value" style="white-space:pre-wrap">{{ task.description }}</div>
+            </div>
+            {% endif %}
+            {% if task.completed_at %}
+            <div class="detail-field">
+                <div class="label">Completed At</div>
+                <div class="value text-success">{{ task.completed_at }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div>
+        <div class="card mb-3">
+            <div class="card-header"><h3>Status Actions</h3></div>
+            {% if task.status == 'pending' %}
+            <button class="btn btn-info btn-sm" style="width:100%;justify-content:center;margin-bottom:8px;background:var(--info);color:white" onclick="updateStatus('in_progress')">▶ Start Working</button>
+            <button class="btn btn-success btn-sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="completeTask()">✓ Mark Complete</button>
+            {% elif task.status == 'in_progress' %}
+            <button class="btn btn-success btn-sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="completeTask()">✓ Mark Complete</button>
+            <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="updateStatus('pending')">⏸ Pause</button>
+            {% elif task.status == 'completed' %}
+            <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="updateStatus('pending')">↩ Reopen</button>
+            {% endif %}
+            <button class="btn btn-ghost btn-sm text-danger" style="width:100%;justify-content:center" onclick="updateStatus('cancelled')">✖ Cancel</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3>Related</h3></div>
+            {% if task.contact_id %}
+            <a href="/contacts/{{ task.contact_id }}" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:8px">👤 View Contact</a>
+            {% endif %}
+            {% if task.deal_id %}
+            <a href="/deals/{{ task.deal_id }}" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:8px">💰 View Deal</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function completeTask() {
+    const res = await apiCall('/tasks/api/{{ task.id }}/complete', 'PUT');
+    if (res.ok) window.location.reload();
+    else alert(res.data.message || 'Failed');
+}
+
+async function updateStatus(status) {
+    const res = await apiCall('/tasks/api/{{ task.id }}', 'PUT', { status });
+    if (res.ok) window.location.reload();
+    else alert(res.data.message || 'Failed');
+}
+
+async function deleteTask() {
+    if (!confirm('Delete this task?')) return;
+    const res = await apiCall('/tasks/api/{{ task.id }}', 'DELETE');
+    if (res.ok) window.location = '/tasks/';
+}
+</script>
+{% endblock %}

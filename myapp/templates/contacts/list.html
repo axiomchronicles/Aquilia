@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block topbar_title %}Contacts{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Contacts</h2>
+        <p class="subtitle">Manage your leads, prospects, and customers</p>
+    </div>
+    <a href="/contacts/new" class="btn btn-primary">+ New Contact</a>
+</div>
+
+<!-- Stats -->
+{% if stats %}
+<div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card kpi-accent" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Total</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.total | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-info" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Leads</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.by_status.lead | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-success" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Customers</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.by_status.customer | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-warning" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Prospects</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.by_status.prospect | default(0) }}</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <input type="text" class="form-input" placeholder="Search contacts..." id="searchInput" value="{{ search | default('') }}">
+    <select class="form-select" id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="lead" {% if status == 'lead' %}selected{% endif %}>Lead</option>
+        <option value="prospect" {% if status == 'prospect' %}selected{% endif %}>Prospect</option>
+        <option value="qualified" {% if status == 'qualified' %}selected{% endif %}>Qualified</option>
+        <option value="customer" {% if status == 'customer' %}selected{% endif %}>Customer</option>
+        <option value="churned" {% if status == 'churned' %}selected{% endif %}>Churned</option>
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="applyFilters()">Filter</button>
+</div>
+
+<!-- Contacts Table -->
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Source</th>
+                    <th>Phone</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contact in contacts %}
+                <tr>
+                    <td>
+                        <a href="/contacts/{{ contact.id }}" class="font-bold">{{ contact.first_name }} {{ contact.last_name }}</a>
+                        {% if contact.title %}<div class="text-muted" style="font-size:12px">{{ contact.title }}</div>{% endif %}
+                    </td>
+                    <td>{{ contact.email | default('-') }}</td>
+                    <td>{{ contact.company_name | default('-') }}</td>
+                    <td><span class="badge status-{{ contact.status }}">{{ contact.status | title }}</span></td>
+                    <td class="text-muted">{{ contact.source | default('-') | replace('_', ' ') | title }}</td>
+                    <td class="text-muted">{{ contact.phone | default('-') }}</td>
+                    <td class="text-right">
+                        <a href="/contacts/{{ contact.id }}/edit" class="btn btn-ghost btn-sm">Edit</a>
+                        <button class="btn btn-ghost btn-sm text-danger" onclick="deleteContact({{ contact.id }})">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not contacts %}
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="icon">👤</div>
+                        <h3>No contacts found</h3>
+                        <p>Add your first contact to get started</p>
+                        <a href="/contacts/new" class="btn btn-primary">+ New Contact</a>
+                    </div>
+                </td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages and total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}<a href="?page={{ page - 1 }}&search={{ search }}&status={{ status }}">← Prev</a>{% endif %}
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}
+                <span class="active">{{ p }}</span>
+            {% else %}
+                <a href="?page={{ p }}&search={{ search }}&status={{ status }}">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page < total_pages %}<a href="?page={{ page + 1 }}&search={{ search }}&status={{ status }}">Next →</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function applyFilters() {
+    const search = document.getElementById('searchInput').value;
+    const status = document.getElementById('statusFilter').value;
+    let url = '/contacts/?page=1';
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status) url += `&status=${status}`;
+    window.location = url;
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') applyFilters();
+});
+
+async function deleteContact(id) {
+    if (!confirm('Delete this contact?')) return;
+    const res = await apiCall(`/contacts/api/${id}`, 'DELETE');
+    if (res.ok) window.location.reload();
+    else alert(res.data.message || 'Delete failed');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card kpi-accent">
+        <div class="kpi-icon" style="background:var(--accent-subtle);color:var(--accent);float:right">👤</div>
+        <div class="kpi-label">Total Contacts</div>
+        <div class="kpi-value">{{ kpis.total_contacts }}</div>
+        <div class="kpi-change text-success">Active pipeline</div>
+    </div>
+    <div class="kpi-card kpi-success">
+        <div class="kpi-icon" style="background:var(--success-subtle);color:var(--success);float:right">🏢</div>
+        <div class="kpi-label">Total Companies</div>
+        <div class="kpi-value">{{ kpis.total_companies }}</div>
+        <div class="kpi-change text-muted">Organizations</div>
+    </div>
+    <div class="kpi-card kpi-warning">
+        <div class="kpi-icon" style="background:var(--warning-subtle);color:var(--warning);float:right">💰</div>
+        <div class="kpi-label">Active Deals</div>
+        <div class="kpi-value">{{ kpis.active_deals }}</div>
+        <div class="kpi-change text-muted">In pipeline</div>
+    </div>
+    <div class="kpi-card kpi-purple">
+        <div class="kpi-icon" style="background:var(--purple-subtle);color:var(--purple);float:right">💵</div>
+        <div class="kpi-label">Pipeline Value</div>
+        <div class="kpi-value" id="pipelineValue">$0</div>
+        <div class="kpi-change text-muted">Total potential</div>
+    </div>
+    <div class="kpi-card kpi-info">
+        <div class="kpi-icon" style="background:var(--info-subtle);color:var(--info);float:right">🏆</div>
+        <div class="kpi-label">Won Revenue</div>
+        <div class="kpi-value" id="wonRevenue">$0</div>
+        <div class="kpi-change text-success">Closed won deals</div>
+    </div>
+    <div class="kpi-card kpi-danger">
+        <div class="kpi-icon" style="background:var(--danger-subtle);color:var(--danger);float:right">📋</div>
+        <div class="kpi-label">Open Tasks</div>
+        <div class="kpi-value">{{ kpis.open_tasks }}</div>
+        <div class="kpi-change text-warning">Pending actions</div>
+    </div>
+    <div class="kpi-card kpi-success">
+        <div class="kpi-icon" style="background:var(--success-subtle);color:var(--success);float:right">📊</div>
+        <div class="kpi-label">Win Rate</div>
+        <div class="kpi-value">{{ "%.0f"|format(kpis.win_rate) }}%</div>
+        <div class="kpi-change text-muted">Deal conversion</div>
+    </div>
+    <div class="kpi-card kpi-accent">
+        <div class="kpi-icon" style="background:var(--accent-subtle);color:var(--accent);float:right">⚡</div>
+        <div class="kpi-label">Weighted Pipeline</div>
+        <div class="kpi-value" id="weightedPipeline">$0</div>
+        <div class="kpi-change text-muted">Probability adjusted</div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h3>Pipeline by Stage</h3>
+            <a href="/deals/pipeline" class="btn btn-ghost btn-sm">View Board →</a>
+        </div>
+        <canvas id="pipelineChart" height="260"></canvas>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3>Contacts by Status</h3>
+            <a href="/contacts/" class="btn btn-ghost btn-sm">View All →</a>
+        </div>
+        <canvas id="contactsChart" height="260"></canvas>
+    </div>
+</div>
+
+<!-- Revenue + Top Deals -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h3>Revenue by Stage</h3>
+        </div>
+        <canvas id="revenueChart" height="260"></canvas>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3>Top Deals</h3>
+            <a href="/deals/" class="btn btn-ghost btn-sm">View All →</a>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Deal</th><th>Value</th><th>Stage</th></tr>
+                </thead>
+                <tbody>
+                    {% for deal in top_deals %}
+                    <tr>
+                        <td>
+                            <a href="/deals/{{ deal.id }}">{{ deal.title }}</a>
+                            <div class="text-muted" style="font-size:12px">{{ deal.company_name or '-' }}</div>
+                        </td>
+                        <td class="font-bold text-success">${{ "{:,.0f}".format((deal.value or 0) | float) }}</td>
+                        <td><span class="badge stage-{{ deal.stage }}">{{ deal.stage | replace('_', ' ') | title }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    {% if not top_deals %}
+                    <tr><td colspan="3" class="text-center text-muted">No deals yet</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Team Performance + Activities -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h3>Team Performance</h3>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Rep</th><th>Deals</th><th>Value</th><th>Won</th></tr>
+                </thead>
+                <tbody>
+                    {% for member in team_performance %}
+                    <tr>
+                        <td class="font-bold">{{ member.rep }}</td>
+                        <td>{{ member.total_deals }}</td>
+                        <td>${{ "{:,.0f}".format((member.total_value or 0) | float) }}</td>
+                        <td><span class="badge badge-success">{{ member.won_deals }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    {% if not team_performance %}
+                    <tr><td colspan="4" class="text-center text-muted">No team data</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3>Recent Activity</h3>
+        </div>
+        <div style="max-height:320px;overflow-y:auto">
+            {% for activity in recent_activities %}
+            <div class="activity-item">
+                <div class="activity-dot" style="background:{% if activity.type == 'deal_update' %}var(--accent){% elif activity.type == 'contact_created' %}var(--success){% elif activity.type == 'task_completed' %}var(--warning){% else %}var(--purple){% endif %}"></div>
+                <div class="activity-content">
+                    <div class="activity-text">{{ activity.description }}</div>
+                    <div class="activity-time">{{ activity.created_at | default('-') }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% if not recent_activities %}
+            <div class="text-center text-muted" style="padding:40px">No recent activity</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Tasks Overview -->
+<div class="card mt-2">
+    <div class="card-header">
+        <h3>Tasks Overview</h3>
+        <a href="/tasks/" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+    <div class="kpi-grid" style="margin-bottom:0">
+        <div class="kpi-card kpi-warning" style="padding:14px 18px">
+            <div class="kpi-label" style="font-size:11px">Pending</div>
+            <div class="kpi-value" style="font-size:22px">{{ tasks_overview.by_status.pending | default(0) }}</div>
+        </div>
+        <div class="kpi-card kpi-info" style="padding:14px 18px">
+            <div class="kpi-label" style="font-size:11px">In Progress</div>
+            <div class="kpi-value" style="font-size:22px">{{ tasks_overview.by_status.in_progress | default(0) }}</div>
+        </div>
+        <div class="kpi-card kpi-success" style="padding:14px 18px">
+            <div class="kpi-label" style="font-size:11px">Completed</div>
+            <div class="kpi-value" style="font-size:22px">{{ tasks_overview.by_status.completed | default(0) }}</div>
+        </div>
+        <div class="kpi-card kpi-danger" style="padding:14px 18px">
+            <div class="kpi-label" style="font-size:11px">Overdue</div>
+            <div class="kpi-value" style="font-size:22px">{{ tasks_overview.overdue | default(0) }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+    // Format currency KPIs
+    document.getElementById('pipelineValue').textContent = formatCurrency({{ kpis.pipeline_value | default(0) }});
+    document.getElementById('wonRevenue').textContent = formatCurrency({{ kpis.won_revenue | default(0) }});
+    document.getElementById('weightedPipeline').textContent = formatCurrency({{ kpis.pipeline_value | default(0) }});
+
+    const chartColors = {
+        accent: '#4a6cf7', purple: '#8b5cf6', success: '#22c55e',
+        warning: '#f59e0b', danger: '#ef4444', info: '#3b82f6',
+        teal: '#14b8a6', pink: '#ec4899'
+    };
+
+    Chart.defaults.color = '#8b90a0';
+    Chart.defaults.borderColor = '#2a2f3f';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // Pipeline Chart
+    const pipelineData = {{ pipeline | default([]) | tojson }};
+    const stages = ['discovery', 'qualification', 'proposal', 'negotiation', 'closed_won', 'closed_lost'];
+    const stageLabels = stages.map(s => s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()));
+    const stageColors = [chartColors.info, chartColors.purple, chartColors.warning, chartColors.accent, chartColors.success, chartColors.danger];
+
+    // Build a lookup from stage name → {count, value}
+    const pipelineLookup = {};
+    pipelineData.forEach(item => { pipelineLookup[item.stage] = item; });
+
+    new Chart(document.getElementById('pipelineChart'), {
+        type: 'bar',
+        data: {
+            labels: stageLabels,
+            datasets: [{
+                label: 'Deals',
+                data: stages.map(s => (pipelineLookup[s] || {}).count || 0),
+                backgroundColor: stageColors.map(c => c + '33'),
+                borderColor: stageColors,
+                borderWidth: 2,
+                borderRadius: 6
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+
+    // Contacts by Status Chart
+    const contactsByStatus = {{ contacts_by_status | default({}) | tojson }};
+    const contactStatuses = Object.keys(contactsByStatus);
+    const contactCounts = Object.values(contactsByStatus);
+    const statusColors = [chartColors.info, chartColors.purple, chartColors.warning, chartColors.success, chartColors.danger, chartColors.teal];
+
+    new Chart(document.getElementById('contactsChart'), {
+        type: 'doughnut',
+        data: {
+            labels: contactStatuses.map(s => s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())),
+            datasets: [{
+                data: contactCounts,
+                backgroundColor: statusColors.slice(0, contactStatuses.length),
+                borderColor: 'transparent',
+                borderWidth: 0,
+                spacing: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '65%',
+            plugins: { legend: { position: 'right', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } } }
+        }
+    });
+
+    // Revenue by Stage Chart
+    const revByStage = {{ revenue_by_stage | default([]) | tojson }};
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(revByStage).map(s => s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())),
+            datasets: [{
+                label: 'Revenue',
+                data: Object.values(revByStage),
+                backgroundColor: stageColors.slice(0, Object.keys(revByStage).length).map(c => c + '55'),
+                borderColor: stageColors.slice(0, Object.keys(revByStage).length),
+                borderWidth: 2,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true, indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+</script>
+{% endblock %}

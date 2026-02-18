@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "captured_at": "2026-02-18T09:16:23.538250+00:00",
+  "captured_at": "2026-02-18T14:30:52.640238+00:00",
   "faults": {
     "active": true,
     "total_faults": 0,
@@ -8,7 +8,7 @@
     "error_budget_remaining": null
   },
   "middleware": {
-    "count": 10,
+    "count": 11,
     "layers": [
       {
         "name": "exception",
@@ -26,6 +26,26 @@
         "scope": "global"
       },
       {
+        "name": "request_id",
+        "priority": 10,
+        "scope": "global"
+      },
+      {
+        "name": "logging",
+        "priority": 20,
+        "scope": "global"
+      },
+      {
+        "name": "auth",
+        "priority": 15,
+        "scope": "global"
+      },
+      {
+        "name": "templates",
+        "priority": 25,
+        "scope": "global"
+      },
+      {
         "name": "static_files",
         "priority": 6,
         "scope": "global"
@@ -36,28 +56,13 @@
         "scope": "global"
       },
       {
-        "name": "request_id",
-        "priority": 10,
+        "name": "cors",
+        "priority": 11,
         "scope": "global"
       },
       {
         "name": "rate_limit",
         "priority": 12,
-        "scope": "global"
-      },
-      {
-        "name": "auth",
-        "priority": 15,
-        "scope": "global"
-      },
-      {
-        "name": "logging",
-        "priority": 20,
-        "scope": "global"
-      },
-      {
-        "name": "templates",
-        "priority": 25,
         "scope": "global"
       }
     ]
@@ -73,7 +78,8 @@
     "provider_names": []
   },
   "artifacts": {
-    "count": 0
+    "count": 0,
+    "names": []
   },
   "sessions": {
     "active": true,
@@ -89,19 +95,26 @@
     "search_paths": []
   },
   "mail": {
-    "active": false
+    "active": true,
+    "service": "MailService"
   },
   "cache": {
-    "active": false
+    "active": true,
+    "service": "CacheService",
+    "backend": "MemoryBackend",
+    "default_ttl": 300,
+    "max_size": 10000,
+    "eviction_policy": "lru"
   },
   "database": {
-    "active": false
+    "active": true,
+    "driver": "sqlite"
   },
   "process": {
-    "pid": 9729,
+    "pid": 61487,
     "python_version": "3.14.0",
-    "max_rss_mb": 84.58,
-    "user_time_s": 0.425,
-    "system_time_s": 0.078
+    "max_rss_mb": 85.11,
+    "user_time_s": 0.218,
+    "system_time_s": 0.044
   }
 }

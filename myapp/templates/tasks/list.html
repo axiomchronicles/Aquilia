@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block topbar_title %}Tasks{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Tasks</h2>
+        <p class="subtitle">Track and manage your action items</p>
+    </div>
+    <a href="/tasks/new" class="btn btn-primary">+ New Task</a>
+</div>
+
+{% if stats %}
+<div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card kpi-warning" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Pending</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.by_status.pending | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-info" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">In Progress</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.by_status.in_progress | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-success" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Completed</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.by_status.completed | default(0) }}</div>
+    </div>
+    <div class="kpi-card kpi-danger" style="padding:14px 18px">
+        <div class="kpi-label" style="font-size:11px">Overdue</div>
+        <div class="kpi-value" style="font-size:22px">{{ stats.overdue | default(0) }}</div>
+    </div>
+</div>
+{% endif %}
+
+<div class="filter-bar">
+    <input type="text" class="form-input" placeholder="Search tasks..." id="searchInput" value="{{ search | default('') }}">
+    <select class="form-select" id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="in_progress" {% if status == 'in_progress' %}selected{% endif %}>In Progress</option>
+        <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+        <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+    </select>
+    <select class="form-select" id="priorityFilter">
+        <option value="">All Priorities</option>
+        <option value="low" {% if priority == 'low' %}selected{% endif %}>Low</option>
+        <option value="medium" {% if priority == 'medium' %}selected{% endif %}>Medium</option>
+        <option value="high" {% if priority == 'high' %}selected{% endif %}>High</option>
+        <option value="urgent" {% if priority == 'urgent' %}selected{% endif %}>Urgent</option>
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="applyFilters()">Filter</button>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:30px"></th>
+                    <th>Task</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>Assignee</th>
+                    <th>Due Date</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td>
+                        {% if task.status != 'completed' %}
+                        <input type="checkbox" onchange="completeTask({{ task.id }})" style="cursor:pointer;width:16px;height:16px">
+                        {% else %}
+                        <span style="color:var(--success)">✓</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/tasks/{{ task.id }}" class="font-bold" {% if task.status == 'completed' %}style="text-decoration:line-through;opacity:0.6"{% endif %}>{{ task.title }}</a>
+                        {% if task.contact_name %}<div class="text-muted" style="font-size:12px">{{ task.contact_name }}</div>{% endif %}
+                    </td>
+                    <td>
+                        <span class="priority-{{ task.priority }}">
+                            {% if task.priority == 'urgent' %}🔴{% elif task.priority == 'high' %}🟠{% elif task.priority == 'medium' %}🟡{% else %}🟢{% endif %}
+                            {{ task.priority | title }}
+                        </span>
+                    </td>
+                    <td><span class="badge status-{{ task.status }}">{{ task.status | replace('_', ' ') | title }}</span></td>
+                    <td class="text-muted">{{ task.task_type | default('-') | replace('_', ' ') | title }}</td>
+                    <td class="text-muted">{{ task.assignee_name | default('Unassigned') }}</td>
+                    <td>
+                        {% if task.due_date %}
+                        <span class="{% if task.is_overdue %}text-danger font-bold{% else %}text-muted{% endif %}">{{ task.due_date }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="text-right">
+                        <a href="/tasks/{{ task.id }}/edit" class="btn btn-ghost btn-sm">Edit</a>
+                        <button class="btn btn-ghost btn-sm text-danger" onclick="deleteTask({{ task.id }})">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not tasks %}
+                <tr><td colspan="8">
+                    <div class="empty-state">
+                        <div class="icon">✅</div>
+                        <h3>No tasks found</h3>
+                        <p>Create a task to stay on top of your work</p>
+                        <a href="/tasks/new" class="btn btn-primary">+ New Task</a>
+                    </div>
+                </td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages and total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}<a href="?page={{ page - 1 }}&status={{ status }}&priority={{ priority }}">← Prev</a>{% endif %}
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}<span class="active">{{ p }}</span>
+            {% else %}<a href="?page={{ p }}&status={{ status }}&priority={{ priority }}">{{ p }}</a>{% endif %}
+        {% endfor %}
+        {% if page < total_pages %}<a href="?page={{ page + 1 }}&status={{ status }}&priority={{ priority }}">Next →</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function applyFilters() {
+    const search = document.getElementById('searchInput').value;
+    const status = document.getElementById('statusFilter').value;
+    const priority = document.getElementById('priorityFilter').value;
+    let url = '/tasks/?page=1';
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status) url += `&status=${status}`;
+    if (priority) url += `&priority=${priority}`;
+    window.location = url;
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') applyFilters();
+});
+
+async function completeTask(id) {
+    const res = await apiCall(`/tasks/api/${id}/complete`, 'PUT');
+    if (res.ok) window.location.reload();
+}
+
+async function deleteTask(id) {
+    if (!confirm('Delete this task?')) return;
+    const res = await apiCall(`/tasks/api/${id}`, 'DELETE');
+    if (res.ok) window.location.reload();
+}
+</script>
+{% endblock %}

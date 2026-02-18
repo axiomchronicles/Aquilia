@@ -365,8 +365,31 @@ class When(Expression):
             for key, val in self.lookups.items():
                 if "__" in key:
                     field, op = key.rsplit("__", 1)
-                    op_map = {"gt": ">", "gte": ">=", "lt": "<", "lte": "<=", "ne": "!="}
+                    if op == "in":
+                        placeholders = ", ".join("?" for _ in val)
+                        parts.append(f'"{field}" IN ({placeholders})')
+                        params.extend(val)
+                        continue
+                    elif op == "not_in":
+                        placeholders = ", ".join("?" for _ in val)
+                        parts.append(f'"{field}" NOT IN ({placeholders})')
+                        params.extend(val)
+                        continue
+                    elif op == "isnull":
+                        if val:
+                            parts.append(f'"{field}" IS NULL')
+                        else:
+                            parts.append(f'"{field}" IS NOT NULL')
+                        continue
+                    op_map = {"gt": ">", "gte": ">=", "lt": "<", "lte": "<=", "ne": "!=",
+                              "contains": "LIKE", "startswith": "LIKE", "endswith": "LIKE"}
                     sql_op = op_map.get(op, "=")
+                    if op == "contains":
+                        val = f"%{val}%"
+                    elif op == "startswith":
+                        val = f"{val}%"
+                    elif op == "endswith":
+                        val = f"%{val}"
                     parts.append(f'"{field}" {sql_op} ?')
                 else:
                     parts.append(f'"{key}" = ?')
