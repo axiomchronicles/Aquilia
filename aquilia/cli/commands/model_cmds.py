@@ -221,18 +221,18 @@ def cmd_makemigrations(
     app: Optional[str] = None,
     migrations_dir: str = "migrations",
     verbose: bool = False,
+    use_dsl: bool = True,
 ) -> List[Path]:
     """
     Generate migration files from Python Model definitions.
 
-    Discovers Model subclasses, generates CREATE TABLE SQL,
-    and writes a migration script into the migrations directory.
+    If use_dsl=True (default), uses the new DSL system with schema
+    snapshot diffing and rename detection. Otherwise, uses the legacy
+    raw-SQL migration generator.
 
     Returns:
         List of generated migration file paths
     """
-    from aquilia.models.migrations import generate_migration_from_models
-
     if verbose:
         click.echo(click.style("Scanning for models...", fg="cyan"))
 
@@ -248,21 +248,55 @@ def cmd_makemigrations(
         )
         return []
 
-    # Generate migration
-    generated = generate_migration_from_models(
-        model_classes=models,
-        migrations_dir=migrations_dir,
-    )
+    if use_dsl:
+        # New DSL migration generation with snapshot diffing
+        from aquilia.models.migration_gen import generate_dsl_migration
 
-    model_names = ", ".join(m.__name__ for m in models)
-    click.echo(
-        click.style(
-            f"✓ Generated migration: {generated.name} "
-            f"({len(models)} model(s): {model_names})",
-            fg="green",
+        generated = generate_dsl_migration(
+            model_classes=models,
+            migrations_dir=migrations_dir,
         )
-    )
-    return [generated]
+
+        if generated is None:
+            click.echo(
+                click.style("No model changes detected.", fg="yellow")
+            )
+            return []
+
+        model_names = ", ".join(m.__name__ for m in models)
+        click.echo(
+            click.style(
+                f"✓ Generated DSL migration: {generated.name} "
+                f"({len(models)} model(s): {model_names})",
+                fg="green",
+            )
+        )
+        snap_path = Path(migrations_dir) / "schema_snapshot.json"
+        click.echo(
+            click.style(
+                f"  Schema snapshot: {snap_path}",
+                dim=True,
+            )
+        )
+        return [generated]
+    else:
+        # Legacy raw-SQL migration generation
+        from aquilia.models.migrations import generate_migration_from_models
+
+        generated = generate_migration_from_models(
+            model_classes=models,
+            migrations_dir=migrations_dir,
+        )
+
+        model_names = ", ".join(m.__name__ for m in models)
+        click.echo(
+            click.style(
+                f"✓ Generated migration: {generated.name} "
+                f"({len(models)} model(s): {model_names})",
+                fg="green",
+            )
+        )
+        return [generated]
 
 
 def cmd_migrate(
@@ -270,38 +304,63 @@ def cmd_migrate(
     database_url: str = "sqlite:///db.sqlite3",
     target: Optional[str] = None,
     verbose: bool = False,
+    fake: bool = False,
+    plan: bool = False,
+    database: Optional[str] = None,
 ) -> List[str]:
     """
     Apply pending migrations to the database.
+
+    Supports both DSL and legacy migrations. The runner auto-detects
+    the migration format.
+
+    Args:
+        fake: Mark as applied without executing SQL
+        plan: Preview SQL only (dry-run)
+        database: Database alias for multi-db setups
 
     Returns:
         List of applied revision IDs
     """
     from aquilia.db import AquiliaDatabase
-    from aquilia.models.migrations import MigrationRunner
+    from aquilia.models.migration_runner import MigrationRunner
 
     async def _run() -> List[str]:
         db = AquiliaDatabase(database_url)
         await db.connect()
         try:
-            runner = MigrationRunner(db, migrations_dir)
+            runner = MigrationRunner(db, migrations_dir, dialect=db.dialect)
+
+            if plan:
+                # Dry-run: just show SQL
+                stmts = await runner.plan(target=target)
+                if stmts:
+                    click.echo(click.style("-- Migration Plan (dry-run):", fg="cyan"))
+                    for sql in stmts:
+                        click.echo(sql)
+                else:
+                    click.echo(click.style("No pending migrations.", fg="yellow"))
+                return []
+
             if target:
-                revs = await runner.migrate(target=target)
+                revs = await runner.migrate(target=target, fake=fake)
+                action = "Faked rollback of" if fake else "Rolled back"
                 if revs:
                     click.echo(
                         click.style(
-                            f"✓ Rolled back {len(revs)} migration(s) to {target}",
+                            f"✓ {action} {len(revs)} migration(s) to {target}",
                             fg="green",
                         )
                     )
                 else:
                     click.echo(click.style("Nothing to rollback.", fg="yellow"))
             else:
-                revs = await runner.migrate()
+                revs = await runner.migrate(fake=fake)
+                action = "Faked" if fake else "Applied"
                 if revs:
                     click.echo(
                         click.style(
-                            f"✓ Applied {len(revs)} migration(s)",
+                            f"✓ {action} {len(revs)} migration(s)",
                             fg="green",
                         )
                     )
@@ -592,36 +651,75 @@ def cmd_inspectdb(
 
 def cmd_showmigrations(
     migrations_dir: str = "migrations",
+    database_url: str = "sqlite:///db.sqlite3",
     verbose: bool = False,
 ) -> List[dict]:
     """
-    Show all migrations and their status (applied / pending).
+    Show all migrations and their applied status against the database.
+
+    Connects to the real database to check the aquilia_migrations tracking
+    table.  Falls back to a file-only listing when the DB doesn't exist or
+    the tracking table hasn't been created yet.
 
     Returns:
-        List of dicts with keys: name, applied, timestamp
+        List of dicts with keys: name, file, applied
     """
+    from aquilia.db import AquiliaDatabase
+    from aquilia.models.migration_runner import MigrationRunner
+
     migrations_path = Path(migrations_dir)
 
     if not migrations_path.is_dir():
         click.echo(click.style(f"No migrations directory: {migrations_dir}", fg="yellow"))
         return []
 
+    # Collect on-disk migration files
+    files = sorted(
+        p for p in migrations_path.glob("*.py") if not p.name.startswith("_")
+    )
+
+    if not files:
+        click.echo(click.style("  No migrations found.", fg="yellow"))
+        return []
+
+    # Try to get applied set from the database
+    applied_set: set[str] = set()
+
+    async def _fetch_applied() -> set[str]:
+        db = AquiliaDatabase(database_url)
+        try:
+            await db.connect()
+            runner = MigrationRunner(db, migrations_dir, dialect=db.dialect)
+            return set(await runner.get_applied())
+        except Exception:
+            return set()
+        finally:
+            try:
+                await db.disconnect()
+            except Exception:
+                pass
+
+    try:
+        applied_set = asyncio.run(_fetch_applied())
+    except Exception:
+        pass
+
     results: List[dict] = []
-    for pyf in sorted(migrations_path.glob("*.py")):
-        if pyf.name.startswith("_"):
-            continue
+    for pyf in files:
         name = pyf.stem
+        is_applied = name in applied_set
         info = {
             "name": name,
             "file": str(pyf),
-            "applied": False,  # Would check DB _migrations table in real impl
+            "applied": is_applied,
         }
         results.append(info)
-        marker = click.style("[X]", fg="green") if info["applied"] else click.style("[ ]", fg="yellow")
+        marker = (
+            click.style("[X]", fg="green")
+            if is_applied
+            else click.style("[ ]", fg="yellow")
+        )
         click.echo(f"  {marker} {name}")
-
-    if not results:
-        click.echo(click.style("  No migrations found.", fg="yellow"))
 
     return results
 
@@ -630,17 +728,26 @@ def cmd_sqlmigrate(
     migration_name: str,
     migrations_dir: str = "migrations",
     verbose: bool = False,
+    database: Optional[str] = None,
 ) -> Optional[str]:
     """
     Display the SQL statements for a specific migration.
 
+    For DSL migrations the operations are compiled to SQL for the
+    current dialect (defaults to ``sqlite``).  For legacy migrations,
+    SQL is extracted from the source via regex or the raw source is
+    displayed.
+
     Args:
         migration_name: Name of the migration file (without .py)
         migrations_dir: Directory containing migration files
+        database: Database alias — unused today, reserved for multi-db
 
     Returns:
         SQL string or None
     """
+    from aquilia.models.migration_runner import MigrationRunner
+
     migrations_path = Path(migrations_dir)
     target = migrations_path / f"{migration_name}.py"
 
@@ -650,22 +757,59 @@ def cmd_sqlmigrate(
         if len(candidates) == 1:
             target = candidates[0]
         elif len(candidates) > 1:
-            click.echo(click.style(f"Ambiguous: {[c.stem for c in candidates]}", fg="yellow"))
+            click.echo(
+                click.style(
+                    f"Ambiguous: {[c.stem for c in candidates]}", fg="yellow"
+                )
+            )
             return None
         else:
-            click.echo(click.style(f"Migration not found: {migration_name}", fg="red"))
+            click.echo(
+                click.style(f"Migration not found: {migration_name}", fg="red")
+            )
             return None
 
-    # Read and extract SQL from migration file
+    # Try DSL compilation first
+    try:
+        from aquilia.models.migration_runner import (
+            _load_migration_module,
+            _build_migration_from_module,
+            _extract_revision,
+        )
+
+        rev = _extract_revision(target) or target.stem
+        module = _load_migration_module(target, rev)
+        if hasattr(module, "operations"):
+            migration_obj = _build_migration_from_module(module)
+            stmts = migration_obj.compile_upgrade("sqlite")
+            if stmts:
+                output = f"-- SQL for migration: {target.stem}\n\n"
+                output += "\n".join(stmts)
+                click.echo(output)
+                return output
+    except Exception:
+        pass
+
+    # Fallback: extract SQL from legacy migration source via regex
     source = target.read_text(encoding="utf-8")
 
-    # Extract SQL from upgrade() function — look for execute() calls
     import re
-    sql_statements = re.findall(r'(?:execute|executescript)\s*\(\s*["\']+(.*?)["\']+\s*\)', source, re.DOTALL)
 
-    # Also extract triple-quoted SQL
-    sql_statements += re.findall(r'(?:execute|executescript)\s*\(\s*"""(.*?)"""\s*\)', source, re.DOTALL)
-    sql_statements += re.findall(r"(?:execute|executescript)\s*\(\s*'''(.*?)'''\s*\)", source, re.DOTALL)
+    sql_statements = re.findall(
+        r'(?:execute|executescript)\s*\(\s*["\']+(.*?)["\']+\s*\)',
+        source,
+        re.DOTALL,
+    )
+    sql_statements += re.findall(
+        r'(?:execute|executescript)\s*\(\s*"""(.*?)"""\s*\)',
+        source,
+        re.DOTALL,
+    )
+    sql_statements += re.findall(
+        r"(?:execute|executescript)\s*\(\s*'''(.*?)'''\s*\)",
+        source,
+        re.DOTALL,
+    )
 
     if sql_statements:
         output = f"-- SQL for migration: {target.stem}\n"
@@ -674,7 +818,6 @@ def cmd_sqlmigrate(
         click.echo(output)
         return output
     else:
-        # Fallback: just show the migration source
         click.echo(click.style(f"-- Migration: {target.stem}", fg="cyan"))
         click.echo(source)
         return source

@@ -873,18 +873,20 @@ def db():
 @db.command('makemigrations')
 @click.option('--app', type=str, default=None, help='Restrict to specific module/app')
 @click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
+@click.option('--dsl/--no-dsl', default=True, help='Use new DSL format (default: True)')
 @click.pass_context
-def db_makemigrations(ctx, app: Optional[str], migrations_dir: str):
+def db_makemigrations(ctx, app: Optional[str], migrations_dir: str, dsl: bool):
     """
     Generate migration files from Python Model definitions.
 
-    Discovers Model subclasses in modules/*/models/, generates
-    CREATE TABLE SQL, and writes a migration script.
+    Uses the new Aquilia Migration DSL by default, which produces
+    human-readable operations (CreateModel, AddField, etc.) with
+    schema snapshot diffing and rename detection.
 
     Examples:
       aq db makemigrations
       aq db makemigrations --app=products
-      aq db makemigrations --migrations-dir=db/migrations
+      aq db makemigrations --no-dsl    # Legacy raw-SQL format
     """
     from .commands.model_cmds import cmd_makemigrations
 
@@ -893,6 +895,7 @@ def db_makemigrations(ctx, app: Optional[str], migrations_dir: str):
             app=app,
             migrations_dir=migrations_dir,
             verbose=ctx.obj['verbose'],
+            use_dsl=dsl,
         )
     except Exception as e:
         error(f"  {_CROSS} makemigrations failed: {e}")
@@ -902,15 +905,21 @@ def db_makemigrations(ctx, app: Optional[str], migrations_dir: str):
 @db.command('migrate')
 @click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
 @click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--database', type=str, default=None, help='Database alias (for multi-db)')
 @click.option('--target', type=str, default=None, help='Target revision (or "zero" to rollback all)')
+@click.option('--fake', is_flag=True, help='Mark migrations as applied without running SQL')
+@click.option('--plan', is_flag=True, help='Preview SQL without executing (dry-run)')
 @click.pass_context
-def db_migrate(ctx, migrations_dir: str, database_url: str, target: Optional[str]):
+def db_migrate(ctx, migrations_dir: str, database_url: str, database: Optional[str],
+               target: Optional[str], fake: bool, plan: bool):
     """
     Apply pending migrations to the database.
 
     Examples:
       aq db migrate
       aq db migrate --database-url=sqlite:///prod.db
+      aq db migrate --fake                # Mark as applied without running
+      aq db migrate --plan                # Preview SQL only
       aq db migrate --target=zero
     """
     from .commands.model_cmds import cmd_migrate
@@ -921,6 +930,9 @@ def db_migrate(ctx, migrations_dir: str, database_url: str, target: Optional[str
             database_url=database_url,
             target=target,
             verbose=ctx.obj['verbose'],
+            fake=fake,
+            plan=plan,
+            database=database,
         )
     except Exception as e:
         error(f"  {_CROSS} migrate failed: {e}")
@@ -1016,8 +1028,10 @@ def db_inspectdb(ctx, database_url: str, table: tuple, output: Optional[str]):
 
 @db.command('showmigrations')
 @click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
+@click.option('--database-url', type=str, default='sqlite:///db.sqlite3', help='Database URL')
+@click.option('--database', type=str, default=None, help='Database alias')
 @click.pass_context
-def db_showmigrations(ctx, migrations_dir: str):
+def db_showmigrations(ctx, migrations_dir: str, database_url: str, database: Optional[str]):
     """
     Show all migrations and their applied/pending status.
 
@@ -1030,6 +1044,7 @@ def db_showmigrations(ctx, migrations_dir: str):
     try:
         cmd_showmigrations(
             migrations_dir=migrations_dir,
+            database_url=database_url,
             verbose=ctx.obj['verbose'],
         )
     except Exception as e:
@@ -1040,13 +1055,17 @@ def db_showmigrations(ctx, migrations_dir: str):
 @db.command('sqlmigrate')
 @click.argument('migration_name')
 @click.option('--migrations-dir', type=click.Path(), default='migrations', help='Migrations directory')
+@click.option('--database', type=str, default=None, help='Database alias')
 @click.pass_context
-def db_sqlmigrate(ctx, migration_name: str, migrations_dir: str):
+def db_sqlmigrate(ctx, migration_name: str, migrations_dir: str, database: Optional[str]):
     """
     Display SQL statements for a specific migration.
 
+    Supports both DSL and legacy migrations. For DSL migrations,
+    compiles operations to SQL for the target backend.
+
     Examples:
-      aq db sqlmigrate 0001_initial
+      aq db sqlmigrate 20260217_210454
       aq db sqlmigrate 0002 --migrations-dir=db/migrations
     """
     from .commands.model_cmds import cmd_sqlmigrate

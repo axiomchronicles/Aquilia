@@ -190,8 +190,20 @@ class ModelRegistry(metaclass=_ModelRegistryMeta):
     # ── Lifecycle hooks (DI compatibility) ───────────────────────────
 
     async def on_startup(self) -> None:
-        if _CanonicalRegistry._models:
+        """
+        Lifecycle hook — called by LifecycleCoordinator at app start.
+
+        If AQUILIA_AUTO_MIGRATE=1 is set, tables are created automatically.
+        Otherwise, the startup guard checks that the DB exists and
+        migrations are applied; if not, it fails the startup with a
+        yellow warning directing the developer to run migrations.
+        """
+        import os
+        auto = os.environ.get("AQUILIA_AUTO_MIGRATE", "").strip() in ("1", "true", "yes")
+
+        if auto and _CanonicalRegistry._models:
             await _CanonicalRegistry.create_tables()
+        # If not auto, the startup guard in server.py handles the check.
 
     async def on_shutdown(self) -> None:
         pass

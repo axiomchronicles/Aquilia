@@ -1982,6 +1982,21 @@ class AquiliaServer:
                 auto_create = auto_create or db_section.get("auto_create", False)
                 auto_migrate = auto_migrate or db_section.get("auto_migrate", False)
 
+        # ── Phase 3b: Startup guard — refuse boot if DB missing / stale ──
+        if db_url and not auto_migrate:
+            try:
+                from aquilia.models.startup_guard import check_db_ready
+
+                check_db_ready(
+                    db_url=db_url,
+                    migrations_dir=migrations_dir,
+                    auto_migrate=auto_migrate,
+                )
+            except SystemExit:
+                raise
+            except Exception as exc:
+                self.logger.warning(f"Startup-guard check skipped: {exc}")
+
         # ── Phase 4: Connect and create tables ────────────────────────────
         if db_url:
             db = configure_database(db_url)

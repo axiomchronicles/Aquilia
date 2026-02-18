@@ -289,6 +289,54 @@ from .migrations import (
     op,
 )
 
+# ── New Migration DSL System ─────────────────────────────────────────────────
+
+from .migration_dsl import (
+    Migration,
+    Operation,
+    CreateModel as DSLCreateModel,
+    DropModel as DSLDropModel,
+    RenameModel as DSLRenameModel,
+    AddField as DSLAddField,
+    RemoveField as DSLRemoveField,
+    AlterField as DSLAlterField,
+    RenameField as DSLRenameField,
+    CreateIndex as DSLCreateIndex,
+    DropIndex as DSLDropIndex,
+    RunSQL as DSLRunSQL,
+    RunPython as DSLRunPython,
+    AddConstraint as DSLAddConstraint,
+    RemoveConstraint as DSLRemoveConstraint,
+    ColumnDef,
+    columns,
+    C,
+)
+
+from .schema_snapshot import (
+    create_snapshot,
+    save_snapshot,
+    load_snapshot,
+    compute_diff,
+    diff_to_operations,
+    SchemaDiff,
+    ModelDiff,
+)
+
+from .migration_runner import (
+    MigrationRunner as DSLMigrationRunner,
+    check_db_exists,
+    check_migrations_applied,
+)
+
+from .startup_guard import (
+    check_db_ready,
+    DatabaseNotReadyError,
+)
+
+from .migration_gen import (
+    generate_dsl_migration,
+)
+
 # Re-export model-specific faults for convenience
 from ..faults.domains import (
     ModelFault,
@@ -506,6 +554,38 @@ __all__ = [
     "generate_migration_file",
     "generate_migration_from_models",
     "op",
+    # New Migration DSL
+    "Migration",
+    "Operation",
+    "DSLCreateModel",
+    "DSLDropModel",
+    "DSLRenameModel",
+    "DSLAddField",
+    "DSLRemoveField",
+    "DSLAlterField",
+    "DSLRenameField",
+    "DSLCreateIndex",
+    "DSLDropIndex",
+    "DSLRunSQL",
+    "DSLRunPython",
+    "DSLAddConstraint",
+    "DSLRemoveConstraint",
+    "ColumnDef",
+    "columns",
+    "C",
+    "create_snapshot",
+    "save_snapshot",
+    "load_snapshot",
+    "compute_diff",
+    "diff_to_operations",
+    "SchemaDiff",
+    "ModelDiff",
+    "DSLMigrationRunner",
+    "check_db_exists",
+    "check_migrations_applied",
+    "check_db_ready",
+    "DatabaseNotReadyError",
+    "generate_dsl_migration",
     # Faults (re-exported)
     "ModelFault",
     "AMDLParseFault",
