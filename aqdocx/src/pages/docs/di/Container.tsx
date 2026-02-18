@@ -80,7 +80,7 @@ request_container = container.create_request_scope()
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>API Reference</h2>
 
         {/* register */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>register(provider, *, tag=None)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Register a <code className="text-aquilia-500">Provider</code> instance. Raises on duplicate token+tag combinations. Emits a <code className="text-aquilia-500">REGISTRATION</code> diagnostic event.
@@ -96,7 +96,7 @@ container.register(memcached_provider, tag="memcached")`}</CodeBlock>
         </div>
 
         {/* bind */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>bind(interface, implementation, *, scope="app", tag=None)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Bind an interface type to a concrete implementation. Creates a <code className="text-aquilia-500">ClassProvider</code> internally and registers it under the interface token.
@@ -124,7 +124,7 @@ class UserService:
         </div>
 
         {/* register_instance */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>register_instance(token, instance, *, scope="app", tag=None)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Register a pre-built object. Creates a <code className="text-aquilia-500">ValueProvider</code> internally. Useful for configuration objects, database pools, or anything initialized outside the DI system.
@@ -136,7 +136,7 @@ container.register_instance(asyncpg.Pool, pool, scope="singleton")`}</CodeBlock>
         </div>
 
         {/* resolve_async */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>resolve_async(token, *, tag=None, optional=False)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <strong>Primary async resolution path.</strong> This is the hot path — optimized for &lt;3&micro;s cached lookups with inlined token-to-key conversion. The resolution flow:
@@ -161,7 +161,7 @@ if metrics:
         </div>
 
         {/* resolve (sync) */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>resolve(token, *, tag=None, optional=False)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Synchronous resolution wrapper. Creates an event loop if one is not running. <strong>Prefer <code className="text-aquilia-500">resolve_async()</code> in async contexts</strong> — the sync version exists for backwards compatibility and startup code.
@@ -171,7 +171,7 @@ config = container.resolve(AppConfig)`}</CodeBlock>
         </div>
 
         {/* is_registered */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>is_registered(token, *, tag=None)</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Check whether a provider exists for the given token. Checks both the current container and the parent chain.
@@ -182,7 +182,7 @@ config = container.resolve(AppConfig)`}</CodeBlock>
         </div>
 
         {/* create_request_scope */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>create_request_scope()</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Create a lightweight child container for request-scoped isolation. The child:
@@ -204,7 +204,7 @@ async def di_middleware(scope, receive, send):
         </div>
 
         {/* startup */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>startup()</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Run all lifecycle startup hooks in priority order. Internally calls <code className="text-aquilia-500">_check_lifecycle_hooks()</code> to scan for providers that implement <code className="text-aquilia-500">on_startup</code>/<code className="text-aquilia-500">on_shutdown</code> methods and registers them as lifecycle hooks. Raises if any startup hook fails.
@@ -216,7 +216,7 @@ await container.startup()
         </div>
 
         {/* shutdown */}
-        <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="mb-12">
           <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>shutdown()</h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Graceful shutdown sequence:
