@@ -1,57 +1,128 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
-import { Tag } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Tag, Layers, Zap, Code, ArrowRight, AlertCircle, Filter, List } from 'lucide-react'
 
 export function ControllersDecorators() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const boxClass = `p-6 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4">
-          <Tag className="w-4 h-4" />
-          Controllers
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center">
+            <Tag className="w-5 h-5 text-aquilia-400" />
+          </div>
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Route Decorators</h1>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>aquilia.controller.decorators — HTTP method decorators</p>
+          </div>
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Route Decorators
-        </h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Aquilia provides HTTP method decorators that attach route metadata to controller methods. Routes are compiled at startup — no import-time side effects.
+
+        <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Route decorators attach metadata to controller methods without import-time side effects.
+          The metadata is later extracted by the <code>ControllerCompiler</code> to generate
+          compiled routes, URL patterns, and OpenAPI specs.
         </p>
       </div>
 
-      {/* Available Decorators */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>HTTP Method Decorators</h2>
-        <p className={`mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          All decorators extend the <code className="text-aquilia-500">RouteDecorator</code> base class and accept the same keyword arguments:
+      {/* RouteDecorator base class */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Code className="w-5 h-5 text-aquilia-400" />
+          RouteDecorator Base
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          All HTTP method decorators (<code>GET</code>, <code>POST</code>, etc.) inherit from
+          <code>RouteDecorator</code>. The base class accepts the full set of parameters and stores
+          them as a dict on <code>func.__route_metadata__</code>:
         </p>
-        <div className={`overflow-hidden rounded-xl border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+
+        <CodeBlock
+          code={`class RouteDecorator:
+    def __init__(
+        self,
+        path: Optional[str] = None,
+        *,
+        # ── Pipeline & Middleware ─────────────────────────────────
+        pipeline: Optional[List[Any]] = None,
+
+        # ── OpenAPI Documentation ─────────────────────────────────
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: bool = False,
+        response_model: Optional[type] = None,
+        status_code: int = 200,
+
+        # ── Request / Response Serialization ──────────────────────
+        request_serializer: Optional[type] = None,
+        response_serializer: Optional[type] = None,
+
+        # ── Blueprint Casting / Sealing ───────────────────────────
+        request_blueprint: Optional[type] = None,
+        response_blueprint: Optional[type] = None,
+
+        # ── Filtering, Search, Ordering ───────────────────────────
+        filterset_class: Optional[type] = None,
+        filterset_fields: Optional[Union[List[str], Any]] = None,
+        search_fields: Optional[List[str]] = None,
+        ordering_fields: Optional[List[str]] = None,
+
+        # ── Pagination ────────────────────────────────────────────
+        pagination_class: Optional[type] = None,
+
+        # ── Content Negotiation ───────────────────────────────────
+        renderer_classes: Optional[List[Any]] = None,
+    ): ...`}
+          language="python"
+        />
+      </section>
+
+      {/* Full parameter reference */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Layers className="w-5 h-5 text-aquilia-400" />
+          Parameter Reference
+        </h2>
+
+        <div className={`rounded-xl border overflow-x-auto ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <table className="w-full text-sm">
             <thead>
-              <tr className={isDark ? 'bg-zinc-900' : 'bg-gray-50'}>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Decorator</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>HTTP Method</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Usage</th>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Parameter</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Description</th>
               </tr>
             </thead>
-            <tbody className={isDark ? 'divide-y divide-white/5' : 'divide-y divide-gray-100'}>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
               {[
-                { dec: '@Get(path)', method: 'GET', usage: 'Retrieve resources' },
-                { dec: '@Post(path)', method: 'POST', usage: 'Create resources' },
-                { dec: '@Put(path)', method: 'PUT', usage: 'Full update resources' },
-                { dec: '@Patch(path)', method: 'PATCH', usage: 'Partial update resources' },
-                { dec: '@Delete(path)', method: 'DELETE', usage: 'Delete resources' },
-                { dec: '@Head(path)', method: 'HEAD', usage: 'Headers only (no body)' },
-                { dec: '@Options(path)', method: 'OPTIONS', usage: 'CORS preflight / capabilities' },
-                { dec: '@WS(path)', method: 'WebSocket', usage: 'WebSocket upgrade endpoints' },
-              ].map((row, i) => (
-                <tr key={i} className={isDark ? 'bg-[#0A0A0A]' : 'bg-white'}>
-                  <td className="py-3 px-4"><code className="text-aquilia-500 font-mono text-xs">{row.dec}</code></td>
-                  <td className={`py-3 px-4 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.method}</td>
-                  <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.usage}</td>
+                ['path', 'Optional[str]', 'URL path template. Supports «name:type» params. If None, derived from method name.'],
+                ['pipeline', 'Optional[List[Any]]', 'Method-level FlowNode pipeline (guards, transforms). Merges with class-level pipeline.'],
+                ['summary', 'Optional[str]', 'OpenAPI operation summary. Defaults to method name titlecased.'],
+                ['description', 'Optional[str]', 'OpenAPI operation description. Defaults to docstring.'],
+                ['tags', 'Optional[List[str]]', 'OpenAPI tags. Extends (does not replace) class-level tags.'],
+                ['deprecated', 'bool', 'Mark route as deprecated in OpenAPI spec. Default: False.'],
+                ['response_model', 'Optional[type]', 'Response type for OpenAPI schema generation ($ref).'],
+                ['status_code', 'int', 'Default HTTP status code. Default: 200.'],
+                ['request_serializer', 'Optional[type]', 'Serializer subclass for automatic request body parsing and validation.'],
+                ['response_serializer', 'Optional[type]', 'Serializer subclass for automatic response serialization.'],
+                ['request_blueprint', 'Optional[type]', 'Blueprint subclass (or Blueprint["projection"]) for request body casting and sealing.'],
+                ['response_blueprint', 'Optional[type]', 'Blueprint subclass (or ProjectedRef) for response molding.'],
+                ['filterset_class', 'Optional[type]', 'FilterSet subclass for declarative query-based filtering.'],
+                ['filterset_fields', 'Optional[List[str] | Any]', 'List of field names for exact-match shorthand, or dict mapping fields to lookup lists.'],
+                ['search_fields', 'Optional[List[str]]', 'Field names for text search via ?search=<term>.'],
+                ['ordering_fields', 'Optional[List[str]]', 'Field names allowed for dynamic ordering via ?ordering=<field>.'],
+                ['pagination_class', 'Optional[type]', 'Pagination backend: PageNumberPagination, LimitOffsetPagination, or CursorPagination.'],
+                ['renderer_classes', 'Optional[List[Any]]', 'Renderer instances/classes for Accept-based content negotiation.'],
+              ].map(([param, type_, desc], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs whitespace-nowrap ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{param}</td>
+                  <td className={`px-4 py-2 font-mono text-xs whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{type_}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{desc}</td>
                 </tr>
               ))}
             </tbody>
@@ -59,38 +130,42 @@ export function ControllersDecorators() {
         </div>
       </section>
 
-      {/* RouteDecorator Parameters */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Decorator Parameters</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Every decorator accepts these keyword arguments via the <code className="text-aquilia-500">RouteDecorator</code> base:
+      {/* HTTP Method Decorators */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          HTTP Method Decorators
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Each HTTP method has a dedicated decorator class that sets <code>self.method</code>
+          to the corresponding verb. All accept the same keyword arguments as <code>RouteDecorator</code>:
         </p>
-        <div className={`overflow-hidden rounded-xl border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <table className="w-full text-sm">
             <thead>
-              <tr className={isDark ? 'bg-zinc-900' : 'bg-gray-50'}>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Parameter</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Description</th>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Decorator</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>HTTP Method</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Typical Use</th>
               </tr>
             </thead>
-            <tbody className={isDark ? 'divide-y divide-white/5' : 'divide-y divide-gray-100'}>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
               {[
-                { p: 'path', t: 'str | None', d: 'URL path template. Supports dynamic segments like /{id:int}. If None, derived from method name.' },
-                { p: 'pipeline', t: 'List[Any]', d: 'Method-level pipeline nodes (guards, interceptors). Overrides class-level pipeline.' },
-                { p: 'summary', t: 'str | None', d: 'OpenAPI summary. Defaults to method name titleized.' },
-                { p: 'description', t: 'str | None', d: 'OpenAPI description. Defaults to method docstring.' },
-                { p: 'tags', t: 'List[str]', d: 'OpenAPI tags. Extends class-level tags.' },
-                { p: 'deprecated', t: 'bool', d: 'Mark as deprecated in OpenAPI spec.' },
-                { p: 'response_model', t: 'type | None', d: 'Response type for OpenAPI schema generation.' },
-                { p: 'status_code', t: 'int', d: 'Default HTTP status code (200).' },
-                { p: 'request_serializer', t: 'type | None', d: 'Aquilia Serializer class for request body validation.' },
-                { p: 'response_serializer', t: 'type | None', d: 'Aquilia Serializer class for response serialization.' },
-              ].map((row, i) => (
-                <tr key={i} className={isDark ? 'bg-[#0A0A0A]' : 'bg-white'}>
-                  <td className="py-3 px-4"><code className="text-aquilia-500 font-mono text-xs">{row.p}</code></td>
-                  <td className={`py-3 px-4 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.t}</td>
-                  <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.d}</td>
+                ['@GET(path)', 'GET', 'Retrieve resources, list endpoints'],
+                ['@POST(path)', 'POST', 'Create resources, submit data'],
+                ['@PUT(path)', 'PUT', 'Full resource replacement'],
+                ['@PATCH(path)', 'PATCH', 'Partial resource update'],
+                ['@DELETE(path)', 'DELETE', 'Remove resources'],
+                ['@HEAD(path)', 'HEAD', 'Check resource existence (no body)'],
+                ['@OPTIONS(path)', 'OPTIONS', 'CORS preflight, capability check'],
+                ['@WS(path)', 'WS', 'WebSocket upgrade and bidirectional messaging'],
+              ].map(([dec, method, use], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{dec}</td>
+                  <td className={`px-4 py-2 font-mono text-xs font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{method}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{use}</td>
                 </tr>
               ))}
             </tbody>
@@ -98,151 +173,309 @@ export function ControllersDecorators() {
         </div>
       </section>
 
-      {/* Path Parameters */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Path Parameters</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Use curly braces to define dynamic path segments. The framework extracts them and passes as handler arguments:
-        </p>
-        <CodeBlock language="python" filename="Path Parameters">{`class ProductController(Controller):
-    prefix = "/products"
+      {/* Usage examples */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <ArrowRight className="w-5 h-5 text-aquilia-400" />
+          Usage Examples
+        </h2>
 
-    @Get("/{product_id:int}")
-    async def get_product(self, ctx, product_id: int):
-        """Path parameter is automatically parsed as int."""
-        product = await Product.objects.get(id=product_id)
-        return ctx.json({"product": product.to_dict()})
+        <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Basic CRUD</h3>
 
-    @Get("/{category:str}/{slug:str}")
-    async def get_by_slug(self, ctx, category: str, slug: str):
-        """Multiple path parameters."""
-        product = await Product.objects.get(
-            category=category, slug=slug
-        )
-        return ctx.json({"product": product.to_dict()})
+        <CodeBlock
+          code={`from aquilia import Controller, GET, POST, PUT, PATCH, DELETE, RequestCtx, Response
 
-    @Get("/search/{query:path}")
-    async def search(self, ctx, query: str):
-        """The :path converter matches everything including slashes."""
-        results = await Product.objects.filter(name__contains=query)
-        return ctx.json({"results": [r.to_dict() for r in results]})`}</CodeBlock>
+class ArticlesController(Controller):
+    prefix = "/api/articles"
+    tags = ["Articles"]
 
-        <div className={`mt-6 ${boxClass}`}>
-          <h3 className={`font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Supported Type Converters</h3>
-          <ul className={`space-y-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            <li><code className="text-aquilia-500">{'{id:int}'}</code> — Integer parameter</li>
-            <li><code className="text-aquilia-500">{'{name:str}'}</code> — String parameter (default)</li>
-            <li><code className="text-aquilia-500">{'{slug:path}'}</code> — Matches everything including slashes</li>
-            <li><code className="text-aquilia-500">{'{uuid:uuid}'}</code> — UUID parameter</li>
-          </ul>
-        </div>
-      </section>
+    @GET("/")
+    async def list(self, ctx: RequestCtx) -> Response:
+        """List all articles."""
+        return Response.json({"articles": []})
 
-      {/* Serializer Integration */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Serializer Integration</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Decorators can specify serializers for automatic request validation and response formatting:
-        </p>
-        <CodeBlock language="python" filename="Serializer Integration">{`from aquilia import Serializer, CharField, IntegerField
+    @GET("/«id:int»")
+    async def detail(self, ctx: RequestCtx, id: int) -> Response:
+        """Get article by ID."""
+        return Response.json({"id": id})
 
+    @POST("/", status_code=201)
+    async def create(self, ctx: RequestCtx) -> Response:
+        """Create a new article."""
+        data = await ctx.json()
+        return Response.json(data, status=201)
 
-class CreateProductSerializer(Serializer):
-    name = CharField(max_length=200, required=True)
-    price = IntegerField(min_value=0, required=True)
-    description = CharField(max_length=1000, required=False)
+    @PUT("/«id:int»")
+    async def replace(self, ctx: RequestCtx, id: int) -> Response:
+        """Full replacement of an article."""
+        data = await ctx.json()
+        return Response.json({"id": id, **data})
 
+    @PATCH("/«id:int»")
+    async def update(self, ctx: RequestCtx, id: int) -> Response:
+        """Partial update of an article."""
+        data = await ctx.json()
+        return Response.json({"id": id, **data})
 
-class ProductResponseSerializer(Serializer):
-    id = IntegerField()
-    name = CharField()
-    price = IntegerField()
+    @DELETE("/«id:int»", status_code=204)
+    async def delete(self, ctx: RequestCtx, id: int) -> Response:
+        """Delete an article."""
+        return Response("", status=204)`}
+          language="python"
+        />
 
+        <h3 className={`text-lg font-semibold mt-6 mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>With Serializers and Blueprints</h3>
 
-class ProductController(Controller):
-    prefix = "/products"
+        <CodeBlock
+          code={`from aquilia import Controller, GET, POST, PUT, RequestCtx, Response
+from aquilia.serializers import Serializer, StringField, IntField
 
-    @Post(
+class ArticleSerializer(Serializer):
+    title = StringField(required=True, max_length=200)
+    body = StringField(required=True)
+    category_id = IntField(required=True)
+
+class ArticlesController(Controller):
+    prefix = "/api/articles"
+
+    @POST(
         "/",
-        request_serializer=CreateProductSerializer,
-        response_serializer=ProductResponseSerializer,
         status_code=201,
-        summary="Create a new product",
-        tags=["Products", "Admin"],
+        request_serializer=ArticleSerializer,   # Auto-validates request body
+        response_model=ArticleSerializer,        # OpenAPI response schema
     )
-    async def create(self, ctx):
-        # ctx.validated_data is populated by the request_serializer
-        data = ctx.validated_data
-        product = await Product.objects.create(**data)
-        return ctx.json(product.to_dict())`}</CodeBlock>
+    async def create(self, ctx: RequestCtx) -> Response:
+        # Body has already been validated by ArticleSerializer
+        data = await ctx.json()
+        article = await self.repo.create(data)
+        return Response.json(article, status=201)
+
+    @PUT(
+        "/«id:int»",
+        request_serializer=ArticleSerializer,
+        response_serializer=ArticleSerializer,  # Auto-serializes response
+    )
+    async def update(self, ctx: RequestCtx, id: int) -> Response:
+        data = await ctx.json()
+        article = await self.repo.update(id, data)
+        return article  # Auto-serialized by response_serializer`}
+          language="python"
+        />
+
+        <h3 className={`text-lg font-semibold mt-6 mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>With Filtering and Pagination</h3>
+
+        <CodeBlock
+          code={`from aquilia import Controller, GET, RequestCtx, Response
+from aquilia.controller.pagination import PageNumberPagination
+
+class ProductsPagination(PageNumberPagination):
+    page_size = 20
+    max_page_size = 100
+
+class ProductsController(Controller):
+    prefix = "/api/products"
+
+    @GET(
+        "/",
+        filterset_fields=["category", "brand", "in_stock"],
+        search_fields=["name", "description"],
+        ordering_fields=["price", "created_at", "name"],
+        pagination_class=ProductsPagination,
+    )
+    async def list(self, ctx: RequestCtx) -> Response:
+        """
+        List products with filtering, search, and pagination.
+
+        Query params:
+          ?category=electronics     — exact match filter
+          ?search=laptop            — text search in name/description
+          ?ordering=-price          — sort by price descending
+          ?page=2&page_size=20      — pagination
+        """
+        products = await self.repo.list_all()
+        # Filtering, ordering, and pagination are applied
+        # automatically by the engine before the response is sent.
+        return products`}
+          language="python"
+        />
       </section>
 
-      {/* Pipeline per Method */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Method-Level Pipelines</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Override or extend the class-level pipeline for individual methods:
+      {/* Generic route() */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <List className="w-5 h-5 text-aquilia-400" />
+          Generic route() Function
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          For multi-method routes or dynamic method binding, use the <code>route()</code>
+          function instead of individual decorators:
         </p>
-        <CodeBlock language="python" filename="Method Pipelines">{`class AdminController(Controller):
-    prefix = "/admin"
-    pipeline = [Auth.guard()]  # Requires auth for all routes
 
-    @Get("/dashboard")
-    async def dashboard(self, ctx):
-        """Uses class-level pipeline (Auth guard)."""
-        return ctx.json({"page": "dashboard"})
+        <CodeBlock
+          code={`from aquilia.controller.decorators import route
 
-    @Post(
-        "/users",
-        pipeline=[Auth.guard(), RoleGuard("admin")]
-    )
-    async def create_admin_user(self, ctx):
-        """Overrides with stricter pipeline: auth + admin role."""
-        body = await ctx.json()
-        user = await self.service.create_admin(body)
-        return ctx.json({"user": user.to_dict()})`}</CodeBlock>
-      </section>
-
-      {/* Generic Route */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>The Generic route() Decorator</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          For handling multiple HTTP methods on the same handler, use the generic <code className="text-aquilia-500">route()</code> function:
-        </p>
-        <CodeBlock language="python" filename="Generic Route">{`from aquilia import route
-
-
-class ItemController(Controller):
+class ItemsController(Controller):
     prefix = "/items"
 
     @route("GET", "/")
-    async def list_items(self, ctx):
-        return ctx.json({"items": []})
+    async def list_items(self, ctx: RequestCtx) -> Response:
+        return Response.json({"items": []})
 
     @route(["GET", "POST"], "/bulk")
-    async def bulk_handler(self, ctx):
+    async def bulk(self, ctx: RequestCtx) -> Response:
         """Handles both GET and POST on /items/bulk."""
         if ctx.method == "GET":
-            return ctx.json({"items": await self.service.bulk_list()})
-        else:
-            body = await ctx.json()
-            created = await self.service.bulk_create(body["items"])
-            return ctx.json({"created": len(created)}, status=201)`}</CodeBlock>
+            return Response.json({"items": []})
+        data = await ctx.json()
+        return Response.json({"created": len(data)}, status=201)
+
+    @route("PUT", "/«id:int»", tags=["Admin"], deprecated=True)
+    async def legacy_update(self, ctx: RequestCtx, id: int) -> Response:
+        return Response.json({"id": id})`}
+          language="python"
+        />
+
+        <p className={`mt-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          When a list of methods is provided, <code>route()</code> applies the corresponding
+          decorator class for each method. This means the handler gets multiple entries in
+          <code>__route_metadata__</code>, one per method.
+        </p>
       </section>
 
-      {/* How Metadata Works */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>How Route Metadata Works</h2>
-        <div className={boxClass}>
-          <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            When a decorator is applied, it attaches a <code className="text-aquilia-500">__route_metadata__</code> list to the function. The <code className="text-aquilia-500">ControllerCompiler</code> inspects this metadata at startup to build the route tree. This means:
-          </p>
-          <ul className={`space-y-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            <li className="flex gap-2"><span className="text-aquilia-500">•</span>No code runs at import time — decorators only attach data</li>
-            <li className="flex gap-2"><span className="text-aquilia-500">•</span>Routes are compiled once at startup for maximum performance</li>
-            <li className="flex gap-2"><span className="text-aquilia-500">•</span>A single function can have multiple route decorators (multiple methods/paths)</li>
-            <li className="flex gap-2"><span className="text-aquilia-500">•</span>The metadata includes function signature for automatic parameter extraction</li>
-          </ul>
+      {/* Metadata internals */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <AlertCircle className="w-5 h-5 text-aquilia-400" />
+          How Metadata Works
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          When a decorator like <code>@GET("/users")</code> is applied, it doesn't execute
+          any routing logic. Instead, it attaches a metadata dict to the function:
+        </p>
+
+        <CodeBlock
+          code={`# What happens when you write:
+@GET("/«id:int»", tags=["Users"], deprecated=True)
+async def get_user(self, ctx, id: int): ...
+
+# The decorator creates:
+get_user.__route_metadata__ = [
+    {
+        "http_method": "GET",
+        "path": "/«id:int»",
+        "pipeline": [],
+        "summary": "Get User",          # auto-generated from method name
+        "description": "...",            # from docstring
+        "tags": ["Users"],
+        "deprecated": True,
+        "response_model": None,
+        "status_code": 200,
+        "func_name": "get_user",
+        "signature": <inspect.Signature>,
+        "request_serializer": None,
+        "response_serializer": None,
+        "request_blueprint": None,
+        "response_blueprint": None,
+        "filterset_class": None,
+        "filterset_fields": None,
+        "search_fields": None,
+        "ordering_fields": None,
+        "pagination_class": None,
+        "renderer_classes": None,
+    }
+]`}
+          language="python"
+        />
+
+        <p className={`mt-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>__route_metadata__</code> list supports multiple entries — this is how
+          a single method can handle multiple HTTP methods via <code>route()</code>.
+          The <code>ControllerCompiler</code> iterates this list during <code>aq compile</code>
+          to generate <code>CompiledRoute</code> objects.
+        </p>
+      </section>
+
+      {/* Path parameter syntax */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Filter className="w-5 h-5 text-aquilia-400" />
+          Path Parameter Syntax
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Aquilia uses the <code>«name:type»</code> chevron syntax for path parameters,
+          compiled by the <code>aquilia.patterns</code> system:
+        </p>
+
+        <CodeBlock
+          code={`# Typed path parameters
+@GET("/users/«id:int»")        # Matches /users/42, not /users/abc
+@GET("/price/«amount:float»")  # Matches /price/19.99
+@GET("/posts/«slug:str»")      # Matches /posts/my-first-post
+@GET("/active/«flag:bool»")    # Matches /active/true or /active/false
+
+# Multiple parameters
+@GET("/users/«user_id:int»/posts/«post_id:int»")
+
+# Curly-brace syntax is also supported (auto-converted)
+@GET("/users/{id}")             # Treated as «id:str» by default
+@GET("/users/{id:int}")         # Explicit type
+
+# Path derived from method name (when path is None)
+@GET()
+async def list_users(self, ctx): ...  # Matches /list_users`}
+          language="python"
+        />
+      </section>
+
+      {/* WebSocket */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          WebSocket Decorator
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>@WS</code> decorator marks a method as a WebSocket handler. The handler
+          receives a WebSocket connection instead of returning an HTTP response:
+        </p>
+
+        <CodeBlock
+          code={`from aquilia import Controller, WS, RequestCtx
+
+class ChatController(Controller):
+    prefix = "/ws"
+
+    @WS("/chat/«room:str»")
+    async def chat(self, ctx: RequestCtx, room: str) -> None:
+        ws = ctx.request.websocket
+        await ws.accept()
+
+        try:
+            while True:
+                data = await ws.receive_json()
+                await ws.send_json({
+                    "room": room,
+                    "message": data.get("message"),
+                    "user": str(ctx.identity.id) if ctx.identity else "anon",
+                })
+        except Exception:
+            await ws.close()`}
+          language="python"
+        />
+      </section>
+
+      {/* Navigation */}
+      <section className="mb-10">
+        <div className="flex justify-between">
+          <Link to="/docs/controllers/overview" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            ← Controller Overview
+          </Link>
+          <Link to="/docs/controllers/request-ctx" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            RequestCtx →
+          </Link>
         </div>
       </section>
     </div>

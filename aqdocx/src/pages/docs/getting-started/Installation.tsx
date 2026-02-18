@@ -1,160 +1,245 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Package, AlertCircle, CheckCircle } from 'lucide-react'
+import { Download, Terminal, AlertCircle, CheckCircle, Package } from 'lucide-react'
 
 export function InstallationPage() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
-  const Note = ({ children }: { children: React.ReactNode }) => (
-    <div className={`flex gap-3 p-4 rounded-xl border mb-6 ${isDark ? 'bg-aquilia-500/5 border-aquilia-500/20' : 'bg-aquilia-50 border-aquilia-200'}`}>
-      <AlertCircle className="w-5 h-5 text-aquilia-500 shrink-0 mt-0.5" />
-      <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{children}</div>
-    </div>
-  )
-
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4">
-          <Package className="w-4 h-4" />
-          Getting Started
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center">
+            <Download className="w-5 h-5 text-aquilia-400" />
+          </div>
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Installation</h1>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Set up Aquilia in your Python environment</p>
+          </div>
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Installation
-        </h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Get Aquilia installed and ready for development in just a few steps.
-        </p>
       </div>
 
       {/* Requirements */}
-      <section className="mb-12">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Requirements</h2>
-        <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
-          <ul className="space-y-3">
-            {[
-              { label: 'Python 3.10+', note: 'Aquilia uses modern Python features including type unions, match statements, and async generators.' },
-              { label: 'pip or Poetry', note: 'Any Python package manager works. pip is shown in examples.' },
-              { label: 'Virtual Environment', note: 'Strongly recommended. Use venv, conda, or poetry environments.' },
-            ].map((req, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-aquilia-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{req.label}</span>
-                  <span className={`text-sm ml-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>— {req.note}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Requirements</h2>
+        <ul className={`space-y-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          <li className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <strong>Python 3.11+</strong> — Aquilia uses <code>match</code> statements, <code>type</code> alias syntax, and modern typing features.
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <strong>pip</strong> or <strong>uv</strong> — Any PEP 517-compliant installer works.
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <strong>Unix-like OS recommended</strong> — macOS, Linux, WSL2. Native Windows works but some CLI features assume POSIX shell.
+          </li>
+        </ul>
       </section>
 
-      {/* Install with pip */}
-      <section className="mb-12">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Install with pip</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The recommended way to install Aquilia is using pip in a virtual environment:
+      {/* Install from PyPI */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Install from PyPI</h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The core package installs the framework, ASGI server (uvicorn), and CLI:
         </p>
-        <CodeBlock language="bash" filename="Terminal">{`# Create a virtual environment
-python -m venv env
-source env/bin/activate  # Linux/macOS
-# env\\Scripts\\activate   # Windows
 
-# Install Aquilia
-pip install aquilia`}</CodeBlock>
+        <CodeBlock code={`pip install aquilia`} language="bash" />
 
-        <Note>
-          <p>Aquilia will install its core dependencies automatically including <code className="text-aquilia-500">uvicorn</code>, <code className="text-aquilia-500">jinja2</code>, <code className="text-aquilia-500">aiosqlite</code>, and others.</p>
-        </Note>
+        <p className={`mt-4 mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Or with <strong>uv</strong> (recommended for faster installs):
+        </p>
+
+        <CodeBlock code={`uv pip install aquilia`} language="bash" />
       </section>
 
-      {/* Install from source */}
-      <section className="mb-12">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Install from Source</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          To install the latest development version directly from GitHub:
+      {/* Extras */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Optional Extras</h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Aquilia uses optional dependencies for specialized subsystems. Install only what you need:
         </p>
-        <CodeBlock language="bash" filename="Terminal">{`# Clone the repository
-git clone https://github.com/axiomchronicles/Aquilia.git
-cd Aquilia
 
-# Install in development mode
-pip install -e .
-
-# Or install with dev dependencies
-pip install -e ".[dev]"`}</CodeBlock>
-      </section>
-
-      {/* Optional Dependencies */}
-      <section className="mb-12">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Optional Dependencies</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Aquilia has optional extras for specific backends and features:
-        </p>
-        <div className={`overflow-hidden rounded-xl border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <table className="w-full text-sm">
             <thead>
-              <tr className={isDark ? 'bg-zinc-900' : 'bg-gray-50'}>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Extra</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Packages</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Description</th>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Extra</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Installs</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>When to Use</th>
               </tr>
             </thead>
-            <tbody className={isDark ? 'divide-y divide-white/5' : 'divide-y divide-gray-100'}>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
               {[
-                { extra: 'postgres', pkgs: 'asyncpg, psycopg2', desc: 'PostgreSQL database backend' },
-                { extra: 'mysql', pkgs: 'aiomysql', desc: 'MySQL/MariaDB database backend' },
-                { extra: 'redis', pkgs: 'aioredis', desc: 'Redis cache and session backend' },
-                { extra: 'mail', pkgs: 'aiosmtplib', desc: 'SMTP mail provider' },
-                { extra: 'mlops', pkgs: 'numpy, scikit-learn', desc: 'MLOps model serving and drift detection' },
-                { extra: 'dev', pkgs: 'pytest, coverage, black', desc: 'Development and testing tools' },
-              ].map((row, i) => (
-                <tr key={i} className={isDark ? 'bg-[#0A0A0A]' : 'bg-white'}>
-                  <td className="py-3 px-4"><code className="text-aquilia-500 font-mono text-xs">{row.extra}</code></td>
-                  <td className={`py-3 px-4 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.pkgs}</td>
-                  <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.desc}</td>
+                ['redis', 'redis[hiredis]', 'Redis cache backend, Redis session store, Redis socket adapter'],
+                ['postgres', 'asyncpg, psycopg2-binary', 'PostgreSQL database backend'],
+                ['mysql', 'aiomysql', 'MySQL database backend'],
+                ['mail', 'aiosmtplib, boto3', 'SMTP email, AWS SES provider'],
+                ['templates', 'jinja2', 'Jinja2 template engine (auto-installed)'],
+                ['auth', 'pyjwt, cryptography, argon2-cffi', 'JWT tokens, RS256, Argon2 hashing'],
+                ['mlops', 'numpy, scikit-learn', 'MLOps model packaging and drift detection'],
+                ['dev', 'pytest, httpx, coverage', 'Development and testing tools'],
+                ['all', '(all of the above)', 'Full installation for production'],
+              ].map(([extra, installs, when], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>aquilia[{extra}]</td>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{installs}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{when}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <CodeBlock language="bash" filename="Terminal">{`# Install with PostgreSQL and Redis support
-pip install "aquilia[postgres,redis]"
+
+        <CodeBlock code={`# Install with multiple extras
+pip install "aquilia[redis,postgres,auth]"
 
 # Install everything
-pip install "aquilia[postgres,mysql,redis,mail,mlops,dev]"`}</CodeBlock>
+pip install "aquilia[all]"`} language="bash" />
       </section>
 
-      {/* Verify Installation */}
-      <section className="mb-12">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Verify Installation</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Verify that Aquilia is installed correctly:
+      {/* Development Install */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Development Install (From Source)</h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          To contribute to Aquilia or test against the latest changes:
         </p>
-        <CodeBlock language="bash" filename="Terminal">{`python -c "import aquilia; print(aquilia.__version__)"
-# Output: 0.2.0`}</CodeBlock>
-        <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Or use the CLI to check:
+
+        <CodeBlock
+          code={`git clone https://github.com/your-org/aquilia.git
+cd aquilia
+python -m venv env
+source env/bin/activate
+
+# Install in editable mode with dev dependencies
+pip install -e ".[dev]"
+pip install -r requirements-dev.txt
+
+# Verify the installation
+aq version`}
+          language="bash"
+        />
+      </section>
+
+      {/* Verify */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Verify Installation</h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          After installation, verify that the CLI (<code>aq</code>, also accessible as <code>aquilate</code>) is available:
         </p>
-        <CodeBlock language="bash" filename="Terminal">{`aquilia --version`}</CodeBlock>
+
+        <CodeBlock
+          code={`$ aq version
+Aquilia v0.2.0
+
+$ aq doctor
+✓ Python 3.12.3 (compatible)
+✓ aquilia package installed
+✓ CLI entry point registered
+✓ uvicorn available
+✓ jinja2 available
+…`}
+          language="bash"
+        />
+
+        <p className={`mt-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>aq doctor</code> command checks your environment for common issues — missing optional
+          dependencies, incompatible Python versions, and misconfigured workspace files.
+        </p>
+      </section>
+
+      {/* CLI entry point */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>CLI Entry Points</h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The package registers two console scripts (both identical):
+        </p>
+
+        <div className={`rounded-xl border p-4 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+          <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            <li className="flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-aquilia-400" />
+              <code className="font-mono">aq</code> — Short form (recommended)
+            </li>
+            <li className="flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-aquilia-400" />
+              <code className="font-mono">aquilate</code> — Long form
+            </li>
+            <li className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-aquilia-400" />
+              <code className="font-mono">python -m aquilia.cli</code> — Module invocation (if entry points are broken)
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      {/* Troubleshooting */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Troubleshooting</h2>
+
+        <div className="space-y-4">
+          <div className={`rounded-xl border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+            <div className="flex items-start gap-2">
+              <AlertCircle className={`w-4 h-4 mt-0.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
+              <div>
+                <p className={`font-semibold text-sm ${isDark ? 'text-amber-300' : 'text-amber-800'}`}><code>aq: command not found</code></p>
+                <p className={`text-sm mt-1 ${isDark ? 'text-amber-200/80' : 'text-amber-700'}`}>
+                  Ensure your Python scripts directory is in <code>$PATH</code>. For virtual environments,
+                  make sure the venv is activated. Alternatively use <code>python -m aquilia.cli</code>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className={`rounded-xl border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+            <div className="flex items-start gap-2">
+              <AlertCircle className={`w-4 h-4 mt-0.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
+              <div>
+                <p className={`font-semibold text-sm ${isDark ? 'text-amber-300' : 'text-amber-800'}`}><code>ModuleNotFoundError: No module named 'click'</code></p>
+                <p className={`text-sm mt-1 ${isDark ? 'text-amber-200/80' : 'text-amber-700'}`}>
+                  Click is a core dependency. Reinstall with <code>pip install aquilia --force-reinstall</code>.
+                  If using a locked environment, ensure <code>click</code> and <code>pyyaml</code> are included.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className={`rounded-xl border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+            <div className="flex items-start gap-2">
+              <AlertCircle className={`w-4 h-4 mt-0.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
+              <div>
+                <p className={`font-semibold text-sm ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>Python version incompatibility</p>
+                <p className={`text-sm mt-1 ${isDark ? 'text-amber-200/80' : 'text-amber-700'}`}>
+                  Aquilia requires Python 3.11 or newer. Check with <code>python --version</code>.
+                  If you have multiple Python versions installed, use <code>python3.12 -m pip install aquilia</code>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Next Steps */}
-      <section>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link to="/docs/quickstart" className={`flex-1 group p-6 rounded-xl border transition-all hover:-translate-y-0.5 ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-500/30'}`}>
-            <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Quick Start <ArrowRight className="w-4 h-4 text-aquilia-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-            </h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Build your first Aquilia application</p>
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Next Steps</h2>
+        <div className="flex flex-col gap-2">
+          <Link to="/docs/quickstart" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → Quick Start: Build your first API
           </Link>
-          <Link to="/docs/architecture" className={`flex-1 group p-6 rounded-xl border transition-all hover:-translate-y-0.5 ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-500/30'}`}>
-            <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Architecture <ArrowRight className="w-4 h-4 text-aquilia-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-            </h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Understand how Aquilia is structured</p>
+          <Link to="/docs/cli/commands" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → CLI Commands: Full command reference
+          </Link>
+          <Link to="/docs/project-structure" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → Project Structure: Understand the workspace layout
           </Link>
         </div>
       </section>

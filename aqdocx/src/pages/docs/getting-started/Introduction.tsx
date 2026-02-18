@@ -1,240 +1,351 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Zap, Shield, Database, Box, Globe, Layers, Cpu, Workflow, Terminal, BookOpen } from 'lucide-react'
+import { BookOpen, Zap, Shield, Layers, Database, Plug, Cpu, Rocket, Globe, Terminal, Box, Workflow, Brain, AlertCircle, Gauge } from 'lucide-react'
 
 export function IntroductionPage() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
+  const features = [
+    {
+      icon: <Layers className="w-5 h-5 text-aquilia-400" />,
+      title: 'Manifest-Driven Architecture',
+      desc: 'Declare your application topology through Python manifests. The framework compiles them into an immutable artifact graph — no magic, no discovery at import time.',
+    },
+    {
+      icon: <Plug className="w-5 h-5 text-blue-400" />,
+      title: 'Async-First DI Container',
+      desc: 'Six scopes (singleton, app, request, transient, pooled, ephemeral), <3 µs cached lookups, cycle detection, and full graph diagnostics — all without annotations or XML.',
+    },
+    {
+      icon: <Database className="w-5 h-5 text-emerald-400" />,
+      title: 'Pure-Python ORM',
+      desc: 'Django-grade metaclass-driven ORM with 30+ field types, Q-object query builder, Manager/QuerySet, migrations, signals, transactions, and aggregation.',
+    },
+    {
+      icon: <Shield className="w-5 h-5 text-rose-400" />,
+      title: 'Batteries-Included Security',
+      desc: 'Identity model, JWT/RS256 token management, Argon2 password hashing, RBAC/ABAC authorization, OAuth2/OIDC, MFA, and session-based auth with policy enforcement.',
+    },
+    {
+      icon: <AlertCircle className="w-5 h-5 text-amber-400" />,
+      title: 'Typed Fault System',
+      desc: 'Domain-specific fault taxonomy with severity levels, recovery strategies, and a FaultEngine that transforms unhandled exceptions into structured fault signals.',
+    },
+    {
+      icon: <Globe className="w-5 h-5 text-cyan-400" />,
+      title: 'WebSocket Controllers',
+      desc: 'Decorator-based WebSocket handlers with per-connection DI, room management, namespace support, guards, and pluggable adapters (in-memory, Redis).',
+    },
+    {
+      icon: <Gauge className="w-5 h-5 text-violet-400" />,
+      title: 'Multi-Layer Caching',
+      desc: 'Memory (LRU/LFU/TTL), Redis, and Composite (L1+L2) backends. Decorator-driven caching with @cached, @cache_aside, and @invalidate.',
+    },
+    {
+      icon: <Brain className="w-5 h-5 text-pink-400" />,
+      title: 'MLOps Integration',
+      desc: 'Model packaging, versioned registry, HTTP serving, drift detection, and release management — bring ML models into your API with first-class support.',
+    },
+  ]
+
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4">
-          <BookOpen className="w-4 h-4" />
-          Getting Started
+      {/* Hero */}
+      <div className="relative mb-12">
+        <div className="absolute -inset-4 bg-gradient-to-r from-aquilia-500/10 via-blue-500/5 to-purple-500/10 rounded-3xl blur-2xl" />
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center shadow-lg shadow-aquilia-500/20">
+              <BookOpen className="w-6 h-6 text-aquilia-400" />
+            </div>
+            <div>
+              <h1 className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Aquilia Framework
+              </h1>
+              <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>v0.2.0 · Production-ready async Python web framework</p>
+            </div>
+          </div>
+
+          <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            Aquilia is a <strong>manifest-driven, async-first Python web framework</strong> designed
+            for applications that outgrow micro-frameworks but refuse the ceremony of legacy
+            monoliths. It provides a batteries-included experience — ORM, DI, auth, sessions,
+            caching, mail, WebSockets, templates, serializers, fault handling, CLI tooling, and
+            MLOps support — while keeping the developer in control through explicit configuration
+            and compile-time validation.
+          </p>
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Introduction to <span className="gradient-text">Aquilia</span>
-        </h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Aquilia is a production-ready, full-featured, async-native Python web framework. It provides everything you need to build scalable web applications — from controllers and DI to ORM, auth, WebSockets, and MLOps — all in a single, cohesive package.
-        </p>
       </div>
 
-      {/* What is Aquilia */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>What is Aquilia?</h2>
-        <div className={`p-6 rounded-2xl border mb-6 ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
-          <p className={`leading-relaxed mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            Aquilia is a <strong>batteries-included</strong> async Python web framework built from the ground up for modern web development. Unlike microframeworks that require you to assemble dozens of third-party packages, Aquilia ships with a comprehensive set of integrated subsystems:
-          </p>
-          <ul className={`space-y-2 ml-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            {[
-              'Class-based controllers with compile-time route resolution',
-              'Hierarchical dependency injection with scoped lifetimes',
-              'Production-grade async ORM with migrations and relationships',
-              'Built-in authentication (OAuth2/OIDC, MFA, API Keys)',
-              'Cryptographic session management',
-              'Multi-backend caching with stampede prevention',
-              'WebSocket support with namespace controllers',
-              'Jinja2 async template engine',
-              'Mail service with SMTP/SES/SendGrid providers',
-              'MLOps platform with model serving and drift detection',
-              'Structured fault/error handling with domains and severity',
-              'OpenAPI spec generation',
-              'Full CLI with generators and scaffolding',
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="text-aquilia-500 mt-1">•</span>
-                {item}
-              </li>
-            ))}
+      {/* Philosophy */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Workflow className="w-5 h-5 text-aquilia-400" />
+          Design Philosophy
+        </h2>
+
+        <div className={`rounded-xl border p-6 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+          <ul className={`space-y-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            <li className="flex items-start gap-3">
+              <span className="text-aquilia-400 mt-1 font-bold">1.</span>
+              <div><strong>Manifests, not magic.</strong> Every application begins with a manifest — a Python dataclass that declares controllers, services, models, middleware, templates, and lifecycle hooks. The framework never scans your codebase at import time; you tell it what exists.</div>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-aquilia-400 mt-1 font-bold">2.</span>
+              <div><strong>Compile before run.</strong> The Aquilary registry compiles manifests into a RuntimeRegistry, catching misconfiguration (missing DI providers, unresolvable route patterns, model schema conflicts) before a single request is served.</div>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-aquilia-400 mt-1 font-bold">3.</span>
+              <div><strong>Controllers are classes, not functions.</strong> Class-based controllers with constructor DI injection, lifecycle hooks (<code>on_startup</code>, <code>on_request</code>, <code>on_response</code>, <code>on_shutdown</code>), class-level pipeline nodes, and OpenAPI metadata. Decorators attach metadata at definition time; the compiler extracts it at boot.</div>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-aquilia-400 mt-1 font-bold">4.</span>
+              <div><strong>Scoped DI for real applications.</strong> Six scopes — singleton, app, request, transient, pooled, ephemeral — with automatic lifecycle management, async instantiation, and &lt;3 µs cached resolution. No annotation processors, no classpath scanning.</div>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-aquilia-400 mt-1 font-bold">5.</span>
+              <div><strong>Faults, not exceptions.</strong> Typed fault signals with domains, severity levels, and recovery strategies replace ad-hoc exception hierarchies. The FaultEngine captures unhandled exceptions and transforms them into structured responses.</div>
+            </li>
           </ul>
         </div>
       </section>
 
-      {/* Quick Example */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Example</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Here's a taste of what an Aquilia application looks like:
-        </p>
-        <CodeBlock language="python" filename="app.py">{`from aquilia import AquiliaServer, Controller, Get, Post, Inject
-from aquilia import Model, CharField, IntegerField
-from aquilia.di import Container, Singleton
+      {/* Feature Grid */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          Feature Overview
+        </h2>
 
-
-# Define a model
-class Product(Model):
-    name = CharField(max_length=200)
-    price = IntegerField()
-
-    class Meta:
-        table_name = "products"
-
-
-# Define a service
-class ProductService:
-    async def list_all(self):
-        return await Product.objects.all()
-
-    async def create(self, name: str, price: int):
-        return await Product.objects.create(name=name, price=price)
-
-
-# Define a controller
-class ProductController(Controller):
-    prefix = "/products"
-
-    @Inject()
-    def __init__(self, service: ProductService):
-        self.service = service
-
-    @Get("/")
-    async def list_products(self, ctx):
-        products = await self.service.list_all()
-        return ctx.json({"products": [p.to_dict() for p in products]})
-
-    @Post("/")
-    async def create_product(self, ctx):
-        body = await ctx.json_body()
-        product = await self.service.create(body["name"], body["price"])
-        return ctx.json({"product": product.to_dict()}, status=201)
-
-
-# Bootstrap the application
-app = AquiliaServer()
-app.container.register(ProductService, lifetime=Singleton)
-app.register_controller(ProductController)
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)`}</CodeBlock>
-      </section>
-
-      {/* Philosophy */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Design Philosophy</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { icon: <Layers className="w-6 h-6" />, title: 'Batteries Included', desc: 'Every subsystem is built-in and designed to work together. No need to hunt for compatible third-party packages.' },
-            { icon: <Zap className="w-6 h-6" />, title: 'Async-Native', desc: 'Built from the ground up for async/await. Every I/O operation is non-blocking, powered by ASGI.' },
-            { icon: <Shield className="w-6 h-6" />, title: 'Type-Safe', desc: 'Full type annotations throughout. Designed for great IDE support and static analysis.' },
-            { icon: <Box className="w-6 h-6" />, title: 'Convention over Config', desc: 'Sensible defaults with layered configuration. Start fast, customize when you need to.' },
-            { icon: <Workflow className="w-6 h-6" />, title: 'Manifest-First', desc: 'Controllers declare their dependencies, effects, and metadata upfront via manifests.' },
-            { icon: <Terminal className="w-6 h-6" />, title: 'Production-Ready', desc: 'Structured error handling, observability, lifecycle management, and deployment tools built in.' },
-          ].map((item, i) => (
-            <div key={i} className={`p-6 rounded-xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
-              <div className="text-aquilia-500 mb-3">{item.icon}</div>
-              <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.title}</h3>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{item.desc}</p>
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className={`rounded-xl border p-5 transition-all hover:scale-[1.01] ${isDark ? 'bg-zinc-900/50 border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-300'}`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                {f.icon}
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{f.title}</h3>
+              </div>
+              <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Architecture Overview */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Architecture at a Glance</h2>
-        <div className={`p-8 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
-          <svg viewBox="0 0 800 400" className="w-full" fill="none">
-            {/* Client Layer */}
-            <rect x="300" y="10" width="200" height="50" rx="12" className={`${isDark ? 'fill-zinc-800 stroke-zinc-700' : 'fill-gray-100 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="400" y="40" textAnchor="middle" className={`text-sm font-bold ${isDark ? 'fill-white' : 'fill-gray-800'}`}>HTTP / WS Client</text>
+      {/* Pipeline overview */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Cpu className="w-5 h-5 text-aquilia-400" />
+          Architecture at a Glance
+        </h2>
 
-            {/* Arrow */}
-            <line x1="400" y1="60" x2="400" y2="85" className={`${isDark ? 'stroke-zinc-600' : 'stroke-gray-400'}`} strokeWidth="1.5" markerEnd="url(#arrowhead)" />
-
-            {/* ASGI Layer */}
-            <rect x="200" y="85" width="400" height="45" rx="10" className="fill-aquilia-500/10 stroke-aquilia-500/30" strokeWidth="1.5" />
-            <text x="400" y="113" textAnchor="middle" className="fill-aquilia-500 text-sm font-semibold">ASGI Adapter → Middleware Stack</text>
-
-            <line x1="400" y1="130" x2="400" y2="155" className={`${isDark ? 'stroke-zinc-600' : 'stroke-gray-400'}`} strokeWidth="1.5" />
-
-            {/* Controller Layer */}
-            <rect x="150" y="155" width="500" height="45" rx="10" className="fill-aquilia-500/10 stroke-aquilia-500/30" strokeWidth="1.5" />
-            <text x="400" y="183" textAnchor="middle" className="fill-aquilia-500 text-sm font-semibold">Controller Engine → Route Resolution → Handler</text>
-
-            <line x1="400" y1="200" x2="400" y2="225" className={`${isDark ? 'stroke-zinc-600' : 'stroke-gray-400'}`} strokeWidth="1.5" />
-
-            {/* Service Layer */}
-            <rect x="100" y="225" width="600" height="45" rx="10" className={`${isDark ? 'fill-zinc-800/50 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="400" y="253" textAnchor="middle" className={`text-sm font-semibold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>DI Container → Services / Effects / Guards</text>
-
-            <line x1="400" y1="270" x2="400" y2="295" className={`${isDark ? 'stroke-zinc-600' : 'stroke-gray-400'}`} strokeWidth="1.5" />
-
-            {/* Data Layer */}
-            <g>
-              <rect x="50" y="295" width="140" height="40" rx="8" className={`${isDark ? 'fill-zinc-800 stroke-zinc-700' : 'fill-gray-100 stroke-gray-300'}`} strokeWidth="1" />
-              <text x="120" y="320" textAnchor="middle" className={`text-xs font-medium ${isDark ? 'fill-gray-400' : 'fill-gray-600'}`}>ORM / Models</text>
-
-              <rect x="210" y="295" width="140" height="40" rx="8" className={`${isDark ? 'fill-zinc-800 stroke-zinc-700' : 'fill-gray-100 stroke-gray-300'}`} strokeWidth="1" />
-              <text x="280" y="320" textAnchor="middle" className={`text-xs font-medium ${isDark ? 'fill-gray-400' : 'fill-gray-600'}`}>Cache Service</text>
-
-              <rect x="370" y="295" width="140" height="40" rx="8" className={`${isDark ? 'fill-zinc-800 stroke-zinc-700' : 'fill-gray-100 stroke-gray-300'}`} strokeWidth="1" />
-              <text x="440" y="320" textAnchor="middle" className={`text-xs font-medium ${isDark ? 'fill-gray-400' : 'fill-gray-600'}`}>Sessions / Auth</text>
-
-              <rect x="530" y="295" width="140" height="40" rx="8" className={`${isDark ? 'fill-zinc-800 stroke-zinc-700' : 'fill-gray-100 stroke-gray-300'}`} strokeWidth="1" />
-              <text x="600" y="320" textAnchor="middle" className={`text-xs font-medium ${isDark ? 'fill-gray-400' : 'fill-gray-600'}`}>Templates / Mail</text>
-
-              <rect x="690" y="295" width="90" height="40" rx="8" className={`${isDark ? 'fill-zinc-800 stroke-zinc-700' : 'fill-gray-100 stroke-gray-300'}`} strokeWidth="1" />
-              <text x="735" y="320" textAnchor="middle" className={`text-xs font-medium ${isDark ? 'fill-gray-400' : 'fill-gray-600'}`}>MLOps</text>
-            </g>
-
-            {/* Lifecycle bar */}
-            <rect x="50" y="360" width="730" height="30" rx="6" className="fill-aquilia-500/5 stroke-aquilia-500/20" strokeWidth="1" />
-            <text x="400" y="380" textAnchor="middle" className="fill-aquilia-500/60 text-xs font-medium">Lifecycle Coordinator · Fault System · Observability · Config Loader</text>
-
-            <defs>
-              <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" className="fill-aquilia-500/50" />
-              </marker>
-            </defs>
-          </svg>
-        </div>
-        <p className={`mt-4 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-          Every layer in the Aquilia stack is designed to be async, composable, and observable. The <Link to="/docs/architecture" className="text-aquilia-500 hover:underline">Architecture</Link> page goes deep into each layer.
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Every Aquilia application follows a deterministic pipeline from boot to request handling:
         </p>
+
+        <CodeBlock
+          code={`# ──── Boot Pipeline ────────────────────────────────────────────
+#
+#   Manifests           →  Aquilary.from_manifests()
+#   Aquilary            →  RuntimeRegistry.from_metadata()
+#   RuntimeRegistry     →  DI containers + compiled routes + model schemas
+#   AquiliaServer       →  MiddlewareStack + ControllerRouter + ASGIAdapter
+#
+# ──── Request Pipeline ────────────────────────────────────────
+#
+#   ASGI scope          →  ASGIAdapter.__call__()
+#   Middleware chain     →  RequestId → Exception → Logging → Session → Auth → …
+#   Pattern matching     →  ControllerRouter.match(path, method)
+#   Controller engine    →  ControllerEngine.handle(compiled_route, ctx)
+#   Controller factory   →  ControllerFactory.create(cls)   [per-request DI]
+#   Handler method       →  controller.method(ctx: RequestCtx)
+#   Response             →  Response.json() / .html() / .stream() / .sse() / .file()`}
+          language="python"
+        />
       </section>
 
-      {/* Feature Grid */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Key Subsystems</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Minimal Example */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Rocket className="w-5 h-5 text-aquilia-400" />
+          Minimal Example
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          A complete Aquilia application in three files:
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <p className={`text-sm font-mono mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>workspace.py</p>
+            <CodeBlock
+              code={`from aquilia import Workspace, Module, Integration
+
+app = (
+    Workspace("my-api")
+    .module(
+        Module("core")
+        .auto_discover("modules/core")
+    )
+    .integrate(
+        Integration.auth(),
+        Integration.sessions(),
+        Integration.database(url="sqlite:///db.sqlite3"),
+    )
+    .build()
+)`}
+              language="python"
+            />
+          </div>
+
+          <div>
+            <p className={`text-sm font-mono mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>modules/core/controllers.py</p>
+            <CodeBlock
+              code={`from aquilia import Controller, GET, POST, RequestCtx, Response
+
+class HealthController(Controller):
+    prefix = "/health"
+
+    @GET("/")
+    async def check(self, ctx: RequestCtx) -> Response:
+        return Response.json({"status": "ok"})
+
+
+class UsersController(Controller):
+    prefix = "/users"
+
+    def __init__(self, user_service: UserService):
+        self.user_service = user_service
+
+    @GET("/")
+    async def list_users(self, ctx: RequestCtx) -> Response:
+        users = await self.user_service.list_all()
+        return Response.json({"users": users})
+
+    @POST("/")
+    async def create_user(self, ctx: RequestCtx) -> Response:
+        data = await ctx.json()
+        user = await self.user_service.create(data)
+        return Response.json(user, status=201)`}
+              language="python"
+            />
+          </div>
+
+          <div>
+            <p className={`text-sm font-mono mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>modules/core/services.py</p>
+            <CodeBlock
+              code={`from aquilia import service
+
+@service(scope="app")
+class UserService:
+    def __init__(self, db: Database):
+        self.db = db
+
+    async def list_all(self):
+        return await self.db.fetch_all("SELECT * FROM users")
+
+    async def create(self, data: dict):
+        return await self.db.execute(
+            "INSERT INTO users (name, email) VALUES (:name, :email)",
+            data,
+        )`}
+              language="python"
+            />
+          </div>
+        </div>
+
+        <div className={`mt-4 rounded-lg border p-4 ${isDark ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
+          <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+            <strong>Run it:</strong> <code className="font-mono">aq run</code> or <code className="font-mono">python -m aquilia.cli run</code> — starts the development server with auto-reload on port 8000.
+          </p>
+        </div>
+      </section>
+
+      {/* Subsystem Map */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Box className="w-5 h-5 text-aquilia-400" />
+          Subsystem Map
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Aquilia is organized into cohesive subsystems, each covered in depth by this documentation:
+        </p>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Subsystem</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Package</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Key Classes</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+              {[
+                ['Server', 'aquilia.server', 'AquiliaServer'],
+                ['Config', 'aquilia.config, config_builders', 'ConfigLoader, Workspace, Module, Integration'],
+                ['Controllers', 'aquilia.controller', 'Controller, GET/POST/PUT/PATCH/DELETE/WS'],
+                ['DI', 'aquilia.di', 'Container, Provider, Inject, @service, @factory'],
+                ['Models', 'aquilia.models', 'Model, Field types, Manager, QuerySet, Q'],
+                ['Sessions', 'aquilia.sessions', 'SessionEngine, SessionPolicy, SessionState'],
+                ['Auth', 'aquilia.auth', 'AuthManager, TokenManager, PasswordHasher, AuthzEngine'],
+                ['Middleware', 'aquilia.middleware', 'MiddlewareStack, CORS, CSP, CSRF, RateLimit'],
+                ['Serializers', 'aquilia.serializers', 'Serializer, ModelSerializer, ListSerializer'],
+                ['Blueprints', 'aquilia.blueprints', 'Blueprint, Facet, Projection, Cast, Seal'],
+                ['Cache', 'aquilia.cache', 'CacheService, MemoryBackend, RedisBackend'],
+                ['Mail', 'aquilia.mail', 'AquilaMail, MailService, EmailMessage'],
+                ['WebSockets', 'aquilia.sockets', 'AquilaSockets, SocketController, @Event'],
+                ['Templates', 'aquilia.templates', 'TemplateEngine, TemplateLoader'],
+                ['Faults', 'aquilia.faults', 'Fault, FaultEngine, FaultDomain, Severity'],
+                ['Effects', 'aquilia.effects', 'Effect, EffectProvider, EffectRegistry'],
+                ['CLI', 'aquilia.cli', 'aq init/add/generate/validate/run/serve'],
+                ['Testing', 'aquilia.testing', 'TestClient, AquiliaTestCase'],
+                ['Trace', 'aquilia.trace', 'AquiliaTrace, TraceManifest, TraceDIGraph'],
+                ['MLOps', 'aquilia.mlops', 'ModelPack, ModelRegistry, ModelServer'],
+              ].map(([name, pkg, classes], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{name}</td>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{pkg}</td>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{classes}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Quick Navigation */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Terminal className="w-5 h-5 text-aquilia-400" />
+          Where to Go Next
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
-            { icon: <Layers />, label: 'Controllers', to: '/docs/controllers', desc: 'Class-based HTTP/WS controllers with decorators and DI' },
-            { icon: <Box />, label: 'DI Container', to: '/docs/di', desc: 'Hierarchical scoped dependency injection system' },
-            { icon: <Database />, label: 'Models & ORM', to: '/docs/models', desc: 'Async ORM with models, fields, queries, migrations' },
-            { icon: <Shield />, label: 'Auth & Sessions', to: '/docs/auth', desc: 'Authentication, authorization, and session management' },
-            { icon: <Globe />, label: 'WebSockets', to: '/docs/websockets', desc: 'Real-time socket controllers and adapters' },
-            { icon: <Cpu />, label: 'MLOps', to: '/docs/mlops', desc: 'Model packaging, serving, and drift detection' },
-          ].map((item, i) => (
-            <Link key={i} to={item.to} className={`group p-5 rounded-xl border transition-all hover:-translate-y-0.5 ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-500/30'}`}>
-              <div className="text-aquilia-500 mb-3 w-5 h-5">{item.icon}</div>
-              <h3 className={`font-bold text-sm mb-1 group-hover:text-aquilia-500 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.label}</h3>
-              <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{item.desc}</p>
+            { to: '/docs/installation', icon: <Rocket className="w-4 h-4" />, title: 'Installation', desc: 'Install Aquilia and set up your environment' },
+            { to: '/docs/quickstart', icon: <Zap className="w-4 h-4" />, title: 'Quick Start', desc: 'Build your first API in 5 minutes' },
+            { to: '/docs/architecture', icon: <Cpu className="w-4 h-4" />, title: 'Architecture', desc: 'Understand the manifest-driven pipeline' },
+            { to: '/docs/controllers/overview', icon: <Layers className="w-4 h-4" />, title: 'Controllers', desc: 'Class-based request handlers with DI' },
+            { to: '/docs/di/container', icon: <Plug className="w-4 h-4" />, title: 'Dependency Injection', desc: 'Six-scope DI container with async support' },
+            { to: '/docs/models/defining', icon: <Database className="w-4 h-4" />, title: 'Models & ORM', desc: 'Metaclass-driven ORM with migrations' },
+          ].map((link, i) => (
+            <Link
+              key={i}
+              to={link.to}
+              className={`flex items-start gap-3 p-4 rounded-xl border transition-all hover:scale-[1.01] ${isDark ? 'bg-zinc-900/50 border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-300'}`}
+            >
+              <div className="mt-0.5 text-aquilia-400">{link.icon}</div>
+              <div>
+                <div className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{link.title}</div>
+                <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{link.desc}</div>
+              </div>
             </Link>
           ))}
-        </div>
-      </section>
-
-      {/* Next Steps */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Next Steps</h2>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link to="/docs/installation" className={`flex-1 group p-6 rounded-xl border transition-all hover:-translate-y-0.5 ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-500/30'}`}>
-            <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Installation <ArrowRight className="w-4 h-4 text-aquilia-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-            </h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Install Aquilia and set up your development environment</p>
-          </Link>
-          <Link to="/docs/quickstart" className={`flex-1 group p-6 rounded-xl border transition-all hover:-translate-y-0.5 ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-500/30'}`}>
-            <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Quick Start <ArrowRight className="w-4 h-4 text-aquilia-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-            </h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Build your first Aquilia app in under 5 minutes</p>
-          </Link>
         </div>
       </section>
     </div>

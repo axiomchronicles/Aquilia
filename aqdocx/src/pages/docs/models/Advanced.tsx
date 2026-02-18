@@ -1,226 +1,630 @@
-import { useTheme } from '../../../context/ThemeContext'
-import { CodeBlock } from '../../../components/CodeBlock'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Database } from 'lucide-react'
+import { useTheme } from '../../../context/ThemeContext';
+import { CodeBlock } from '../../../components/CodeBlock';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function ModelsAdvanced() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  const boxClass = `p-6 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4">
-          <Database className="w-4 h-4" />
-          Models / Advanced
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 text-sm mb-4">
+          <Link to="/docs" className={isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}>Docs</Link>
+          <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>/</span>
+          <Link to="/docs/models/overview" className={isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}>Models</Link>
+          <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>/</span>
+          <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Advanced</span>
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Signals, Transactions & Aggregation
-        </h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Advanced ORM features for reactive model events, transactional integrity, and complex data aggregation queries.
+        <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Advanced</h1>
+        <p className={`text-xl ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Transactions, expressions, database functions, SQL builders, constraints, and choices — the full power of Aquilia's ORM.
         </p>
       </div>
 
-      {/* Signals */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Model Signals</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Signals let you hook into model lifecycle events. They fire before/after create, update, and delete operations.
+      {/* Transactions */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Transactions</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>atomic()</code> context manager wraps database operations in a transaction. It supports nesting via savepoints.
         </p>
-        <CodeBlock language="python" filename="signals.py">{`from aquilia.models import Model, CharField, DateTimeField
-from aquilia.models.signals import pre_save, post_save, pre_delete, post_delete
+        <CodeBlock language="python">
+{`from aquilia.models.transactions import atomic
 
+# Basic transaction
+async with atomic(db):
+    user = User(name="Alice", email="alice@co.com")
+    await user.save(db)
+    profile = Profile(user_id=user.id, bio="Hello")
+    await profile.save(db)
+    # If either fails, both are rolled back
 
-class Article(Model):
-    title = CharField(max_length=200)
-    slug = CharField(max_length=200)
-    updated_at = DateTimeField(auto_now=True)
+# Nested transactions — uses SAVEPOINTs
+async with atomic(db):
+    await user.save(db)
 
-    class Meta:
-        table_name = "articles"
+    async with atomic(db):
+        # Creates SAVEPOINT
+        await risky_operation(db)
+        # If this fails, only the inner block rolls back
 
+    # Outer transaction continues
 
-# Register signal handlers
+# Durable mode — prevents nesting, always creates a real transaction
+async with atomic(db, durable=True):
+    await critical_operation(db)
 
-@pre_save(Article)
-async def generate_slug(instance, **kwargs):
-    """Auto-generate slug before save."""
-    if not instance.slug:
-        instance.slug = slugify(instance.title)
+# as decorator
+@atomic(db)
+async def transfer_funds(from_id, to_id, amount):
+    await Account.objects.filter(id=from_id).update(balance=F("balance") - amount)
+    await Account.objects.filter(id=to_id).update(balance=F("balance") + amount)`}
+        </CodeBlock>
+      </section>
 
+      {/* on_commit / on_rollback */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>on_commit / on_rollback Hooks</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Register callbacks that fire after the transaction successfully commits or rolls back. Callbacks are FIFO-ordered and only fire once.
+        </p>
+        <CodeBlock language="python">
+{`from aquilia.models.transactions import atomic, on_commit, on_rollback
 
-@post_save(Article)
-async def notify_subscribers(instance, created: bool, **kwargs):
-    """Send notification after article is saved."""
-    if created:
-        await notification_service.broadcast(
-            f"New article: {instance.title}"
-        )
+async with atomic(db) as txn:
+    user = User(name="Bob")
+    await user.save(db)
 
+    # Runs only if the transaction commits
+    on_commit(txn, lambda: send_welcome_email(user.id))
+    on_commit(txn, lambda: invalidate_cache("users"))
 
-@pre_delete(Article)
-async def archive_before_delete(instance, **kwargs):
-    """Archive article content before deletion."""
-    await archive_service.store(instance)
+    # Runs only if the transaction rolls back
+    on_rollback(txn, lambda: log_failure("user_creation_failed"))
 
+# Multiple callbacks execute in registration order
+# on_commit hooks are suppressed if any exception occurs`}
+        </CodeBlock>
+      </section>
 
-@post_delete(Article)
-async def cleanup_after_delete(instance, **kwargs):
-    """Clean up related resources."""
-    await cache.delete(f"article:{instance.id}")
-    await search_index.remove(instance.id)`}</CodeBlock>
+      {/* Isolation Levels */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Isolation Levels</h2>
+        <CodeBlock language="python">
+{`from aquilia.models.transactions import atomic, IsolationLevel
 
-        <div className={`mt-6 ${boxClass}`}>
-          <h3 className={`text-sm font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Available Signals</h3>
-          <div className={`overflow-hidden rounded-xl border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className={isDark ? 'bg-zinc-900' : 'bg-gray-50'}>
-                  <th className={`text-left py-2.5 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Signal</th>
-                  <th className={`text-left py-2.5 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Fires</th>
-                  <th className={`text-left py-2.5 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Extra kwargs</th>
+# Default isolation level (depends on DB engine)
+async with atomic(db):
+    ...
+
+# Explicit isolation level (PostgreSQL)
+async with atomic(db, isolation_level=IsolationLevel.SERIALIZABLE):
+    ...
+
+# Available levels:
+# IsolationLevel.READ_UNCOMMITTED
+# IsolationLevel.READ_COMMITTED     (PG default)
+# IsolationLevel.REPEATABLE_READ    (MySQL default)
+# IsolationLevel.SERIALIZABLE       (strictest)`}
+        </CodeBlock>
+      </section>
+
+      {/* Expression System */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Expression System</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Aquilia's expression system lets you build complex SQL expressions in Python. All expressions implement <code>as_sql()</code> for SQL generation.
+        </p>
+        <div className={`rounded-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} overflow-hidden mb-4`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-gray-800' : 'bg-gray-50'}>
+                <th className={`px-4 py-3 text-left font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Expression</th>
+                <th className={`px-4 py-3 text-left font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Purpose</th>
+                <th className={`px-4 py-3 text-left font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Example SQL</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
+              {[
+                ['F("field")', 'Column reference', 'field'],
+                ['Value(42)', 'Literal value', '42'],
+                ['RawSQL("expr")', 'Raw SQL fragment', 'expr'],
+                ['Col("table", "field")', 'Qualified column', 'table.field'],
+                ['Star()', 'All columns', '*'],
+                ['CombinedExpression', 'Arithmetic: F("a") + F("b")', 'a + b'],
+              ].map(([expr, purpose, sql]) => (
+                <tr key={expr}>
+                  <td className={`px-4 py-3 font-mono ${isDark ? 'text-aquilia-400' : 'text-blue-600'}`}>{expr}</td>
+                  <td className={`px-4 py-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{purpose}</td>
+                  <td className={`px-4 py-3 font-mono ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{sql}</td>
                 </tr>
-              </thead>
-              <tbody className={isDark ? 'divide-y divide-white/5' : 'divide-y divide-gray-100'}>
-                {[
-                  { s: 'pre_save', f: 'Before .save()', k: 'is_new: bool' },
-                  { s: 'post_save', f: 'After .save()', k: 'created: bool' },
-                  { s: 'pre_delete', f: 'Before .delete()', k: '—' },
-                  { s: 'post_delete', f: 'After .delete()', k: '—' },
-                  { s: 'pre_update', f: 'Before queryset.update()', k: 'fields: dict' },
-                  { s: 'post_update', f: 'After queryset.update()', k: 'affected: int' },
-                ].map((row, i) => (
-                  <tr key={i} className={isDark ? 'bg-[#0A0A0A]' : 'bg-white'}>
-                    <td className="py-2.5 px-4"><code className="text-aquilia-500 font-mono text-xs">{row.s}</code></td>
-                    <td className={`py-2.5 px-4 text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.f}</td>
-                    <td className={`py-2.5 px-4 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.k}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
-      {/* Transactions */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Transactions</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Wrap multiple database operations in an atomic transaction. If any operation fails, all changes are rolled back.
+      {/* When / Case */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>When / Case Expressions</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Build SQL CASE WHEN expressions for conditional logic in queries.
         </p>
-        <CodeBlock language="python" filename="transactions.py">{`from aquilia.db import transaction
+        <CodeBlock language="python">
+{`from aquilia.models.expression import When, Case, Value, F
 
-
-# Context manager
-async def transfer_funds(from_id: int, to_id: int, amount: float):
-    async with transaction() as tx:
-        sender = await Account.objects.get(id=from_id)
-        receiver = await Account.objects.get(id=to_id)
-
-        if sender.balance < amount:
-            raise InsufficientFunds()
-
-        sender.balance -= amount
-        receiver.balance += amount
-
-        await sender.save()
-        await receiver.save()
-        # Both saves commit together, or both rollback
-
-
-# Decorator form
-@transaction()
-async def create_order(user_id: int, items: list):
-    order = await Order.objects.create(user_id=user_id, status="pending")
-
-    for item in items:
-        await OrderItem.objects.create(
-            order_id=order.id,
-            product_id=item["product_id"],
-            quantity=item["quantity"],
-            price=item["price"],
+# Simple CASE WHEN
+users = await (
+    User.objects
+    .annotate(
+        tier=Case(
+            When(points__gte=1000, then=Value("gold")),
+            When(points__gte=500, then=Value("silver")),
+            When(points__gte=100, then=Value("bronze")),
+            default=Value("basic"),
         )
+    )
+    .all()
+)
 
-    # Update inventory
-    for item in items:
-        product = await Product.objects.get(id=item["product_id"])
-        product.stock -= item["quantity"]
-        await product.save()
+# CASE with expressions
+orders = await (
+    Order.objects
+    .annotate(
+        discount_price=Case(
+            When(quantity__gte=100, then=F("price") * Value(0.8)),
+            When(quantity__gte=50, then=F("price") * Value(0.9)),
+            default=F("price"),
+        )
+    )
+    .all()
+)
 
-    return order
-
-
-# Nested transactions (savepoints)
-async with transaction() as tx:
-    await User.objects.create(name="Alice")
-
-    async with transaction(savepoint=True) as sp:
-        await User.objects.create(name="Bob")
-        # Rollback only this savepoint
-        await sp.rollback()
-
-    # Alice is still committed, Bob is rolled back`}</CodeBlock>
+# Conditional update
+await (
+    Product.objects
+    .update(
+        status=Case(
+            When(stock=0, then=Value("out_of_stock")),
+            When(stock__lt=10, then=Value("low_stock")),
+            default=Value("in_stock"),
+        )
+    )
+)`}
+        </CodeBlock>
       </section>
 
-      {/* Aggregation */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Aggregation</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Perform aggregate computations (count, sum, avg, min, max) directly on querysets.
+      {/* Subqueries */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Subqueries</h2>
+        <CodeBlock language="python">
+{`from aquilia.models.expression import Subquery, Exists, OuterRef
+
+# Subquery — embed a QuerySet as a scalar subquery
+latest_comment = (
+    Comment.objects
+    .filter(post_id=OuterRef("id"))
+    .order("-created_at")
+    .values("text")
+    .limit(1)
+)
+
+posts = await (
+    Post.objects
+    .annotate(latest_comment=Subquery(latest_comment))
+    .all()
+)
+
+# Exists — boolean subquery for filtering
+has_comments = Exists(
+    Comment.objects.filter(post_id=OuterRef("id"))
+)
+
+posts_with_comments = await (
+    Post.objects
+    .filter(has_comments)
+    .all()
+)
+
+# OuterRef — reference a column from the outer query
+# Used inside Subquery/Exists to correlate with the parent query`}
+        </CodeBlock>
+      </section>
+
+      {/* Database Functions */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Database Functions</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Built-in SQL function wrappers for use in annotations, filters, and updates:
         </p>
-        <CodeBlock language="python" filename="aggregation.py">{`from aquilia.models import Count, Sum, Avg, Min, Max
-
-# Simple aggregation
-total_users = await User.objects.count()
-total_revenue = await Order.objects.aggregate(Sum("total"))
-avg_price = await Product.objects.aggregate(Avg("price"))
-cheapest = await Product.objects.aggregate(Min("price"))
-most_expensive = await Product.objects.aggregate(Max("price"))
-
-# Multiple aggregations
-stats = await Order.objects.aggregate(
-    total=Sum("total"),
-    average=Avg("total"),
-    count=Count("id"),
-    min_order=Min("total"),
-    max_order=Max("total"),
+        <div className={`rounded-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} overflow-hidden mb-4`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-gray-800' : 'bg-gray-50'}>
+                <th className={`px-4 py-3 text-left font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Category</th>
+                <th className={`px-4 py-3 text-left font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Functions</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
+              <tr>
+                <td className={`px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Comparison</td>
+                <td className={`px-4 py-3 font-mono ${isDark ? 'text-aquilia-400' : 'text-blue-600'}`}>Coalesce, Greatest, Least, NullIf</td>
+              </tr>
+              <tr>
+                <td className={`px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>String</td>
+                <td className={`px-4 py-3 font-mono ${isDark ? 'text-aquilia-400' : 'text-blue-600'}`}>Length, Upper, Lower, Trim, LTrim, RTrim, Concat, Substr, Replace</td>
+              </tr>
+              <tr>
+                <td className={`px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Math</td>
+                <td className={`px-4 py-3 font-mono ${isDark ? 'text-aquilia-400' : 'text-blue-600'}`}>Abs, Round, Power</td>
+              </tr>
+              <tr>
+                <td className={`px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date/Time</td>
+                <td className={`px-4 py-3 font-mono ${isDark ? 'text-aquilia-400' : 'text-blue-600'}`}>Now</td>
+              </tr>
+              <tr>
+                <td className={`px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</td>
+                <td className={`px-4 py-3 font-mono ${isDark ? 'text-aquilia-400' : 'text-blue-600'}`}>Cast, Func (custom), ExpressionWrapper</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <CodeBlock language="python">
+{`from aquilia.models.expression import (
+    Coalesce, Greatest, Least, NullIf,
+    Length, Upper, Lower, Trim, Concat, Substr, Replace,
+    Abs, Round, Power,
+    Now, Cast, Func, ExpressionWrapper,
+    F, Value,
 )
-# → {"total": 15000.0, "average": 150.0, "count": 100, ...}
 
-# Filtered aggregation
-active_revenue = await Order.objects.filter(
-    status="completed"
-).aggregate(Sum("total"))
-
-# Group by
-by_status = await Order.objects.values("status").annotate(
-    count=Count("id"),
-    total=Sum("total"),
+# Coalesce — first non-NULL value
+users = await (
+    User.objects
+    .annotate(display_name=Coalesce(F("nickname"), F("name"), Value("Anonymous")))
+    .all()
 )
-# → [
-#   {"status": "completed", "count": 80, "total": 12000.0},
-#   {"status": "pending", "count": 15, "total": 2500.0},
-#   {"status": "cancelled", "count": 5, "total": 500.0},
-# ]
 
-# Group by with ordering
-top_customers = await Order.objects.values("user_id").annotate(
-    total_spent=Sum("total"),
-    order_count=Count("id"),
-).order_by("-total_spent").limit(10)`}</CodeBlock>
+# String functions
+users = await (
+    User.objects
+    .annotate(
+        name_len=Length(F("name")),
+        upper_name=Upper(F("name")),
+        initials=Concat(Substr(F("first_name"), 1, 1), Substr(F("last_name"), 1, 1)),
+    )
+    .all()
+)
+
+# Math functions
+products = await (
+    Product.objects
+    .annotate(
+        rounded_price=Round(F("price"), 2),
+        abs_diff=Abs(F("price") - F("cost")),
+    )
+    .all()
+)
+
+# Cast — type conversion
+users = await (
+    User.objects
+    .annotate(age_text=Cast(F("age"), "TEXT"))
+    .all()
+)
+
+# Now() — current timestamp
+await User.objects.filter(id=1).update(last_seen=Now())
+
+# Greatest / Least
+await Product.objects.annotate(
+    effective_price=Least(F("price"), F("sale_price")),
+).all()
+
+# NullIf — return NULL if equal
+await User.objects.annotate(
+    real_name=NullIf(F("name"), Value("")),
+).all()`}
+        </CodeBlock>
       </section>
 
-      {/* Nav */}
-      <div className="flex justify-between items-center mt-16 pt-8 border-t border-white/10">
-        <Link to="/docs/models/migrations" className="flex items-center gap-2 text-aquilia-500 hover:text-aquilia-400 transition">
+      {/* SQL Builder */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>SQL Builder API</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Low-level fluent SQL builders for when you need full control over query construction. Used internally by the Q class.
+        </p>
+        <CodeBlock language="python">
+{`from aquilia.models.sql_builder import (
+    SQLBuilder, InsertBuilder, UpdateBuilder,
+    DeleteBuilder, CreateTableBuilder, AlterTableBuilder,
+    UpsertBuilder,
+)
+
+# SELECT builder
+sql, params = (
+    SQLBuilder("users")
+    .select("id", "name", "email")
+    .where("active = ?", True)
+    .where("age >= ?", 18)
+    .order_by("name ASC")
+    .limit(10)
+    .offset(20)
+    .build()
+)
+# → ("SELECT id, name, email FROM users WHERE active = ? AND age >= ?
+#     ORDER BY name ASC LIMIT 10 OFFSET 20", [True, 18])
+
+# INSERT builder
+sql, params = (
+    InsertBuilder("users")
+    .columns("name", "email", "active")
+    .values("Alice", "alice@co.com", True)
+    .returning("id")
+    .build()
+)
+
+# UPDATE builder
+sql, params = (
+    UpdateBuilder("users")
+    .set(name="Bob", email="bob@co.com")
+    .where("id = ?", 42)
+    .build()
+)
+
+# DELETE builder
+sql, params = (
+    DeleteBuilder("users")
+    .where("active = ?", False)
+    .build()
+)
+
+# CREATE TABLE builder
+sql = (
+    CreateTableBuilder("products")
+    .column("id", "BIGSERIAL PRIMARY KEY")
+    .column("name", "VARCHAR(200) NOT NULL")
+    .column("price", "DECIMAL(10,2)")
+    .if_not_exists()
+    .build()
+)
+
+# ALTER TABLE builder
+sql = (
+    AlterTableBuilder("users")
+    .add_column("phone", "VARCHAR(20)")
+    .build()
+)
+
+# UPSERT builder (INSERT ... ON CONFLICT)
+sql, params = (
+    UpsertBuilder("users")
+    .columns("email", "name")
+    .values("alice@co.com", "Alice Updated")
+    .conflict_columns("email")
+    .update_columns("name")
+    .build()
+)`}
+        </CodeBlock>
+      </section>
+
+      {/* Constraints */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Constraints</h2>
+        <CodeBlock language="python">
+{`from aquilia.models.constraint import CheckConstraint, ExclusionConstraint, Deferrable
+
+class Product(Model):
+    table = "products"
+    name = CharField(max_length=200)
+    price = DecimalField(max_digits=10, decimal_places=2)
+    sale_price = DecimalField(max_digits=10, decimal_places=2, null=True)
+
+    class Meta:
+        constraints = [
+            # Check constraint — arbitrary SQL condition
+            CheckConstraint(
+                check="price > 0",
+                name="positive_price",
+            ),
+            # Sale price must be less than regular price
+            CheckConstraint(
+                check="sale_price IS NULL OR sale_price < price",
+                name="valid_sale_price",
+            ),
+        ]
+
+# Exclusion constraint (PostgreSQL only)
+class Booking(Model):
+    table = "bookings"
+    room_id = IntegerField()
+    during = DateTimeRangeField()
+
+    class Meta:
+        constraints = [
+            ExclusionConstraint(
+                name="no_overlapping_bookings",
+                expressions=[
+                    ("room_id", "="),
+                    ("during", "&&"),   # range overlap
+                ],
+            ),
+        ]
+
+# Deferrable constraints
+# Deferrable.DEFERRED — check at transaction commit
+# Deferrable.IMMEDIATE — check at statement end (default)`}
+        </CodeBlock>
+      </section>
+
+      {/* Choices */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Choices — TextChoices & IntegerChoices</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Enum-like classes that generate <code>(value, label)</code> pairs for field choices.
+        </p>
+        <CodeBlock language="python">
+{`from aquilia.models.enums import Choices, TextChoices, IntegerChoices
+
+class Status(TextChoices):
+    DRAFT = "draft", "Draft"
+    REVIEW = "review", "In Review"
+    PUBLISHED = "published", "Published"
+    ARCHIVED = "archived", "Archived"
+
+class Priority(IntegerChoices):
+    LOW = 1, "Low"
+    MEDIUM = 2, "Medium"
+    HIGH = 3, "High"
+    CRITICAL = 4, "Critical"
+
+class Article(Model):
+    table = "articles"
+    title = CharField(max_length=200)
+    status = CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    priority = IntegerField(choices=Priority.choices, default=Priority.MEDIUM)
+
+# Usage
+article = Article(title="Test", status=Status.PUBLISHED)
+
+# Access choices
+Status.choices   # → [("draft", "Draft"), ("review", "In Review"), ...]
+Status.values    # → ["draft", "review", "published", "archived"]
+Status.labels    # → ["Draft", "In Review", "Published", "Archived"]
+Status.names     # → ["DRAFT", "REVIEW", "PUBLISHED", "ARCHIVED"]
+
+# Membership testing
+Status.DRAFT in Status.values  # → True
+
+# Custom Choices base class
+class Choices:
+    """Base class providing .choices, .values, .labels, .names properties."""`}
+        </CodeBlock>
+      </section>
+
+      {/* Custom DB Functions */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Custom Database Functions</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Extend the expression system with your own SQL functions using the <code>Func</code> base class.
+        </p>
+        <CodeBlock language="python">
+{`from aquilia.models.expression import Func, F, Value
+
+# Custom function — wraps any SQL function
+class DateTrunc(Func):
+    function = "DATE_TRUNC"
+
+# Usage
+users = await (
+    User.objects
+    .annotate(
+        signup_month=DateTrunc(Value("month"), F("created_at"))
+    )
+    .group_by("signup_month")
+    .annotate(count=Count("id"))
+    .order("signup_month")
+    .values("signup_month", "count")
+    .all()
+)
+
+# Generic Func usage
+class JSONExtract(Func):
+    function = "JSON_EXTRACT"
+
+data = await (
+    Config.objects
+    .annotate(theme=JSONExtract(F("settings"), Value("$.theme")))
+    .values("id", "theme")
+    .all()
+)`}
+        </CodeBlock>
+      </section>
+
+      {/* select_for_update */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Pessimistic Locking — select_for_update</h2>
+        <CodeBlock language="python">
+{`from aquilia.models.transactions import atomic
+
+# SELECT ... FOR UPDATE locks the selected rows
+async with atomic(db):
+    account = await (
+        Account.objects
+        .select_for_update()   # basic row lock
+        .filter(id=42)
+        .first()
+    )
+    account.balance -= 100
+    await account.save(db)
+
+# Options:
+# .select_for_update(nowait=True)       — raise error instead of waiting
+# .select_for_update(skip_locked=True)  — skip locked rows
+# .select_for_update(of=["self"])       — lock only this table (not JOINed)
+# .select_for_update(no_key=True)       — FOR NO KEY UPDATE (PG: weaker lock)`}
+        </CodeBlock>
+      </section>
+
+      {/* Signals */}
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Model Signals</h2>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Hook into the model lifecycle at every stage:
+        </p>
+        <CodeBlock language="python">
+{`from aquilia.models.signals import (
+    pre_save, post_save, pre_delete, post_delete,
+    pre_init, post_init, class_prepared,
+    m2m_changed, receiver,
+)
+
+@receiver(pre_save, sender=User)
+async def hash_password(sender, instance, **kwargs):
+    if instance._state.get("password_changed"):
+        instance.password = hash_fn(instance.password)
+
+@receiver(post_save, sender=User)
+async def send_notification(sender, instance, created, **kwargs):
+    if created:
+        await send_welcome_email(instance.email)
+
+@receiver(pre_delete, sender=User)
+async def check_can_delete(sender, instance, **kwargs):
+    if instance.is_superuser:
+        raise PermissionError("Cannot delete superuser")
+
+@receiver(class_prepared)
+async def on_model_registered(sender, **kwargs):
+    print(f"Model registered: {sender.__name__}")
+
+# Signal.connect() / Signal.disconnect() for manual management
+from aquilia.models.signals import Signal
+
+custom_signal = Signal()
+custom_signal.connect(my_handler, sender=MyModel)
+await custom_signal.send(sender=MyModel, instance=obj)
+custom_signal.disconnect(my_handler, sender=MyModel)`}
+        </CodeBlock>
+      </section>
+
+      {/* Navigation */}
+      <div className={`flex justify-between items-center pt-8 mt-8 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+        <Link
+          to="/docs/models/migrations"
+          className={`flex items-center gap-2 text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}
+        >
           <ArrowLeft className="w-4 h-4" /> Migrations
         </Link>
-        <Link to="/docs/serializers" className="flex items-center gap-2 text-aquilia-500 hover:text-aquilia-400 transition">
+        <Link
+          to="/docs/serializers/overview"
+          className={`flex items-center gap-2 text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}
+        >
           Serializers <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     </div>
-  )
+  );
 }

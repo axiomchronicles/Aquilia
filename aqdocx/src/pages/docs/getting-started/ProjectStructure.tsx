@@ -1,7 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { FolderTree, ArrowRight, Folder, FileCode } from 'lucide-react'
+import { Blocks, FolderOpen, FileCode, Settings, Database, Terminal } from 'lucide-react'
 
 export function ProjectStructurePage() {
   const { theme } = useTheme()
@@ -9,222 +9,349 @@ export function ProjectStructurePage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4">
-          <FolderTree className="w-4 h-4" />
-          Getting Started
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center">
+            <Blocks className="w-5 h-5 text-aquilia-400" />
+          </div>
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Project Structure</h1>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>File layout, conventions, and generated artifacts</p>
+          </div>
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Project Structure
-        </h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Aquilia follows a modular project structure with composable modules and Python packaging conventions. This guide shows how to organize your application for clarity and scalability.
-        </p>
       </div>
 
       {/* Standard Layout */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Standard Project Layout</h2>
-        <CodeBlock language="text" filename="Project Structure">{`my-aquilia-app/
-├── starter.py                  # Application entry point
-├── workspace.py                # Workspace-level configuration (optional)
-├── pyproject.toml               # Python project metadata
-├── requirements.txt             # Dependencies
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <FolderOpen className="w-5 h-5 text-aquilia-400" />
+          Standard Workspace Layout
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          A workspace created with <code>aq init workspace my-api</code> produces the following structure.
+          Every directory and file has a specific purpose:
+        </p>
+
+        <CodeBlock
+          code={`my-api/
+├── workspace.py              # Root configuration (Workspace/Module/Integration)
+├── aquilia.yaml              # Alternative YAML config (optional, lower priority)
+├── .env                      # Environment variables (AQ_ prefix)
 │
-├── config/                      # Configuration files
-│   ├── workspace.yaml           # Main workspace config
-│   ├── development.yaml         # Dev overrides
-│   └── production.yaml          # Production overrides
-│
-├── modules/                     # Application modules
-│   ├── __init__.py
-│   ├── products/                # A feature module
+├── modules/                  # Application modules (one per bounded context)
+│   ├── core/
 │   │   ├── __init__.py
-│   │   ├── controller.py        # HTTP controller
-│   │   ├── model.py             # Database model(s)
-│   │   ├── service.py           # Business logic
-│   │   ├── serializer.py        # Request/response serializers
+│   │   ├── controllers.py    # Controller classes with route decorators
+│   │   ├── services.py       # Business logic services (@service decorated)
+│   │   ├── models.py         # ORM model definitions
+│   │   ├── serializers.py    # Request/response serializers (optional)
+│   │   ├── blueprints.py     # Blueprint contracts (optional)
 │   │   └── tests/
 │   │       ├── __init__.py
-│   │       └── test_products.py
+│   │       ├── test_controllers.py
+│   │       └── test_services.py
 │   │
-│   ├── auth/                    # Auth module
-│   │   ├── __init__.py
-│   │   ├── controller.py
-│   │   ├── service.py
-│   │   └── guards.py
-│   │
-│   └── notifications/           # Notifications module
+│   └── users/                # Another module
 │       ├── __init__.py
-│       ├── service.py
-│       └── templates/
-│           └── welcome.html
+│       ├── controllers.py
+│       ├── services.py
+│       └── models.py
 │
-├── migrations/                  # Database migrations
+├── templates/                # Jinja2 template files
+│   ├── base.html
+│   ├── layouts/
+│   └── partials/
+│
+├── static/                   # Static files (CSS, JS, images)
+│   ├── css/
+│   ├── js/
+│   └── img/
+│
+├── migrations/               # Auto-generated database migrations
 │   ├── 0001_initial.py
-│   └── 0002_add_products.py
+│   └── 0002_add_users.py
 │
-├── artifacts/                   # Templates, static, etc.
-│   ├── templates/
-│   │   ├── base.html
-│   │   └── pages/
-│   └── static/
-│       ├── css/
-│       └── js/
+├── .aquilia/                 # Trace directory (auto-generated, gitignore)
+│   ├── manifest.json         # Compiled app manifest
+│   ├── route_map.json        # All registered routes
+│   ├── di_graph.json         # DI dependency graph
+│   ├── schema_ledger.json    # Model schema snapshots
+│   ├── lifecycle.log         # Lifecycle event journal
+│   ├── config_snapshot.json  # Active configuration
+│   └── diagnostics.json      # Health and diagnostic data
 │
-└── tests/                       # Integration tests
-    ├── conftest.py
-    ├── test_integration.py
-    └── test_e2e.py`}</CodeBlock>
+├── tests/                    # Top-level test directory
+│   ├── conftest.py
+│   └── test_integration.py
+│
+├── Dockerfile                # Auto-generated if --no-docker not set
+├── docker-compose.yml        # Auto-generated if --no-docker not set
+├── requirements.txt          # Frozen dependencies (aq freeze)
+└── pyproject.toml            # Project metadata`}
+          language="text"
+        />
       </section>
 
       {/* Key Files */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Key Files Explained</h2>
-        <div className="space-y-4">
-          {[
-            {
-              icon: <FileCode className="w-5 h-5" />,
-              file: 'starter.py',
-              desc: 'The application entry point. Creates an AquiliaServer instance, registers controllers, services, models, and middleware, then calls app.run(). This is the file you execute to start your server.',
-            },
-            {
-              icon: <FileCode className="w-5 h-5" />,
-              file: 'workspace.py',
-              desc: 'Optional workspace-level configuration using the WorkspaceConfigBuilder. Defines app-wide settings like database URLs, secret keys, allowed hosts, and middleware order.',
-            },
-            {
-              icon: <Folder className="w-5 h-5" />,
-              file: 'config/',
-              desc: 'YAML configuration files loaded by ConfigLoader. Supports layered loading: workspace.yaml (base), then environment-specific overrides. Values are accessible via app.config.',
-            },
-            {
-              icon: <Folder className="w-5 h-5" />,
-              file: 'modules/',
-              desc: 'Feature modules organized by domain. Each module contains its own controller, model, service, and tests. This keeps concerns separated and makes the codebase navigable.',
-            },
-            {
-              icon: <Folder className="w-5 h-5" />,
-              file: 'migrations/',
-              desc: 'Auto-generated database migration files. Created by the Aquilia CLI (aquilia makemigrations). Applied with aquilia migrate.',
-            },
-            {
-              icon: <Folder className="w-5 h-5" />,
-              file: 'artifacts/',
-              desc: 'Static assets and templates. The template engine looks here for Jinja2 templates. The static middleware serves files from artifacts/static/.',
-            },
-          ].map((item, i) => (
-            <div key={i} className={`flex gap-4 p-5 rounded-xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
-              <div className="text-aquilia-500 shrink-0 mt-0.5">{item.icon}</div>
-              <div>
-                <code className={`font-mono font-bold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.file}</code>
-                <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <FileCode className="w-5 h-5 text-aquilia-400" />
+          Key Files Explained
+        </h2>
 
-      {/* Module Anatomy */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Module Anatomy</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Each feature module follows a consistent pattern. Here's what a typical module looks like:
-        </p>
-        <CodeBlock language="python" filename="modules/products/__init__.py">{`"""Products module — handles product CRUD operations."""
-
-from .controller import ProductController
-from .model import Product
-from .service import ProductService
-
-__all__ = ["ProductController", "Product", "ProductService"]`}</CodeBlock>
-
-        <div className={`p-6 rounded-2xl border mt-6 ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
-          <h3 className={`font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Module Composition</h3>
-          <svg viewBox="0 0 600 250" className="w-full" fill="none">
-            <defs>
-              <marker id="mod-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-                <polygon points="0 0,8 3,0 6" className="fill-aquilia-500/50" />
-              </marker>
-            </defs>
-
-            {/* Controller */}
-            <rect x="220" y="10" width="160" height="45" rx="10" className="fill-aquilia-500/10 stroke-aquilia-500/30" strokeWidth="1.5" />
-            <text x="300" y="38" textAnchor="middle" className="fill-aquilia-500 text-xs font-bold">Controller</text>
-
-            {/* Arrows */}
-            <line x1="260" y1="55" x2="160" y2="95" stroke="#22c55e" strokeOpacity="0.3" strokeWidth="1.5" markerEnd="url(#mod-arrow)" />
-            <line x1="340" y1="55" x2="440" y2="95" stroke="#22c55e" strokeOpacity="0.3" strokeWidth="1.5" markerEnd="url(#mod-arrow)" />
-
-            {/* Service */}
-            <rect x="80" y="95" width="160" height="45" rx="10" className={`${isDark ? 'fill-zinc-900 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="160" y="123" textAnchor="middle" className={`text-xs font-bold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>Service</text>
-
-            {/* Serializer */}
-            <rect x="360" y="95" width="160" height="45" rx="10" className={`${isDark ? 'fill-zinc-900 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="440" y="123" textAnchor="middle" className={`text-xs font-bold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>Serializer</text>
-
-            {/* Arrow to Model */}
-            <line x1="160" y1="140" x2="260" y2="180" stroke="#22c55e" strokeOpacity="0.3" strokeWidth="1.5" markerEnd="url(#mod-arrow)" />
-
-            {/* Model */}
-            <rect x="220" y="175" width="160" height="45" rx="10" className={`${isDark ? 'fill-zinc-900 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="300" y="203" textAnchor="middle" className={`text-xs font-bold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>Model</text>
-
-            {/* Labels */}
-            <text x="195" y="80" className={`text-[9px] ${isDark ? 'fill-gray-600' : 'fill-gray-400'}`}>injects</text>
-            <text x="380" y="80" className={`text-[9px] ${isDark ? 'fill-gray-600' : 'fill-gray-400'}`}>validates</text>
-            <text x="195" y="170" className={`text-[9px] ${isDark ? 'fill-gray-600' : 'fill-gray-400'}`}>queries</text>
-          </svg>
-        </div>
-      </section>
-
-      {/* Registration */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Registering Modules</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Register your module's components in the starter file:
-        </p>
-        <CodeBlock language="python" filename="starter.py">{`from aquilia import AquiliaServer
-from aquilia.di import Singleton
-
-from modules.products import ProductController, Product, ProductService
-from modules.auth import AuthController, AuthService
-
-
-app = AquiliaServer()
-
-# Database
-app.use_database("sqlite:///db.sqlite3")
-
-# Models
-app.register_model(Product)
-
-# Services (DI registration)
-app.container.register(ProductService, lifetime=Singleton)
-app.container.register(AuthService, lifetime=Singleton)
-
-# Controllers
-app.register_controller(ProductController)
-app.register_controller(AuthController)
-
-app.run()`}</CodeBlock>
-      </section>
-
-      {/* Next */}
-      <section>
-        <div className="flex gap-4">
-          <Link to="/docs/controllers" className={`flex-1 group p-6 rounded-xl border transition-all hover:-translate-y-0.5 ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-500/30'}`}>
-            <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Controllers <ArrowRight className="w-4 h-4 text-aquilia-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+        <div className="space-y-6">
+          {/* workspace.py */}
+          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+            <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <code>workspace.py</code>
             </h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Learn about the controller architecture in depth</p>
+            <p className={`mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              The root configuration file. Aquilia's ConfigLoader looks for this file first (Python-first config).
+              It must export an <code>app</code> variable containing the Workspace build result.
+            </p>
+            <CodeBlock
+              code={`from aquilia import Workspace, Module, Integration
+
+app = (
+    Workspace("my-api")
+    .module(
+        Module("core")
+        .auto_discover("modules/core")
+        .route_prefix("/api")
+    )
+    .module(
+        Module("users")
+        .auto_discover("modules/users")
+        .route_prefix("/api/users")
+        .depends_on(["core"])
+    )
+    .integrate(
+        Integration.database(url="sqlite:///db.sqlite3"),
+        Integration.sessions(),
+        Integration.auth(),
+        Integration.cors(allow_origins=["*"]),
+        Integration.cache(backend="memory"),
+    )
+    .runtime(debug=True, host="0.0.0.0", port=8000)
+    .build()
+)`}
+              language="python"
+            />
+          </div>
+
+          {/* aquilia.yaml */}
+          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+            <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <code>aquilia.yaml</code> <span className={`text-sm font-normal ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>(alternative)</span>
+            </h3>
+            <p className={`mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              YAML-based configuration as an alternative to workspace.py. Lower priority — if both exist,
+              workspace.py takes precedence. Useful for deployment environments where Python config isn't ideal.
+            </p>
+            <CodeBlock
+              code={`# aquilia.yaml
+name: my-api
+debug: true
+
+runtime:
+  host: 0.0.0.0
+  port: 8000
+
+database:
+  url: sqlite:///db.sqlite3
+
+sessions:
+  enabled: true
+  secret_key: "change-in-production"
+  max_age: 3600
+
+auth:
+  enabled: true
+  secret_key: "jwt-secret"
+  algorithm: RS256
+
+cors:
+  allow_origins:
+    - "http://localhost:3000"
+  allow_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE`}
+              language="yaml"
+            />
+          </div>
+
+          {/* .env */}
+          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+            <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <code>.env</code>
+            </h3>
+            <p className={`mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Environment variables with the <code>AQ_</code> prefix are automatically loaded. Nested keys
+              use double underscores. Higher priority than config files but lower than CLI arguments.
+            </p>
+            <CodeBlock
+              code={`# .env
+AQ_DEBUG=false
+AQ_PORT=9000
+AQ_DATABASE__URL=postgres://user:pass@localhost/mydb
+AQ_AUTH__SECRET_KEY=production-secret
+AQ_SESSIONS__SECRET_KEY=session-secret
+AQ_CORS__ALLOW_ORIGINS=https://myapp.com`}
+              language="bash"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Module Structure */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Settings className="w-5 h-5 text-aquilia-400" />
+          Module Conventions
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Each module directory follows conventions that <code>Module.auto_discover()</code> uses to find components:
+        </p>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>File</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Discovery Scans For</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Registration</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+              {[
+                ['controllers.py', 'Classes extending Controller', 'Compiled routes registered with ControllerRouter'],
+                ['services.py', 'Classes decorated with @service or @factory', 'Providers registered in DI Container'],
+                ['models.py', 'Classes extending Model (ModelMeta metaclass)', 'Schemas compiled, tables validated/created'],
+                ['serializers.py', 'Classes extending Serializer / ModelSerializer', 'Available for controller decorator binding'],
+                ['blueprints.py', 'Classes extending Blueprint', 'Available for controller decorator binding'],
+                ['middleware.py', 'Callable middleware functions', 'Added to module-scoped middleware stack'],
+              ].map(([file, scans, reg], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{file}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{scans}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{reg}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className={`mt-4 rounded-lg border p-4 ${isDark ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-200'}`}>
+          <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+            <strong>Explicit registration:</strong> If you prefer not to use <code>auto_discover()</code>,
+            you can explicitly register components with <code>Module.register_controllers([...])</code>,
+            <code>.register_services([...])</code>, and <code>.register_models([...])</code>.
+          </p>
+        </div>
+      </section>
+
+      {/* Trace Directory */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Database className="w-5 h-5 text-aquilia-400" />
+          The .aquilia/ Trace Directory
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>.aquilia/</code> directory is automatically generated at boot and contains
+          diagnostic artifacts. It should be added to <code>.gitignore</code>:
+        </p>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>File</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Contents</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+              {[
+                ['manifest.json', 'Full compiled manifest — all apps, controllers, services, and configuration'],
+                ['route_map.json', 'Every registered route with HTTP method, pattern, controller, and handler'],
+                ['di_graph.json', 'Complete DI dependency graph with providers, scopes, and resolution chains'],
+                ['schema_ledger.json', 'Model schema snapshots for migration diffing and validation'],
+                ['lifecycle.log', 'Timestamped journal of lifecycle events (startup, shutdown, errors)'],
+                ['config_snapshot.json', 'Active merged configuration at boot time'],
+                ['diagnostics.json', 'Health check results, latency metrics, and provider statistics'],
+              ].map(([file, contents], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{file}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{contents}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p className={`mt-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Use <code>aq inspect</code> to query trace artifacts from the command line, or use
+          <code>aq trace</code> for interactive exploration.
+        </p>
+      </section>
+
+      {/* CLI-generated files */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Terminal className="w-5 h-5 text-aquilia-400" />
+          CLI-Generated Files
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>aq</code> CLI generates various files. Understanding where they go:
+        </p>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Command</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Generates</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+              {[
+                ['aq init workspace <name>', 'Full project scaffolding with workspace.py, modules/, templates/, static/'],
+                ['aq add module <name>', 'modules/<name>/ with __init__.py, controllers.py, services.py, models.py'],
+                ['aq generate controller <Name>', 'controllers/<name>.py with boilerplate Controller class'],
+                ['aq generate service <Name>', 'services/<name>.py with @service-decorated class'],
+                ['aq compile', '.aquilia/ trace artifacts (manifest, route_map, di_graph, etc.)'],
+                ['aq freeze', 'requirements.txt with pinned dependency versions'],
+                ['aq migrate makemigrations', 'migrations/ directory with numbered migration files'],
+                ['aq deploy all', 'Dockerfile and docker-compose.yml for containerized deployment'],
+              ].map(([cmd, gen], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{cmd}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{gen}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Next Steps */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Next Steps</h2>
+        <div className="flex flex-col gap-2">
+          <Link to="/docs/config/workspace" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → Workspace Builder: All configuration options
           </Link>
-          <Link to="/docs/server" className={`flex-1 group p-6 rounded-xl border transition-all hover:-translate-y-0.5 ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-500/30'}`}>
-            <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Server <ArrowRight className="w-4 h-4 text-aquilia-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-            </h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Understand AquiliaServer and lifecycle</p>
+          <Link to="/docs/controllers/overview" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → Controllers: Writing request handlers
+          </Link>
+          <Link to="/docs/cli/commands" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → CLI Reference: All commands in detail
           </Link>
         </div>
       </section>

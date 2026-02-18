@@ -1,115 +1,137 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Layers, Zap, Shield, FileCode, Settings } from 'lucide-react'
+import { Layout, Zap, Shield, Layers, Plug, Settings, ArrowRight, AlertCircle } from 'lucide-react'
 
 export function ControllersOverview() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const boxClass = `p-6 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4">
-          <Layers className="w-4 h-4" />
-          Core / Controllers
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center">
+            <Layout className="w-5 h-5 text-aquilia-400" />
+          </div>
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Controllers</h1>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>aquilia.controller — Class-based request handlers</p>
+          </div>
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Controllers
-        </h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Controllers are class-based request handlers that map HTTP methods to Python methods using decorators. They support constructor dependency injection, pipelines, lifecycle hooks, template rendering, and OpenAPI generation.
+
+        <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Controllers are the primary request handling abstraction in Aquilia. Unlike function-based
+          route handlers, Aquilia controllers are <strong>classes</strong> with constructor-based DI injection,
+          lifecycle hooks, class-level pipeline configuration, and OpenAPI metadata.
         </p>
       </div>
 
       {/* Controller class */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>The Controller Base Class</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Every controller extends the <code className="text-aquilia-500">Controller</code> base class from <code className="text-aquilia-500">aquilia</code>. The base class provides:
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Settings className="w-5 h-5 text-aquilia-400" />
+          The Controller Base Class
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          All controllers extend <code>aquilia.controller.Controller</code>. The base class provides:
         </p>
-        <ul className={`space-y-2 mb-6 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-          <li className="flex gap-2"><span className="text-aquilia-500">•</span><strong>prefix</strong> — URL prefix for all routes in this controller</li>
-          <li className="flex gap-2"><span className="text-aquilia-500">•</span><strong>pipeline</strong> — Class-level pipeline nodes applied to all methods</li>
-          <li className="flex gap-2"><span className="text-aquilia-500">•</span><strong>tags</strong> — OpenAPI tags for documentation</li>
-          <li className="flex gap-2"><span className="text-aquilia-500">•</span><strong>instantiation_mode</strong> — <code>"per_request"</code> (default) or <code>"singleton"</code></li>
-        </ul>
 
-        <CodeBlock language="python" filename="controller.py">{`from aquilia import Controller, Get, Post, Put, Delete, Inject
+        <CodeBlock
+          code={`from aquilia import Controller, GET, POST, PUT, DELETE, RequestCtx, Response
 
+class ProductsController(Controller):
+    # ── Class-level configuration ─────────────────────────────
+    prefix = "/api/products"           # URL prefix for all routes
+    pipeline = []                       # Pipeline nodes (guards, transforms)
+    tags = ["Products"]                 # OpenAPI tags
+    instantiation_mode = "per_request"  # "per_request" or "singleton"
 
-class UserController(Controller):
-    """Handles all user-related HTTP endpoints."""
+    # ── Constructor DI injection ──────────────────────────────
+    def __init__(self, product_repo: ProductRepository, cache: CacheService):
+        """Dependencies are injected by the DI container."""
+        self.repo = product_repo
+        self.cache = cache
 
-    prefix = "/api/users"
-    tags = ["Users"]
-    pipeline = []  # Optional: class-level middleware
-    instantiation_mode = "per_request"  # New instance per request
+    # ── Lifecycle hooks ───────────────────────────────────────
+    async def on_startup(self, ctx: RequestCtx) -> None:
+        """Called at server startup (singleton mode only)."""
+        pass
 
-    @Inject()
-    def __init__(self, user_service: UserService, auth: AuthService):
-        self.user_service = user_service
-        self.auth = auth
+    async def on_shutdown(self, ctx: RequestCtx) -> None:
+        """Called at server shutdown (singleton mode only)."""
+        pass
 
-    @Get("/")
-    async def list_users(self, ctx):
-        """List all users."""
-        users = await self.user_service.list_all()
-        return ctx.json({"users": [u.to_dict() for u in users]})
+    async def on_request(self, ctx: RequestCtx) -> None:
+        """Called before each request (both modes)."""
+        pass
 
-    @Get("/{user_id:int}")
-    async def get_user(self, ctx, user_id: int):
-        """Get a single user by ID."""
-        user = await self.user_service.get(user_id)
-        return ctx.json({"user": user.to_dict()})
+    async def on_response(self, ctx: RequestCtx, response: Response) -> Response:
+        """Called after each request (both modes). Can modify the response."""
+        return response
 
-    @Post("/")
-    async def create_user(self, ctx):
-        """Create a new user."""
-        body = await ctx.json()
-        user = await self.user_service.create(body)
-        return ctx.json({"user": user.to_dict()}, status=201)
+    # ── Route handlers ────────────────────────────────────────
+    @GET("/")
+    async def list_products(self, ctx: RequestCtx) -> Response:
+        products = await self.repo.list_all()
+        return Response.json({"products": products})
 
-    @Put("/{user_id:int}")
-    async def update_user(self, ctx, user_id: int):
-        """Update a user."""
-        body = await ctx.json()
-        user = await self.user_service.update(user_id, body)
-        return ctx.json({"user": user.to_dict()})
+    @GET("/«id:int»")
+    async def get_product(self, ctx: RequestCtx, id: int) -> Response:
+        product = await self.repo.get(id)
+        return Response.json(product)
 
-    @Delete("/{user_id:int}")
-    async def delete_user(self, ctx, user_id: int):
-        """Delete a user."""
-        await self.user_service.delete(user_id)
-        return ctx.json({"deleted": True}, status=204)`}</CodeBlock>
+    @POST("/")
+    async def create_product(self, ctx: RequestCtx) -> Response:
+        data = await ctx.json()
+        product = await self.repo.create(data)
+        return Response.json(product, status=201)
+
+    @PUT("/«id:int»")
+    async def update_product(self, ctx: RequestCtx, id: int) -> Response:
+        data = await ctx.json()
+        product = await self.repo.update(id, data)
+        return Response.json(product)
+
+    @DELETE("/«id:int»")
+    async def delete_product(self, ctx: RequestCtx, id: int) -> Response:
+        await self.repo.delete(id)
+        return Response.json({"deleted": True})`}
+          language="python"
+        />
       </section>
 
-      {/* Class Attributes Reference */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Class Attributes Reference</h2>
-        <div className={`overflow-hidden rounded-xl border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+      {/* Class attributes */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Layers className="w-5 h-5 text-aquilia-400" />
+          Class Attributes
+        </h2>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <table className="w-full text-sm">
             <thead>
-              <tr className={isDark ? 'bg-zinc-900' : 'bg-gray-50'}>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Attribute</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Default</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Description</th>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Attribute</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Default</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Description</th>
               </tr>
             </thead>
-            <tbody className={isDark ? 'divide-y divide-white/5' : 'divide-y divide-gray-100'}>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
               {[
-                { attr: 'prefix', type: 'str', def: '""', desc: 'URL prefix prepended to all routes (e.g., "/api/users")' },
-                { attr: 'pipeline', type: 'List[Any]', def: '[]', desc: 'Pipeline nodes (guards, interceptors) applied to all methods' },
-                { attr: 'tags', type: 'List[str]', def: '[]', desc: 'OpenAPI tags for grouping endpoints in documentation' },
-                { attr: 'instantiation_mode', type: 'str', def: '"per_request"', desc: '"per_request" creates a new instance per request; "singleton" reuses one instance' },
-              ].map((row, i) => (
-                <tr key={i} className={isDark ? 'bg-[#0A0A0A]' : 'bg-white'}>
-                  <td className="py-3 px-4"><code className="text-aquilia-500 font-mono text-xs">{row.attr}</code></td>
-                  <td className={`py-3 px-4 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.type}</td>
-                  <td className={`py-3 px-4 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.def}</td>
-                  <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.desc}</td>
+                ['prefix', 'str', '""', 'URL prefix for all routes in this controller (e.g., "/users")'],
+                ['pipeline', 'List[FlowNode]', '[]', 'Class-level pipeline nodes applied to all methods'],
+                ['tags', 'List[str]', '[]', 'OpenAPI tags for all routes in this controller'],
+                ['instantiation_mode', 'str', '"per_request"', '"per_request" (new instance per request) or "singleton" (shared instance)'],
+              ].map(([attr, type, def_, desc], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{attr}</td>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{type}</td>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{def_}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{desc}</td>
                 </tr>
               ))}
             </tbody>
@@ -117,164 +139,241 @@ class UserController(Controller):
         </div>
       </section>
 
-      {/* Lifecycle Hooks */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Lifecycle Hooks</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Controllers can override lifecycle hooks to perform setup/teardown or per-request logic:
+      {/* Template rendering */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          Template Rendering
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The base <code>Controller</code> provides a <code>render()</code> convenience method that
+          delegates to <code>Response.render()</code> with automatic template engine and context injection:
         </p>
-        <div className="space-y-4 mb-6">
-          {[
-            { name: 'on_startup(ctx)', desc: 'Called once at app startup. Only for singleton controllers. Use for initializing connections, caches, etc.' },
-            { name: 'on_shutdown(ctx)', desc: 'Called once at app shutdown. Only for singleton controllers. Use for cleanup.' },
-            { name: 'on_request(ctx)', desc: 'Called before every request. Use for per-request validation, logging, or setup.' },
-            { name: 'on_response(ctx, response)', desc: 'Called after every request. Can modify the response before it is sent.' },
-          ].map((hook, i) => (
-            <div key={i} className={boxClass}>
-              <code className="text-aquilia-500 font-mono text-sm font-bold">{hook.name}</code>
-              <p className={`text-sm mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{hook.desc}</p>
-            </div>
-          ))}
-        </div>
-        <CodeBlock language="python" filename="Example: Lifecycle Hooks">{`class MetricsController(Controller):
-    prefix = "/api/metrics"
-    instantiation_mode = "singleton"
 
-    @Inject()
-    def __init__(self, metrics: MetricsService):
-        self.metrics = metrics
+        <CodeBlock
+          code={`class PagesController(Controller):
+    prefix = "/pages"
 
-    async def on_startup(self, ctx):
-        """Initialize metrics collectors on app start."""
-        await self.metrics.init_collectors()
-        print("MetricsController ready")
-
-    async def on_shutdown(self, ctx):
-        """Flush remaining metrics on shutdown."""
-        await self.metrics.flush()
-
-    async def on_request(self, ctx):
-        """Log every incoming request."""
-        self.metrics.increment("requests_total")
-
-    async def on_response(self, ctx, response):
-        """Add timing header to every response."""
-        response.headers["X-Response-Time"] = str(self.metrics.elapsed())
-        return response
-
-    @Get("/health")
-    async def health(self, ctx):
-        return ctx.json({"status": "ok"})`}</CodeBlock>
-      </section>
-
-      {/* Template Rendering */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Template Rendering</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Controllers have a built-in <code className="text-aquilia-500">render()</code> method for returning HTML responses using Jinja2 templates:
-        </p>
-        <CodeBlock language="python" filename="Template Controller">{`class PageController(Controller):
-    prefix = ""
-
-    @Inject()
-    def __init__(self, templates: TemplateEngine, products: ProductService):
+    def __init__(self, templates: TemplateEngine):
         self.templates = templates
-        self.products = products
 
-    @Get("/")
-    async def home(self, ctx):
-        """Render the home page."""
-        products = await self.products.featured()
-        return await self.render("home.html", {
-            "title": "Welcome",
-            "products": products,
-        }, ctx)
+    @GET("/home")
+    async def home(self, ctx: RequestCtx) -> Response:
+        # render() auto-injects request/session/identity from ctx
+        return await self.render(
+            "pages/home.html",
+            {"title": "Home", "featured": await self.get_featured()},
+            ctx,                    # Passes request context to template
+            status=200,             # HTTP status code
+            headers={"X-Page": "home"},  # Additional headers
+        )`}
+          language="python"
+        />
 
-    @Get("/about")
-    async def about(self, ctx):
-        return await self.render("about.html", {"title": "About Us"}, ctx)`}</CodeBlock>
-        <p className={`mt-4 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-          The <code className="text-aquilia-500">render()</code> method automatically injects the request, session, and identity into the template context.
+        <p className={`mt-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The template engine is resolved from: (1) the <code>engine</code> parameter,
+          (2) <code>self._template_engine</code>, or (3) <code>self.templates</code> (constructor-injected).
         </p>
       </section>
 
-      {/* Architecture Diagram */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Controller Architecture</h2>
-        <div className={boxClass}>
-          <svg viewBox="0 0 700 300" className="w-full" fill="none">
-            <defs>
-              <marker id="ctrl-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-                <polygon points="0 0,8 3,0 6" className="fill-aquilia-500/50" />
-              </marker>
-            </defs>
-            {/* Compiler */}
-            <rect x="20" y="20" width="180" height="50" rx="10" className="fill-aquilia-500/10 stroke-aquilia-500/30" strokeWidth="1.5">
-              <animate attributeName="stroke-opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite" />
-            </rect>
-            <text x="110" y="50" textAnchor="middle" className="fill-aquilia-500 text-xs font-bold">ControllerCompiler</text>
+      {/* Instantiation modes */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Plug className="w-5 h-5 text-aquilia-400" />
+          Instantiation Modes
+        </h2>
 
-            <line x1="200" y1="45" x2="240" y2="45" stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#ctrl-arrow)" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+            <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>per_request <span className="text-xs font-normal text-gray-500">(default)</span></h3>
+            <ul className={`text-sm space-y-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <li>• New instance created for each HTTP request</li>
+              <li>• Constructor runs every time (DI injection per request)</li>
+              <li>• Instance is garbage-collected after response</li>
+              <li>• <code>on_request</code> and <code>on_response</code> hooks work</li>
+              <li>• <code>on_startup</code>/<code>on_shutdown</code> are <strong>not called</strong></li>
+              <li>• Supports <code>__aenter__</code>/<code>__aexit__</code> context manager</li>
+            </ul>
+          </div>
 
-            {/* Router */}
-            <rect x="245" y="20" width="180" height="50" rx="10" className="fill-aquilia-500/10 stroke-aquilia-500/30" strokeWidth="1.5" />
-            <text x="335" y="50" textAnchor="middle" className="fill-aquilia-500 text-xs font-bold">ControllerRouter</text>
-
-            <line x1="425" y1="45" x2="465" y2="45" stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#ctrl-arrow)" />
-
-            {/* Engine */}
-            <rect x="470" y="20" width="180" height="50" rx="10" className="fill-aquilia-500/10 stroke-aquilia-500/30" strokeWidth="1.5" />
-            <text x="560" y="50" textAnchor="middle" className="fill-aquilia-500 text-xs font-bold">ControllerEngine</text>
-
-            {/* Factory */}
-            <line x1="560" y1="70" x2="560" y2="110" stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#ctrl-arrow)" />
-            <rect x="470" y="115" width="180" height="50" rx="10" className={`${isDark ? 'fill-zinc-900 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="560" y="145" textAnchor="middle" className={`text-xs font-bold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>ControllerFactory</text>
-
-            {/* Controller Instance */}
-            <line x1="560" y1="165" x2="560" y2="205" stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#ctrl-arrow)" />
-            <rect x="420" y="210" width="280" height="70" rx="10" className={`${isDark ? 'fill-zinc-900 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="560" y="240" textAnchor="middle" className={`text-xs font-bold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>Controller Instance</text>
-            <text x="560" y="260" textAnchor="middle" className={`text-[9px] ${isDark ? 'fill-gray-500' : 'fill-gray-400'}`}>@Get, @Post, @Put, @Delete handlers</text>
-
-            {/* RequestCtx */}
-            <rect x="20" y="120" width="160" height="50" rx="10" className={`${isDark ? 'fill-zinc-900 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="100" y="150" textAnchor="middle" className={`text-xs font-bold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>RequestCtx</text>
-
-            <line x1="180" y1="145" x2="465" y2="240" stroke="#22c55e" strokeOpacity="0.2" strokeWidth="1" strokeDasharray="4 4" markerEnd="url(#ctrl-arrow)" />
-
-            {/* DI Container */}
-            <rect x="20" y="210" width="160" height="50" rx="10" className={`${isDark ? 'fill-zinc-900 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-            <text x="100" y="240" textAnchor="middle" className={`text-xs font-bold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>DI Container</text>
-
-            <line x1="180" y1="235" x2="465" y2="235" stroke="#22c55e" strokeOpacity="0.2" strokeWidth="1" strokeDasharray="4 4" markerEnd="url(#ctrl-arrow)" />
-
-            {/* Annotations */}
-            <text x="210" y="125" className={`text-[9px] ${isDark ? 'fill-gray-600' : 'fill-gray-400'}`}>compile-time</text>
-            <text x="465" y="95" className={`text-[9px] ${isDark ? 'fill-gray-600' : 'fill-gray-400'}`}>runtime</text>
-          </svg>
+          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+            <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>singleton</h3>
+            <ul className={`text-sm space-y-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <li>• Single instance shared across all requests</li>
+              <li>• Constructor runs once at startup</li>
+              <li>• Instance lives for the server's lifetime</li>
+              <li>• All lifecycle hooks work</li>
+              <li>• Use for stateful controllers (connection pools, caches)</li>
+              <li>• <strong>Thread safety is your responsibility</strong></li>
+            </ul>
+          </div>
         </div>
       </section>
 
-      {/* Sub-Pages */}
-      <section>
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Deep Dives</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[
-            { icon: <FileCode />, title: 'Decorators', desc: 'GET, POST, PUT, DELETE, WS and route metadata', to: '/docs/controllers/decorators' },
-            { icon: <Zap />, title: 'RequestCtx', desc: 'The context object passed to every handler', to: '/docs/controllers/request-ctx' },
-            { icon: <Settings />, title: 'Factory', desc: 'How controllers are instantiated and managed', to: '/docs/controllers/factory' },
-            { icon: <Shield />, title: 'Engine', desc: 'Runtime dispatch and route matching', to: '/docs/controllers/engine' },
-          ].map((item, i) => (
-            <Link key={i} to={item.to} className={`group p-5 rounded-xl border transition-all hover:-translate-y-0.5 ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/30' : 'bg-white border-gray-200 hover:border-aquilia-500/30'}`}>
-              <div className="text-aquilia-500 mb-2 w-5 h-5">{item.icon}</div>
-              <h3 className={`font-bold text-sm mb-1 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {item.title}
-                <ArrowRight className="w-3 h-3 text-aquilia-500 opacity-0 group-hover:opacity-100 transition" />
-              </h3>
-              <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{item.desc}</p>
-            </Link>
-          ))}
+      {/* Pipeline */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Shield className="w-5 h-5 text-aquilia-400" />
+          Pipeline System
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Pipelines are chains of <code>FlowNode</code> objects that run before the handler method.
+          They can be set at the class level (applies to all routes) or at the method level
+          (per-route override via the <code>pipeline</code> decorator parameter):
+        </p>
+
+        <CodeBlock
+          code={`from aquilia.flow import FlowNode, FlowNodeType
+
+# Guard: blocks requests that don't pass validation
+def auth_guard():
+    async def guard(request, ctx, next_handler):
+        if not ctx.identity:
+            return Response.json({"error": "Unauthorized"}, status=401)
+        return await next_handler(request, ctx)
+    return FlowNode(
+        type=FlowNodeType.GUARD,
+        callable=guard,
+        name="auth_guard",
+    )
+
+# Transform: modifies the request/context before the handler
+def json_body_parser():
+    async def transform(request, ctx, next_handler):
+        if request.content_type == "application/json":
+            ctx.state["parsed_body"] = await request.json()
+        return await next_handler(request, ctx)
+    return FlowNode(
+        type=FlowNodeType.TRANSFORM,
+        callable=transform,
+        name="json_parser",
+    )
+
+
+class AdminController(Controller):
+    prefix = "/admin"
+    pipeline = [auth_guard()]  # Applied to ALL routes
+
+    @GET("/dashboard")
+    async def dashboard(self, ctx: RequestCtx) -> Response:
+        return Response.json({"admin": True})
+
+    @POST("/settings", pipeline=[json_body_parser()])  # Additional pipeline
+    async def update_settings(self, ctx: RequestCtx) -> Response:
+        body = ctx.state.get("parsed_body", {})
+        return Response.json({"updated": body})`}
+          language="python"
+        />
+
+        <p className={`mt-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Pipeline nodes have four types: <code>GUARD</code> (can reject), <code>TRANSFORM</code> (modifies context),
+          <code>HANDLER</code> (replaces the handler), and <code>HOOK</code> (side effects). Each node has a
+          <code>priority</code> (default: 50) that determines execution order within the same type.
+        </p>
+      </section>
+
+      {/* Context manager */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <ArrowRight className="w-5 h-5 text-aquilia-400" />
+          Per-Request Lifecycle
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          In <code>per_request</code> mode, the controller supports async context manager protocol.
+          The <code>ControllerFactory</code> uses <code>async with controller:</code> to ensure cleanup:
+        </p>
+
+        <CodeBlock
+          code={`class TransactionalController(Controller):
+    prefix = "/orders"
+
+    def __init__(self, db: Database):
+        self.db = db
+        self.conn = None
+
+    async def __aenter__(self):
+        """Acquire a DB connection at request start."""
+        self.conn = await self.db.acquire()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Release the connection at request end."""
+        if self.conn:
+            if exc_type:
+                await self.conn.rollback()
+            else:
+                await self.conn.commit()
+            await self.db.release(self.conn)
+
+    @POST("/")
+    async def create_order(self, ctx: RequestCtx) -> Response:
+        data = await ctx.json()
+        # self.conn is guaranteed to be available
+        order = await self.conn.execute(
+            "INSERT INTO orders ...", data
+        )
+        return Response.json(order, status=201)`}
+          language="python"
+        />
+      </section>
+
+      {/* Error handling */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <AlertCircle className="w-5 h-5 text-aquilia-400" />
+          Error Handling
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Exceptions thrown in controller methods are caught by the <code>ExceptionMiddleware</code>
+          and converted to appropriate HTTP responses. You can also raise specific faults:
+        </p>
+
+        <CodeBlock
+          code={`from aquilia.faults import Fault, FaultDomain, Severity
+
+@GET("/«id:int»")
+async def get_user(self, ctx: RequestCtx, id: int) -> Response:
+    user = await self.repo.get(id)
+    if not user:
+        # Option 1: Return a Response directly
+        return Response.json({"error": "Not found"}, status=404)
+
+    # Option 2: Raise a Fault (caught by FaultMiddleware)
+    # raise Fault(
+    #     domain=FaultDomain.MODEL,
+    #     message=f"User {id} not found",
+    #     severity=Severity.WARNING,
+    #     status=404,
+    # )
+
+    return Response.json(user)`}
+          language="python"
+        />
+      </section>
+
+      {/* Next */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>In This Section</h2>
+        <div className="flex flex-col gap-2">
+          <Link to="/docs/controllers/decorators" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → Route Decorators: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, WS and all parameters
+          </Link>
+          <Link to="/docs/controllers/request-ctx" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → RequestCtx: The request context object and its properties
+          </Link>
+          <Link to="/docs/controllers/factory" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → ControllerFactory: How controllers are instantiated with DI
+          </Link>
+          <Link to="/docs/controllers/engine" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → ControllerEngine: Route dispatch and pipeline execution
+          </Link>
+          <Link to="/docs/controllers/compiler" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → ControllerCompiler: How decorator metadata is compiled into routes
+          </Link>
         </div>
       </section>
     </div>

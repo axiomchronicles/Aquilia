@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
-import { Cpu } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Cpu, Layers, Zap, Shield, ArrowRight, AlertCircle, Filter, Code } from 'lucide-react'
 
 export function ControllersEngine() {
   const { theme } = useTheme()
@@ -8,101 +9,386 @@ export function ControllersEngine() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4"><Cpu className="w-4 h-4" />Controllers</div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Controller Engine</h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The <code className="text-aquilia-500">ControllerEngine</code> is the runtime dispatcher that receives incoming HTTP requests, matches them against the compiled route tree, and invokes the appropriate controller handler.
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center">
+            <Cpu className="w-5 h-5 text-aquilia-400" />
+          </div>
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>ControllerEngine</h1>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>aquilia.controller.engine — Route dispatch and execution</p>
+          </div>
+        </div>
+
+        <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>ControllerEngine</code> is the central execution component that ties together
+          controller instantiation (via <code>ControllerFactory</code>), pipeline execution,
+          parameter binding, serialization, filtering/pagination, content negotiation,
+          lifecycle hooks, and fault handling.
         </p>
       </div>
 
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Request Dispatch Flow</h2>
-        <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
-          <svg viewBox="0 0 700 260" className="w-full" fill="none">
-            <defs><marker id="eng-a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" className="fill-aquilia-500/50" /></marker></defs>
-            {/* Step boxes */}
-            {[
-              { x: 10, y: 20, label: '1. Receive', sub: 'ASGI scope' },
-              { x: 160, y: 20, label: '2. Match', sub: 'radix tree lookup' },
-              { x: 310, y: 20, label: '3. Extract', sub: 'path params' },
-              { x: 460, y: 20, label: '4. Pipeline', sub: 'guards/interceptors' },
-            ].map((b, i) => (
-              <g key={i}>
-                <rect x={b.x} y={b.y} width="135" height="55" rx="10" className="fill-aquilia-500/10 stroke-aquilia-500/30" strokeWidth="1.5" />
-                <text x={b.x+67} y={b.y+24} textAnchor="middle" className="fill-aquilia-500 text-[11px] font-bold">{b.label}</text>
-                <text x={b.x+67} y={b.y+42} textAnchor="middle" className={`text-[9px] ${isDark ? 'fill-gray-500' : 'fill-gray-400'}`}>{b.sub}</text>
-                {i < 3 && <line x1={b.x+140} y1={b.y+28} x2={b.x+155} y2={b.y+28} stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#eng-a)" />}
-              </g>
-            ))}
-            {/* Arrow down */}
-            <line x1="527" y1="75" x2="527" y2="100" stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#eng-a)" />
-            {[
-              { x: 460, y: 105, label: '5. Instantiate', sub: 'factory creates ctrl' },
-              { x: 310, y: 105, label: '6. Build Ctx', sub: 'RequestCtx' },
-              { x: 160, y: 105, label: '7. Invoke', sub: 'handler method' },
-              { x: 10, y: 105, label: '8. Response', sub: 'send back' },
-            ].map((b, i) => (
-              <g key={i}>
-                <rect x={b.x} y={b.y} width="135" height="55" rx="10" className={`${isDark ? 'fill-zinc-900 stroke-zinc-700' : 'fill-gray-50 stroke-gray-300'}`} strokeWidth="1.5" />
-                <text x={b.x+67} y={b.y+24} textAnchor="middle" className={`text-[11px] font-bold ${isDark ? 'fill-gray-300' : 'fill-gray-700'}`}>{b.label}</text>
-                <text x={b.x+67} y={b.y+42} textAnchor="middle" className={`text-[9px] ${isDark ? 'fill-gray-500' : 'fill-gray-400'}`}>{b.sub}</text>
-                {i < 3 && <line x1={b.x-5} y1={b.y+28} x2={b.x+(-15)} y2={b.y+28} stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#eng-a)" transform="rotate(180)" />}
-              </g>
-            ))}
-            <line x1="455" y1="133" x2="450" y2="133" stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#eng-a)" />
-            <line x1="305" y1="133" x2="300" y2="133" stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#eng-a)" />
-            <line x1="155" y1="133" x2="150" y2="133" stroke="#22c55e" strokeOpacity="0.4" strokeWidth="1.5" markerEnd="url(#eng-a)" />
+      {/* Class definition */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Code className="w-5 h-5 text-aquilia-400" />
+          Class Definition
+        </h2>
 
-            <text x="350" y="200" textAnchor="middle" className={`text-[10px] ${isDark ? 'fill-gray-600' : 'fill-gray-400'}`}>The Engine handles the entire request lifecycle from ASGI scope to response bytes.</text>
-            <text x="350" y="218" textAnchor="middle" className={`text-[10px] ${isDark ? 'fill-gray-600' : 'fill-gray-400'}`}>If no route matches, a 404 response is returned. Exceptions trigger the fault system.</text>
-          </svg>
+        <CodeBlock
+          code={`class ControllerEngine:
+    # Class-level caches shared across instances
+    _signature_cache: Dict[Any, inspect.Signature] = {}
+    _pipeline_param_cache: Dict[int, set] = {}  # id(callable) -> param names
+    _has_lifecycle_hooks: Dict[type, tuple] = {} # class -> (has_on_request, has_on_response)
+    _simple_route_cache: Dict[int, bool] = {}    # id(route) -> is_simple
+    _is_coro_cache: Dict[int, bool] = {}         # id(func) -> is_coroutine
+
+    def __init__(
+        self,
+        factory: ControllerFactory,
+        enable_lifecycle: bool = True,
+        fault_engine: Optional[Any] = None,
+    ):
+        self.factory = factory
+        self.enable_lifecycle = enable_lifecycle
+        self.fault_engine = fault_engine`}
+          language="python"
+        />
+      </section>
+
+      {/* execute() method */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          execute() — The Main Entry Point
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>execute()</code> method is called by the <code>ASGIAdapter</code> after the
+          router matches a request to a <code>CompiledRoute</code>. It orchestrates the full
+          request execution pipeline:
+        </p>
+
+        <CodeBlock
+          code={`async def execute(
+    self,
+    route: CompiledRoute,
+    request: Request,
+    path_params: Dict[str, Any],
+    container: Container,
+) -> Response:`}
+          language="python"
+        />
+
+        <div className={`space-y-3 mt-4`}>
+          {[
+            { step: '1', title: 'Fast Path Check', desc: 'If the route has a monkeypatched handler (e.g., OpenAPI doc routes), it\'s called directly without any DI or lifecycle.' },
+            { step: '2', title: 'Build RequestCtx', desc: 'Constructs a RequestCtx inline from request.state (identity, session) and the DI container.' },
+            { step: '3', title: 'Singleton Lifecycle Init', desc: 'For singleton controllers, calls on_startup exactly once (tracked via _lifecycle_initialized set).' },
+            { step: '4', title: 'Instantiate Controller', desc: 'Uses ControllerFactory.create() with DI resolution.' },
+            { step: '5', title: 'Execute Class Pipeline', desc: 'Runs class-level pipeline nodes (guards, transforms). If a guard returns a Response, execution stops.' },
+            { step: '6', title: 'Execute Method Pipeline', desc: 'Runs method-level pipeline nodes (from decorator\'s pipeline parameter).' },
+            { step: '7', title: 'Simple Route Fast Path', desc: 'If the route has no serializers, blueprints, filters, or complex params, the handler is called directly (skipping _bind_parameters).' },
+            { step: '8', title: 'Bind Parameters', desc: 'For complex routes: resolves path params, query params, body (JSON/form), serializer injection, blueprint injection, and DI params.' },
+            { step: '9', title: 'Execute Handler', desc: 'Calls the controller method with ctx + bound parameters.' },
+            { step: '10', title: 'Post-processing', desc: 'Applies filters/pagination, response serializer, response blueprint, and content negotiation.' },
+            { step: '11', title: 'Lifecycle Hooks', desc: 'Calls on_request before and on_response after (only if overridden — checked via MRO cache).' },
+            { step: '12', title: 'Fault Handling', desc: 'On exception, reports to FaultEngine (if configured) then re-raises for middleware to handle.' },
+          ].map(({ step, title, desc }) => (
+            <div key={step} className={`rounded-xl border p-4 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-aquilia-500/20 text-aquilia-400 flex items-center justify-center text-xs font-bold">{step}</span>
+                <div>
+                  <h4 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h4>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{desc}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Route Matching</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The engine uses a radix tree (compiled at startup by the ControllerCompiler) for O(log n) route matching. It supports:
-        </p>
-        <ul className={`space-y-2 mb-6 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-          <li className="flex gap-2"><span className="text-aquilia-500">•</span>Static segments: <code className="text-aquilia-500">/users/list</code></li>
-          <li className="flex gap-2"><span className="text-aquilia-500">•</span>Dynamic segments: <code className="text-aquilia-500">{'/users/{id:int}'}</code></li>
-          <li className="flex gap-2"><span className="text-aquilia-500">•</span>Catch-all segments: <code className="text-aquilia-500">{'/files/{path:path}'}</code></li>
-          <li className="flex gap-2"><span className="text-aquilia-500">•</span>Method-based matching: different handlers for GET vs POST on the same path</li>
-        </ul>
-        <CodeBlock language="python" filename="Route Matching Examples">{`# These routes are compiled into a radix tree:
-#   /api/users          → UserController.list_users (GET)
-#   /api/users          → UserController.create_user (POST)
-#   /api/users/{id:int} → UserController.get_user (GET)
-#   /api/users/{id:int} → UserController.update_user (PUT)
-#   /api/users/{id:int} → UserController.delete_user (DELETE)
+      {/* Simple route detection */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          Simple Route Fast Path
+        </h2>
 
-# At runtime, GET /api/users/42 resolves to:
-#   handler: UserController.get_user
-#   path_params: {"id": 42}  (already parsed as int)`}</CodeBlock>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The engine classifies routes as "simple" when they have no serializers, blueprints,
+          filters, pagination, renderers, or complex parameters. Simple routes skip the full
+          <code>_bind_parameters</code> machinery for faster execution:
+        </p>
+
+        <CodeBlock
+          code={`# Route is classified as "simple" when:
+is_simple = (
+    not route.controller_metadata.pipeline    # No class pipeline
+    and not route_metadata.pipeline           # No method pipeline
+    and not has_serializer                    # No request/response serializer
+    and not has_blueprint                     # No request/response blueprint
+    and not has_filters_or_pagination         # No filterset/search/ordering/pagination
+    and (not params or all(                   # Only ctx and path params
+        p.name == 'ctx' or p.source == 'path'
+        for p in params
+    ))
+)
+
+# Simple routes get a direct call:
+if is_simple:
+    if path_params:
+        result = await handler_method(ctx, **path_params)
+    else:
+        result = await handler_method(ctx)
+    return self._to_response(result)`}
+          language="python"
+        />
       </section>
 
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Error Handling</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          When a handler raises an exception, the Engine catches it and delegates to the Fault system:
-        </p>
-        <CodeBlock language="python" filename="Engine Error Flow">{`# If a handler raises an exception:
-#   1. The Engine catches it
-#   2. It wraps it in an AquiliaFault with the appropriate domain
-#   3. The ExceptionMiddleware formats it into a proper HTTP response
-#   4. In debug mode, a rich error page is shown
-#   5. In production, a sanitized JSON/HTML error response is sent
+      {/* Parameter binding */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Layers className="w-5 h-5 text-aquilia-400" />
+          Parameter Binding
+        </h2>
 
-# Handlers can also return error responses directly:
-@Get("/{id:int}")
-async def get(self, ctx, id: int):
-    try:
-        item = await self.service.get(id)
-        return ctx.json({"item": item.to_dict()})
-    except NotFoundError:
-        return ctx.json({"error": "Not found"}, status=404)`}</CodeBlock>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>_bind_parameters()</code> method resolves handler arguments from multiple
+          sources based on their <code>ParameterMetadata.source</code>:
+        </p>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Source</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Resolution</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+              {[
+                ['path', 'From URL path parameters (e.g., id from /users/«id:int»)'],
+                ['query', 'From URL query string (?key=value), auto-cast to annotation type'],
+                ['body', 'From JSON/form request body, extracted by field name'],
+                ['di', 'From DI container — special handling for Session and Identity types'],
+                ['(Serializer type)', 'Auto-parsed: creates serializer with data=body, calls is_valid(raise_fault=True)'],
+                ['(Blueprint type)', 'Auto-parsed: creates blueprint with data=body, calls is_sealed(raise_fault=True)'],
+              ].map(([source, resolution], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{source}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{resolution}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h3 className={`text-lg font-semibold mt-6 mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Serializer Injection</h3>
+
+        <CodeBlock
+          code={`# When a parameter is typed as a Serializer subclass:
+@POST("/")
+async def create(self, ctx: RequestCtx, data: CreateUserSerializer):
+    # 'data' receives serializer.validated_data (dict)
+    ...
+
+# To get the full serializer instance, name it with _serializer suffix:
+@POST("/")
+async def create(self, ctx: RequestCtx, user_serializer: CreateUserSerializer):
+    # user_serializer is the full Serializer instance
+    user_serializer.save()
+    ...`}
+          language="python"
+        />
+
+        <h3 className={`text-lg font-semibold mt-6 mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Blueprint Injection</h3>
+
+        <CodeBlock
+          code={`# When a parameter is typed as a Blueprint subclass:
+@POST("/")
+async def create(self, ctx: RequestCtx, data: UserBlueprint):
+    # 'data' receives blueprint.validated_data
+
+# For ProjectedRef (Blueprint["projection"]):
+@PATCH("/«id:int»", request_blueprint=UserBlueprint["partial"])
+async def update(self, ctx: RequestCtx, id: int) -> Response:
+    body = await ctx.json()
+    # Body is auto-validated through UserBlueprint with "partial" projection
+    ...
+
+# Name with _blueprint or _bp suffix to get the full instance:
+@POST("/")
+async def create(self, ctx: RequestCtx, user_blueprint: UserBlueprint):
+    # user_blueprint is the full Blueprint instance
+    ...`}
+          language="python"
+        />
+      </section>
+
+      {/* Post-processing pipeline */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Filter className="w-5 h-5 text-aquilia-400" />
+          Post-Processing Pipeline
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          After the handler returns, the engine applies a post-processing pipeline
+          (only for non-simple routes):
+        </p>
+
+        <CodeBlock
+          code={`# After handler execution:
+result = await handler_method(ctx, **kwargs)
+
+# 1. Filters & Pagination (if configured on the decorator)
+result = await self._apply_filters_and_pagination(result, route_metadata, request)
+
+# 2. Response Serializer (auto-serializes if response_serializer is set)
+result = self._apply_response_serializer(result, route_metadata, ctx)
+
+# 3. Response Blueprint (auto-molds if response_blueprint is set)
+result = self._apply_response_blueprint(result, route_metadata, ctx)
+
+# 4. Content Negotiation (if renderer_classes is set)
+response = self._apply_content_negotiation(result, route_metadata, request)
+if response is None:
+    response = self._to_response(result)
+
+# 5. Lifecycle hook
+if has_on_response:
+    await controller.on_response(ctx, response)`}
+          language="python"
+        />
+      </section>
+
+      {/* Pipeline execution */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Shield className="w-5 h-5 text-aquilia-400" />
+          Pipeline Node Execution
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Pipeline nodes are called with intelligent parameter injection — the engine inspects
+          each node's signature (cached by <code>id(callable)</code>) and passes only the
+          parameters it declares:
+        </p>
+
+        <CodeBlock
+          code={`async def _execute_pipeline_node(self, pipeline_node, request, ctx, controller):
+    # Cached signature inspection (by id of callable)
+    param_names = self._pipeline_param_cache.get(id(pipeline_node))
+    if param_names is None:
+        sig = inspect.signature(pipeline_node)
+        param_names = set(sig.parameters.keys())
+        self._pipeline_param_cache[id(pipeline_node)] = param_names
+
+    kwargs = {}
+    if "request" in param_names or "req" in param_names:
+        kwargs["request" if "request" in param_names else "req"] = request
+    if "ctx" in param_names or "context" in param_names:
+        kwargs["ctx" if "ctx" in param_names else "context"] = ctx
+    if "controller" in param_names:
+        kwargs["controller"] = controller
+
+    result = await self._safe_call(pipeline_node, **kwargs)
+
+    # False → 403, Response → return it, anything else → continue
+    if result is False:
+        return Response.json({"error": "Pipeline guard failed"}, status=403)
+    elif isinstance(result, Response):
+        return result
+    return None`}
+          language="python"
+        />
+      </section>
+
+      {/* _to_response conversion */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <ArrowRight className="w-5 h-5 text-aquilia-400" />
+          Return Value Conversion
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>_to_response()</code> method converts handler return values to
+          <code>Response</code> objects:
+        </p>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Return Type</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Conversion</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+              {[
+                ['Response', 'Returned as-is'],
+                ['dict', 'Response.json(result) — application/json'],
+                ['list / tuple', 'Response.json(result) — application/json'],
+                ['str', 'Response(result, content_type="text/plain")'],
+                ['None', 'Response("", status=204) — No Content'],
+                ['Other', 'Response.json({"result": str(result)})'],
+              ].map(([type_, conversion], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{type_}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{conversion}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Fault integration */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <AlertCircle className="w-5 h-5 text-aquilia-400" />
+          Fault Engine Integration
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          When an exception occurs during handler execution, the engine reports it to
+          the <code>FaultEngine</code> (if configured) before re-raising:
+        </p>
+
+        <CodeBlock
+          code={`except Exception as e:
+    self.logger.error(
+        f"Error executing {controller_class.__name__}.{handler_name}: {e}",
+        exc_info=True,
+    )
+    if self.fault_engine:
+        try:
+            await self.fault_engine.process(
+                e,
+                app=route.app_name,
+                route=route.full_path,
+                request_id=request.state.get('request_id'),
+            )
+        except Exception:
+            pass  # Don't fail on fault processing failure
+    raise  # Re-raise for ExceptionMiddleware to convert to HTTP response`}
+          language="python"
+        />
+      </section>
+
+      {/* Navigation */}
+      <section className="mb-10">
+        <div className="flex justify-between">
+          <Link to="/docs/controllers/factory" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            ← ControllerFactory
+          </Link>
+          <Link to="/docs/controllers/compiler" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            ControllerCompiler →
+          </Link>
+        </div>
       </section>
     </div>
   )

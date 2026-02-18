@@ -214,11 +214,13 @@ export default function App() {
 
           {/* Models */}
           <Route path="models" element={<ModelsOverview />} />
+          <Route path="models/overview" element={<ModelsOverview />} />
           <Route path="models/defining" element={<ModelsOverview />} />
           <Route path="models/fields" element={<ModelsFields />} />
           <Route path="models/queryset" element={<ModelsQuerySet />} />
           <Route path="models/relationships" element={<ModelsRelationships />} />
           <Route path="models/migrations" element={<ModelsMigrations />} />
+          <Route path="models/advanced" element={<ModelsAdvanced />} />
           <Route path="models/signals" element={<ModelsAdvanced />} />
           <Route path="models/transactions" element={<ModelsAdvanced />} />
           <Route path="models/aggregation" element={<ModelsAdvanced />} />

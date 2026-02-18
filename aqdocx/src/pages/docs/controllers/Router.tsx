@@ -1,112 +1,304 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { GitBranch, ArrowLeft, ArrowRight } from 'lucide-react'
+import { Navigation, Layers, Zap, Code, ArrowRight, Search, Link2 } from 'lucide-react'
 
 export function ControllersRouter() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const boxClass = `p-6 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4">
-          <GitBranch className="w-4 h-4" />
-          Core / Controllers / Router
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center">
+            <Navigation className="w-5 h-5 text-aquilia-400" />
+          </div>
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>ControllerRouter</h1>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>aquilia.controller.router — Two-tier URL matching engine</p>
+          </div>
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Controller Router
-        </h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The <code className="text-aquilia-500">ControllerRouter</code> is a pattern-based URL router that matches incoming HTTP requests to compiled controller routes. It uses Aquilia's built-in pattern matching engine with typed parameters, specificity-based resolution, and reverse URL generation.
+
+        <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>ControllerRouter</code> is a high-performance pattern-matching router
+          with a two-tier architecture: <strong>O(1) dict lookup</strong> for static routes
+          and <strong>O(k) regex matching</strong> for parameterized routes (where k = number
+          of segments).
         </p>
       </div>
 
-      {/* Architecture SVG */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>How Routing Works</h2>
-        <div className={boxClass}>
-          <svg viewBox="0 0 700 200" className="w-full" fill="none">
-            <rect x="10" y="60" width="120" height="60" rx="10" stroke={isDark ? '#22c55e' : '#16a34a'} strokeWidth="2" fill={isDark ? '#22c55e10' : '#16a34a08'} />
-            <text x="70" y="95" textAnchor="middle" fill={isDark ? '#4ade80' : '#16a34a'} fontSize="13" fontWeight="bold">HTTP Request</text>
-            <path d="M130 90 L180 90" stroke={isDark ? '#4ade80' : '#16a34a'} strokeWidth="2" markerEnd="url(#arrowG)" />
-            <rect x="180" y="60" width="130" height="60" rx="10" stroke={isDark ? '#60a5fa' : '#2563eb'} strokeWidth="2" fill={isDark ? '#60a5fa10' : '#2563eb08'} />
-            <text x="245" y="88" textAnchor="middle" fill={isDark ? '#93c5fd' : '#2563eb'} fontSize="12" fontWeight="bold">ControllerRouter</text>
-            <text x="245" y="103" textAnchor="middle" fill={isDark ? '#6b7280' : '#94a3b8'} fontSize="10">.match(path, method)</text>
-            <path d="M310 90 L360 90" stroke={isDark ? '#60a5fa' : '#2563eb'} strokeWidth="2" markerEnd="url(#arrowB)" />
-            <rect x="360" y="60" width="130" height="60" rx="10" stroke={isDark ? '#fbbf24' : '#d97706'} strokeWidth="2" fill={isDark ? '#fbbf2410' : '#d9770608'} />
-            <text x="425" y="88" textAnchor="middle" fill={isDark ? '#fde047' : '#d97706'} fontSize="12" fontWeight="bold">PatternMatcher</text>
-            <text x="425" y="103" textAnchor="middle" fill={isDark ? '#6b7280' : '#94a3b8'} fontSize="10">specificity sort</text>
-            <path d="M490 90 L540 90" stroke={isDark ? '#fbbf24' : '#d97706'} strokeWidth="2" markerEnd="url(#arrowY)" />
-            <rect x="540" y="60" width="140" height="60" rx="10" stroke={isDark ? '#a78bfa' : '#7c3aed'} strokeWidth="2" fill={isDark ? '#a78bfa10' : '#7c3aed08'} />
-            <text x="610" y="88" textAnchor="middle" fill={isDark ? '#c4b5fd' : '#7c3aed'} fontSize="12" fontWeight="bold">CompiledRoute</text>
-            <text x="610" y="103" textAnchor="middle" fill={isDark ? '#6b7280' : '#94a3b8'} fontSize="10">params + handler</text>
-            <defs>
-              <marker id="arrowG" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill={isDark ? '#4ade80' : '#16a34a'} /></marker>
-              <marker id="arrowB" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill={isDark ? '#60a5fa' : '#2563eb'} /></marker>
-              <marker id="arrowY" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill={isDark ? '#fbbf24' : '#d97706'} /></marker>
-            </defs>
-          </svg>
+      {/* Architecture */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Layers className="w-5 h-5 text-aquilia-400" />
+          Two-Tier Architecture
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+            <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tier 1: Static Routes</h3>
+            <ul className={`text-sm space-y-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <li>• <strong>O(1)</strong> hash map lookup</li>
+              <li>• For routes with no path or query params</li>
+              <li>• Paths normalized (trailing slash stripped)</li>
+              <li>• Example: <code>GET /api/health</code></li>
+              <li>• Indexed as: <code>{`{method: {path: (route, {}, {})}}`}</code></li>
+            </ul>
+          </div>
+
+          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+            <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tier 2: Dynamic Routes</h3>
+            <ul className={`text-sm space-y-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <li>• <strong>O(k)</strong> compiled regex matching</li>
+              <li>• For routes with <code>«name:type»</code> params</li>
+              <li>• Params extracted and type-cast in one pass</li>
+              <li>• Validators run on extracted values</li>
+              <li>• Sorted by specificity (most specific first)</li>
+            </ul>
+          </div>
         </div>
       </section>
 
-      {/* ControllerRouter API */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>ControllerRouter API</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The router is instantiated internally by the <code className="text-aquilia-500">ControllerEngine</code>, but you can interact with it for custom routing, testing, or debugging.
-        </p>
-        <CodeBlock language="python" filename="router.py">{`from aquilia.controller import ControllerRouter, ControllerCompiler
+      {/* Class definition */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Code className="w-5 h-5 text-aquilia-400" />
+          Class Definition
+        </h2>
 
-# Create compiler and router
-compiler = ControllerCompiler()
-router = ControllerRouter()
+        <CodeBlock
+          code={`class ControllerRouter:
+    def __init__(self):
+        self.compiled_controllers: List[CompiledController] = []
+        self.routes_by_method: Dict[str, List[CompiledRoute]] = {}
+        self.matcher = PatternMatcher()
+        self._initialized = False
 
-# Compile controllers and add to router
-compiled = compiler.compile_controller(UsersController, base_prefix="/api")
-router.add_controller(compiled)
+        # ── Fast-path indexes (built during initialize) ──
+        # {method: {path: (route, empty_params, empty_query)}}
+        self._static_routes: Dict[str, Dict[str, Tuple]] = {}
+        # {method: list[(compiled_pattern, route, param_names)]}
+        self._dynamic_routes: Dict[str, List[Tuple]] = {}
 
-# Initialize the pattern matcher (must call before matching)
-router.initialize()
-
-# Match a request
-match = await router.match("/api/users/42", "GET")
-if match:
-    print(match.route.full_path)      # "/api/users/«id:int»"
-    print(match.params)               # {"id": 42}
-    print(match.route.controller_class.__name__)  # "UsersController"
-    print(match.route.route_metadata.handler_name)  # "get_user"`}</CodeBlock>
+# Reused empty dicts to avoid per-request allocations
+_EMPTY_DICT: Dict[str, Any] = {}
+_EMPTY_QUERY: Dict[str, str] = {}`}
+          language="python"
+        />
       </section>
 
-      {/* Pattern Matching */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Pattern Matching</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Aquilia uses the <code className="text-aquilia-500">«name:type»</code> syntax for typed URL parameters. The pattern compiler validates types at compile time and casts values at match time.
+      {/* ControllerRouteMatch */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Search className="w-5 h-5 text-aquilia-400" />
+          ControllerRouteMatch
+        </h2>
+
+        <CodeBlock
+          code={`@dataclass
+class ControllerRouteMatch:
+    """Result of a successful controller route match."""
+    route: CompiledRoute       # The matched CompiledRoute
+    params: Dict[str, Any]     # Extracted and type-cast path parameters
+    query: Dict[str, Any]      # Extracted and validated query parameters`}
+          language="python"
+        />
+      </section>
+
+      {/* match_sync */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          match_sync() — The Hot Path
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The core matching method is synchronous for maximum performance. An
+          <code>async match()</code> wrapper exists for compatibility:
         </p>
 
-        <div className={`overflow-hidden rounded-xl border mb-6 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+        <CodeBlock
+          code={`def match_sync(
+    self,
+    path: str,
+    method: str,
+    query_params: Optional[Dict[str, str]] = None,
+) -> Optional[ControllerRouteMatch]:
+    """Synchronous O(1)/O(k) route matching."""
+    if not self._initialized:
+        self.initialize()
+
+    # ── Tier 1: Static O(1) lookup ──
+    static_map = self._static_routes.get(method)
+    if static_map:
+        norm_path = path.rstrip('/') or '/'
+        hit = static_map.get(norm_path)
+        if hit is not None:
+            return ControllerRouteMatch(
+                route=hit[0], params=hit[1], query=hit[2]
+            )
+
+    # ── Tier 2: Dynamic regex matching ──
+    dynamic_list = self._dynamic_routes.get(method)
+    if dynamic_list:
+        for cp, route, param_names in dynamic_list:
+            m = cp.compiled_re.match(path)
+            if m is None:
+                continue
+
+            # Extract, cast, and validate params
+            params = {}
+            valid = True
+            for name in param_names:
+                value_str = m.group(name)
+                param_meta = cp.params[name]
+                try:
+                    value = param_meta.castor(value_str)
+                    for v in param_meta.validators:
+                        if not v(value):
+                            valid = False
+                            break
+                    if not valid:
+                        break
+                    params[name] = value
+                except (ValueError, TypeError):
+                    valid = False
+                    break
+
+            if not valid:
+                continue
+
+            # Process query params similarly...
+            return ControllerRouteMatch(
+                route=route, params=params, query=query
+            )
+
+    return None`}
+          language="python"
+        />
+      </section>
+
+      {/* Initialize */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <ArrowRight className="w-5 h-5 text-aquilia-400" />
+          initialize()
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>initialize()</code> method builds the fast-path indexes from compiled
+          controllers. It's called lazily on first <code>match()</code> or explicitly:
+        </p>
+
+        <CodeBlock
+          code={`def initialize(self):
+    """Build fast-path lookup structures."""
+    for method, routes in self.routes_by_method.items():
+        # Sort by specificity (descending)
+        routes.sort(key=lambda r: r.specificity, reverse=True)
+
+        for route in routes:
+            cp = route.compiled_pattern
+            has_params = bool(cp.params)
+            has_query = bool(cp.query)
+
+            if not has_params and not has_query:
+                # Pure static route → O(1) lookup
+                path = route.full_path.rstrip('/') or '/'
+                static_map[path] = (route, _EMPTY_DICT, _EMPTY_DICT)
+            else:
+                # Dynamic route → regex matching
+                param_names = list(cp.params.keys())
+                dynamic_list.append((cp, route, param_names))
+
+    self._initialized = True`}
+          language="python"
+        />
+      </section>
+
+      {/* url_for */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Link2 className="w-5 h-5 text-aquilia-400" />
+          Reverse URL Generation
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>url_for()</code> method generates URLs from route names and parameters:
+        </p>
+
+        <CodeBlock
+          code={`def url_for(self, name: str, **params) -> str:
+    """
+    Reverse URL generation.
+
+    Args:
+        name: "ControllerName.method_name" or just "method_name"
+        **params: Path and query parameters
+
+    Returns:
+        Generated URL string
+
+    Raises:
+        ValueError: If no route found with the given name
+
+    Examples:
+        router.url_for("UsersController.get_user", id=42)
+        # → "/api/users/42"
+
+        router.url_for("get_user", id=42, include_posts=True)
+        # → "/api/users/42?include_posts=True"
+    """`}
+          language="python"
+        />
+
+        <CodeBlock
+          code={`# In a controller:
+@GET("/«id:int»")
+async def get_user(self, ctx: RequestCtx, id: int) -> Response:
+    # Generate URL for another route
+    detail_url = ctx.container.resolve(ControllerRouter).url_for(
+        "UsersController.get_user", id=id
+    )
+    return Response.json({"url": detail_url})`}
+          language="python"
+        />
+      </section>
+
+      {/* Utility methods */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Layers className="w-5 h-5 text-aquilia-400" />
+          Utility Methods
+        </h2>
+
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <table className="w-full text-sm">
             <thead>
-              <tr className={isDark ? 'bg-zinc-900' : 'bg-gray-50'}>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Pattern</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Matches</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Params</th>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Method</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Returns</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Description</th>
               </tr>
             </thead>
-            <tbody className={isDark ? 'divide-y divide-white/5' : 'divide-y divide-gray-100'}>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
               {[
-                { pattern: '/users/«id:int»', matches: '/users/42', params: '{"id": 42}' },
-                { pattern: '/posts/«slug:str»', matches: '/posts/hello-world', params: '{"slug": "hello-world"}' },
-                { pattern: '/items/«price:float»', matches: '/items/19.99', params: '{"price": 19.99}' },
-                { pattern: '/flags/«active:bool»', matches: '/flags/true', params: '{"active": true}' },
-                { pattern: '/files/«path»', matches: '/files/docs/readme', params: '{"path": "docs/readme"}' },
-              ].map((r, i) => (
-                <tr key={i} className={isDark ? 'bg-[#0A0A0A]' : 'bg-white'}>
-                  <td className="py-3 px-4"><code className="text-aquilia-500 font-mono text-xs">{r.pattern}</code></td>
-                  <td className={`py-3 px-4 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{r.matches}</td>
-                  <td className={`py-3 px-4 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{r.params}</td>
+                ['add_controller(compiled)', 'None', 'Add a CompiledController and its routes. Marks router as uninitialized.'],
+                ['initialize()', 'None', 'Build fast-path static/dynamic indexes. Called lazily on first match.'],
+                ['match_sync(path, method, query)', 'Optional[Match]', 'Synchronous route matching — the hot path.'],
+                ['match(path, method, query)', 'Optional[Match]', 'Async wrapper around match_sync().'],
+                ['get_routes()', 'List[Dict]', 'Get all routes as dicts (method, path, controller, handler, specificity).'],
+                ['get_routes_full()', 'List[CompiledRoute]', 'Get all CompiledRoute objects.'],
+                ['get_controller(name)', 'Optional[CompiledController]', 'Get compiled controller by class name.'],
+                ['has_route(method, path)', 'bool', 'Check if a route exists for the given method and path.'],
+                ['url_for(name, **params)', 'str', 'Reverse URL generation with path and query params.'],
+              ].map(([method, ret, desc], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{method}</td>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{ret}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{desc}</td>
                 </tr>
               ))}
             </tbody>
@@ -114,119 +306,39 @@ if match:
         </div>
       </section>
 
-      {/* Specificity */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Specificity-Based Resolution</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          When multiple routes could match the same URL, Aquilia resolves the ambiguity using a specificity score. Higher scores are matched first.
-        </p>
-        <div className="space-y-3 mb-6">
+      {/* Performance notes */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          Performance Notes
+        </h2>
+
+        <div className={`space-y-3`}>
           {[
-            { segment: 'Static segment (e.g., /users)', score: '100 pts', color: 'text-aquilia-400' },
-            { segment: 'Typed parameter (e.g., «id:int»)', score: '50 pts', color: 'text-blue-400' },
-            { segment: 'Untyped parameter (e.g., «slug»)', score: '25 pts', color: 'text-yellow-400' },
-            { segment: 'Wildcard / catch-all', score: '1 pt', color: 'text-gray-400' },
-          ].map((item, i) => (
-            <div key={i} className={boxClass + ' flex items-center justify-between'}>
-              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>{item.segment}</span>
-              <span className={`font-mono font-bold ${item.color}`}>{item.score}</span>
+            { title: 'Static routes: O(1)', desc: 'Pure dict lookup per method. Normalized paths (trailing slash stripped). Pre-allocated empty dicts shared across all static matches to avoid per-request allocation.' },
+            { title: 'Dynamic routes: O(k)', desc: 'k = number of route patterns for the HTTP method. Routes sorted by specificity so the most specific pattern is tried first. Compiled regex is used for matching and param extraction in a single pass.' },
+            { title: 'Lazy initialization', desc: 'The fast-path indexes (_static_routes, _dynamic_routes) are built on first match() call. Adding a controller marks the router as uninitialized, triggering a rebuild on the next match.' },
+            { title: 'Shared empty dicts', desc: '_EMPTY_DICT and _EMPTY_QUERY are module-level singletons reused for static route matches to avoid garbage collection pressure.' },
+          ].map(({ title, desc }, i) => (
+            <div key={i} className={`rounded-xl border p-4 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+              <h4 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h4>
+              <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{desc}</p>
             </div>
           ))}
         </div>
-        <CodeBlock language="python" filename="Specificity Example">{`# These routes are sorted by specificity automatically:
-# 1. GET /users/admin    → score 200 (static + static)
-# 2. GET /users/«id:int» → score 150 (static + typed)
-# 3. GET /users/«slug»   → score 125 (static + untyped)
-
-class UsersController(Controller):
-    prefix = "/users"
-
-    @GET("/admin")          # Matched FIRST for /users/admin
-    async def admin(self, ctx):
-        return {"page": "admin"}
-
-    @GET("/«id:int»")      # Matched for /users/42
-    async def by_id(self, ctx, id: int):
-        return {"id": id}
-
-    @GET("/«slug»")        # Matched for /users/john-doe
-    async def by_slug(self, ctx, slug: str):
-        return {"slug": slug}`}</CodeBlock>
-      </section>
-
-      {/* Reverse URL Generation */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Reverse URL Generation</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The <code className="text-aquilia-500">url_for()</code> method generates URLs from handler names and parameters, avoiding hardcoded paths in your application.
-        </p>
-        <CodeBlock language="python" filename="url_for()">{`# Generate URLs by handler name
-url = router.url_for("UsersController.by_id", id=42)
-# → "/users/42"
-
-url = router.url_for("UsersController.by_slug", slug="john-doe")
-# → "/users/john-doe"
-
-# With query parameters
-url = router.url_for("UsersController.list", page=2, limit=20)
-# → "/users/?page=2&limit=20"`}</CodeBlock>
-      </section>
-
-      {/* Conflict Detection */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Route Conflict Detection</h2>
-        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The compiler automatically detects ambiguous routes at compile time. Two routes conflict when they have the same HTTP method and their URL patterns could match the same request.
-        </p>
-        <CodeBlock language="python" filename="Conflict Detection">{`from aquilia.controller import ControllerCompiler
-
-compiler = ControllerCompiler()
-
-# Compile all controllers
-compiled_a = compiler.compile_controller(UsersController)
-compiled_b = compiler.compile_controller(ProfileController)
-
-# Check for conflicts across the entire route tree
-conflicts = compiler.validate_route_tree([compiled_a, compiled_b])
-
-for conflict in conflicts:
-    print(f"CONFLICT: {conflict['method']} {conflict['route1']['path']}")
-    print(f"      vs: {conflict['route2']['path']}")
-    print(f"  Reason: {conflict['reason']}")`}</CodeBlock>
-      </section>
-
-      {/* Route Inspection */}
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Route Inspection</h2>
-        <CodeBlock language="python" filename="Inspecting Routes">{`# List all registered routes
-for route_info in router.get_routes():
-    print(f"{route_info['method']:6} {route_info['path']:30} → "
-          f"{route_info['controller']}.{route_info['handler']} "
-          f"(specificity: {route_info['specificity']})")
-
-# Output:
-# GET    /api/users/                    → UsersController.list (specificity: 100)
-# GET    /api/users/«id:int»            → UsersController.get_user (specificity: 150)
-# POST   /api/users/                    → UsersController.create (specificity: 100)
-# PUT    /api/users/«id:int»            → UsersController.update (specificity: 150)
-# DELETE /api/users/«id:int»            → UsersController.delete (specificity: 150)
-
-# Check if a specific route exists
-exists = router.has_route("GET", "/api/users/42")  # True
-
-# Get compiled controller by name
-ctrl = router.get_controller("UsersController")`}</CodeBlock>
       </section>
 
       {/* Navigation */}
-      <div className={`flex items-center justify-between pt-8 mt-12 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-        <Link to="/docs/controllers/compiler" className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>
-          <ArrowLeft className="w-4 h-4" /> Controller Compiler
-        </Link>
-        <Link to="/docs/controllers/openapi" className="flex items-center gap-2 text-sm text-aquilia-500 font-semibold hover:text-aquilia-400">
-          OpenAPI Generation <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
+      <section className="mb-10">
+        <div className="flex justify-between">
+          <Link to="/docs/controllers/compiler" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            ← ControllerCompiler
+          </Link>
+          <Link to="/docs/controllers/openapi" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            OpenAPI Generation →
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }

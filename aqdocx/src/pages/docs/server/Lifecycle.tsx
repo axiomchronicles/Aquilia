@@ -1,100 +1,327 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
-import { Activity } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Workflow, Zap, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react'
 
 export function ServerLifecycle() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const boxClass = `p-6 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-12">
-        <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4"><Activity className="w-4 h-4" />Server</div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Lifecycle Coordinator</h1>
-        <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The <code className="text-aquilia-500">LifecycleCoordinator</code> manages the application lifecycle through well-defined phases: initializing, starting, running, stopping, and stopped.
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center">
+            <Workflow className="w-5 h-5 text-aquilia-400" />
+          </div>
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Lifecycle</h1>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>aquilia.lifecycle — Dependency-ordered startup and shutdown</p>
+          </div>
+        </div>
+
+        <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The <code>LifecycleCoordinator</code> manages application startup and shutdown in
+          dependency order, ensuring that services are initialized before their dependents
+          and torn down in reverse order.
         </p>
       </div>
 
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Lifecycle Phases</h2>
-        <div className={boxClass}>
-          <svg viewBox="0 0 800 120" className="w-full" fill="none">
-            <defs><marker id="lc-a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" className="fill-aquilia-500/50" /></marker></defs>
-            {[
-              { x: 10, label: 'INITIALIZING', color: 'text-yellow-500' },
-              { x: 170, label: 'STARTING', color: 'text-blue-500' },
-              { x: 330, label: 'RUNNING', color: 'text-aquilia-500' },
-              { x: 490, label: 'STOPPING', color: 'text-orange-500' },
-              { x: 650, label: 'STOPPED', color: 'text-red-500' },
-            ].map((p, i) => (
-              <g key={i}>
-                <rect x={p.x} y="30" width="140" height="50" rx="10" className="fill-aquilia-500/5 stroke-aquilia-500/20" strokeWidth="1.5">
-                  <animate attributeName="stroke-opacity" values="0.15;0.4;0.15" dur="3s" begin={`${i*0.6}s`} repeatCount="indefinite" />
-                </rect>
-                <text x={p.x+70} y="60" textAnchor="middle" className={`text-[10px] font-bold ${p.color}`}>{p.label}</text>
-                {i < 4 && <line x1={p.x+145} y1="55" x2={p.x+165} y2="55" stroke="#22c55e" strokeOpacity="0.3" strokeWidth="1.5" markerEnd="url(#lc-a)" />}
-              </g>
-            ))}
-          </svg>
+      {/* Phases */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <ArrowRight className="w-5 h-5 text-aquilia-400" />
+          Lifecycle Phases
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The server transitions through these phases, defined in the <code>LifecyclePhase</code> enum:
+        </p>
+
+        <div className="flex flex-wrap gap-2 mb-6">
+          {['INIT', 'STARTING', 'READY', 'STOPPING', 'STOPPED', 'ERROR'].map((phase, i) => {
+            const colors: Record<string, string> = {
+              INIT: isDark ? 'bg-gray-800 text-gray-300 border-gray-700' : 'bg-gray-100 text-gray-600 border-gray-200',
+              STARTING: isDark ? 'bg-blue-900/40 text-blue-300 border-blue-800' : 'bg-blue-50 text-blue-600 border-blue-200',
+              READY: isDark ? 'bg-emerald-900/40 text-emerald-300 border-emerald-800' : 'bg-emerald-50 text-emerald-600 border-emerald-200',
+              STOPPING: isDark ? 'bg-amber-900/40 text-amber-300 border-amber-800' : 'bg-amber-50 text-amber-600 border-amber-200',
+              STOPPED: isDark ? 'bg-gray-800 text-gray-400 border-gray-700' : 'bg-gray-100 text-gray-500 border-gray-200',
+              ERROR: isDark ? 'bg-red-900/40 text-red-300 border-red-800' : 'bg-red-50 text-red-600 border-red-200',
+            }
+            return (
+              <div key={phase} className="flex items-center gap-2">
+                <span className={`px-3 py-1 rounded-lg border text-xs font-mono font-bold ${colors[phase]}`}>
+                  {phase}
+                </span>
+                {i < 5 && <ArrowRight className={`w-3 h-3 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />}
+              </div>
+            )
+          })}
         </div>
-        <div className="space-y-3 mt-6">
-          {[
-            { phase: 'INITIALIZING', desc: 'Validates configuration, registers default providers, sets up the DI container, compiles controllers.' },
-            { phase: 'STARTING', desc: 'Runs startup hooks, opens database connections, initializes singleton controllers, warms caches.' },
-            { phase: 'RUNNING', desc: 'Server is accepting requests. All subsystems are operational.' },
-            { phase: 'STOPPING', desc: 'Runs shutdown hooks, closes database connections, flushes caches, shuts down singleton controllers.' },
-            { phase: 'STOPPED', desc: 'All resources released. Server is no longer accepting requests.' },
-          ].map((p, i) => (
-            <div key={i} className={`flex gap-3 p-4 rounded-xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
-              <code className="text-aquilia-500 font-mono text-xs font-bold shrink-0">{p.phase}</code>
-              <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{p.desc}</span>
-            </div>
-          ))}
+
+        <CodeBlock
+          code={`from enum import Enum
+
+class LifecyclePhase(str, Enum):
+    INIT = "init"           # Server created, components wired
+    STARTING = "starting"   # startup() called, hooks executing
+    READY = "ready"         # All hooks complete, accepting requests
+    STOPPING = "stopping"   # shutdown() called, hooks executing
+    STOPPED = "stopped"     # All hooks complete, server down
+    ERROR = "error"         # A lifecycle hook failed`}
+          language="python"
+        />
+      </section>
+
+      {/* LifecycleCoordinator */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-aquilia-400" />
+          LifecycleCoordinator
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The coordinator is created during <code>AquiliaServer.__init__()</code> with a reference
+          to the <code>RuntimeRegistry</code> and <code>ConfigLoader</code>:
+        </p>
+
+        <CodeBlock
+          code={`class LifecycleCoordinator:
+    """
+    Manages dependency-ordered startup and shutdown of app components.
+    
+    Uses the RuntimeRegistry's dependency graph to determine execution order.
+    Supports event observers for monitoring lifecycle transitions.
+    """
+
+    def __init__(self, runtime: RuntimeRegistry, config: ConfigLoader):
+        self.runtime = runtime
+        self.config = config
+        self.phase = LifecyclePhase.INIT
+        self._observers: list[Callable] = []
+        self._started_apps: list[str] = []  # Track for reverse shutdown
+
+    def on_event(self, callback: Callable) -> None:
+        """Register a lifecycle event observer."""
+        self._observers.append(callback)
+
+    async def startup(self) -> None:
+        """
+        Execute startup hooks in dependency order.
+        
+        If app B depends on app A, A.on_startup() runs before B.on_startup().
+        On failure, rolls back already-started apps by calling their on_shutdown().
+        """
+        self.phase = LifecyclePhase.STARTING
+        self._emit_event("startup_begin")
+
+        try:
+            # Get apps in dependency order from RuntimeRegistry
+            ordered_apps = self.runtime.get_dependency_ordered_apps()
+
+            for app_name in ordered_apps:
+                try:
+                    await self._start_app(app_name)
+                    self._started_apps.append(app_name)
+                except Exception as e:
+                    self.phase = LifecyclePhase.ERROR
+                    self._emit_event("startup_error", app_name=app_name, error=e)
+                    # Rollback: shutdown already-started apps in reverse
+                    await self._rollback_startup()
+                    raise LifecycleError(
+                        f"Startup failed for '{app_name}': {e}"
+                    ) from e
+
+            self.phase = LifecyclePhase.READY
+            self._emit_event("startup_complete")
+
+        except LifecycleError:
+            raise
+        except Exception as e:
+            self.phase = LifecyclePhase.ERROR
+            raise
+
+    async def shutdown(self) -> None:
+        """
+        Execute shutdown hooks in reverse dependency order.
+        
+        If app A was started before app B, B.on_shutdown() runs before A.on_shutdown().
+        Errors in one app's shutdown don't prevent others from shutting down.
+        """
+        self.phase = LifecyclePhase.STOPPING
+        self._emit_event("shutdown_begin")
+
+        # Reverse order of startup
+        for app_name in reversed(self._started_apps):
+            try:
+                await self._stop_app(app_name)
+            except Exception as e:
+                # Log but don't stop — other apps still need shutdown
+                self._emit_event("shutdown_error", app_name=app_name, error=e)
+
+        self.phase = LifecyclePhase.STOPPED
+        self._emit_event("shutdown_complete")`}
+          language="python"
+        />
+      </section>
+
+      {/* Lifecycle hooks in controllers */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <CheckCircle className="w-5 h-5 text-aquilia-400" />
+          Controller Lifecycle Hooks
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Controllers with <code>instantiation_mode = "singleton"</code> can implement lifecycle hooks
+          that are called during startup/shutdown:
+        </p>
+
+        <CodeBlock
+          code={`class DatabaseController(Controller):
+    prefix = "/db"
+    instantiation_mode = "singleton"  # Required for startup/shutdown hooks
+
+    def __init__(self, db: Database):
+        self.db = db
+        self.pool = None
+
+    async def on_startup(self, ctx: RequestCtx) -> None:
+        """Called once during server startup."""
+        self.pool = await self.db.create_pool(min_size=5, max_size=20)
+        print("Database connection pool initialized")
+
+    async def on_shutdown(self, ctx: RequestCtx) -> None:
+        """Called once during server shutdown."""
+        if self.pool:
+            await self.pool.close()
+        print("Database connection pool closed")
+
+    async def on_request(self, ctx: RequestCtx) -> None:
+        """Called before EVERY request (both singleton and per_request modes)."""
+        ctx.state["db_conn"] = await self.pool.acquire()
+
+    async def on_response(self, ctx: RequestCtx, response: Response) -> Response:
+        """Called after EVERY request. Can modify the response."""
+        conn = ctx.state.get("db_conn")
+        if conn:
+            await self.pool.release(conn)
+        return response
+
+    @GET("/status")
+    async def status(self, ctx: RequestCtx) -> Response:
+        pool_size = self.pool.size if self.pool else 0
+        return Response.json({"pool_size": pool_size})`}
+          language="python"
+        />
+
+        <div className={`mt-4 rounded-xl border overflow-hidden ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className={isDark ? 'bg-zinc-800/80' : 'bg-gray-50'}>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Hook</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>When Called</th>
+                <th className={`text-left px-4 py-3 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Mode Requirement</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+              {[
+                ['on_startup(ctx)', 'Once during server startup', 'singleton only'],
+                ['on_shutdown(ctx)', 'Once during server shutdown', 'singleton only'],
+                ['on_request(ctx)', 'Before every request', 'Both modes'],
+                ['on_response(ctx, response)', 'After every request', 'Both modes'],
+              ].map(([hook, when, mode], i) => (
+                <tr key={i} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                  <td className={`px-4 py-2 font-mono text-xs ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`}>{hook}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{when}</td>
+                  <td className={`px-4 py-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{mode}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Registering Lifecycle Hooks</h2>
-        <CodeBlock language="python" filename="Lifecycle Hooks">{`from aquilia import AquiliaServer
+      {/* Lifecycle events */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <AlertCircle className="w-5 h-5 text-aquilia-400" />
+          Event Observers
+        </h2>
 
-app = AquiliaServer()
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          The AquiliaServer registers two default observers on the LifecycleCoordinator:
+        </p>
 
-# Decorator style
-@app.on_startup
-async def on_startup():
-    print("Starting up...")
-    # Open connections, warm caches, etc.
+        <CodeBlock
+          code={`# 1. Fault observer — logs lifecycle errors as structured faults
+def _lifecycle_fault_observer(event):
+    if event.error:
+        logger.error(
+            f"Lifecycle fault in phase {event.phase.value}: "
+            f"app={event.app_name}, error={event.error}"
+        )
 
-@app.on_shutdown
-async def on_shutdown():
-    print("Shutting down...")
-    # Close connections, flush buffers, etc.
+# 2. Trace observer — records lifecycle events in .aquilia/lifecycle.log
+def _lifecycle_trace_observer(event):
+    self.trace.journal.record_phase(
+        f"lifecycle:{event.phase.value}",
+        app_name=event.app_name or "",
+        error=str(event.error) if event.error else None,
+        detail=event.message,
+    )
 
-# Or register programmatically
-async def init_metrics():
-    await metrics.init()
-
-app.lifecycle.add_startup_hook(init_metrics)
-app.lifecycle.add_shutdown_hook(metrics.close)`}</CodeBlock>
+# Register custom observers:
+server.coordinator.on_event(my_custom_observer)`}
+          language="python"
+        />
       </section>
 
-      <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Startup Order</h2>
-        <div className={boxClass}>
-          <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>During the STARTING phase, operations happen in this order:</p>
-          <ol className={`space-y-2 list-decimal list-inside ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            <li>Configuration loaded and validated</li>
-            <li>DI container finalized (all providers registered)</li>
-            <li>Database connections opened</li>
-            <li>Models tables created/migrated (if auto_migrate=True)</li>
-            <li>Controllers compiled (route tree built)</li>
-            <li>Singleton controllers instantiated and on_startup() called</li>
-            <li>User-registered startup hooks executed</li>
-            <li>Middleware stack initialized</li>
-            <li>Server marked as RUNNING</li>
-          </ol>
+      {/* Rollback */}
+      <section className="mb-10">
+        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <AlertCircle className="w-5 h-5 text-rose-400" />
+          Startup Rollback
+        </h2>
+
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          If any app fails during startup, the coordinator automatically rolls back by calling
+          <code>on_shutdown()</code> on all previously started apps in reverse order:
+        </p>
+
+        <CodeBlock
+          code={`# Example: 3 apps, app C fails during startup
+#
+# 1. on_startup(app_A) → ✓ Success
+# 2. on_startup(app_B) → ✓ Success
+# 3. on_startup(app_C) → ✗ Error!
+#
+# Rollback:
+# 4. on_shutdown(app_B) → Cleanup
+# 5. on_shutdown(app_A) → Cleanup
+#
+# Raises: LifecycleError("Startup failed for 'app_C': ...")`}
+          language="python"
+        />
+
+        <div className={`mt-4 rounded-lg border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+          <p className={`text-sm ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+            <strong>Important:</strong> Shutdown errors during rollback are logged but do not propagate.
+            This ensures that all started apps get a chance to clean up, even if one fails.
+          </p>
+        </div>
+      </section>
+
+      {/* Next */}
+      <section className="mb-10">
+        <div className="flex flex-col gap-2">
+          <Link to="/docs/server/aquilia-server" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → AquiliaServer: Full server orchestration
+          </Link>
+          <Link to="/docs/di/lifecycle" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
+            → DI Lifecycle: Container-level lifecycle management
+          </Link>
         </div>
       </section>
     </div>
