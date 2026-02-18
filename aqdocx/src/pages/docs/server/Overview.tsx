@@ -1,7 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { Server, Layers, Settings, Plug, Shield, Database, Zap, Globe, AlertCircle } from 'lucide-react'
+import { Server, Layers, Settings, Shield, Database, Zap, Globe, AlertCircle } from 'lucide-react'
 
 export function ServerOverview() {
   const { theme } = useTheme()

@@ -1,7 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { Zap, Terminal, FolderOpen, Layers, Database, Shield, Rocket } from 'lucide-react'
+import { Zap, Rocket } from 'lucide-react'
 
 export function QuickStartPage() {
   const { theme } = useTheme()

@@ -65,10 +65,11 @@ interface CodeBlockProps {
   children?: string
   language?: string
   filename?: string
+  title?: string
   showLineNumbers?: boolean
 }
 
-export function CodeBlock({ code, children, language = 'python', filename, showLineNumbers = true }: CodeBlockProps) {
+export function CodeBlock({ code, children, language = 'python', filename, title, showLineNumbers = true }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -109,17 +110,16 @@ export function CodeBlock({ code, children, language = 'python', filename, showL
             <div className="flex items-center gap-2">
               {isTerminal && <Terminal className="w-3.5 h-3.5 text-aquilia-500" />}
               <span className={`text-xs font-mono uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                {filename || language}
+                {title || filename || language}
               </span>
             </div>
           </div>
           <button
             onClick={handleCopy}
-            className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-all ${
-              copied
+            className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-all ${copied
                 ? 'text-aquilia-400 bg-aquilia-500/10'
                 : `${isDark ? 'text-gray-500 hover:text-white hover:bg-white/10' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-200'}`
-            }`}
+              }`}
           >
             {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
             {copied ? 'Copied!' : 'Copy'}

@@ -1,7 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, ArrowUpFromLine, Shield, Zap, FileText, Send, Cookie } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpFromLine, Shield, Zap, Send, Cookie } from 'lucide-react'
 
 export function ResponsePage() {
   const { theme } = useTheme()

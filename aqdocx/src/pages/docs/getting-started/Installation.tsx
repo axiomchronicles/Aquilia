@@ -23,22 +23,55 @@ export function InstallationPage() {
       </div>
 
       {/* Requirements */}
-      <section className="mb-10">
-        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Requirements</h2>
-        <ul className={`space-y-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          <li className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <strong>Python 3.11+</strong> — Aquilia uses <code>match</code> statements, <code>type</code> alias syntax, and modern typing features.
-          </li>
-          <li className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <strong>pip</strong> or <strong>uv</strong> — Any PEP 517-compliant installer works.
-          </li>
-          <li className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <strong>Unix-like OS recommended</strong> — macOS, Linux, WSL2. Native Windows works but some CLI features assume POSIX shell.
-          </li>
-        </ul>
+      <section className="mb-12">
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>System Requirements</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`p-5 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                <Terminal className="w-5 h-5" />
+              </div>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Python Environment</h3>
+            </div>
+            <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <li className="flex justify-between items-center bg-zinc-500/5 p-2 rounded-lg">
+                <span>Minimum Version</span>
+                <span className={`font-mono font-bold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>3.11</span>
+              </li>
+              <li className="flex justify-between items-center bg-aquilia-500/10 p-2 rounded-lg border border-aquilia-500/20">
+                <span className="text-aquilia-500 font-medium">Recommended</span>
+                <span className="font-mono font-bold text-aquilia-500">3.12+</span>
+              </li>
+            </ul>
+            <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              Aquilia heavily uses modern asyncio features and type hints introduced in recent Python versions.
+            </p>
+          </div>
+
+          <div className={`p-5 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
+                <Package className="w-5 h-5" />
+              </div>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Operating System</h3>
+            </div>
+            <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <li className="flex items-center gap-3 p-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span><strong>macOS / Linux</strong> (Preferred)</span>
+              </li>
+              <li className="flex items-center gap-3 p-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span><strong>Windows</strong> via WSL2</span>
+              </li>
+              <li className="flex items-center gap-3 p-2 opacity-75">
+                <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Native Windows (Limited Support)</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* Install from PyPI */}

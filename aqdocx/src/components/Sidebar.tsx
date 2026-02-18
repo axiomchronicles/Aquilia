@@ -3,7 +3,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useState } from 'react'
 import {
   BookOpen, Download, Rocket, Zap, Layers, Database, Shield, Settings,
-  Code, AlertCircle, Terminal, GitBranch, ChevronDown, ChevronRight,
+  AlertCircle, Terminal, GitBranch, ChevronDown, ChevronRight,
   Server, Box, Mail, Palette, TestTube, Brain, BarChart, Plug,
   FileCode, Cpu, Globe, Lock, HardDrive, RefreshCw, Wrench, Layout,
   Blocks, Workflow, Binary, Gauge, Network, Boxes, Cog
@@ -346,8 +346,8 @@ export function Sidebar() {
                         <button
                           onClick={() => toggleExpand(item.path)}
                           className={`w-full group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${isActive(item.path)
-                              ? 'sidebar-link-active'
-                              : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+                            ? 'sidebar-link-active'
+                            : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
                             }`}
                         >
                           <span className="flex items-center gap-2">
@@ -367,8 +367,8 @@ export function Sidebar() {
                                 <Link
                                   to={child.path}
                                   className={`block pl-4 py-1.5 text-sm rounded-r-lg transition-all ${isActive(child.path)
-                                      ? `font-medium border-l-2 -ml-px ${isDark ? 'text-aquilia-400 border-aquilia-500' : 'text-aquilia-600 border-aquilia-600'}`
-                                      : `${isDark ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-gray-800'}`
+                                    ? `font-medium border-l-2 -ml-px ${isDark ? 'text-aquilia-400 border-aquilia-500' : 'text-aquilia-600 border-aquilia-600'}`
+                                    : `${isDark ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-gray-800'}`
                                     }`}
                                 >
                                   {child.label}
@@ -382,8 +382,8 @@ export function Sidebar() {
                       <Link
                         to={item.path}
                         className={`group flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${isActive(item.path)
-                            ? 'sidebar-link-active'
-                            : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+                          ? 'sidebar-link-active'
+                          : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
                           }`}
                       >
                         {item.icon}
