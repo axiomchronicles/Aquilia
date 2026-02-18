@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from typing import Dict, Any, Optional, Callable, Awaitable
 import logging
+import sys
+import platform
 
 from .request import Request
 from .response import Response
@@ -142,7 +144,19 @@ class ASGIAdapter:
                     path = request.path
                     method = request.method
                     if path == "/" and not self._has_routes():
-                        html_body = render_welcome_page(aquilia_version=version)
+                        # Gather System Info
+                        system_info = {
+                            "python_version": platform.python_version(),
+                            "platform": sys.platform,
+                            "debug": self._is_debug(),
+                        }
+                        # Try to get config features if server is available
+                        if self.server and hasattr(self.server, 'config'):
+                            cfg = self.server.config
+                            system_info['auth'] = cfg.get_auth_config().get("enabled", False)
+                            system_info['sessions'] = cfg.get_session_config().get("enabled", False)
+                        
+                        html_body = render_welcome_page(aquilia_version=version, system_info=system_info)
                         return Response(
                             content=html_body.encode("utf-8"),
                             status=200,

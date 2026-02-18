@@ -138,7 +138,7 @@ body {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 { font-weight: 600; color: var(--tx-text); letter-spacing: -0.02em; }
-code, pre { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 13px; }
+code, pre { font-family: 'MesloLGS NF', 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace; font-size: 13px; }
 a { color: inherit; text-decoration: none; transition: width 0.2s; }
 
 /* Layout */
@@ -720,8 +720,8 @@ class DebugPageRenderer:
         return render_http_error_page(status_code, message, detail, request, aquilia_version=aquilia_version)
 
     @staticmethod
-    def render_welcome(*, aquilia_version: str = "") -> str:
-        return render_welcome_page(aquilia_version=aquilia_version)
+    def render_welcome(*, aquilia_version: str = "", system_info: Dict[str, Any] = None) -> str:
+        return render_welcome_page(aquilia_version=aquilia_version, system_info=system_info)
 
 # ============================================================================
 # SVGs & Page Generators
@@ -746,7 +746,9 @@ def _icon(name: str, cls: str = "icon") -> str:
         'arrow-right': '<line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>',
         'github': '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>',
         'book': '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
-        'lock': '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>'
+        'lock': '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>',
+        'cpu': '<rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line>',
+        'layout': '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>'
     }
     return f'<svg class="{cls}" viewBox="0 0 24 24">{icons.get(name, "")}</svg>'
 
@@ -897,11 +899,27 @@ def render_http_error_page(status_code: int, message: str = "", detail: str = ""
 </body>
 </html>"""
 
-def render_welcome_page(*, aquilia_version: str = "") -> str:
+def render_welcome_page(*, aquilia_version: str = "", system_info: Dict[str, Any] = None) -> str:
     str_version = f"v{aquilia_version}" if aquilia_version else "Dev"
     logo_url = "https://raw.githubusercontent.com/axiomchronicles/Aquilia/master/assets/logo.png"
     
-    # Inline Gyroscope SVG (copied from temp/landing.html, with minor tweaks for Py string embedding)
+    # System Info Bar
+    sys_info_html = ""
+    if system_info:
+        items = []
+        if 'python_version' in system_info:
+            items.append(f"Python {system_info['python_version']}")
+        if 'platform' in system_info:
+            items.append(system_info['platform'])
+        if system_info.get('debug', False):
+            items.append('<span style="color:var(--tx-warning)">Debug Mode</span>')
+        
+        sys_info_html = f'''
+        <div style="display:flex;gap:16px;margin-top:24px;font-size:12px;color:var(--tx-text-muted);font-family:monospace;">
+            {"<span>•</span>".join(f"<span>{item}</span>" for item in items)}
+        </div>
+        '''
+    
     gyro_svg = r'''
     <svg class="w-full h-full" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
         <defs>
@@ -985,6 +1003,7 @@ def render_welcome_page(*, aquilia_version: str = "") -> str:
                         <span id="c1" style="display:none">aq add module users</span>
                     </div>
                 </div>
+                {sys_info_html}
             </div>
             
             <!-- Visual -->
@@ -1030,6 +1049,16 @@ def render_welcome_page(*, aquilia_version: str = "") -> str:
                  <div class="feature-icon" style="color:#14b8a6;border-color:rgba(20,184,166,0.2);background:rgba(20,184,166,0.1)">{_icon('terminal', 'icon icon-lg')}</div>
                 <h3 style="margin-bottom:8px;">CLI Tooling</h3>
                 <p style="color:var(--tx-text-muted);font-size:14px;">Powerful `aq` CLI for scaffolding workspaces, modules, and running dev servers.</p>
+            </div>
+            <div class="feature-card">
+                 <div class="feature-icon" style="color:#f43f5e;border-color:rgba(244,63,94,0.2);background:rgba(244,63,94,0.1)">{_icon('cpu', 'icon icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">Aquilia MLOps</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Native model lifecycle management, serving, and experimental tracking integration.</p>
+            </div>
+            <div class="feature-card">
+                 <div class="feature-icon" style="color:#8b5cf6;border-color:rgba(139,92,246,0.2);background:rgba(139,92,246,0.1)">{_icon('layout', 'icon icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">Blueprints</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Schema-driven architecture with strict contracts and automated validation.</p>
             </div>
         </div>
     </main>
