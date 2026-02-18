@@ -57,9 +57,7 @@ export function IntroductionPage() {
         <div className="absolute -inset-4 bg-gradient-to-r from-aquilia-500/10 via-blue-500/5 to-purple-500/10 rounded-3xl blur-2xl" />
         <div className="relative">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center shadow-lg shadow-aquilia-500/20">
-              <BookOpen className="w-6 h-6 text-aquilia-400" />
-            </div>
+            <img src="/logo.png" alt="Aquilia" className="w-12 h-12 rounded-2xl shadow-lg shadow-aquilia-500/20" />
             <div>
               <h1 className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 Aquilia Framework
@@ -68,47 +66,84 @@ export function IntroductionPage() {
             </div>
           </div>
 
-          <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-            Aquilia is a <strong>manifest-driven, async-first Python web framework</strong> designed
-            for applications that outgrow micro-frameworks but refuse the ceremony of legacy
-            monoliths. It provides a batteries-included experience — ORM, DI, auth, sessions,
-            caching, mail, WebSockets, templates, serializers, fault handling, CLI tooling, and
-            MLOps support — while keeping the developer in control through explicit configuration
-            and compile-time validation.
+          <p className={`text-lg leading-relaxed mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            <strong>Stop writing routing, config, and deployment boilerplate. Focus only on business logic.</strong>
           </p>
+
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mt-8`}>
+            <div>
+              <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>What is Aquilia?</h3>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Aquilia is an async-first Python framework built on an <strong>auto-discovery architecture</strong>. It features a built-in ORM, production-ready infrastructure generation, and ML deployment built-in. It removes the friction of wiring components together manually.
+              </p>
+            </div>
+            <div>
+              <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Who is it for?</h3>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Teams building data-intensive applications who want the speed of modern async Python without the fragility of micro-frameworks or the bloat of legacy monoliths.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Philosophy */}
+      {/* Core Philosophy */}
       <section className="mb-12">
-        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          <Workflow className="w-5 h-5 text-aquilia-400" />
-          Design Philosophy
+        <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <Brain className="w-5 h-5 text-aquilia-400" />
+          Core Philosophy
         </h2>
 
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-          <ul className={`space-y-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-            <li className="flex items-start gap-3">
-              <span className="text-aquilia-400 mt-1 font-bold">1.</span>
-              <div><strong>Manifests, not magic.</strong> Every application begins with a manifest — a Python dataclass that declares controllers, services, models, middleware, templates, and lifecycle hooks. The framework never scans your codebase at import time; you tell it what exists.</div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-aquilia-400 mt-1 font-bold">2.</span>
-              <div><strong>Compile before run.</strong> The Aquilary registry compiles manifests into a RuntimeRegistry, catching misconfiguration (missing DI providers, unresolvable route patterns, model schema conflicts) before a single request is served.</div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-aquilia-400 mt-1 font-bold">3.</span>
-              <div><strong>Controllers are classes, not functions.</strong> Class-based controllers with constructor DI injection, lifecycle hooks (<code>on_startup</code>, <code>on_request</code>, <code>on_response</code>, <code>on_shutdown</code>), class-level pipeline nodes, and OpenAPI metadata. Decorators attach metadata at definition time; the compiler extracts it at boot.</div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-aquilia-400 mt-1 font-bold">4.</span>
-              <div><strong>Scoped DI for real applications.</strong> Six scopes — singleton, app, request, transient, pooled, ephemeral — with automatic lifecycle management, async instantiation, and &lt;3 µs cached resolution. No annotation processors, no classpath scanning.</div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-aquilia-400 mt-1 font-bold">5.</span>
-              <div><strong>Faults, not exceptions.</strong> Typed fault signals with domains, severity levels, and recovery strategies replace ad-hoc exception hierarchies. The FaultEngine captures unhandled exceptions and transforms them into structured responses.</div>
-            </li>
-          </ul>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* The Problem */}
+          <div className={`rounded-xl border p-6 ${isDark ? 'bg-red-500/5 border-red-500/10' : 'bg-red-50 border-red-100'}`}>
+            <h3 className={`font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-red-400' : 'text-red-700'}`}>
+              The Problem With Modern Frameworks
+            </h3>
+            <ul className={`space-y-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              <li className="flex items-start gap-3">
+                <span className="text-red-400 mt-1">✕</span>
+                <div>Too much configuration wiring components together</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-red-400 mt-1">✕</span>
+                <div>Deployment infrastructure is an afterthought</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-red-400 mt-1">✕</span>
+                <div>ML integration is painful and disjointed</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-red-400 mt-1">✕</span>
+                <div>Boilerplate everywhere for basic features</div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Aquilia's Approach */}
+          <div className={`rounded-xl border p-6 ${isDark ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-emerald-50 border-emerald-100'}`}>
+            <h3 className={`font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+              Aquilia's Approach
+            </h3>
+            <ul className={`space-y-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-400 mt-1">✓</span>
+                <div><strong>Auto-discovery</strong> eliminates wiring boilerplate</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-400 mt-1">✓</span>
+                <div><strong>Convention over configuration</strong> — sensible defaults</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-400 mt-1">✓</span>
+                <div><strong>Infrastructure generation</strong> built-in</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-400 mt-1">✓</span>
+                <div><strong>ML-first mindset</strong> with integrated model registry</div>
+              </li>
+            </ul>
+          </div>
         </div>
       </section>
 

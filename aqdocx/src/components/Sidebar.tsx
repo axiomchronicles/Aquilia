@@ -323,9 +323,7 @@ export function Sidebar() {
         <div className="relative group mb-6">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-aquilia-500 to-blue-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition" />
           <div className={`relative flex items-center gap-3 px-4 py-3 rounded-xl border ${isDark ? 'bg-zinc-900/90 border-white/10' : 'bg-white border-gray-200'}`}>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-aquilia-500/30 to-aquilia-500/10 flex items-center justify-center shadow-lg shadow-aquilia-500/20">
-              <Code className="w-4 h-4 text-aquilia-500" />
-            </div>
+            <img src="/logo.png" alt="Aquilia" className="w-8 h-8 rounded-lg shadow-lg shadow-aquilia-500/20" />
             <div>
               <div className={`font-bold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Aquilia Framework</div>
               <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>v0.2.0 • Latest</div>
@@ -347,11 +345,10 @@ export function Sidebar() {
                       <>
                         <button
                           onClick={() => toggleExpand(item.path)}
-                          className={`w-full group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
-                            isActive(item.path)
+                          className={`w-full group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${isActive(item.path)
                               ? 'sidebar-link-active'
                               : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                          }`}
+                            }`}
                         >
                           <span className="flex items-center gap-2">
                             {item.icon}
@@ -369,11 +366,10 @@ export function Sidebar() {
                               <li key={child.path}>
                                 <Link
                                   to={child.path}
-                                  className={`block pl-4 py-1.5 text-sm rounded-r-lg transition-all ${
-                                    isActive(child.path)
+                                  className={`block pl-4 py-1.5 text-sm rounded-r-lg transition-all ${isActive(child.path)
                                       ? `font-medium border-l-2 -ml-px ${isDark ? 'text-aquilia-400 border-aquilia-500' : 'text-aquilia-600 border-aquilia-600'}`
                                       : `${isDark ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-gray-800'}`
-                                  }`}
+                                    }`}
                                 >
                                   {child.label}
                                 </Link>
@@ -385,11 +381,10 @@ export function Sidebar() {
                     ) : (
                       <Link
                         to={item.path}
-                        className={`group flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
-                          isActive(item.path)
+                        className={`group flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${isActive(item.path)
                             ? 'sidebar-link-active'
                             : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                        }`}
+                          }`}
                       >
                         {item.icon}
                         {item.label}
