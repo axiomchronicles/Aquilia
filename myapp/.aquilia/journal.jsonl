@@ -1,0 +1,7 @@
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-18T09:16:23.533786+00:00", "pid": 9729}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-18T09:16:23.536537+00:00", "pid": 9729}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 3.64, "ts": "2026-02-18T09:16:23.536863+00:00", "pid": 9729}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.52, "ts": "2026-02-18T09:16:23.537532+00:00", "pid": 9729}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-18T09:16:23.537672+00:00", "pid": 9729}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.2, "ts": "2026-02-18T09:16:23.537970+00:00", "pid": 9729}
+{"event": "shutdown", "mode": "dev", "uptime_s": 110.545, "ts": "2026-02-18T09:16:23.538135+00:00", "pid": 9729}

@@ -84,9 +84,11 @@ def patch_di_container():
         except OldProviderNotFoundError as e:
             # Convert to structured fault
             raise ProviderNotFoundFault(
-                token=str(token),
-                tag=tag,
-                candidates=e.candidates if hasattr(e, 'candidates') else [],
+                provider_name=str(token),
+                metadata={
+                    "tag": tag,
+                    "candidates": e.candidates if hasattr(e, 'candidates') else [],
+                },
             ) from e
         except RuntimeError as e:
             msg = str(e)
@@ -101,9 +103,11 @@ def patch_di_container():
         except OldProviderNotFoundError as e:
             # Convert to structured fault
             raise ProviderNotFoundFault(
-                token=str(token),
-                tag=tag,
-                candidates=e.candidates if hasattr(e, 'candidates') else [],
+                provider_name=str(token),
+                metadata={
+                    "tag": tag,
+                    "candidates": e.candidates if hasattr(e, 'candidates') else [],
+                },
             ) from e
     
     def patched_register(self, provider, tag=None):

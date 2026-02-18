@@ -162,30 +162,26 @@ class ControllerFactory:
             # No injectable params — simple instantiation
             return controller_class()
 
-        try:
-            params = {}
-            _EMPTY = inspect.Parameter.empty
-            
-            for param_name, param_type, has_default, default_val in ctor_info:
-                try:
-                    if param_type is not _EMPTY:
-                        resolved = await self._resolve_parameter(
-                            param_type,
-                            container,
-                        )
-                        params[param_name] = resolved
-                    elif has_default:
-                        params[param_name] = default_val
-                except Exception:
-                    if has_default:
-                        params[param_name] = default_val
-                    else:
-                        raise
-            
-            return controller_class(**params)
+        params = {}
+        _EMPTY = inspect.Parameter.empty
         
-        except Exception:
-            return controller_class()
+        for param_name, param_type, has_default, default_val in ctor_info:
+            try:
+                if param_type is not _EMPTY:
+                    resolved = await self._resolve_parameter(
+                        param_type,
+                        container,
+                    )
+                    params[param_name] = resolved
+                elif has_default:
+                    params[param_name] = default_val
+            except Exception:
+                if has_default:
+                    params[param_name] = default_val
+                else:
+                    raise
+        
+        return controller_class(**params)
     
     @staticmethod
     def _analyze_constructor(controller_class: Type):
