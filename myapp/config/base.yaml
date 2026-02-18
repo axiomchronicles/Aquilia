@@ -1,0 +1,13 @@
+# Base Server Configuration - Shared Across All Environments
+# Environment-specific files (dev.yaml, prod.yaml) override these values
+
+server:
+  mode: dev
+  host: 127.0.0.1
+  port: 8000
+  reload: false
+  workers: 1
+  backlog: 2048
+  timeout_keep_alive: 5
+  timeout_notify: 30
+  access_log: true

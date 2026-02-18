@@ -1,1221 +1,909 @@
 """
-Aquilia Debug Pages — React-style error pages with MongoDB color palette.
+Aquilia Debug Pages — Tubox Themed (Premium).
 
 Self-contained HTML/CSS/JS generators. No external dependencies.
-All styles and scripts are inlined for zero-config rendering.
-
-Color Palette (MongoDB Atlas):
-  - Primary Green:  #00ED64
-  - Dark BG:        #001E2B
-  - Dark Surface:   #023430
-  - Dark Card:      #112733
-  - Light BG:       #F9FBFA
-  - Light Surface:  #FFFFFF
-  - Light Card:     #E8EDEB
-  - Text Dark:      #FFFFFF
-  - Text Light:     #001E2B
-  - Accent:         #00684A
-  - Error Red:      #CF4A22
-  - Warning Yellow: #FFC010
-  - Info Blue:      #016BF8
+All assets are inlined for zero-config rendering. Emojis strictly forbidden.
 """
 
 from __future__ import annotations
 
 import html
-import inspect
 import linecache
 import os
 import sys
 import traceback
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Any, Dict, List, Tuple
 
 # ============================================================================
-# CSS Styles — MongoDB Atlas theme, dark/light mode
+# CSS Styles — Tubox Premium Theme (Dark & Light)
 # ============================================================================
 
 _BASE_CSS = r"""
 :root {
-  /* MongoDB Atlas Dark */
-  --mg-green: #00ED64;
-  --mg-green-dark: #00684A;
-  --mg-green-light: #71F6BA;
-  --mg-dark-bg: #001E2B;
-  --mg-dark-surface: #023430;
-  --mg-dark-card: #112733;
-  --mg-dark-border: #1C3A40;
-  --mg-dark-text: #E8EDEB;
-  --mg-dark-text-muted: #889397;
-  /* MongoDB Atlas Light */
-  --mg-light-bg: #F9FBFA;
-  --mg-light-surface: #FFFFFF;
-  --mg-light-card: #E8EDEB;
-  --mg-light-border: #C1C7C6;
-  --mg-light-text: #001E2B;
-  --mg-light-text-muted: #5C6C75;
-  /* Semantic */
-  --mg-error: #CF4A22;
-  --mg-error-bg: #FCEEE9;
-  --mg-warning: #FFC010;
-  --mg-info: #016BF8;
-  --mg-info-light: #E1F7FF;
+  /* Dark Theme (Default) */
+  --tx-bg: #000000;
+  --tx-bg-alt: #0a0a0a;
+  --tx-surface: rgba(10, 10, 10, 0.8);
+  --tx-border: #222;
+  --tx-border-highlight: rgba(34, 197, 94, 0.2);
+  
+  --tx-text: #ededed;
+  --tx-text-muted: #888;
+  --tx-text-dim: #444;
+  
+  --tx-accent: #22c55e;        /* Green-500 */
+  --tx-accent-glow: rgba(34, 197, 94, 0.15);
+  --tx-accent-dim: #15803d;    /* Green-700 */
+  
+  --tx-error: #ef4444;
+  --tx-error-glow: rgba(239, 68, 68, 0.15);
+  --tx-warning: #f59e0b;
+  --tx-info: #3b82f6;
+  
+  /* Syntax Highlighting */
+  --sh-keyword: #c084fc;       /* Purple-400 */
+  --sh-string: #22c55e;        /* Green-500 */
+  --sh-comment: #52525b;       /* Zinc-600 */
+  --sh-number: #f59e0b;        /* Amber-500 */
+  --sh-func: #60a5fa;          /* Blue-400 */
+}
+
+/* Light Mode Overrides */
+body.light {
+  --tx-bg: #ffffff;
+  --tx-bg-alt: #fafafa;
+  --tx-surface: rgba(255, 255, 255, 0.9);
+  --tx-border: #e2e2e2;
+  --tx-border-highlight: rgba(34, 197, 94, 0.3);
+  
+  --tx-text: #171717;
+  --tx-text-muted: #737373;
+  --tx-text-dim: #d4d4d4;
+  
+  --tx-accent: #16a34a;        /* Green-600 */
+  --tx-accent-glow: rgba(22, 163, 74, 0.1);
+  --tx-accent-dim: #15803d;
+  
+  --tx-error: #dc2626;
+  --tx-error-glow: rgba(220, 38, 38, 0.08); 
+  --tx-warning: #d97706;
+  --tx-info: #2563eb;
+  
+  /* Syntax Highlighting Light */
+  --sh-keyword: #7e22ce;       /* Purple-700 */
+  --sh-string: #15803d;        /* Green-700 */
+  --sh-comment: #a3a3a3;       /* Neutral-400 */
+  --sh-number: #b45309;        /* Amber-700 */
+  --sh-func: #1d4ed8;          /* Blue-700 */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
-  line-height: 1.6;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--tx-bg);
+  color: var(--tx-text);
+  line-height: 1.5;
+  overflow-x: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ---- Dark Mode (default) ---- */
-body.dark {
-  background: var(--mg-dark-bg);
-  color: var(--mg-dark-text);
+/* Background Grid Effect */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.2;
+  background-image: 
+    linear-gradient(var(--tx-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tx-border) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  pointer-events: none;
 }
-body.dark .aq-header { background: linear-gradient(135deg, #001E2B 0%, #023430 100%); border-bottom: 2px solid var(--mg-green); }
-body.dark .aq-card { background: var(--mg-dark-card); border: 1px solid var(--mg-dark-border); }
-body.dark .aq-card:hover { border-color: var(--mg-green-dark); }
-body.dark .aq-tab { color: var(--mg-dark-text-muted); border-bottom: 2px solid transparent; }
-body.dark .aq-tab.active { color: var(--mg-green); border-bottom-color: var(--mg-green); }
-body.dark .aq-tab:hover { color: var(--mg-green-light); }
-body.dark .aq-code-block { background: #0A1A22; border: 1px solid var(--mg-dark-border); }
-body.dark .aq-code-line.highlight { background: rgba(0,237,100,0.08); }
-body.dark .aq-code-line.error-line { background: rgba(207,74,34,0.2); border-left: 3px solid var(--mg-error); }
-body.dark .aq-badge { background: var(--mg-dark-surface); color: var(--mg-green); border: 1px solid var(--mg-green-dark); }
-body.dark .aq-table th { background: var(--mg-dark-surface); color: var(--mg-green); }
-body.dark .aq-table td { border-top: 1px solid var(--mg-dark-border); }
-body.dark .aq-frame { border-left: 3px solid var(--mg-dark-border); }
-body.dark .aq-frame.active { border-left-color: var(--mg-green); background: rgba(0,237,100,0.03); }
-body.dark .aq-frame:hover { border-left-color: var(--mg-green-dark); }
-body.dark .aq-text-muted { color: var(--mg-dark-text-muted); }
-body.dark .aq-input { background: #0A1A22; border: 1px solid var(--mg-dark-border); color: var(--mg-dark-text); }
-body.dark .aq-locals-key { color: var(--mg-green); }
-body.dark .aq-locals-val { color: var(--mg-dark-text-muted); }
 
-/* ---- Light Mode ---- */
-body.light {
-  background: var(--mg-light-bg);
-  color: var(--mg-light-text);
+.bg-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 0%, var(--tx-accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.6;
 }
-body.light .aq-header { background: linear-gradient(135deg, #FFFFFF 0%, #E8EDEB 100%); border-bottom: 2px solid var(--mg-green-dark); }
-body.light .aq-card { background: var(--mg-light-surface); border: 1px solid var(--mg-light-border); }
-body.light .aq-card:hover { border-color: var(--mg-green-dark); }
-body.light .aq-tab { color: var(--mg-light-text-muted); border-bottom: 2px solid transparent; }
-body.light .aq-tab.active { color: var(--mg-green-dark); border-bottom-color: var(--mg-green-dark); }
-body.light .aq-tab:hover { color: var(--mg-green-dark); }
-body.light .aq-code-block { background: #F4F6F5; border: 1px solid var(--mg-light-border); }
-body.light .aq-code-line.highlight { background: rgba(0,104,74,0.06); }
-body.light .aq-code-line.error-line { background: rgba(207,74,34,0.1); border-left: 3px solid var(--mg-error); }
-body.light .aq-badge { background: #E1F7E8; color: var(--mg-green-dark); border: 1px solid var(--mg-green-dark); }
-body.light .aq-table th { background: var(--mg-light-card); color: var(--mg-green-dark); }
-body.light .aq-table td { border-top: 1px solid var(--mg-light-border); }
-body.light .aq-frame { border-left: 3px solid var(--mg-light-border); }
-body.light .aq-frame.active { border-left-color: var(--mg-green-dark); background: rgba(0,104,74,0.03); }
-body.light .aq-frame:hover { border-left-color: var(--mg-green-dark); }
-body.light .aq-text-muted { color: var(--mg-light-text-muted); }
-body.light .aq-input { background: #FFFFFF; border: 1px solid var(--mg-light-border); color: var(--mg-light-text); }
-body.light .aq-locals-key { color: var(--mg-green-dark); }
-body.light .aq-locals-val { color: var(--mg-light-text-muted); }
 
-/* ---- Layout ---- */
-.aq-container { max-width: 1200px; margin: 0 auto; padding: 0 24px 48px; }
+/* Typography */
+h1, h2, h3, h4, h5, h6 { font-weight: 600; color: var(--tx-text); letter-spacing: -0.02em; }
+code, pre { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 13px; }
+a { color: inherit; text-decoration: none; transition: width 0.2s; }
 
-.aq-header {
-  padding: 28px 0;
-  margin-bottom: 32px;
+/* Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+}
+
+/* Icons */
+.icon {
+  width: 16px; height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  flex-shrink: 0;
+}
+.icon-lg { width: 24px; height: 24px; }
+.icon-xl { width: 48px; height: 48px; stroke-width: 1.5; }
+
+/* Components */
+.glass {
+  background: var(--tx-surface);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--tx-border);
+}
+
+.card {
+  background: var(--tx-bg-alt);
+  border: 1px solid var(--tx-border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card:hover { border-color: var(--tx-border); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+.badge.green { background: rgba(34, 197, 94, 0.1); color: var(--tx-accent); border: 1px solid rgba(34, 197, 94, 0.2); }
+.badge.red { background: rgba(239, 68, 68, 0.1); color: var(--tx-error); border: 1px solid rgba(239, 68, 68, 0.2); }
+.badge.blue { background: rgba(59, 130, 246, 0.1); color: var(--tx-info); border: 1px solid rgba(59, 130, 246, 0.2); }
+.badge.gray { background: rgba(128, 128, 128, 0.1); color: var(--tx-text-muted); border: 1px solid var(--tx-border); }
+
+/* Header */
+.header {
+  height: 64px;
+  display: flex;
+  align-items: center;
   position: sticky;
   top: 0;
-  z-index: 100;
-  backdrop-filter: blur(12px);
+  z-index: 50;
 }
-.aq-header-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
 
-.aq-logo {
+.logo {
   display: flex;
   align-items: center;
   gap: 12px;
-  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--tx-text);
+  letter-spacing: -0.01em;
 }
-.aq-logo-icon {
-  width: 36px; height: 36px;
-  background: var(--mg-green);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 18px; color: var(--mg-dark-bg);
-}
-.aq-logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
 
 /* Theme Toggle */
-.aq-theme-toggle {
-  width: 56px; height: 28px;
-  background: var(--mg-dark-surface);
-  border-radius: 14px;
-  cursor: pointer;
-  position: relative;
-  border: 2px solid var(--mg-green-dark);
-  transition: background 0.3s;
-}
-body.light .aq-theme-toggle { background: var(--mg-light-card); }
-
-.aq-theme-toggle::after {
-  content: '';
-  position: absolute;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: var(--mg-green);
-  top: 2px; left: 2px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-}
-body.light .aq-theme-toggle::after { transform: translateX(28px); }
-
-.aq-theme-icons {
-  display: flex; justify-content: space-between; align-items: center;
-  width: 100%; height: 100%; padding: 0 5px;
-  font-size: 12px; position: relative; z-index: 1; pointer-events: none;
-}
-
-/* Error Banner */
-.aq-error-banner {
-  padding: 24px 32px;
-  border-radius: 12px;
-  margin-bottom: 24px;
+.theme-toggle {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--tx-text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
 }
-body.dark .aq-error-banner { background: linear-gradient(135deg, rgba(207,74,34,0.15) 0%, rgba(207,74,34,0.05) 100%); border: 1px solid rgba(207,74,34,0.3); }
-body.light .aq-error-banner { background: var(--mg-error-bg); border: 1px solid rgba(207,74,34,0.2); }
+.theme-toggle:hover {
+  background: var(--tx-bg-alt);
+  color: var(--tx-text);
+}
 
-.aq-error-icon { font-size: 32px; flex-shrink: 0; line-height: 1; }
-.aq-error-type { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
-body.dark .aq-error-type { color: #FF8C6B; }
-body.light .aq-error-type { color: var(--mg-error); }
-.aq-error-message { font-size: 15px; opacity: 0.9; word-break: break-word; }
+/* Exception Page Specifics */
+.exc-header {
+  padding: 48px 0;
+  border-bottom: 1px solid var(--tx-border);
+}
+
+.exc-title {
+  font-size: 28px;
+  color: var(--tx-text);
+  margin-top: 16px;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+.exc-msg {
+  font-size: 14px;
+  color: var(--tx-text-muted);
+  font-family: inherit;
+  background: var(--tx-bg-alt);
+  border: 1px solid var(--tx-border);
+  padding: 16px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
 
 /* Tabs */
-.aq-tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid; overflow-x: auto; }
-body.dark .aq-tabs { border-color: var(--mg-dark-border); }
-body.light .aq-tabs { border-color: var(--mg-light-border); }
-.aq-tab {
-  padding: 10px 20px;
-  cursor: pointer;
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 32px;
+  border-bottom: 1px solid var(--tx-border);
+}
+.tab {
+  padding: 10px 16px;
   font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 500;
+  color: var(--tx-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
   transition: all 0.2s;
-  white-space: nowrap;
-  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.aq-tab-panel { display: none; }
-.aq-tab-panel.active { display: block; }
+.tab:hover { color: var(--tx-text); }
+.tab.active { color: var(--tx-text); border-bottom-color: var(--tx-accent); }
 
-/* Cards */
-.aq-card {
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 16px;
-  transition: border-color 0.2s;
-}
+.tab-panel { display: none; padding: 24px 0; }
+.tab-panel.active { display: block; animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
 
-/* Code Block */
-.aq-code-block {
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Stack Frames */
+.frame-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--tx-border);
   border-radius: 8px;
   overflow: hidden;
-  font-size: 13px;
-  line-height: 1.7;
-  margin: 12px 0;
 }
-.aq-code-line {
+.frame {
+  background: var(--tx-bg-alt);
+  border-bottom: 1px solid var(--tx-border);
+  transition: background 0.15s;
+}
+.frame:last-child { border-bottom: none; }
+.frame.app-code { background: rgba(34, 197, 94, 0.03); }
+.frame-header {
+  padding: 12px 16px;
+  cursor: pointer;
   display: flex;
-  padding: 1px 16px 1px 0;
-  transition: background 0.2s;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 48px;
 }
-.aq-code-line:hover { opacity: 0.95; }
-.aq-line-no {
-  display: inline-block;
-  width: 52px;
+.frame-header:hover { background: rgba(128,128,128,0.05); }
+
+.frame-info { display: flex; flex-direction: column; gap: 2px; }
+.frame-func { font-family: monospace; font-size: 13px; color: var(--tx-text); font-weight: 600; }
+.frame-file { font-size: 12px; color: var(--tx-text-muted); display: flex; align-items: center; gap: 6px; }
+
+.frame-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--tx-text-muted); }
+.frame-chevron { transition: transform 0.2s; color: var(--tx-text-muted); }
+
+.frame-body { display: none; border-top: 1px solid var(--tx-border); }
+.frame.active .frame-body { display: block; }
+.frame.active .frame-chevron { transform: rotate(180deg); color: var(--tx-text); }
+.frame.active { background: var(--tx-bg-alt); } /* Reset background when active */
+
+/* Code Viewer */
+.code-block {
+  background: var(--tx-bg);
+  padding: 16px 0;
+  overflow-x: auto;
+}
+.code-line {
+  display: flex;
+  padding: 0 16px;
+  line-height: 1.6;
+}
+.code-line.active { background: var(--tx-error-glow); border-left: 2px solid var(--tx-error); padding-left: 14px; }
+.line-num {
+  width: 40px;
+  color: var(--tx-text-dim);
   text-align: right;
   padding-right: 16px;
   user-select: none;
   flex-shrink: 0;
+  font-size: 12px;
 }
-body.dark .aq-line-no { color: #445963; }
-body.light .aq-line-no { color: #889397; }
-.aq-line-code { flex: 1; white-space: pre; overflow-x: auto; }
-
-/* Stack Frame */
-.aq-frame {
-  padding: 14px 18px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.aq-frame-file { font-size: 13px; font-weight: 600; }
-.aq-frame-info { font-size: 12px; margin-top: 2px; }
-body.dark .aq-frame-info { color: var(--mg-dark-text-muted); }
-body.light .aq-frame-info { color: var(--mg-light-text-muted); }
-.aq-frame-code { display: none; margin-top: 12px; }
-.aq-frame.active .aq-frame-code { display: block; }
-
-/* Tables */
-.aq-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.aq-table th { text-align: left; padding: 10px 14px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-.aq-table td { padding: 10px 14px; word-break: break-all; }
-.aq-table td:first-child { font-weight: 600; white-space: nowrap; width: 30%; }
+.line-content { white-space: pre; color: var(--tx-text); font-size: 13px; }
 
 /* Locals */
-.aq-locals-item { padding: 6px 0; font-size: 13px; display: flex; gap: 8px; }
-.aq-locals-key { font-weight: 700; flex-shrink: 0; }
-.aq-locals-val { word-break: break-all; }
-
-/* Badge */
-.aq-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 6px;
+.locals {
+  background: var(--tx-surface);
+  border-top: 1px solid var(--tx-border);
+  padding: 0;
+}
+.locals-header {
+  padding: 8px 16px;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--tx-text-muted);
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--tx-border);
 }
-
-/* Search */
-.aq-search-bar { margin-bottom: 20px; }
-.aq-input {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.aq-input:focus { border-color: var(--mg-green); }
-
-/* Status code badges */
-.aq-status-4xx { background: var(--mg-warning); color: var(--mg-dark-bg); font-weight: 700; }
-.aq-status-5xx { background: var(--mg-error); color: #fff; font-weight: 700; }
-.aq-status-2xx { background: var(--mg-green); color: var(--mg-dark-bg); font-weight: 700; }
-
-/* ---- HTTP Error Page ---- */
-.aq-http-error-page {
-  min-height: 100vh;
+.local-row {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 48px 24px;
-}
-.aq-http-status {
-  font-size: 120px;
-  font-weight: 900;
-  letter-spacing: -6px;
-  line-height: 1;
-  margin-bottom: 12px;
-}
-body.dark .aq-http-status { color: var(--mg-green); text-shadow: 0 0 60px rgba(0,237,100,0.3); }
-body.light .aq-http-status { color: var(--mg-green-dark); }
-.aq-http-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
-.aq-http-detail { font-size: 15px; max-width: 560px; margin-bottom: 32px; }
-body.dark .aq-http-detail { color: var(--mg-dark-text-muted); }
-body.light .aq-http-detail { color: var(--mg-light-text-muted); }
-.aq-http-meta {
+  font-family: monospace;
   font-size: 12px;
-  padding: 16px 32px;
-  border-radius: 12px;
-  margin-top: 16px;
+  border-bottom: 1px solid var(--tx-border);
 }
-body.dark .aq-http-meta { background: var(--mg-dark-card); border: 1px solid var(--mg-dark-border); color: var(--mg-dark-text-muted); }
-body.light .aq-http-meta { background: var(--mg-light-surface); border: 1px solid var(--mg-light-border); color: var(--mg-light-text-muted); }
+.local-row:last-child { border-bottom: none; }
+.local-key { 
+  width: 180px; 
+  padding: 8px 16px; 
+  color: var(--tx-info); 
+  border-right: 1px solid var(--tx-border);
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.1);
+}
+.local-val { 
+  padding: 8px 16px; 
+  color: var(--tx-text-muted); 
+  white-space: pre-wrap; 
+  word-break: break-all; 
+  flex: 1;
+}
 
-/* ---- Welcome Page ---- */
-.aq-welcome-page {
-  min-height: 100vh;
+/* Copy Button */
+.copy-btn {
+  background: transparent;
+  border: 1px solid var(--tx-border);
+  color: var(--tx-text-muted);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.copy-btn:hover { background: var(--tx-bg); color: var(--tx-text); border-color: var(--tx-text-muted); }
+
+/* HTTP Error Page */
+.http-page {
+  flex: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
+  padding: 40px;
+}
+.http-container {
+  max-width: 500px;
+  width: 100%;
   text-align: center;
-  padding: 48px 24px;
 }
-.aq-welcome-logo {
-  width: 120px; height: 120px;
-  background: linear-gradient(135deg, var(--mg-green) 0%, var(--mg-green-dark) 100%);
-  border-radius: 28px;
+.http-icon-bg {
+  width: 80px; height: 80px;
+  background: var(--tx-bg-alt);
+  border: 1px solid var(--tx-border);
+  border-radius: 20px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 56px; font-weight: 900; color: var(--mg-dark-bg);
-  margin-bottom: 32px;
-  box-shadow: 0 20px 60px rgba(0,237,100,0.3);
-  animation: aq-float 3s ease-in-out infinite;
+  margin: 0 auto 32px;
+  color: var(--tx-accent);
 }
-@keyframes aq-float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
-}
-.aq-welcome-title { font-size: 42px; font-weight: 800; letter-spacing: -2px; margin-bottom: 12px; }
-body.dark .aq-welcome-title span { color: var(--mg-green); }
-body.light .aq-welcome-title span { color: var(--mg-green-dark); }
-.aq-welcome-subtitle { font-size: 17px; margin-bottom: 48px; }
-body.dark .aq-welcome-subtitle { color: var(--mg-dark-text-muted); }
-body.light .aq-welcome-subtitle { color: var(--mg-light-text-muted); }
+.http-title { font-size: 24px; margin-bottom: 12px; font-weight: 700; }
+.http-desc { color: var(--tx-text-muted); margin-bottom: 32px; font-size: 15px; }
 
-.aq-welcome-grid {
+/* Welcome Page */
+.welcome-hero {
+  padding: 100px 0 60px;
+  text-align: center;
+}
+.welcome-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    color: var(--tx-accent); 
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+.welcome-title {
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+  line-height: 1.1;
+  background: linear-gradient(to bottom, var(--tx-text) 60%, var(--tx-text-muted));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.welcome-subtitle {
+  font-size: 18px;
+  color: var(--tx-text-muted);
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.feature-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-  max-width: 900px;
-  width: 100%;
-  margin-bottom: 48px;
-  text-align: left;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 40px 0;
 }
-.aq-welcome-card {
+.feature-card {
   padding: 24px;
-  border-radius: 16px;
-  transition: transform 0.2s, border-color 0.2s;
-}
-.aq-welcome-card:hover { transform: translateY(-4px); }
-body.dark .aq-welcome-card { background: var(--mg-dark-card); border: 1px solid var(--mg-dark-border); }
-body.dark .aq-welcome-card:hover { border-color: var(--mg-green-dark); }
-body.light .aq-welcome-card { background: var(--mg-light-surface); border: 1px solid var(--mg-light-border); }
-body.light .aq-welcome-card:hover { border-color: var(--mg-green-dark); }
-.aq-welcome-card-icon { font-size: 28px; margin-bottom: 12px; }
-.aq-welcome-card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-.aq-welcome-card-desc { font-size: 13px; }
-body.dark .aq-welcome-card-desc { color: var(--mg-dark-text-muted); }
-body.light .aq-welcome-card-desc { color: var(--mg-light-text-muted); }
-
-.aq-welcome-code {
-  max-width: 600px;
-  width: 100%;
-  text-align: left;
-  padding: 24px;
+  background: var(--tx-bg-alt);
+  border: 1px solid var(--tx-border);
   border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.8;
-  margin-bottom: 32px;
+  transition: border-color 0.2s, transform 0.2s;
 }
-body.dark .aq-welcome-code { background: #0A1A22; border: 1px solid var(--mg-dark-border); }
-body.light .aq-welcome-code { background: #F4F6F5; border: 1px solid var(--mg-light-border); }
-.aq-welcome-code .kw { color: var(--mg-info); }
-.aq-welcome-code .fn { color: var(--mg-green); }
-body.light .aq-welcome-code .fn { color: var(--mg-green-dark); }
-.aq-welcome-code .st { color: var(--mg-warning); }
-.aq-welcome-code .cm { color: var(--mg-dark-text-muted); }
-body.light .aq-welcome-code .cm { color: var(--mg-light-text-muted); }
+.feature-card:hover { border-color: var(--tx-border-highlight); transform: translateY(-2px); }
+.feature-icon {
+  width: 40px; height: 40px;
+  background: var(--tx-surface);
+  border: 1px solid var(--tx-border);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+  color: var(--tx-text);
+}
 
-.aq-welcome-footer { font-size: 13px; }
-body.dark .aq-welcome-footer { color: var(--mg-dark-text-muted); }
-body.light .aq-welcome-footer { color: var(--mg-light-text-muted); }
-.aq-welcome-footer a { color: var(--mg-green); text-decoration: none; font-weight: 600; }
-body.light .aq-welcome-footer a { color: var(--mg-green-dark); }
-.aq-welcome-footer a:hover { text-decoration: underline; }
+.cmd-block {
+    background: #000;
+    border: 1px solid var(--tx-border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: monospace;
+    font-size: 13px;
+    color: #a1a1aa;
+    text-align: left;
+    max-width: 500px;
+    margin: 40px auto 0;
+}
 
-/* Scrollbar */
-body.dark ::-webkit-scrollbar { width: 8px; height: 8px; }
-body.dark ::-webkit-scrollbar-track { background: var(--mg-dark-bg); }
-body.dark ::-webkit-scrollbar-thumb { background: var(--mg-dark-border); border-radius: 4px; }
-body.dark ::-webkit-scrollbar-thumb:hover { background: var(--mg-green-dark); }
+/* Button primary */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 24px;
+  background: var(--tx-text);
+  color: var(--tx-bg);
+  border-radius: 22px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.btn-primary:hover { opacity: 0.9; }
 """
-
-# ============================================================================
-# JavaScript — tab switching, frame toggling, theme toggle, search
-# ============================================================================
 
 _BASE_JS = r"""
 (function() {
-  // Theme toggle
-  const saved = localStorage.getItem('aq-theme') || 'dark';
-  document.body.className = saved;
+  // Theme Toggle
+  const themeBtn = document.getElementById('theme-toggle');
+  const iconMoon = document.getElementById('icon-moon');
+  const iconSun = document.getElementById('icon-sun');
+  
+  function updateThemeIcon(isLight) {
+    if (isLight) {
+        iconMoon.style.display = 'none';
+        iconSun.style.display = 'block';
+    } else {
+        iconMoon.style.display = 'block';
+        iconSun.style.display = 'none';
+    }
+  }
 
-  window.aqToggleTheme = function() {
-    const next = document.body.className === 'dark' ? 'light' : 'dark';
-    document.body.className = next;
-    localStorage.setItem('aq-theme', next);
+  window.toggleTheme = function() {
+    document.body.classList.toggle('light');
+    const isLight = document.body.classList.contains('light');
+    localStorage.setItem('aq-theme', isLight ? 'light' : 'dark');
+    updateThemeIcon(isLight);
   };
+  
+  // Init Theme
+  const saved = localStorage.getItem('aq-theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    updateThemeIcon(true);
+  } else {
+    updateThemeIcon(false);
+  }
 
   // Tab switching
-  window.aqSwitchTab = function(tabId) {
-    document.querySelectorAll('.aq-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.aq-tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelector('[data-tab="' + tabId + '"]').classList.add('active');
-    document.getElementById('panel-' + tabId).classList.add('active');
+  window.switchTab = function(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(`panel-${tabId}`).classList.add('active');
   };
 
   // Frame toggling
-  window.aqToggleFrame = function(el) {
-    const wasActive = el.classList.contains('active');
-    // Collapse all frames
-    document.querySelectorAll('.aq-frame').forEach(f => f.classList.remove('active'));
-    if (!wasActive) el.classList.add('active');
+  window.toggleFrame = function(el) {
+    el.classList.toggle('active');
+  };
+  
+  // Consume click events on children to prevent toggling when copying or clicking links inside frame header
+  window.stopProp = function(e) {
+    e.stopPropagation();
   };
 
-  // Search/filter in request info
-  window.aqFilterTable = function(inputEl, tableId) {
-    const filter = inputEl.value.toLowerCase();
-    const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
-    rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(filter) ? '' : 'none';
+  // Copy functionality
+  window.copyText = function(btnId, elementId) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById(btnId);
+      const originalText = btn.querySelector('span').innerText;
+      btn.querySelector('span').innerText = 'Copied!';
+      setTimeout(() => {
+        btn.querySelector('span').innerText = originalText;
+      }, 2000);
     });
-  };
-
-  // Copy traceback
-  window.aqCopyTraceback = function() {
-    const tb = document.getElementById('raw-traceback');
-    if (tb) {
-      navigator.clipboard.writeText(tb.textContent).then(() => {
-        const btn = document.getElementById('copy-btn');
-        if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy Traceback'; }, 2000); }
-      });
-    }
   };
 })();
 """
 
-
 # ============================================================================
-# Utility — source extraction, HTML escaping, syntax highlighting
+# Utilities
 # ============================================================================
 
-def _esc(text: str) -> str:
-    """HTML-escape a string."""
+def _esc(text: Any) -> str:
     return html.escape(str(text), quote=True)
 
-
 def _read_source_lines(filename: str, lineno: int, context: int = 7) -> List[Tuple[int, str, bool]]:
-    """Read source lines around a given line number.
-
-    Returns list of (line_number, source_text, is_error_line).
-    """
     lines: List[Tuple[int, str, bool]] = []
     start = max(1, lineno - context)
     end = lineno + context + 1
-
     for i in range(start, end):
         line = linecache.getline(filename, i)
         if line:
             lines.append((i, line.rstrip('\n'), i == lineno))
         elif i <= lineno:
-            # Might be past end of file
             continue
-
     return lines
 
-
 def _syntax_highlight_line(code: str) -> str:
-    """Very minimal Python syntax highlighting using CSS classes."""
     import re
-
     escaped = _esc(code)
-
     # Keywords
-    keywords = (
+    escaped = re.sub(
         r'\b(def|class|import|from|return|if|elif|else|for|while|try|except|'
         r'finally|with|as|raise|yield|async|await|pass|break|continue|'
-        r'and|or|not|in|is|lambda|None|True|False|self)\b'
+        r'and|or|not|in|is|lambda|None|True|False|self)\b',
+        r'<span style="color:var(--sh-keyword)">\1</span>', escaped
     )
-    escaped = re.sub(keywords, r'<span style="color:var(--mg-info)">\1</span>', escaped)
-
-    # Strings (simple — single/double quoted)
+    # Strings
     escaped = re.sub(
-        r'(&quot;.*?&quot;|&#x27;.*?&#x27;|&quot;&quot;&quot;.*?&quot;&quot;&quot;)',
-        r'<span style="color:var(--mg-warning)">\1</span>',
-        escaped,
+        r'(&quot;.*?&quot;|&#x27;.*?&#x27;)',
+        r'<span style="color:var(--sh-string)">\1</span>', escaped
     )
-
     # Comments
-    escaped = re.sub(
-        r'(#.*)$',
-        r'<span style="color:var(--mg-dark-text-muted)">\1</span>',
-        escaped,
-    )
-
+    escaped = re.sub(r'(#.*)$', r'<span style="color:var(--sh-comment)">\1</span>', escaped)
     # Numbers
-    escaped = re.sub(
-        r'\b(\d+\.?\d*)\b',
-        r'<span style="color:var(--mg-green)">\1</span>',
-        escaped,
-    )
-
+    escaped = re.sub(r'\b(\d+)\b', r'<span style="color:var(--sh-number)">\1</span>', escaped)
+    
     return escaped
 
-
 def _format_code_block(lines: List[Tuple[int, str, bool]]) -> str:
-    """Render source lines into an HTML code block."""
     if not lines:
-        return '<div class="aq-code-block"><div class="aq-code-line"><span class="aq-line-code">(source not available)</span></div></div>'
-
-    parts = ['<div class="aq-code-block">']
-    for lineno, code, is_error in lines:
-        cls = "aq-code-line error-line" if is_error else "aq-code-line highlight"
+        return '<div class="code-block" style="padding:16px;color:var(--tx-text-muted);text-align:center;">Source not available</div>'
+        
+    parts = ['<div class="code-block">']
+    for lineno, code, is_active in lines:
+        cls = "code-line active" if is_active else "code-line"
         parts.append(
             f'<div class="{cls}">'
-            f'<span class="aq-line-no">{lineno}</span>'
-            f'<span class="aq-line-code">{_syntax_highlight_line(code)}</span>'
+            f'<div class="line-num">{lineno}</div>'
+            f'<div class="line-content">{_syntax_highlight_line(code)}</div>'
             f'</div>'
         )
     parts.append('</div>')
     return '\n'.join(parts)
-
-
-def _format_locals_section(frame_locals: Dict[str, Any]) -> str:
-    """Render local variables for a stack frame."""
-    if not frame_locals:
-        return '<div class="aq-text-muted" style="padding:8px 0;font-size:13px;">No local variables</div>'
-
-    parts = ['<div style="max-height:300px;overflow-y:auto;padding:8px 0;">']
-    for key, value in sorted(frame_locals.items()):
-        if key.startswith('__') and key.endswith('__'):
-            continue
-        try:
-            val_repr = repr(value)
-            if len(val_repr) > 300:
-                val_repr = val_repr[:300] + '…'
-        except Exception:
-            val_repr = '<unrepresentable>'
-        parts.append(
-            f'<div class="aq-locals-item">'
-            f'<span class="aq-locals-key">{_esc(key)}</span>'
-            f'<span class="aq-locals-val">= {_esc(val_repr)}</span>'
-            f'</div>'
-        )
-    parts.append('</div>')
-    return '\n'.join(parts)
-
-
-# ============================================================================
-# Traceback extraction
-# ============================================================================
 
 def _extract_frames(exc: BaseException) -> List[Dict[str, Any]]:
-    """Extract stack frames from an exception with source and locals."""
-    frames: List[Dict[str, Any]] = []
-
+    frames = []
     tb = exc.__traceback__
     while tb is not None:
         frame = tb.tb_frame
         lineno = tb.tb_lineno
         filename = frame.f_code.co_filename
-        func_name = frame.f_code.co_name
-
-        # Get source lines
-        source_lines = _read_source_lines(filename, lineno)
-
-        # Get locals (filtered)
-        local_vars = {}
-        if frame.f_locals:
-            for k, v in frame.f_locals.items():
-                if not (k.startswith('__') and k.endswith('__')):
-                    local_vars[k] = v
-
-        # Short path
-        short_filename = filename
+        
+        source = _read_source_lines(filename, lineno)
+        locals_dict = {k: v for k, v in frame.f_locals.items() if not (k.startswith('__') and k.endswith('__'))} if frame.f_locals else {}
+        
         try:
             cwd = os.getcwd()
-            if filename.startswith(cwd):
-                short_filename = os.path.relpath(filename, cwd)
-        except Exception:
-            pass
-
+            short_path = os.path.relpath(filename, cwd) if filename.startswith(cwd) else filename
+        except:
+            short_path = filename
+            
         frames.append({
             'filename': filename,
-            'short_filename': short_filename,
+            'short_filename': short_path,
             'lineno': lineno,
-            'func_name': func_name,
-            'source_lines': source_lines,
-            'locals': local_vars,
-            'is_app_code': not ('site-packages' in filename or 'lib/python' in filename),
+            'func': frame.f_code.co_name,
+            'source': source,
+            'locals': locals_dict,
+            'is_app': not ('site-packages' in filename or 'lib/python' in filename)
         })
-
         tb = tb.tb_next
-
     return frames
 
-
-# ============================================================================
-# Request info extraction
-# ============================================================================
-
 def _extract_request_info(request: Any) -> Dict[str, Any]:
-    """Extract displayable info from an Aquilia Request object."""
-    if request is None:
-        return {}
-
-    info: Dict[str, Any] = {}
-
+    if not request: return {}
+    info = {}
     try:
-        # Method + path
-        info['method'] = getattr(request, 'method', 'GET')
-        info['path'] = getattr(request, 'path', '/')
-        info['query_string'] = getattr(request, 'query_string', '')
-
-        # Headers
-        headers = {}
-        if hasattr(request, 'headers'):
-            h = request.headers
-            if hasattr(h, 'items'):
-                headers = dict(h.items())
-            elif isinstance(h, dict):
-                headers = h
-        info['headers'] = headers
-
-        # Cookies
-        cookies = {}
-        if hasattr(request, 'cookies') and request.cookies:
-            if isinstance(request.cookies, dict):
-                cookies = request.cookies
-            elif hasattr(request.cookies, 'items'):
-                cookies = dict(request.cookies.items())
-        info['cookies'] = cookies
-
-        # Query params
-        query_params = {}
-        if hasattr(request, 'query_params'):
-            qp = request.query_params
-            if isinstance(qp, dict):
-                query_params = qp
-            elif hasattr(qp, 'items'):
-                query_params = dict(qp.items())
-        info['query_params'] = query_params
-
-        # Client
-        info['client'] = getattr(request, 'client', None)
-
-        # Scheme
-        info['scheme'] = getattr(request, 'scheme', 'http')
-
-        # State
-        state = {}
-        if hasattr(request, 'state') and isinstance(request.state, dict):
-            state = request.state
-        info['state'] = state
-
-    except Exception:
-        pass
-
+        info['Method'] = getattr(request, 'method', 'GET')
+        info['Path'] = getattr(request, 'path', '/')
+        if hasattr(request, 'headers'): info['Headers'] = dict(request.headers)
+        if hasattr(request, 'query_params'): info['Query Params'] = dict(request.query_params)
+        if hasattr(request, 'path_params'): info['Path Params'] = dict(request.path_params)
+    except: pass
     return info
-
 
 # ============================================================================
 # Main Renderers
 # ============================================================================
 
 class DebugPageRenderer:
-    """Renders beautiful debug pages for Aquilia."""
-
     @staticmethod
-    def render_exception(
-        exc: BaseException,
-        request: Any = None,
-        *,
-        aquilia_version: str = "",
-    ) -> str:
-        """Render a full React-style debug exception page."""
+    def render_exception(exc: BaseException, request: Any = None, *, aquilia_version: str = "") -> str:
         return render_debug_exception_page(exc, request, aquilia_version=aquilia_version)
 
     @staticmethod
-    def render_http_error(
-        status_code: int,
-        message: str = "",
-        detail: str = "",
-        request: Any = None,
-        *,
-        aquilia_version: str = "",
-    ) -> str:
-        """Render a styled HTTP error page."""
+    def render_http_error(status_code: int, message: str = "", detail: str = "", request: Any = None, *, aquilia_version: str = "") -> str:
         return render_http_error_page(status_code, message, detail, request, aquilia_version=aquilia_version)
 
     @staticmethod
     def render_welcome(*, aquilia_version: str = "") -> str:
-        """Render the Aquilia starter welcome page."""
         return render_welcome_page(aquilia_version=aquilia_version)
 
-
 # ============================================================================
-# render_debug_exception_page
-# ============================================================================
-
-def render_debug_exception_page(
-    exc: BaseException,
-    request: Any = None,
-    *,
-    aquilia_version: str = "",
-) -> str:
-    """
-    Render a beautiful React-style debug exception page.
-
-    Features:
-    - Full traceback with clickable stack frames
-    - Source code context with syntax highlighting per frame
-    - Local variables inspector
-    - Request info (headers, cookies, query params)
-    - Dark/light mode toggle
-    - Copy traceback button
-    - MongoDB Atlas color palette
-    """
-    exc_type = type(exc).__qualname__
-    exc_module = type(exc).__module__
-    exc_message = str(exc)
-    raw_traceback = traceback.format_exception(type(exc), exc, exc.__traceback__)
-    raw_tb_text = ''.join(raw_traceback)
-
-    frames = _extract_frames(exc)
-    request_info = _extract_request_info(request) if request else {}
-
-    # Fault metadata
-    fault_info = ""
-    if hasattr(exc, 'domain'):
-        domain_val = getattr(exc.domain, 'value', str(exc.domain)) if hasattr(exc.domain, 'value') else str(exc.domain)
-        fault_info += f'<span class="aq-badge" style="margin-right:8px;">Domain: {_esc(domain_val)}</span>'
-    if hasattr(exc, 'code') and exc.code:
-        fault_info += f'<span class="aq-badge" style="margin-right:8px;">Code: {_esc(str(exc.code))}</span>'
-    if hasattr(exc, 'severity'):
-        sev_val = getattr(exc.severity, 'value', str(exc.severity)) if hasattr(exc.severity, 'value') else str(exc.severity)
-        fault_info += f'<span class="aq-badge">Severity: {_esc(sev_val)}</span>'
-
-    # Build stack frames HTML
-    frames_html = _build_frames_html(frames)
-
-    # Build request info HTML
-    request_html = _build_request_html(request_info)
-
-    # Version
-    version_display = f'v{aquilia_version}' if aquilia_version else ''
-
-    # Raw traceback for copy
-    raw_tb_escaped = _esc(raw_tb_text)
-
-    # Python version
-    py_version = f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}'
-
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{_esc(exc_type)}: {_esc(exc_message[:80])}</title>
-  <style>{_BASE_CSS}</style>
-</head>
-<body class="dark">
-  <!-- Header -->
-  <div class="aq-header">
-    <div class="aq-header-inner">
-      <div class="aq-logo">
-        <div class="aq-logo-icon">A</div>
-        <span class="aq-logo-text">Aquilia Debug {_esc(version_display)}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:16px;">
-        <span class="aq-text-muted" style="font-size:12px;">Python {py_version}</span>
-        <div class="aq-theme-toggle" onclick="aqToggleTheme()">
-          <div class="aq-theme-icons"><span>🌙</span><span>☀️</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="aq-container">
-    <!-- Error Banner -->
-    <div class="aq-error-banner">
-      <div class="aq-error-icon">💥</div>
-      <div style="flex:1;">
-        <div class="aq-error-type">
-          {_esc(exc_type)}
-          {f'<span class="aq-text-muted" style="font-size:14px;font-weight:400;margin-left:8px;">({_esc(exc_module)})</span>' if exc_module != 'builtins' else ''}
-        </div>
-        <div class="aq-error-message">{_esc(exc_message)}</div>
-        {f'<div style="margin-top:10px;">{fault_info}</div>' if fault_info else ''}
-      </div>
-      <button id="copy-btn" onclick="aqCopyTraceback()" style="
-        background:var(--mg-green-dark);color:#fff;border:none;border-radius:8px;
-        padding:8px 16px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;
-        white-space:nowrap;transition:background 0.2s;
-      " onmouseover="this.style.background='var(--mg-green)';this.style.color='var(--mg-dark-bg)'" onmouseout="this.style.background='var(--mg-green-dark)';this.style.color='#fff'">📋 Copy Traceback</button>
-    </div>
-
-    <!-- Tabs -->
-    <div class="aq-tabs">
-      <div class="aq-tab active" data-tab="traceback" onclick="aqSwitchTab('traceback')">Traceback</div>
-      <div class="aq-tab" data-tab="request" onclick="aqSwitchTab('request')">Request</div>
-      <div class="aq-tab" data-tab="raw" onclick="aqSwitchTab('raw')">Raw</div>
-    </div>
-
-    <!-- Traceback Panel -->
-    <div id="panel-traceback" class="aq-tab-panel active">
-      <div style="margin-bottom:12px;font-size:13px;" class="aq-text-muted">
-        {len(frames)} frame{'s' if len(frames) != 1 else ''} — click to expand source &amp; locals
-      </div>
-      {frames_html}
-    </div>
-
-    <!-- Request Panel -->
-    <div id="panel-request" class="aq-tab-panel">
-      {request_html if request_html else '<div class="aq-card"><p class="aq-text-muted">No request information available.</p></div>'}
-    </div>
-
-    <!-- Raw Traceback Panel -->
-    <div id="panel-raw" class="aq-tab-panel">
-      <div class="aq-card">
-        <pre id="raw-traceback" style="white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.7;margin:0;">{raw_tb_escaped}</pre>
-      </div>
-    </div>
-  </div>
-
-  <script>{_BASE_JS}</script>
-</body>
-</html>"""
-
-
-def _build_frames_html(frames: List[Dict[str, Any]]) -> str:
-    """Build HTML for stack frames (most recent last, reversed for display)."""
-    parts = []
-    reversed_frames = list(reversed(frames))
-
-    for i, frame in enumerate(reversed_frames):
-        is_first = i == 0
-        active_cls = "aq-frame active" if is_first else "aq-frame"
-        app_badge = '<span class="aq-badge" style="margin-left:8px;font-size:10px;">APP</span>' if frame['is_app_code'] else ''
-
-        code_html = _format_code_block(frame['source_lines'])
-        locals_html = _format_locals_section(frame['locals'])
-
-        parts.append(f"""
-        <div class="{active_cls}" onclick="aqToggleFrame(this)">
-          <div class="aq-frame-file">
-            {_esc(frame['short_filename'])}:{frame['lineno']} in <strong>{_esc(frame['func_name'])}</strong>
-            {app_badge}
-          </div>
-          <div class="aq-frame-info">{_esc(frame['filename'])}</div>
-          <div class="aq-frame-code">
-            {code_html}
-            <div style="margin-top:12px;">
-              <div style="font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;" class="aq-text-muted">Local Variables</div>
-              {locals_html}
-            </div>
-          </div>
-        </div>""")
-
-    return '\n'.join(parts)
-
-
-def _build_request_html(request_info: Dict[str, Any]) -> str:
-    """Build HTML for request info panel."""
-    if not request_info:
-        return ''
-
-    method = request_info.get('method', 'GET')
-    path = request_info.get('path', '/')
-    scheme = request_info.get('scheme', 'http')
-    query_string = request_info.get('query_string', '')
-    client = request_info.get('client', None)
-
-    sections = []
-
-    # Overview
-    sections.append(f"""
-    <div class="aq-card">
-      <div style="font-size:16px;font-weight:700;margin-bottom:12px;">Request Overview</div>
-      <table class="aq-table">
-        <tbody>
-          <tr><td>Method</td><td><span class="aq-badge">{_esc(method)}</span></td></tr>
-          <tr><td>Path</td><td>{_esc(path)}</td></tr>
-          <tr><td>Scheme</td><td>{_esc(scheme)}</td></tr>
-          {f'<tr><td>Query String</td><td>{_esc(query_string)}</td></tr>' if query_string else ''}
-          {f'<tr><td>Client</td><td>{_esc(str(client))}</td></tr>' if client else ''}
-        </tbody>
-      </table>
-    </div>""")
-
-    # Headers
-    headers = request_info.get('headers', {})
-    if headers:
-        rows = ''.join(
-            f'<tr><td>{_esc(str(k))}</td><td>{_esc(str(v))}</td></tr>'
-            for k, v in sorted(headers.items())
-        )
-        sections.append(f"""
-    <div class="aq-card">
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Headers</div>
-      <div class="aq-search-bar">
-        <input class="aq-input" type="text" placeholder="Filter headers…" oninput="aqFilterTable(this, 'headers-table')">
-      </div>
-      <table class="aq-table" id="headers-table">
-        <thead><tr><th>Header</th><th>Value</th></tr></thead>
-        <tbody>{rows}</tbody>
-      </table>
-    </div>""")
-
-    # Query Params
-    query_params = request_info.get('query_params', {})
-    if query_params:
-        rows = ''.join(
-            f'<tr><td>{_esc(str(k))}</td><td>{_esc(str(v))}</td></tr>'
-            for k, v in sorted(query_params.items())
-        )
-        sections.append(f"""
-    <div class="aq-card">
-      <div style="font-size:16px;font-weight:700;margin-bottom:12px;">Query Parameters</div>
-      <table class="aq-table">
-        <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
-        <tbody>{rows}</tbody>
-      </table>
-    </div>""")
-
-    # Cookies
-    cookies = request_info.get('cookies', {})
-    if cookies:
-        rows = ''.join(
-            f'<tr><td>{_esc(str(k))}</td><td>{_esc(str(v))}</td></tr>'
-            for k, v in sorted(cookies.items())
-        )
-        sections.append(f"""
-    <div class="aq-card">
-      <div style="font-size:16px;font-weight:700;margin-bottom:12px;">Cookies</div>
-      <table class="aq-table">
-        <thead><tr><th>Cookie</th><th>Value</th></tr></thead>
-        <tbody>{rows}</tbody>
-      </table>
-    </div>""")
-
-    # State
-    state = request_info.get('state', {})
-    if state:
-        rows = ''.join(
-            f'<tr><td>{_esc(str(k))}</td><td>{_esc(str(v))}</td></tr>'
-            for k, v in sorted(state.items())
-        )
-        sections.append(f"""
-    <div class="aq-card">
-      <div style="font-size:16px;font-weight:700;margin-bottom:12px;">Request State</div>
-      <table class="aq-table">
-        <thead><tr><th>Key</th><th>Value</th></tr></thead>
-        <tbody>{rows}</tbody>
-      </table>
-    </div>""")
-
-    return '\n'.join(sections)
-
-
-# ============================================================================
-# render_http_error_page
+# SVGs & Page Generators
 # ============================================================================
 
-_HTTP_STATUS_INFO = {
-    400: ("Bad Request", "The server cannot process this request due to malformed syntax or invalid parameters.", "🚫"),
-    401: ("Unauthorized", "Authentication is required to access this resource. Please provide valid credentials.", "🔒"),
-    403: ("Forbidden", "You don't have permission to access this resource. Check your authorization.", "⛔"),
-    404: ("Not Found", "The requested resource could not be found on this server. Check the URL and try again.", "🔍"),
-    405: ("Method Not Allowed", "The HTTP method used is not supported for this endpoint.", "🚧"),
-    408: ("Request Timeout", "The server timed out waiting for the request. Please try again.", "⏱️"),
-    409: ("Conflict", "The request conflicts with the current state of the resource.", "⚡"),
-    422: ("Unprocessable Entity", "The request was well-formed but contains semantic errors.", "📋"),
-    429: ("Too Many Requests", "You have exceeded the rate limit. Please slow down and try again later.", "🏎️"),
-    500: ("Internal Server Error", "An unexpected error occurred on the server. The team has been notified.", "💥"),
-    502: ("Bad Gateway", "The server received an invalid response from an upstream server.", "🔗"),
-    503: ("Service Unavailable", "The server is temporarily unable to handle the request. Please try again shortly.", "🔧"),
-    504: ("Gateway Timeout", "The upstream server failed to respond in time.", "⏳"),
-}
-
-
-def render_http_error_page(
-    status_code: int,
-    message: str = "",
-    detail: str = "",
-    request: Any = None,
-    *,
-    aquilia_version: str = "",
-) -> str:
-    """
-    Render a styled HTTP error page for debug mode.
-
-    Shows the status code, human-readable message, request details,
-    and helpful tips — all with MongoDB Atlas theming.
-    """
-    info = _HTTP_STATUS_INFO.get(status_code, ("Error", "An error occurred.", "❌"))
-    title = message or info[0]
-    description = detail or info[1]
-    icon = info[2]
-
-    # Status class
-    if 400 <= status_code < 500:
-        status_cls = "aq-status-4xx"
-    elif status_code >= 500:
-        status_cls = "aq-status-5xx"
-    else:
-        status_cls = "aq-status-2xx"
-
-    # Request context
-    req_method = ""
-    req_path = ""
-    req_time = ""
-    if request:
-        req_method = getattr(request, 'method', '')
-        req_path = getattr(request, 'path', '')
-
-    import datetime
-    req_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    version_display = f'v{aquilia_version}' if aquilia_version else ''
-
-    # Tips based on status
-    tips = {
-        400: "Check request body format and required parameters.",
-        401: "Include a valid Authorization header or session cookie.",
-        403: "Verify your role/permissions for this resource.",
-        404: "Run <code>aq routes</code> to list all registered routes.",
-        405: "Check the allowed HTTP methods for this endpoint.",
-        500: "Check the server logs for the full traceback.",
+def _icon(name: str, cls: str = "icon") -> str:
+    """Return inline SVG icon."""
+    icons = {
+        'alert': '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+        'copy': '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>',
+        'chevron-down': '<polyline points="6 9 12 15 18 9"></polyline>',
+        'moon': '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>',
+        'sun': '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>',
+        'search': '<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>',
+        'terminal': '<polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line>',
+        'zap': '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>',
+        'box': '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>', 
+        'activity': '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>',
+        'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
+        'home': '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>',
+        'server-crash': '<path d="M6 10H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path><path d="M6 14H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2"></path><polyline points="6 6 12 6 12 12 6 12"></polyline>'
     }
-    tip = tips.get(status_code, "")
-    tip_html = f'<div style="margin-top:16px;font-size:13px;padding:12px 20px;border-radius:8px;text-align:left;max-width:500px;" class="aq-http-meta">💡 <strong>Tip:</strong> {tip}</div>' if tip else ''
+    return f'<svg class="{cls}" viewBox="0 0 24 24">{icons.get(name, "")}</svg>'
 
+def render_debug_exception_page(exc: BaseException, request: Any = None, *, aquilia_version: str = "") -> str:
+    frames = _extract_frames(exc)
+    req_info = _extract_request_info(request)
+    
+    # Frames HTML
+    frames_html = []
+    for f in reversed(frames):
+        active = "active" if f == frames[-1] else "" # Most recent first
+        src_html = _format_code_block(f['source'])
+        
+        locals_html = ""
+        if f['locals']:
+            rows = "".join(f'<div class="local-row"><div class="local-key">{_esc(k)}</div><div class="local-val">{_esc(repr(v))}</div></div>' for k,v in f['locals'].items())
+            locals_html = f'<div class="locals"><div class="locals-header">Local Variables</div>{rows}</div>'
+            
+        badge = '<span class="badge green">App</span>' if f['is_app'] else '<span class="badge gray">Lib</span>'
+        
+        frames_html.append(f"""
+        <div class="frame {active} {'app-code' if f['is_app'] else ''}">
+            <div class="frame-header" onclick="toggleFrame(this.parentNode)">
+                <div class="frame-info">
+                    <div class="frame-func">{_esc(f['func'])}</div>
+                    <div class="frame-file"><span style="color:var(--tx-text-muted)">in</span> {_esc(f['short_filename'])}</div>
+                </div>
+                <div class="frame-meta">
+                    {badge}
+                    <span>Line {f['lineno']}</span>
+                    <div class="frame-chevron">{_icon('chevron-down')}</div>
+                </div>
+            </div>
+            <div class="frame-body">
+                {src_html}
+                {locals_html}
+            </div>
+        </div>
+        """)
+
+    # Request Info HTML
+    req_html = []
+    if req_info:
+        for section, data in req_info.items():
+            if not data: continue
+            if isinstance(data, dict):
+                rows = "".join(f'<div class="local-row"><div class="local-key">{_esc(k)}</div><div class="local-val">{_esc(str(v))}</div></div>' for k,v in data.items())
+                req_html.append(f'<div class="card" style="margin-bottom:16px;"><div class="locals-header">{_esc(section)}</div>{rows}</div>')
+            else:
+                req_html.append(f'<div class="card" style="margin-bottom:16px;padding:16px;"><strong>{_esc(section)}:</strong> {_esc(str(data))}</div>')
+
+    str_version = f"v{aquilia_version}" if aquilia_version else "Dev"
+    
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{status_code} {_esc(title)}</title>
-  <style>{_BASE_CSS}</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error</title>
+    <style>{_BASE_CSS}</style>
 </head>
-<body class="dark">
-  <!-- Header -->
-  <div class="aq-header" style="position:fixed;top:0;left:0;right:0;">
-    <div class="aq-header-inner">
-      <div class="aq-logo">
-        <div class="aq-logo-icon">A</div>
-        <span class="aq-logo-text">Aquilia {_esc(version_display)}</span>
-      </div>
-      <div class="aq-theme-toggle" onclick="aqToggleTheme()">
-        <div class="aq-theme-icons"><span>🌙</span><span>☀️</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="aq-http-error-page">
-    <div style="font-size:48px;margin-bottom:16px;">{icon}</div>
-    <div class="aq-http-status">{status_code}</div>
-    <div class="aq-http-title">{_esc(title)}</div>
-    <div class="aq-http-detail">{_esc(description)}</div>
-
-    {'<div class="aq-http-meta"><span style="margin-right:16px;"><strong>Method:</strong> ' + _esc(req_method) + '</span><span style="margin-right:16px;"><strong>Path:</strong> ' + _esc(req_path) + '</span><span><strong>Time:</strong> ' + _esc(req_time) + '</span></div>' if req_method else '<div class="aq-http-meta"><span><strong>Time:</strong> ' + _esc(req_time) + '</span></div>'}
-
-    {tip_html}
-
-    <div style="margin-top:24px;">
-      <span class="aq-badge {status_cls}" style="font-size:13px;padding:6px 16px;">{status_code} {_esc(title)}</span>
-    </div>
-  </div>
-
-  <script>{_BASE_JS}</script>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    
+    <header class="header glass">
+        <div class="container" style="justify-content:space-between">
+            <div class="logo">
+                <div style="width:24px;height:24px;border-radius:6px;background:var(--tx-accent);display:flex;align-items:center;justify-content:center;color:#000;">{_icon('zap')}</div>
+                <span>Aquilia Debug</span>
+            </div>
+            <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+                <div id="icon-moon">{_icon('moon')}</div>
+                <div id="icon-sun" style="display:none">{_icon('sun')}</div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="exc-header">
+            <div class="badge red">{_icon('alert', 'icon')} 500 Server Error</div>
+            <h1 class="exc-title">{type(exc).__name__}</h1>
+            <div class="exc-msg">{_esc(str(exc))}</div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="trace" onclick="switchTab('trace')">{_icon('activity')} Traceback</div>
+                <div class="tab" data-tab="request" onclick="switchTab('request')">{_icon('box')} Request Info</div>
+            </div>
+        </div>
+        
+        <div id="panel-trace" class="tab-panel active">
+            <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--tx-text-muted);">Stack Trace (most recent call first)</span>
+                <button class="copy-btn" id="copy-tb-btn" onclick="copyText('copy-tb-btn', 'raw-tb')">
+                    {_icon('copy')} <span>Copy Traceback</span>
+                </button>
+            </div>
+            <div class="frame-list">
+                {"".join(frames_html)}
+            </div>
+            <div id="raw-tb" style="display:none">{_esc("".join(traceback.format_exception(type(exc), exc, exc.__traceback__)))}</div>
+        </div>
+        
+        <div id="panel-request" class="tab-panel">
+            {"".join(req_html) if req_html else '<div style="color:var(--tx-text-muted);text-align:center;">No request context available.</div>'}
+        </div>
+    </main>
+    <script>{_BASE_JS}</script>
 </body>
 </html>"""
 
-
-# ============================================================================
-# render_welcome_page
-# ============================================================================
+def render_http_error_page(status_code: int, message: str = "", detail: str = "", request: Any = None, *, aquilia_version: str = "") -> str:
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{status_code} {message}</title>
+    <style>{_BASE_CSS}</style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow" style="opacity:0.3"></div>
+    
+    <div class="http-page">
+        <div class="http-container">
+            <div class="http-icon-bg">
+                {_icon('server-crash', 'icon-xl')}
+            </div>
+            <div class="badge red" style="margin-bottom:24px;">{status_code}</div>
+            <h1 class="http-title">{_esc(message or 'Error')}</h1>
+            <p class="http-desc">{_esc(detail or 'An unexpected error occurred processing your request.')}</p>
+            
+            <a href="/" class="btn-primary" style="border-radius:8px;">{_icon('home')} Back Home</a>
+        </div>
+    </div>
+    <div style="position:fixed;top:24px;right:24px;">
+        <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+            <div id="icon-moon">{_icon('moon')}</div>
+            <div id="icon-sun" style="display:none">{_icon('sun')}</div>
+        </div>
+    </div>
+    <script>{_BASE_JS}</script>
+</body>
+</html>"""
 
 def render_welcome_page(*, aquilia_version: str = "") -> str:
-    """
-    Render the Aquilia starter welcome page.
-
-    Shown when debug mode is on and no routes are matched on the root path.
-    Like Django's rocket page or React's spinning logo page.
-    """
-    version_display = f'v{aquilia_version}' if aquilia_version else ''
-
+    str_version = f"v{aquilia_version}" if aquilia_version else "Dev"
+    
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Aquilia</title>
-  <style>{_BASE_CSS}</style>
+    <meta charset="UTF-8">
+    <title>Welcome to Aquilia</title>
+    <style>{_BASE_CSS}</style>
 </head>
-<body class="dark">
-  <!-- Header -->
-  <div class="aq-header" style="position:fixed;top:0;left:0;right:0;">
-    <div class="aq-header-inner">
-      <div class="aq-logo">
-        <div class="aq-logo-icon">A</div>
-        <span class="aq-logo-text">Aquilia {_esc(version_display)}</span>
-      </div>
-      <div class="aq-theme-toggle" onclick="aqToggleTheme()">
-        <div class="aq-theme-icons"><span>🌙</span><span>☀️</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="aq-welcome-page">
-    <!-- Logo -->
-    <div class="aq-welcome-logo">A</div>
-
-    <div class="aq-welcome-title">Welcome to <span>Aquilia</span></div>
-    <div class="aq-welcome-subtitle">
-      The production-ready async Python web framework. You're seeing this page because <code style="padding:2px 8px;border-radius:4px;background:rgba(0,237,100,0.1);color:var(--mg-green);font-size:14px;">debug=True</code> and no routes are configured yet.
-    </div>
-
-    <!-- Feature Cards -->
-    <div class="aq-welcome-grid">
-      <div class="aq-welcome-card">
-        <div class="aq-welcome-card-icon">⚡</div>
-        <div class="aq-welcome-card-title">Async-First</div>
-        <div class="aq-welcome-card-desc">Built on ASGI with native async/await support. Handles thousands of concurrent connections effortlessly.</div>
-      </div>
-      <div class="aq-welcome-card">
-        <div class="aq-welcome-card-icon">🧩</div>
-        <div class="aq-welcome-card-title">Modular Architecture</div>
-        <div class="aq-welcome-card-desc">Manifest-driven modules with dependency resolution, auto-discovery, and scoped dependency injection.</div>
-      </div>
-      <div class="aq-welcome-card">
-        <div class="aq-welcome-card-icon">🛡️</div>
-        <div class="aq-welcome-card-title">Fault Handling</div>
-        <div class="aq-welcome-card-desc">Typed fault domains, circuit breakers, retry patterns, and beautiful debug pages — errors are data, not surprises.</div>
-      </div>
-      <div class="aq-welcome-card">
-        <div class="aq-welcome-card-icon">🔐</div>
-        <div class="aq-welcome-card-title">Auth & Sessions</div>
-        <div class="aq-welcome-card-desc">OAuth2/OIDC, MFA, RBAC/ABAC authorization, and cryptographic session management — all built in.</div>
-      </div>
-      <div class="aq-welcome-card">
-        <div class="aq-welcome-card-icon">🔄</div>
-        <div class="aq-welcome-card-title">Flow Routing</div>
-        <div class="aq-welcome-card-desc">Typed flow-first routing with composable pipelines, middleware chains, and effect-aware request processing.</div>
-      </div>
-      <div class="aq-welcome-card">
-        <div class="aq-welcome-card-icon">📦</div>
-        <div class="aq-welcome-card-title">CLI Toolkit</div>
-        <div class="aq-welcome-card-desc">Generate workspaces, modules, controllers, and services with the <code>aq</code> CLI. Zero config required.</div>
-      </div>
-    </div>
-
-    <!-- Quick Start Code -->
-    <div class="aq-welcome-code">
-      <div style="font-size:12px;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;" class="aq-text-muted">Quick Start</div>
-      <div><span class="cm"># Create a new module</span></div>
-      <div><span class="fn">$</span> aq add module <span class="st">hello</span></div>
-      <div style="margin-top:12px;"><span class="cm"># Or create a controller manually</span></div>
-      <div><span class="kw">from</span> aquilia <span class="kw">import</span> Controller, GET, Response, RequestCtx</div>
-      <div style="margin-top:8px;"><span class="kw">class</span> <span class="fn">HelloController</span>(Controller):</div>
-      <div>    prefix = <span class="st">"/"</span></div>
-      <div style="margin-top:4px;">    <span class="kw">@</span><span class="fn">GET</span>(<span class="st">"/"</span>)</div>
-      <div>    <span class="kw">async def</span> <span class="fn">index</span>(self, ctx: RequestCtx):</div>
-      <div>        <span class="kw">return</span> Response.json({{<span class="st">"message"</span>: <span class="st">"Hello, Aquilia!"</span>}})</div>
-    </div>
-
-    <div class="aq-welcome-footer">
-      Built with 💚 by the Aquilia Team &nbsp;·&nbsp;
-      <a href="https://github.com/aquilia/aquilia">GitHub</a> &nbsp;·&nbsp;
-      <a href="https://aquilia.dev/docs">Documentation</a>
-    </div>
-  </div>
-
-  <script>{_BASE_JS}</script>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    
+    <header class="header glass">
+        <div class="container" style="justify-content:space-between">
+            <div class="logo">
+                <div style="width:24px;height:24px;border-radius:6px;background:var(--tx-accent);display:flex;align-items:center;justify-content:center;color:#000;">{_icon('zap')}</div>
+                <span>Aquilia</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div class="badge gray">{str_version}</div>
+                <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+                    <div id="icon-moon">{_icon('moon')}</div>
+                    <div id="icon-sun" style="display:none">{_icon('sun')}</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="welcome-hero">
+            <div class="welcome-badge">{_icon('activity')} Server Active</div>
+            <h1 class="welcome-title">Ready for <span style="color:var(--tx-accent)">Orbit</span></h1>
+            <p class="welcome-subtitle">Aquilia is running in debug mode. No root route has been defined yet.</p>
+            
+            <div class="cmd-block">
+                <div style="color:var(--tx-text-muted);margin-bottom:8px;"># Create a new controller</div>
+                <div style="display:flex;justify-content:space-between;">
+                    <span><span style="color:var(--tx-accent)">$</span> aq add controller users</span>
+                    <span style="cursor:pointer;" onclick="copyText(this.id, 'c1')" id="btn-c1">{_icon('copy')}</span>
+                    <span id="c1" style="display:none">aq add controller users</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">{_icon('zap', 'icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">Async Native</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Built on ASGI for high-performance concurrent request handling with zero overhead.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="color:var(--tx-info);border-color:rgba(59,130,246,0.2);background:rgba(59,130,246,0.1)">{_icon('shield', 'icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">Type Safe</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Leverage Python type hints for validation, dependency injection, and auto-docs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="color:var(--tx-warning);border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.1)">{_icon('box', 'icon-lg')}</div>
+                <h3 style="margin-bottom:8px;">Modular</h3>
+                <p style="color:var(--tx-text-muted);font-size:14px;">Organize your application into isolated, reusable modules with manifest discovery.</p>
+            </div>
+        </div>
+    </main>
+    <script>{_BASE_JS}</script>
 </body>
 </html>"""

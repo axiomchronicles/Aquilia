@@ -1,0 +1,13 @@
+# Production Environment - Server Configuration
+# Overrides base.yaml for production
+
+server:
+  mode: prod
+  host: 0.0.0.0               # Bind to all interfaces (behind reverse proxy)
+  port: 8000
+  reload: false               # No hot-reload in production
+  workers: 4                  # Multi-worker for concurrency
+  backlog: 2048
+  timeout_keep_alive: 5
+  timeout_notify: 60          # Graceful shutdown timeout
+  access_log: false           # Disable in production (use reverse proxy logging)
