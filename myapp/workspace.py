@@ -170,7 +170,7 @@ workspace = (
         contact_name="CRM Team",
         contact_email="crm@aquilia.dev",
         license_name="MIT",
-        swagger_ui_theme="dark",
+        # swagger_ui_theme="dark",
     ))
 
     # --- Sessions ---

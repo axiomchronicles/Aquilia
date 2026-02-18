@@ -1517,6 +1517,14 @@ class AquiliaServer:
         self.controller_router.routes_by_method.setdefault("GET", []).append(route_json)
         self.controller_router.routes_by_method.setdefault("GET", []).append(route_docs)
         self.controller_router.routes_by_method.setdefault("GET", []).append(route_redoc)
+
+        # Reset the initialized flag so the router rebuilds its fast-path
+        # indexes (static_routes / dynamic_routes) to include the docs routes
+        # that were just appended — after controller_router.initialize() had
+        # already been called during _load_controllers().
+        self.controller_router._initialized = False
+        self.controller_router.initialize()
+
         self.logger.info(
             f"📡 Registered documentation routes: "
             f"{openapi_config.docs_path} (Swagger UI) | "

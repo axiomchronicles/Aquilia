@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "captured_at": "2026-02-18T15:20:29.393042+00:00",
+  "captured_at": "2026-02-18T15:44:41.856029+00:00",
   "faults": {
     "active": true,
     "total_faults": 0,
@@ -111,10 +111,10 @@
     "driver": "sqlite"
   },
   "process": {
-    "pid": 78729,
+    "pid": 92026,
     "python_version": "3.14.0",
-    "max_rss_mb": 85.0,
-    "user_time_s": 0.22,
-    "system_time_s": 0.045
+    "max_rss_mb": 85.02,
+    "user_time_s": 0.282,
+    "system_time_s": 0.04
   }
 }
