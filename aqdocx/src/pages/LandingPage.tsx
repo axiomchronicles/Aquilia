@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { useTheme } from '../context/ThemeContext'
 import { ArrowRight, Github, BookOpen, Zap, Shield, Database, Layers, Box, Workflow, Code, Terminal, Cpu, Globe, Activity, Rocket, Cpu as CpuIcon, Command } from 'lucide-react'
+import { PostgresSQLIcon, RedisIcon, RabbitMQIcon, SentryIcon, OpenTelemetryIcon, AwsS3Icon, ElasticsearchIcon, DockerIcon } from '../components/BrandIcons'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArchitectureDiagram } from '../components/ArchitectureDiagram'
@@ -57,9 +58,10 @@ export function LandingPage() {
                 variants={containerVariants}
                 className="text-left flex flex-col items-start"
               >
-                <motion.div variants={itemVariants} className={`inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full border text-sm font-medium backdrop-blur-sm ${isDark ? 'border-aquilia-500/30 bg-aquilia-500/10 text-aquilia-400' : 'border-aquilia-600/30 bg-aquilia-500/10 text-aquilia-600'}`}>
-                  <span className="flex h-2 w-2 rounded-full bg-aquilia-500 animate-pulse" />
-                  v1.0.0 — Stable Release
+                <motion.div variants={itemVariants} className={`inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full border text-sm font-medium backdrop-blur-md relative overflow-hidden group ${isDark ? 'border-aquilia-500/30 bg-aquilia-500/10 text-aquilia-400' : 'border-aquilia-600/30 bg-aquilia-500/10 text-aquilia-600'}`}>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  <span className="flex h-2 w-2 rounded-full bg-aquilia-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                  v1.0.0 — Production Ready
                 </motion.div>
 
                 <motion.h1 variants={itemVariants} className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight w-full">
@@ -87,14 +89,15 @@ export function LandingPage() {
                 </motion.div>
 
                 <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-12 w-full lg:w-auto">
-                  <Link to="/docs" className={`group relative px-6 py-2.5 font-bold rounded-lg transition-all overflow-hidden text-center flex justify-center items-center ${isDark ? 'bg-white text-black hover:bg-gray-100 hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.1)]' : 'bg-aquilia-600 text-white hover:bg-aquilia-700 hover:scale-105'}`}>
+                  <Link to="/docs" className={`group relative px-8 py-3.5 font-bold rounded-xl transition-all overflow-hidden text-center flex justify-center items-center shadow-lg hover:shadow-aquilia-500/25 ${isDark ? 'bg-white text-black hover:scale-105' : 'bg-aquilia-600 text-white hover:bg-aquilia-700 hover:scale-105'}`}>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:animate-shimmer" />
                     <span className="relative z-10 flex items-center justify-center gap-2">
-                      Get Started — 5-Minute Quickstart
+                      Get Started
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </Link>
-                  <Link to="/docs/architecture" className={`px-6 py-2.5 border rounded-lg font-semibold transition-all flex items-center justify-center gap-2 group ${isDark ? 'bg-zinc-900 border-zinc-800 text-white hover:border-aquilia-500/50' : 'bg-white border-gray-300 text-gray-800 hover:border-aquilia-500/50'}`}>
-                    See the Architecture →
+                  <Link to="/docs/architecture" className={`px-8 py-3.5 border rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group hover:bg-white/5 ${isDark ? 'bg-zinc-900 border-zinc-800 text-white hover:border-aquilia-500/50' : 'bg-white border-gray-300 text-gray-800 hover:border-aquilia-500/50'}`}>
+                    Architecture Guide
                   </Link>
                 </motion.div>
 
@@ -372,34 +375,48 @@ export function LandingPage() {
               <div className="flex-1">
                 <h2 className="text-aquilia-500 font-bold tracking-wide uppercase text-sm mb-4">Enterprise Ecosystem</h2>
                 <h3 className={`text-4xl font-bold mb-6 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Plays Well With<br />Everything.
+                  Plays Well With<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-aquilia-400 to-emerald-600">Everything You Use.</span>
                 </h3>
-                <p className={`text-lg mb-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Aquilia comes with first-class adapters for the tools you already use. From databases to observability, we've got you covered.
+                <p className={`text-lg mb-8 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Aquilia ships with first-class, async-native adapters for the industry's standard infrastructure. No hacking required — just drop in your credentials and go.
                 </p>
-                <div className="grid grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-2 gap-y-4 gap-x-8">
                   {[
                     'PostgreSQL', 'Redis', 'RabbitMQ', 'Sentry',
                     'OpenTelemetry', 'AWS S3', 'Elasticsearch', 'Docker'
                   ].map((item) => (
-                    <div key={item} className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                      <div className="w-1.5 h-1.5 rounded-full bg-aquilia-500" />
+                    <div key={item} className={`flex items-center gap-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-aquilia-500' : 'bg-aquilia-600'}`} />
                       {item}
                     </div>
                   ))}
                 </div>
               </div>
+
               <div className="flex-grow w-full lg:w-1/2">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {[Database, Globe, Shield, Box, Terminal, Layers, Cpu, Command].map((Icon, i) => (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
+                  {[
+                    { Icon: PostgresSQLIcon, name: 'PostgreSQL' },
+                    { Icon: RedisIcon, name: 'Redis' },
+                    { Icon: RabbitMQIcon, name: 'RabbitMQ' },
+                    { Icon: SentryIcon, name: 'Sentry' },
+                    { Icon: OpenTelemetryIcon, name: 'OpenTelemetry' },
+                    { Icon: AwsS3Icon, name: 'AWS S3' },
+                    { Icon: ElasticsearchIcon, name: 'Elasticsearch' },
+                    { Icon: DockerIcon, name: 'Docker' },
+                  ].map(({ Icon, name }, i) => (
                     <motion.div
-                      key={i}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      key={name}
+                      initial={{ opacity: 0, scale: 0.9 }}
                       whileInView={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.1 }}
-                      className={`aspect-square rounded-2xl flex items-center justify-center `}
+                      transition={{ delay: i * 0.05 }}
+                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-3 border transition-all shadow-sm hover:shadow-xl ${isDark ? 'bg-zinc-900/50 border-white/10 hover:border-aquilia-500/30 hover:bg-zinc-800' : 'bg-white border-gray-100 hover:border-aquilia-200'}`}
                     >
-                      <Icon className="w-10 h-10" />
+                      <Icon className={`w-10 h-10 ${isDark ? 'text-gray-200' : 'text-gray-700'}`} />
+                      <span className={`text-xs font-semibold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{name}</span>
                     </motion.div>
                   ))}
                 </div>
