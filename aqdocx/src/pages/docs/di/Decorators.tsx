@@ -188,7 +188,7 @@ assert create_database_pool.__di_scope__ == "singleton"`}</CodeBlock>
 
       {/* @provides */}
       <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>@provides()</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500">@provides()</code></h2>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Function decorator that explicitly declares which token the factory provides. Sets <code className="text-aquilia-500">__di_provides__</code> on the function along with the standard factory attributes. Use this when the token should be different from the function or return type.
         </p>
@@ -219,7 +219,7 @@ assert create_pool.__di_factory__ == True`}</CodeBlock>
 
       {/* @auto_inject */}
       <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>@auto_inject()</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500">@auto_inject()</code></h2>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Function decorator that automatically resolves dependencies from the request container when the function is called. It inspects the function's parameter signature and resolves each type-hinted parameter that the caller didn't provide.
         </p>

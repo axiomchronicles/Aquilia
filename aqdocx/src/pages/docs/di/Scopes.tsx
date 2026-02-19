@@ -69,9 +69,9 @@ assert scope.value == "request"  # True`}</CodeBlock>
 
       {/* Scope Dataclass */}
       <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Scope Dataclass</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500">Scope</code> Dataclass</h2>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Each scope level is represented by a <code className="text-aquilia-500">Scope</code> dataclass instance that defines its name, cacheability, and parent scope:
+          Each scope is defined by a <code className="text-aquilia-500">Scope</code> dataclass instance, which configures its behavior:
         </p>
         <CodeBlock language="python" filename="Scope Dataclass">{`from dataclasses import dataclass
 from typing import Optional
@@ -95,11 +95,11 @@ class Scope:
         ...`}</CodeBlock>
       </section>
 
-      {/* SCOPES Dict */}
+      {/* SCOPES Registry */}
       <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>SCOPES Registry</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>The <code className="text-aquilia-500">SCOPES</code> Registry</h2>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The module-level <code className="text-aquilia-500">SCOPES</code> dict holds pre-built <code className="text-aquilia-500">Scope</code> instances with their parent relationships:
+          Aquilia maintains a global registry of valid scopes in <code className="text-aquilia-500">aquilia.di.scopes.SCOPES</code>. This dictionary maps scope names (strings) to <code className="text-aquilia-500">Scope</code> definitions.
         </p>
         <CodeBlock language="python" filename="SCOPES Dict">{`from aquilia.di.scopes import SCOPES
 

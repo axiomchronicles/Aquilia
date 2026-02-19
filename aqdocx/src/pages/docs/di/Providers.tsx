@@ -19,7 +19,7 @@ export function DIProviders() {
 
       {/* ClassProvider */}
       <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>ClassProvider</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500">ClassProvider</code></h2>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           The default provider type. Instantiates a class by auto-resolving constructor dependencies via <code className="text-aquilia-500">inspect.signature()</code> and type hints. Supports <code className="text-aquilia-500">Annotated[Type, Inject(...)]</code> for tagged dependencies and the <code className="text-aquilia-500">async_init()</code> convention for post-construction async initialization.
         </p>
@@ -77,7 +77,7 @@ provider = ClassProvider(
 
       {/* FactoryProvider */}
       <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>FactoryProvider</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500">FactoryProvider</code></h2>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Calls a sync or async factory function to create the service instance. Dependencies are auto-resolved from the factory's parameter signature, just like <code className="text-aquilia-500">ClassProvider</code>. Use this when construction logic doesn't fit a simple <code className="text-aquilia-500">__init__</code>.
         </p>

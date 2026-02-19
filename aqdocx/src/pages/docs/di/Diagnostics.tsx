@@ -458,7 +458,7 @@ clear_request_container()             # Clear on request end
 
         {/* di-check */}
         <div className="mb-6">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-check</h3>
+          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">aq di-check</code></h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Static DI validation. Loads manifests, builds the registry with full validation, and reports:
           </p>
@@ -482,7 +482,7 @@ aq di-check --settings settings.py --no-cross-app-check
 
         {/* di-tree */}
         <div className="mb-6">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-tree</h3>
+          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">aq di-tree</code></h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Renders the dependency tree as text. Optionally start from a specific root token:
           </p>
@@ -498,7 +498,7 @@ aq di-tree --settings settings.py --root UserService --out tree.txt`}</CodeBlock
 
         {/* di-graph */}
         <div className="mb-6">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-graph</h3>
+          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">aq di-graph</code></h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Exports the dependency graph as Graphviz DOT format. Nodes are color-coded by scope:
           </p>
@@ -516,7 +516,7 @@ aq di-tree --settings settings.py --root UserService --out tree.txt`}</CodeBlock
 
         {/* di-profile */}
         <div className="mb-6">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-profile</h3>
+          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">aq di-profile</code></h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Benchmarks DI performance — registry build, container build, and cached resolution latency:
           </p>
@@ -538,7 +538,7 @@ aq di-tree --settings settings.py --root UserService --out tree.txt`}</CodeBlock
 
         {/* di-manifest */}
         <div className="mb-6">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>aq di-manifest</h3>
+          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">aq di-manifest</code></h3>
           <p className={`mb-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Generates a JSON manifest for LSP/IDE integration — hover info, autocomplete for <code className="text-aquilia-500">Inject(tag="...")</code>, and "find provider" navigation:
           </p>

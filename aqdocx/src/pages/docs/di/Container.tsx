@@ -21,7 +21,7 @@ export function DIContainer() {
       <section className="mb-16">
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Internal Structure</h2>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The Container uses <code className="text-green-500">__slots__</code> with 8 slot attributes for zero-overhead attribute access:
+          The Container uses <code className="px-4 py-3 font-mono text-aquilia-500">__slots__</code> with 8 slot attributes for zero-overhead attribute access:
         </p>
         <div className="overflow-x-auto">
           <table className={`w-full text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -42,8 +42,8 @@ export function DIContainer() {
                 ['_lifecycle', 'Lifecycle', 'Manages on_startup/on_shutdown hooks and disposal strategy.'],
               ].map(([slot, type_, desc], i) => (
                 <tr key={i}>
-                  <td className="py-3 pr-4"><code className="text-green-500 text-xs">{slot}</code></td>
-                  <td className="py-3 pr-4"><code className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{type_}</code></td>
+                  <td className="py-3 pr-4"><p className="px-4 py-3 font-mono text-aquilia-500">{slot}</p></td>
+                  <td className="py-3 pr-4"><code className={`font-mono text-yellow-500`}>{type_}</code></td>
                   <td className={`py-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{desc}</td>
                 </tr>
               ))}
@@ -81,9 +81,9 @@ request_container = container.create_request_scope()
 
         {/* register */}
         <div className="mb-12">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>register(provider, *, tag=None)</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">register(provider, *, tag=None)</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Register a <code className="text-green-500">Provider</code> instance. Raises on duplicate token+tag combinations. Emits a <code className="text-green-500">REGISTRATION</code> diagnostic event.
+            Register a <code className="text-aquilia-500">Provider</code> instance. Raises on duplicate token+tag combinations. Emits a <code className="text-aquilia-500">REGISTRATION</code> diagnostic event.
           </p>
           <CodeBlock language="python">{`from aquilia.di import ClassProvider
 
@@ -97,9 +97,9 @@ container.register(memcached_provider, tag="memcached")`}</CodeBlock>
 
         {/* bind */}
         <div className="mb-12">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>bind(interface, implementation, *, scope="app", tag=None)</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">bind(interface, implementation, *, scope="app", tag=None)</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Bind an interface type to a concrete implementation. Creates a <code className="text-green-500">ClassProvider</code> internally and registers it under the interface token.
+            Bind an interface type to a concrete implementation. Creates a <code className="text-aquilia-500">ClassProvider</code> internally and registers it under the interface token.
           </p>
           <CodeBlock language="python">{`from abc import ABC, abstractmethod
 
@@ -125,9 +125,9 @@ class UserService:
 
         {/* register_instance */}
         <div className="mb-12">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>register_instance(token, instance, *, scope="app", tag=None)</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">register_instance(token, instance, *, scope="app", tag=None)</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Register a pre-built object. Creates a <code className="text-green-500">ValueProvider</code> internally. Useful for configuration objects, database pools, or anything initialized outside the DI system.
+            Register a pre-built object. Creates a <code className="text-aquilia-500">ValueProvider</code> internally. Useful for configuration objects, database pools, or anything initialized outside the DI system.
           </p>
           <CodeBlock language="python">{`import asyncpg
 
@@ -137,15 +137,15 @@ container.register_instance(asyncpg.Pool, pool, scope="singleton")`}</CodeBlock>
 
         {/* resolve_async */}
         <div className="mb-12">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>resolve_async(token, *, tag=None, optional=False)</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">resolve_async(token, *, tag=None, optional=False)</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <strong>Primary async resolution path.</strong> This is the hot path — optimized for &lt;3&micro;s cached lookups with inlined token-to-key conversion. The resolution flow:
           </p>
           <ol className={`list-decimal pl-6 mb-4 space-y-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            <li>Inline token → key conversion via <code className="text-green-500">_type_key_cache</code> (avoids function call overhead)</li>
-            <li>Check <code className="text-green-500">_cache</code> — O(1) dict lookup returns immediately on hit</li>
-            <li>Scope delegation — singleton/app tokens delegate to <code className="text-green-500">_parent.resolve_async()</code></li>
-            <li>Provider instantiation via <code className="text-green-500">provider.instantiate(ctx)</code></li>
+            <li>Inline token → key conversion via <code className="text-aquilia-500">_type_key_cache</code> (avoids function call overhead)</li>
+            <li>Check <code className="text-aquilia-500">_cache</code> — O(1) dict lookup returns immediately on hit</li>
+            <li>Scope delegation — singleton/app tokens delegate to <code className="text-aquilia-500">_parent.resolve_async()</code></li>
+            <li>Provider instantiation via <code className="text-aquilia-500">provider.instantiate(ctx)</code></li>
             <li>Cache result if scope is cacheable, register shutdown finalizer</li>
           </ol>
           <CodeBlock language="python">{`# Standard resolution
@@ -162,9 +162,9 @@ if metrics:
 
         {/* resolve (sync) */}
         <div className="mb-12">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>resolve(token, *, tag=None, optional=False)</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">resolve(token, *, tag=None, optional=False)</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Synchronous resolution wrapper. Creates an event loop if one is not running. <strong>Prefer <code className="text-green-500">resolve_async()</code> in async contexts</strong> — the sync version exists for backwards compatibility and startup code.
+            Synchronous resolution wrapper. Creates an event loop if one is not running. <strong>Prefer <code className="text-aquilia-500">resolve_async()</code> in async contexts</strong> — the sync version exists for backwards compatibility and startup code.
           </p>
           <CodeBlock language="python">{`# Only use in synchronous contexts (startup, CLI, tests)
 config = container.resolve(AppConfig)`}</CodeBlock>
@@ -172,7 +172,7 @@ config = container.resolve(AppConfig)`}</CodeBlock>
 
         {/* is_registered */}
         <div className="mb-12">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>is_registered(token, *, tag=None)</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">is_registered(token, *, tag=None)</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Check whether a provider exists for the given token. Checks both the current container and the parent chain.
           </p>
@@ -183,15 +183,15 @@ config = container.resolve(AppConfig)`}</CodeBlock>
 
         {/* create_request_scope */}
         <div className="mb-12">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>create_request_scope()</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">create_request_scope()</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Create a lightweight child container for request-scoped isolation. The child:
           </p>
           <ul className={`list-disc pl-6 mb-4 space-y-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            <li>Shares <code className="text-green-500">_providers</code> dict by reference (zero copy overhead)</li>
-            <li>Gets its own empty <code className="text-green-500">_cache</code> (request-scoped instances isolated)</li>
-            <li>Uses <code className="text-green-500">_NullLifecycle</code> — a singleton no-op lifecycle to avoid overhead</li>
-            <li>Sets <code className="text-green-500">_parent</code> to the app container for scope delegation</li>
+            <li>Shares <code className="text-aquilia-500">_providers</code> dict by reference (zero copy overhead)</li>
+            <li>Gets its own empty <code className="text-aquilia-500">_cache</code> (request-scoped instances isolated)</li>
+            <li>Uses <code className="text-aquilia-500">_NullLifecycle</code> — a singleton no-op lifecycle to avoid overhead</li>
+            <li>Sets <code className="text-aquilia-500">_parent</code> to the app container for scope delegation</li>
           </ul>
           <CodeBlock language="python">{`# Typically called by ASGI middleware per-request:
 async def di_middleware(scope, receive, send):
@@ -205,9 +205,9 @@ async def di_middleware(scope, receive, send):
 
         {/* startup */}
         <div className="mb-12">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>startup()</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">startup()</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Run all lifecycle startup hooks in priority order. Internally calls <code className="text-green-500">_check_lifecycle_hooks()</code> to scan for providers that implement <code className="text-green-500">on_startup</code>/<code className="text-green-500">on_shutdown</code> methods and registers them as lifecycle hooks. Raises if any startup hook fails.
+            Run all lifecycle startup hooks in priority order. Internally calls <code className="text-aquilia-500">_check_lifecycle_hooks()</code> to scan for providers that implement <code className="text-aquilia-500">on_startup</code>/<code className="text-aquilia-500">on_shutdown</code> methods and registers them as lifecycle hooks. Raises if any startup hook fails.
           </p>
           <CodeBlock language="python">{`container = registry.build_container()
 await container.startup()

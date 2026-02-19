@@ -153,7 +153,7 @@ lifecycle.on_startup(
 
         {/* on_shutdown */}
         <div className="mb-0">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>on_shutdown(name, callback, *, priority=0, phase=None)</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">on_shutdown(name, callback, *, priority=0, phase=None)</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Register a shutdown hook. Same priority-sorted behavior as startup hooks. Shutdown hooks <strong>log errors but continue</strong> — all hooks run even if one fails.
           </p>
@@ -172,7 +172,7 @@ lifecycle.on_shutdown(
 
         {/* register_finalizer */}
         <div className="mb-0">
-          <h3 className={`text-lg font-mono font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>register_finalizer(callback)</h3>
+          <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}><code className="text-aquilia-500 text-lg">register_finalizer(callback)</code></h3>
           <p className={`mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Register a finalizer callback. Finalizers are instance-level cleanup functions — the Container calls this automatically when caching resolved instances. Finalizers are executed according to the <code className="text-aquilia-500">_disposal_strategy</code>.
           </p>
