@@ -57,6 +57,7 @@ import { DIScopes } from './pages/docs/di/Scopes'
 import { DIDecorators } from './pages/docs/di/Decorators'
 import { DILifecycle } from './pages/docs/di/Lifecycle'
 import { DIDiagnostics } from './pages/docs/di/Diagnostics'
+import { DIAdvanced } from './pages/docs/di/DIAdvanced'
 
 // Models
 import { ModelsOverview } from './pages/docs/models/Overview'
@@ -233,6 +234,7 @@ export default function App() {
           <Route path="di/decorators" element={<DIDecorators />} />
           <Route path="di/lifecycle" element={<DILifecycle />} />
           <Route path="di/diagnostics" element={<DIDiagnostics />} />
+          <Route path="di/advanced" element={<DIAdvanced />} />
 
           {/* Models */}
           <Route path="models" element={<ModelsOverview />} />

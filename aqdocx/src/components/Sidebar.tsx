@@ -108,12 +108,14 @@ const sections: SidebarSection[] = [
       {
         label: 'DI System', path: '/docs/di', icon: <Box className="w-3.5 h-3.5" />,
         children: [
+          { label: 'Overview', path: '/docs/di' },
           { label: 'Container', path: '/docs/di/container' },
           { label: 'Providers', path: '/docs/di/providers' },
           { label: 'Scopes', path: '/docs/di/scopes' },
           { label: 'Decorators', path: '/docs/di/decorators' },
           { label: 'Lifecycle', path: '/docs/di/lifecycle' },
           { label: 'Diagnostics', path: '/docs/di/diagnostics' },
+          { label: 'Advanced', path: '/docs/di/advanced' },
         ]
       },
     ]
@@ -353,15 +355,14 @@ export function Sidebar() {
   }
 
   const isActive = (path: string) => location.pathname === path
+  const isChildActive = (path: string) => location.pathname.startsWith(path) && location.pathname !== path
 
   // Recursive Item Component
   const SidebarMenuItem = ({ item, depth = 0 }: { item: SidebarItem, depth?: number }) => {
     const hasChildren = item.children && item.children.length > 0
     const isExpanded = expanded[item.path]
     const active = isActive(item.path)
-
-    // Padding logic handled via inline styles and conditional classes
-
+    const childActive = isChildActive(item.path)
 
     // If it has children, it's a collapsible parent
     if (hasChildren) {
@@ -369,12 +370,16 @@ export function Sidebar() {
         <li>
           <button
             onClick={(e) => toggleExpand(e, item.path)}
-            className={`w-full group flex items-center justify-between py-2 rounded-lg text-sm transition-all ${depth === 0 ? 'px-3' : 'pl-4 pr-3'
-              } ${active
-                ? 'sidebar-link-active'
+            className={`w-full group flex items-center justify-between py-2 rounded-lg text-sm transition-all ${depth === 0 ? 'px-3' : 'pl-4 pr-3'} ${active
+              ? 'sidebar-link-active'
+              : childActive
+                ? `font-medium ${isDark ? 'text-aquilia-400' : 'text-aquilia-600'}`
                 : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
               }`}
-            style={{ paddingLeft: depth > 0 ? `${depth * 16 + 12}px` : undefined }}
+            style={{
+              paddingLeft: depth > 0 ? `${depth * 16 + 12}px` : undefined,
+              borderLeft: childActive && depth === 0 ? `2px solid ${isDark ? '#60a5fa' : '#3b82f6'}` : undefined
+            }}
           >
             <span className="flex items-center gap-2">
               {item.icon && item.icon}
@@ -423,6 +428,7 @@ export function Sidebar() {
     const hasChildren = item.children && item.children.length > 0
     const isExpanded = expanded[item.path]
     const active = isActive(item.path)
+    const childActive = isChildActive(item.path)
 
     if (hasChildren) {
       return (
@@ -431,7 +437,9 @@ export function Sidebar() {
             onClick={(e) => toggleExpand(e, item.path)}
             className={`w-full group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${active
               ? 'sidebar-link-active'
-              : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+              : childActive
+                ? `font-medium border-l-2 -ml-px ${isDark ? 'text-white border-aquilia-500' : 'text-gray-900 border-aquilia-600'}`
+                : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
               }`}
           >
             <span className="flex items-center gap-2">
