@@ -1,9 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
-import { 
-  Sun, Moon, Github, ChevronDown, Rocket, Zap, Box, 
-  Shield, Layers, Wrench, BookOpen, Download, Cpu, 
-  Settings, Database, Lock, Key, Code, Bug, Wifi, 
+import {
+  Sun, Moon, Github, ChevronDown, Rocket, Zap, Box,
+  Shield, Layers, Wrench, BookOpen, Download, Cpu,
+  Settings, Database, Lock, Key, Code, Bug, Wifi,
   Mail, FileText, Brain, Terminal, TestTube, FileCode, Eye
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
@@ -126,11 +126,10 @@ export function Navbar() {
               onMouseLeave={handleMouseLeave}
             >
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden group ${
-                  dropdownOpen
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden group ${dropdownOpen
                     ? `${isDark ? 'bg-aquilia-500/10 text-aquilia-400 border border-aquilia-500/30' : 'bg-aquilia-50 text-aquilia-700 border border-aquilia-200'}`
                     : `${isDark ? 'text-gray-300 hover:text-white hover:bg-white/5 border border-transparent' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-transparent'}`
-                }`}
+                  }`}
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Documentation</span>
@@ -141,7 +140,7 @@ export function Navbar() {
 
               {/* Mega-menu dropdown — hover-triggered */}
               {dropdownOpen && (
-                <div 
+                <div
                   className={`absolute left-1/2 -translate-x-1/2 top-full mt-0 w-[54rem] rounded-2xl border shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200 ${isDark ? 'bg-[#09090b]/98 border-white/10' : 'bg-white/98 border-gray-200'}`}
                   style={{ animationDuration: '200ms', animationFillMode: 'forwards' }}
                 >
@@ -152,7 +151,7 @@ export function Navbar() {
                       {navSections.map((section, sectionIdx) => {
                         const SectionIcon = section.icon
                         return (
-                          <div 
+                          <div
                             key={section.title}
                             className="animate-in fade-in slide-in-from-top-1 duration-300"
                             style={{ animationDelay: `${sectionIdx * 50}ms`, animationFillMode: 'backwards' }}
@@ -171,11 +170,10 @@ export function Navbar() {
                                   <li key={link.path}>
                                     <Link
                                       to={link.path}
-                                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm transition-all duration-200 group/link relative overflow-hidden ${
-                                        isActive
+                                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm transition-all duration-200 group/link relative overflow-hidden ${isActive
                                           ? `font-medium ${isDark ? 'text-aquilia-400 bg-aquilia-500/10' : 'text-aquilia-700 bg-aquilia-50'}`
                                           : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`
-                                      }`}
+                                        }`}
                                     >
                                       <LinkIcon className={`w-3.5 h-3.5 transition-transform duration-200 group-hover/link:scale-110 ${isActive ? 'animate-pulse' : ''}`} />
                                       <span>{link.label}</span>
@@ -195,15 +193,15 @@ export function Navbar() {
                     <div className={`mt-5 pt-4 border-t flex items-center justify-between ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
                       <div className="flex items-center gap-2">
                         <div className={`w-1.5 h-1.5 rounded-full bg-aquilia-500 animate-pulse shadow-lg shadow-aquilia-500/50`} />
-                        <p className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Aquilia Framework v0.2.0</p>
+                        <p className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Aquilia Framework v1.0.0</p>
                       </div>
-                      <a 
-                        href="https://github.com/axiomchronicles/Aquilia" 
-                        target="_blank" 
-                        rel="noopener" 
+                      <a
+                        href="https://github.com/axiomchronicles/Aquilia"
+                        target="_blank"
+                        rel="noopener"
                         className={`text-xs flex items-center gap-1.5 transition-all duration-200 group/gh ${isDark ? 'text-gray-500 hover:text-aquilia-400' : 'text-gray-400 hover:text-aquilia-600'}`}
                       >
-                        <Github className="w-3.5 h-3.5 group-hover/gh:rotate-12 transition-transform duration-200" /> 
+                        <Github className="w-3.5 h-3.5 group-hover/gh:rotate-12 transition-transform duration-200" />
                         <span>GitHub</span>
                       </a>
                     </div>
@@ -214,11 +212,10 @@ export function Navbar() {
 
             <Link
               to="/docs"
-              className={`hidden md:flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg group/guide relative overflow-hidden ${
-                location.pathname === '/docs'
+              className={`hidden md:flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg group/guide relative overflow-hidden ${location.pathname === '/docs'
                   ? 'text-aquilia-400'
                   : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`
-              }`}
+                }`}
             >
               <BookOpen className="w-4 h-4 group-hover/guide:scale-110 transition-transform duration-200" />
               <span>Guide</span>
@@ -228,9 +225,9 @@ export function Navbar() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
-            <button 
-              onClick={toggle} 
-              className={`p-2 rounded-lg transition-all duration-200 relative overflow-hidden group ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-900'}`} 
+            <button
+              onClick={toggle}
+              className={`p-2 rounded-lg transition-all duration-200 relative overflow-hidden group ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-900'}`}
               title="Toggle theme"
             >
               {isDark ? (
@@ -240,10 +237,10 @@ export function Navbar() {
               )}
               <div className={`absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r ${isDark ? 'from-transparent via-white/5 to-transparent' : 'from-transparent via-gray-200 to-transparent'}`} />
             </button>
-            <a 
-              href="https://github.com/axiomchronicles/Aquilia" 
-              target="_blank" 
-              rel="noopener" 
+            <a
+              href="https://github.com/axiomchronicles/Aquilia"
+              target="_blank"
+              rel="noopener"
               className={`p-2 rounded-lg transition-all duration-200 relative overflow-hidden group ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-900'}`}
               title="View on GitHub"
             >

@@ -1,6 +1,6 @@
 # Aquilia Framework — Complete Usage Guide
 
-> **Version:** 0.2.0  
+> **Version:** 1.0.0  
 > **Python:** 3.12+  
 > **Architecture:** ASGI-native, modular, DI-first
 
@@ -1835,4 +1835,4 @@ from aquilia.config import ConfigLoader
 
 ---
 
-*Built with ❤️ using Aquilia v0.2.0*
+*Built with ❤️ using Aquilia v1.0.0*

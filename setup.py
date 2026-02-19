@@ -22,7 +22,7 @@ if requirements_file.exists():
 
 setup(
     name="aquilia",
-    version="0.2.0",
+    version="1.0.0",
     description="Async-native Python web framework with flow-first routing",
     long_description=long_description,
     long_description_content_type="text/markdown",

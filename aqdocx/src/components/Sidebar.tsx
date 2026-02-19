@@ -485,7 +485,7 @@ export function Sidebar() {
             <img src="/logo.png" alt="Aquilia" className="w-8 h-8 rounded-lg shadow-lg shadow-aquilia-500/20" />
             <div>
               <div className={`font-bold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Aquilia Framework</div>
-              <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>v0.2.0 • Latest</div>
+              <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>v1.0.0 • Latest</div>
             </div>
           </div>
         </div>

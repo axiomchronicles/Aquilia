@@ -427,7 +427,7 @@ MIT License - see [LICENSE](../../LICENSE)
 
 ## Roadmap
 
-### v0.2.0
+### v1.0.0
 - [ ] Full router integration with radix trie
 - [ ] Complete test suite (unit + property + fuzzing)
 - [ ] Performance benchmarks

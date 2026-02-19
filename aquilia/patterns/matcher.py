@@ -1,7 +1,7 @@
 """
 Pattern matcher with optimized matching algorithm.
 
-Performance notes (v0.2.0):
+Performance notes (v1.0.0):
 - Castors and validators are called **inline** (no thread dispatch).
   int(), str(), and typical constraint lambdas are trivial CPU-bound
   operations that complete in < 100 ns.  Dispatching them to a thread

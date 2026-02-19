@@ -367,28 +367,57 @@ text = await request.text()
       </section>
 
       {/* ================================================================ */}
-      {/* JSON Parsing */}
+      {/* JSON Parsing & Validation */}
       {/* ================================================================ */}
       <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>JSON Parsing & Model Validation</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>JSON Parsing & Validation</h2>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          The <code className="text-aquilia-500">json()</code> method supports depth checking, automatic model validation (Pydantic v1/v2, dataclasses),
-          and uses the fastest available JSON decoder (<code className="text-aquilia-500">orjson → ujson → stdlib</code>):
+          The <code className="text-aquilia-500">json()</code> method provides robust parsing with depth checking and uses the fastest available JSON decoder (<code className="text-aquilia-500">orjson → ujson → stdlib</code>).
+          For complex validation and DI integration, Aquilia provides a native <code className="text-aquilia-500">Serializer</code> system.
         </p>
-        <CodeBlock language="python" filename="json_parsing.py">{`# Basic JSON parsing
-data = await request.json()
 
-# With Pydantic v2 model validation
-from pydantic import BaseModel
+        <h3 className={`text-lg font-semibold mt-8 mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Native Serializers (Recommended)</h3>
+        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          Aquilia Serializers are production-grade, DRF-inspired components that integrate deeply with the DI system, models, and fault domain.
+        </p>
+        <CodeBlock language="python" filename="native_serializer.py">{`from aquilia.serializers import Serializer, CharField, EmailField, IntegerField
+
+class UserCreateSerializer(Serializer):
+    name = CharField(max_length=150)
+    email = EmailField()
+    age = IntegerField(min_value=0, required=False)
+
+# In your controller:
+@Post("/users")
+async def create(self, ctx):
+    # Factory method: parses body & binds DI context automatically
+    serializer = await UserCreateSerializer.from_request_async(ctx.request)
+    
+    # Validates or raises ValidationFault
+    serializer.is_valid(raise_fault=True)
+    
+    # Access cleaned data
+    data = serializer.validated_data
+    return Response.json(data, status=201)`}</CodeBlock>
+
+        <h3 className={`text-lg font-semibold mt-8 mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Pydantic & Dataclass Support</h3>
+        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          As an alternative, <code className="text-aquilia-500">request.json()</code> can automatically validate against Pydantic models (v1/v2) and standard dataclasses:
+        </p>
+        <CodeBlock language="python" filename="json_parsing.py">{`from pydantic import BaseModel
 
 class UserCreate(BaseModel):
     name: str
     email: str
     age: int
 
+# Basic JSON parsing
+data = await request.json()
+
+# With Pydantic v2 model validation
 user = await request.json(model=UserCreate)
 # Returns validated UserCreate instance
-# Raises InvalidJSON on validation failure
+# Raises InvalidJSON on model validation failure
 
 # With dataclass validation
 from dataclasses import dataclass
@@ -398,14 +427,11 @@ class Settings:
     theme: str
     notifications: bool
 
-settings = await request.json(model=Settings)
-
-# Custom depth limit (defense against deeply nested payloads)
-data = await request.json(max_depth=16)`}</CodeBlock>
+settings = await request.json(model=Settings)`}</CodeBlock>
 
         <h3 className={`text-lg font-semibold mt-8 mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Model Detection Logic</h3>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          When a <code className="text-aquilia-500">model</code> parameter is passed, the framework auto-detects the validation strategy:
+          When a <code className="text-aquilia-500">model</code> parameter is passed to <code className="text-aquilia-500">json()</code>, the framework auto-detects the validation strategy:
         </p>
         <div className={`overflow-hidden rounded-xl border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <table className="w-full text-sm">
@@ -416,6 +442,7 @@ data = await request.json(max_depth=16)`}</CodeBlock>
             </tr></thead>
             <tbody className={isDark ? 'divide-y divide-white/5' : 'divide-y divide-gray-100'}>
               {[
+                { type: 'Aquilia Serializer', detect: 'isinstance(model, SerializerMetaclass)', call: 'Serializer.from_request_async(req)' },
                 { type: 'Pydantic v2', detect: 'hasattr(model, "model_validate")', call: 'model.model_validate(data)' },
                 { type: 'Pydantic v1', detect: 'hasattr(model, "parse_obj")', call: 'model.parse_obj(data)' },
                 { type: 'dataclass', detect: 'dataclasses.is_dataclass(model)', call: 'model(**data)' },
@@ -432,7 +459,7 @@ data = await request.json(max_depth=16)`}</CodeBlock>
 
         <h3 className={`text-lg font-semibold mt-8 mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>JSON Depth Checking</h3>
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          A recursive <code className="text-aquilia-500">_check_depth()</code> function walks the parsed data to enforce <code className="text-aquilia-500">max_json_depth</code> (default: 64).
+          A recursive <code className="text-aquilia-500">_check_json_depth()</code> function walks the parsed data to enforce <code className="text-aquilia-500">json_max_depth</code> (default: 64).
           This defends against deeply nested JSON payloads that could cause stack overflow or excessive memory usage.
         </p>
       </section>
@@ -660,13 +687,13 @@ await request.cleanup()
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Complete Example</h2>
         <CodeBlock language="python" filename="controller.py">{`from aquilia import Controller, Post, Get
 from aquilia.response import Response
-from pydantic import BaseModel
+from aquilia.serializers import Serializer, CharField, ListField
 
 
-class CreateArticle(BaseModel):
-    title: str
-    body: str
-    tags: list[str] = []
+class CreateArticleSerializer(Serializer):
+    title = CharField(max_length=200)
+    body = CharField()
+    tags = ListField(child=CharField(), required=False, default=[])
 
 
 class ArticleController(Controller):
@@ -677,21 +704,21 @@ class ArticleController(Controller):
         # Require authentication
         identity = ctx.request.require_identity()
 
-        # Parse and validate JSON body
-        article = await ctx.request.json(model=CreateArticle)
-
-        # Access auth info
-        author_id = identity.id
+        # Parse and validate using Native Serializer
+        serializer = await CreateArticleSerializer.from_request_async(ctx.request)
+        serializer.is_valid(raise_fault=True)
+        
+        article_data = serializer.validated_data
 
         # Emit lifecycle effect
         await ctx.request.emit_effect(
             "article.created",
-            article_title=article.title,
-            author=author_id,
+            article_title=article_data["title"],
+            author=identity.id,
         )
 
         return Response.json(
-            {"id": 1, "title": article.title},
+            {"id": 1, "title": article_data["title"]},
             status=201,
         )
 
@@ -734,7 +761,7 @@ class ArticleController(Controller):
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-    
+
       <NextSteps />
     </div>
   )

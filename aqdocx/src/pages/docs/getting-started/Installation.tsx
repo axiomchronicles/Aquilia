@@ -176,7 +176,7 @@ aq version`}
 
         <CodeBlock
           code={`$ aq version
-Aquilia v0.2.0
+Aquilia v1.0.0
 
 $ aq doctor
 ✓ Python 3.12.3 (compatible)

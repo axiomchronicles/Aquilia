@@ -252,7 +252,7 @@ class TestWorkspace:
 
     def test_full_workspace(self):
         ws = (
-            Workspace("myapp", version="0.2.0")
+            Workspace("myapp", version="1.0.0")
             .runtime(mode="dev", port=8000)
             .module(
                 Module("users", version="1.0.0")
@@ -266,7 +266,7 @@ class TestWorkspace:
         )
         d = ws.to_dict()
         assert d["workspace"]["name"] == "myapp"
-        assert d["workspace"]["version"] == "0.2.0"
+        assert d["workspace"]["version"] == "1.0.0"
         assert len(d["modules"]) == 1
         assert "auth" in d["integrations"]
         assert d["security"]["cors_enabled"] is True

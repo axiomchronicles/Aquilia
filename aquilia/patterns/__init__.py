@@ -41,7 +41,7 @@ from .autofix import (
     ErrorRecovery,
 )
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 
 __all__ = [
     # Parser
@@ -76,12 +76,12 @@ __all__ = [
     "MatchResult",
     # OpenAPI
     "generate_openapi_params",
-    # Caching (NEW in v0.2.0)
+    # Caching (NEW in v1.0.0)
     "PatternCache",
     "compile_pattern",
     "get_global_cache",
     "set_global_cache",
-    # Auto-fix (NEW in v0.2.0)
+    # Auto-fix (NEW in v1.0.0)
     "AutoFixEngine",
     "FixSuggestion",
     "DiagnosticFix",

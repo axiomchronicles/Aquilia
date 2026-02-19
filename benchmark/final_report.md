@@ -21,7 +21,7 @@
 
 | Framework | Container | Port | Memory Usage | CPU (idle) |
 |-----------|-----------|------|-------------|------------|
-| Aquilia 0.2.0 | framework-shootout-aquilia-1 | 8084 | 200.2 MiB / 512 MiB (39%) | 1.22% |
+| Aquilia 1.0.0 | framework-shootout-aquilia-1 | 8084 | 200.2 MiB / 512 MiB (39%) | 1.22% |
 | Sanic 23.12.x | framework-shootout-sanic-1 | 8085 | 144.4 MiB / 512 MiB (28%) | 1.48% |
 | FastAPI 0.110.x | framework-shootout-fastapi-1 | 8083 | 175.0 MiB / 512 MiB (34%) | 1.22% |
 
@@ -147,7 +147,7 @@
 
 - **~4,500-5,000 req/s** on simple endpoints — roughly 1/4 of Sanic's throughput.
 - **JSON-large is a bright spot** — Aquilia beats FastAPI by **5.7×** (2,747 vs 480 req/s), suggesting efficient raw JSON serialization without Pydantic overhead.
-- As a 0.2.0 framework, there is significant optimization potential.
+- As a 1.0.0 framework, there is significant optimization potential.
 
 ### Where Aquilia Beats FastAPI
 

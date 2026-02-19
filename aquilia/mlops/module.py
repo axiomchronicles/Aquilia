@@ -38,7 +38,7 @@ class MLOpsManifest:
     """
 
     name = "mlops"
-    version = "0.2.0"
+    version = "1.0.0"
     description = "Aquilia MLOps Platform — model packaging, registry, serving & observability"
     depends_on: List[str] = []
 

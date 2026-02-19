@@ -667,7 +667,7 @@ class TestMLOpsModule:
         from aquilia.mlops.module import MLOpsManifest
 
         assert MLOpsManifest.name == "mlops"
-        assert MLOpsManifest.version == "0.2.0"
+        assert MLOpsManifest.version == "1.0.0"
         assert len(MLOpsManifest.controllers) == 1
         assert len(MLOpsManifest.services) >= 10
         assert len(MLOpsManifest.middleware) == 4

@@ -33,7 +33,7 @@ export function LandingPage() {
               <div className="text-left flex flex-col items-start">
                 <div className={`inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full border text-sm font-medium backdrop-blur-sm ${isDark ? 'border-aquilia-500/30 bg-aquilia-500/10 text-aquilia-400' : 'border-aquilia-600/30 bg-aquilia-500/10 text-aquilia-600'}`}>
                   <span className="flex h-2 w-2 rounded-full bg-aquilia-500 animate-pulse" />
-                  v0.2.0 — Stable Release
+                  v1.0.0 — Stable Release
                 </div>
 
                 <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-6 leading-tight w-full">

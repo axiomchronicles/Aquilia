@@ -211,7 +211,7 @@ class TestRenderDebugExceptionPage:
         try:
             raise exc_cls(message)
         except Exception as e:
-            return render_debug_exception_page(e, aquilia_version="0.2.0")
+            return render_debug_exception_page(e, aquilia_version="1.0.0")
 
     def test_returns_html(self):
         html = self._make_page()
@@ -257,7 +257,7 @@ class TestRenderDebugExceptionPage:
 
     def test_contains_version(self):
         html = self._make_page()
-        assert "v0.2.0" in html
+        assert "v1.0.0" in html
 
     def test_contains_python_version(self):
         html = self._make_page()
@@ -348,8 +348,8 @@ class TestRenderHttpErrorPage:
         assert "aq routes" in html  # Tip to list routes
 
     def test_version_display(self):
-        html = render_http_error_page(500, aquilia_version="0.2.0")
-        assert "v0.2.0" in html
+        html = render_http_error_page(500, aquilia_version="1.0.0")
+        assert "v1.0.0" in html
 
     def test_unknown_status(self):
         html = render_http_error_page(418)  # I'm a teapot
@@ -395,8 +395,8 @@ class TestRenderWelcomePage:
         assert "aqToggleTheme" in html
 
     def test_version_display(self):
-        html = render_welcome_page(aquilia_version="0.2.0")
-        assert "v0.2.0" in html
+        html = render_welcome_page(aquilia_version="1.0.0")
+        assert "v1.0.0" in html
 
     def test_contains_footer_links(self):
         html = render_welcome_page()
