@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { useTheme } from '../context/ThemeContext'
-import { ArrowRight, Github, BookOpen, Zap, Shield, Database, Layers, Box, Workflow, Code, Terminal, Cpu, Globe, Activity, Rocket, Cpu as CpuIcon, Command } from 'lucide-react'
+import { ArrowRight, Github, BookOpen, Zap, Shield, Database, Layers, Box, Workflow, Code, Terminal, Globe, Activity, Rocket, Cpu as CpuIcon } from 'lucide-react'
 import { PostgresSQLIcon, RedisIcon, RabbitMQIcon, SentryIcon, OpenTelemetryIcon, AwsS3Icon, ElasticsearchIcon, DockerIcon } from '../components/BrandIcons'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -413,7 +413,7 @@ export function LandingPage() {
                       whileInView={{ opacity: 1, scale: 1 }}
                       transition={{ delay: i * 0.05 }}
                       whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-3 border transition-all shadow-sm hover:shadow-xl ${isDark ? 'bg-zinc-900/50 border-white/10 hover:border-aquilia-500/30 hover:bg-zinc-800' : 'bg-white border-gray-100 hover:border-aquilia-200'}`}
+                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-3`}
                     >
                       <Icon className={`w-10 h-10 ${isDark ? 'text-gray-200' : 'text-gray-700'}`} />
                       <span className={`text-xs font-semibold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{name}</span>
