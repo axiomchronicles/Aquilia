@@ -117,8 +117,8 @@ export function CodeBlock({ code, children, language = 'python', filename, title
           <button
             onClick={handleCopy}
             className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-all ${copied
-                ? 'text-aquilia-400 bg-aquilia-500/10'
-                : `${isDark ? 'text-gray-500 hover:text-white hover:bg-white/10' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-200'}`
+              ? 'text-aquilia-400 bg-aquilia-500/10'
+              : `${isDark ? 'text-gray-500 hover:text-white hover:bg-white/10' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-200'}`
               }`}
           >
             {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}

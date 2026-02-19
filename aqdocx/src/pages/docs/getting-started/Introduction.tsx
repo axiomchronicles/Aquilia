@@ -110,8 +110,11 @@ export function IntroductionPage() {
           <div className="flex items-center gap-3 mb-4">
             <img src="/logo.png" alt="Aquilia" className="w-12 h-12 rounded-2xl shadow-lg shadow-aquilia-500/20" />
             <div>
-              <h1 className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Aquilia Framework
+              <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+                  Aquilia Framework
+                  <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+                </span>
               </h1>
               <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>v0.2.0 · Production-ready async Python web framework</p>
             </div>
