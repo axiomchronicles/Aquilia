@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { FlaskConical } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function TestingMocks() {
   const { theme } = useTheme()
@@ -123,6 +124,8 @@ class TestWelcomeEmail(MailTestMixin, AquiliaTestCase):
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

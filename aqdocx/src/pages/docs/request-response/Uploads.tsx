@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Upload, HardDrive, FileUp } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function UploadsPage() {
   const { theme } = useTheme()
@@ -536,6 +537,8 @@ class DocumentController(Controller):
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

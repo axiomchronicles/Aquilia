@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import { CodeBlock } from '../../../components/CodeBlock';
 import { Database, ArrowRight, Box, Layers, Zap, Shield, GitBranch } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ModelsOverview() {
   const { theme } = useTheme();
@@ -318,6 +319,8 @@ class Post(TimestampedModel):
           Fields <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   );
 }

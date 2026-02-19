@@ -1,5 +1,6 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { AlertTriangle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function FaultsDomains() {
   const { theme } = useTheme()
@@ -152,6 +153,8 @@ export function FaultsDomains() {
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Mail } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MailProviders() {
   const { theme } = useTheme()
@@ -161,6 +162,8 @@ registry.register("sendgrid", SendGridProvider(...))
 # Resolve active provider
 provider = registry.get(config.mail.provider)  # "smtp" → SMTPProvider`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

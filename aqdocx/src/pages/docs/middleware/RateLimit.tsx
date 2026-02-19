@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Layers } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MiddlewareRateLimit() {
   const { theme } = useTheme()
@@ -100,6 +101,8 @@ limiter = RateLimitMiddleware(
 # On 429 response:
 # Retry-After: 42`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

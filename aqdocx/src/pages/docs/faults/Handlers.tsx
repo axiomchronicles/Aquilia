@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { AlertTriangle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function FaultsHandlers() {
   const { theme } = useTheme()
@@ -124,6 +125,8 @@ FaultMiddleware(
     default_status=500,        # Default HTTP status for unknown faults
 )`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

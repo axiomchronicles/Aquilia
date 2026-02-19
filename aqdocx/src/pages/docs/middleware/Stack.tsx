@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Layers } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MiddlewareStack() {
   const { theme } = useTheme()
@@ -124,6 +125,8 @@ class RequestScopeMiddleware(Middleware):
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

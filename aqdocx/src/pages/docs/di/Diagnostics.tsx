@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Box, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function DIDiagnostics() {
   const { theme } = useTheme()
@@ -65,6 +66,7 @@ export function DIDiagnostics() {
         <CodeBlock language="python" filename="DIEvent Dataclass">{`from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 import time
+import { NextSteps } from '../../../components/NextSteps'
 
 @dataclass
 class DIEvent:
@@ -570,6 +572,8 @@ aq di-tree --settings settings.py --root UserService --out tree.txt`}</CodeBlock
         </Link>
         <span />
       </div>
+
+      <NextSteps />
     </div>
   )
 }

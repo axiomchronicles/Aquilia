@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Workflow } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function EffectsDBTx() {
   const { theme } = useTheme()
@@ -129,6 +130,8 @@ class S3StorageProvider(EffectProvider):
         # Nothing to release for S3
         pass`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

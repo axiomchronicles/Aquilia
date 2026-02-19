@@ -2,6 +2,7 @@ import { useTheme } from '../../../../context/ThemeContext'
 import { CodeBlock } from '../../../../components/CodeBlock'
 import { Zap, ArrowLeft, ArrowRight, Shield, Globe } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../../components/NextSteps'
 
 export function DecoratorOptions() {
     const { theme } = useTheme()
@@ -88,6 +89,8 @@ class ApiController(Controller):
                     Next: @WS <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Key } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function SessionsStores() {
   const { theme } = useTheme()
@@ -107,6 +108,8 @@ flags = SessionFlag.AUTHENTICATED | SessionFlag.MFA_VERIFIED
 if flags & SessionFlag.MFA_VERIFIED:
     print("MFA verified")`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

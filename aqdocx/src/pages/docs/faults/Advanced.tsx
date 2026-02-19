@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function FaultsAdvanced() {
   const { theme } = useTheme()
@@ -224,6 +225,8 @@ page = render_http_error_page(status=404, path="/missing")`}</CodeBlock>
           Cache <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

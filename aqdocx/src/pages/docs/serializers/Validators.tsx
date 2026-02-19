@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function SerializerValidators() {
   const { theme } = useTheme()
@@ -202,6 +203,8 @@ class PricingSerializer(Serializer):
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

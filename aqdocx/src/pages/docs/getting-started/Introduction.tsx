@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { NextSteps } from '../../../components/NextSteps'
 import {
   Zap, Shield, Layers, Database, Plug, Cpu, Globe, Brain, AlertCircle, Gauge,
   Rocket, Box, Terminal, Code2, GitBranch, Copy
@@ -454,6 +455,8 @@ class UserService:
           ))}
         </div>
       </section>
+
+      <NextSteps />
     </div>
   )
 }

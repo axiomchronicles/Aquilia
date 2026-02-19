@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Terminal } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CLICommands() {
   const { theme } = useTheme()
@@ -52,6 +53,8 @@ export function CLICommands() {
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

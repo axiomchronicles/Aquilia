@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Database, Shield, Lock, Layers } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function SerializersOverview() {
   const { theme } = useTheme()
@@ -263,6 +264,8 @@ class CreateOrderSerializer(Serializer):
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

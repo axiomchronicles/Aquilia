@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Database } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function SerializerModel() {
   const { theme } = useTheme()
@@ -199,6 +200,8 @@ class ProductController(Controller):
         await Product.objects.filter(id=id).delete()
         return Response.no_content()`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

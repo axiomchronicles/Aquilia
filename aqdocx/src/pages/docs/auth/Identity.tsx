@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AuthIdentity() {
   const { theme } = useTheme()
@@ -109,6 +110,8 @@ key.has_scope("read:users")  # via Identity attributes
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

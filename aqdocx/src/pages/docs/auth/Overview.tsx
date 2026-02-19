@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AuthOverview() {
   const { theme } = useTheme()
@@ -126,6 +127,8 @@ async def me(self, ctx):
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { FlaskConical } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function TestingClient() {
   const { theme } = useTheme()
@@ -130,6 +131,8 @@ response.headers         # Response headers dict
 response.cookies         # Response cookies
 response.elapsed         # Request duration`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

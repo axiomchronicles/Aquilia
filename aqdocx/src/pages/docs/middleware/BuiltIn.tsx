@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Layers } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MiddlewareBuiltIn() {
   const { theme } = useTheme()
@@ -82,6 +83,8 @@ server.middleware(timing_middleware, priority=30)
 # RequestID → Exception → CORS → Auth → RateLimit → Timing → Handler
 # Response flows back in reverse order`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

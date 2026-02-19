@@ -2,6 +2,7 @@ import { useTheme } from '../../../../context/ThemeContext'
 import { CodeBlock } from '../../../../components/CodeBlock'
 import { Zap, ArrowLeft, Filter, Search, List as ListIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../../components/NextSteps'
 
 export function DecoratorGet() {
     const { theme } = useTheme()
@@ -206,6 +207,8 @@ class DataController(Controller):
                     </table>
                 </div>
             </section>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

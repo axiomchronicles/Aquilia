@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Mail } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MailOverview() {
   const { theme } = useTheme()
@@ -166,6 +167,8 @@ class TestRegistration(AquiliaTestCase, MailTestMixin):
           MLOps <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

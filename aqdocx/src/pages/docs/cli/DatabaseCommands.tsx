@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { GitCommit, Search, Terminal, Table as TableIcon, Play } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CLIDatabaseCommands() {
     const { theme } = useTheme()
@@ -174,6 +175,8 @@ export function CLIDatabaseCommands() {
                     aq db status
                 </CodeBlock>
             </section>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { FileText, Layers, Zap, Code, Shield, Settings, ArrowRight, Globe } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ControllersOpenAPI() {
   const { theme } = useTheme()
@@ -358,6 +359,8 @@ async def create_user(self, ctx: RequestCtx) -> Response:
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

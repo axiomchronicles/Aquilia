@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Info, BarChart2, Search, Layers, Archive } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CLIInspectionCommands() {
     const { theme } = useTheme()
@@ -182,6 +183,8 @@ aq mail send-test user@example.com`}
 aq discover --path src/`}
                 </CodeBlock>
             </section>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { Construction } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
+import { NextSteps } from '../../components/NextSteps'
 
 interface PlaceholderProps {
   title?: string
@@ -35,6 +36,8 @@ export function PlaceholderPage({ title: propTitle, section }: PlaceholderProps 
           Coming Soon
         </div>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

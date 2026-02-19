@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Boxes } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AquilaryFingerprint() {
   const { theme } = useTheme()
@@ -84,6 +85,8 @@ aq freeze
 # the live registry matches the frozen manifest.
 # Any mismatch raises FrozenManifestMismatchError.`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

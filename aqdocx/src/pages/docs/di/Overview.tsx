@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Box, Layers, Zap, ShieldCheck, GitBranch, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function DIOverview() {
   const { theme } = useTheme()
@@ -443,6 +444,8 @@ from aquilia.di.compat import get_request_container, set_request_container`}</Co
           Container <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

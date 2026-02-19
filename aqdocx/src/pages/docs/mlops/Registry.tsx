@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Brain } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MLOpsRegistry() {
   const { theme } = useTheme()
@@ -106,6 +107,8 @@ for v in versions:
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

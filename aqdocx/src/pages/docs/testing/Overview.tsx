@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, FlaskConical } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function TestingOverview() {
   const { theme } = useTheme()
@@ -210,6 +211,8 @@ class TestWithCustomConfig(AquiliaTestCase):
           Trace & Debug <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

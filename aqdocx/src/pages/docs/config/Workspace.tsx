@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Box, Zap, Settings, Server, Layers, ArrowRight, AlertCircle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ConfigWorkspace() {
   const { theme } = useTheme()
@@ -640,6 +641,8 @@ workspace = (
           Module Builder <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

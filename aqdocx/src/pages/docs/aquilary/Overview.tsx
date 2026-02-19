@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Archive } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AquilaryOverview() {
   const { theme } = useTheme()
@@ -123,6 +124,8 @@ aq inspect fingerprint   # Show current fingerprint`}</CodeBlock>
           Effects <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

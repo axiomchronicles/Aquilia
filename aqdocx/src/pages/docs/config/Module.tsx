@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Package, Zap, Database, Layers, ArrowRight, AlertCircle, Search, Tag } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ConfigModule() {
   const { theme } = useTheme()
@@ -589,6 +590,8 @@ Module("orders")
           Integrations <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

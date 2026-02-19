@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Mail } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MailTemplates() {
   const { theme } = useTheme()
@@ -112,6 +113,8 @@ config = MailConfig(
     queue=QueueConfig(enabled=False),
 )`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

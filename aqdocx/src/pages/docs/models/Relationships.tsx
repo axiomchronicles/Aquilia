@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import { CodeBlock } from '../../../components/CodeBlock';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ModelsRelationships() {
   const { theme } = useTheme();
@@ -468,6 +469,8 @@ async def on_tags_changed(sender, instance, action, pk_set, **kwargs):
           Migrations <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   );
 }

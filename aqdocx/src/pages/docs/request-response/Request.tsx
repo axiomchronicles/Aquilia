@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, ArrowDownToLine, Shield, Globe, FileText, Zap } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function RequestPage() {
   const { theme } = useTheme()
@@ -733,6 +734,8 @@ class ArticleController(Controller):
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

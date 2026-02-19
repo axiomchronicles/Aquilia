@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Activity } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function TraceSpans() {
   const { theme } = useTheme()
@@ -119,6 +120,8 @@ stack.add(TracingMiddleware(tracer=tracer))`}</CodeBlock>
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

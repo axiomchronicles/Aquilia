@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Gauge } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CacheService() {
   const { theme } = useTheme()
@@ -144,6 +145,8 @@ key = hbuilder.build("search", complex_query)  # "myapp:a1b2c3..."`}</CodeBlock>
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

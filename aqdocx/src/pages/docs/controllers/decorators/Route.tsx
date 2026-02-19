@@ -2,6 +2,7 @@ import { useTheme } from '../../../../context/ThemeContext'
 import { CodeBlock } from '../../../../components/CodeBlock'
 import { Zap, ArrowLeft, ArrowRight, GitMerge, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../../components/NextSteps'
 
 export function DecoratorRoute() {
     const { theme } = useTheme()
@@ -81,6 +82,8 @@ class GeneralController(Controller):
                     Next: RequestCtx <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

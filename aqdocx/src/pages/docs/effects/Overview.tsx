@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function EffectsOverview() {
   const { theme } = useTheme()
@@ -178,6 +179,8 @@ class S3StorageProvider(EffectProvider):
           Faults <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

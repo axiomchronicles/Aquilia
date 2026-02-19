@@ -1,5 +1,6 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
+import { NextSteps } from '../../../components/NextSteps'
 import { FlaskConical } from 'lucide-react'
 
 export function TestingCases() {
@@ -38,12 +39,11 @@ export function TestingCases() {
             <div key={i} className={box}>
               <div className="flex items-center gap-3 mb-2">
                 <h3 className={`font-mono font-bold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{tc.name}</h3>
-                <span className={`text-xs font-mono px-2 py-0.5 rounded ${
-                  tc.color === 'green' ? 'bg-green-500/20 text-green-400' :
+                <span className={`text-xs font-mono px-2 py-0.5 rounded ${tc.color === 'green' ? 'bg-green-500/20 text-green-400' :
                   tc.color === 'blue' ? 'bg-blue-500/20 text-blue-400' :
-                  tc.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
-                  'bg-orange-500/20 text-orange-400'
-                }`}>{tc.setup}</span>
+                    tc.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                      'bg-orange-500/20 text-orange-400'
+                  }`}>{tc.setup}</span>
               </div>
               <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{tc.desc}</p>
             </div>
@@ -112,6 +112,8 @@ class TestAPIEndToEnd(LiveServerTestCase):
             resp = await client.delete(f"/api/users/{user_id}")
             assert resp.status_code == 204`}</CodeBlock>
       </section>
+
+      <NextSteps />
     </div>
   )
 }

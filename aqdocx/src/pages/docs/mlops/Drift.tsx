@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Brain } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MLOpsDrift() {
   const { theme } = useTheme()
@@ -117,6 +118,8 @@ server = ModelServingServer(
     prediction_logger=logger,
 )`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

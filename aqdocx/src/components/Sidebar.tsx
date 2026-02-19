@@ -22,7 +22,7 @@ interface SidebarItem {
   children?: SidebarItem[]
 }
 
-const sections: SidebarSection[] = [
+export const sections: SidebarSection[] = [
   {
     title: 'Getting Started',
     icon: <Rocket className="w-3 h-3" />,

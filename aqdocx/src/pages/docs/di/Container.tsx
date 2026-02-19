@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Box, ArrowLeft, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function DIContainer() {
   const { theme } = useTheme()
@@ -469,6 +470,8 @@ _NullLifecycle = _NullLifecycleType()  # Module-level singleton`}</CodeBlock>
           Providers <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

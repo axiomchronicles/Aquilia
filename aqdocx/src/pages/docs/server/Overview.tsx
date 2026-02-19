@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../components/NextSteps'
 import { Server, Layers, Settings, Shield, Database, Zap, Globe, AlertCircle } from 'lucide-react'
 
 export function ServerOverview() {
@@ -412,6 +413,8 @@ asyncio.run(serve(server.app, config))`}
           </Link>
         </div>
       </section>
+
+      <NextSteps />
     </div>
   )
 }

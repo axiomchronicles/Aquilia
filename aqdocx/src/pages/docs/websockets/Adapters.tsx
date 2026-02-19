@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Globe } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function WebSocketAdapters() {
   const { theme } = useTheme()
@@ -129,6 +130,8 @@ class NATSAdapter(Adapter):
         """Disconnect from NATS."""
         ...`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

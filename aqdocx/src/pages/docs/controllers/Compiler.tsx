@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Hammer, Layers, Code, Zap, AlertCircle, ArrowRight, Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ControllersCompiler() {
   const { theme } = useTheme()
@@ -343,6 +344,8 @@ print(f"Conflicts: {len(report['conflicts'])}")`}
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

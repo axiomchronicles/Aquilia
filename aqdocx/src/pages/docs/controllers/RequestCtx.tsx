@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Box, Layers, Zap, Code, Database, Shield, ArrowRight } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ControllersRequestCtx() {
   const { theme } = useTheme()
@@ -337,6 +338,8 @@ ctx = RequestCtx(
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Palette } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function TemplatesLoaders() {
   const { theme } = useTheme()
@@ -120,6 +121,8 @@ workspace.middleware([
     TemplateMiddleware(),
 ])`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

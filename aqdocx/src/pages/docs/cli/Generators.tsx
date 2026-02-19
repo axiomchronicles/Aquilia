@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Cloud, Container, Server, FileText, Activity } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CLIGenerators() {
   const { theme } = useTheme()
@@ -158,6 +159,8 @@ export function CLIGenerators() {
           aq deploy all --monitoring --ci-provider=github --force
         </CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

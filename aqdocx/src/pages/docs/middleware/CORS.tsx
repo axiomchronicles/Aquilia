@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Layers } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MiddlewareCORS() {
   const { theme } = useTheme()
@@ -79,6 +80,8 @@ cors = CORSMiddleware(
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

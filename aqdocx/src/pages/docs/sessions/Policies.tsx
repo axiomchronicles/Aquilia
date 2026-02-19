@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Key } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function SessionsPolicies() {
   const { theme } = useTheme()
@@ -107,6 +108,8 @@ policy = ConcurrencyPolicy.EVICT_LRU`}</CodeBlock>
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

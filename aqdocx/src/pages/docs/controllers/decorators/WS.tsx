@@ -2,6 +2,7 @@ import { useTheme } from '../../../../context/ThemeContext'
 import { CodeBlock } from '../../../../components/CodeBlock'
 import { Zap, ArrowLeft, ArrowRight, Activity, Globe } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../../components/NextSteps'
 
 export function DecoratorWS() {
     const { theme } = useTheme()
@@ -113,6 +114,8 @@ class ChatController(Controller):
                     Next: @route <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Lock } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AuthZPage() {
   const { theme } = useTheme()
@@ -234,6 +235,8 @@ class ArticleController(Controller):
           Sessions <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

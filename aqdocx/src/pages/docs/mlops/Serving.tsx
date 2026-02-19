@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Brain } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MLOpsServing() {
   const { theme } = useTheme()
@@ -123,6 +124,8 @@ server = ModelServingServer(
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

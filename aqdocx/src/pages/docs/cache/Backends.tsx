@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { HardDrive } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CacheBackends() {
   const { theme } = useTheme()
@@ -169,6 +170,8 @@ class DynamoBackend(CacheBackend):
     async def initialize(self) -> None: ...
     async def shutdown(self) -> None: ...`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

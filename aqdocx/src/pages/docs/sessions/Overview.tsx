@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function SessionsOverview() {
   const { theme } = useTheme()
@@ -196,6 +197,8 @@ class DashboardController(Controller):
           Middleware <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

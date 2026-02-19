@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Boxes } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AquilaryManifest() {
   const { theme } = useTheme()
@@ -113,6 +114,8 @@ deps = graph.get_dependencies("orders")
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

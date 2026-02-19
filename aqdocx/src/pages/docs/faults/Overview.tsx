@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { AlertTriangle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function FaultsOverview() {
   const { theme } = useTheme()
@@ -127,6 +128,8 @@ raise Fault(
     recovery=RecoveryStrategy.RETRY,
 )`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Binary } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function SerializerRelations() {
   const { theme } = useTheme()
@@ -143,6 +144,8 @@ class ArticleSerializer(ModelSerializer):
         model = Article
         fields = ["id", "title", "category", "category_id"]`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

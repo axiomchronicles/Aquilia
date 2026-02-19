@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Settings, Layers, FileText, Zap, ArrowRight, AlertCircle, Database, Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ConfigOverview() {
   const { theme } = useTheme()
@@ -713,6 +714,8 @@ cache:
           Workspace Builder <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

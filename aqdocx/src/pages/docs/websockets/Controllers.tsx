@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Globe } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function WebSocketControllers() {
   const { theme } = useTheme()
@@ -197,6 +198,8 @@ class SecureChatController(SocketController):
     """All handlers require authentication + rate limiting."""
     ...`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

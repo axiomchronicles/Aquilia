@@ -2,6 +2,7 @@ import { useTheme } from '../../../../context/ThemeContext'
 import { CodeBlock } from '../../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Tag, Layers, Zap, Code, ArrowRight, AlertCircle, Filter, List } from 'lucide-react'
+import { NextSteps } from '../../../../components/NextSteps'
 
 export function ControllersDecorators() {
   const { theme } = useTheme()
@@ -483,6 +484,8 @@ class ChatController(Controller):
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

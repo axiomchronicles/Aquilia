@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { AlertTriangle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function FaultsEngine() {
   const { theme } = useTheme()
@@ -142,6 +143,8 @@ raise QueryFault(
 )
 # → Fault(code="QUERY_ERROR", domain=FaultDomain.MODEL, ...)`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

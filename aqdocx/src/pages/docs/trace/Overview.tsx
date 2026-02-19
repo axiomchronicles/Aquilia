@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Activity } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function TraceOverview() {
   const { theme } = useTheme()
@@ -123,6 +124,8 @@ env/
           Back to Docs
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

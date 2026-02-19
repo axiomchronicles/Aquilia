@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Boxes } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AquilaryRuntime() {
   const { theme } = useTheme()
@@ -95,6 +96,8 @@ print(fingerprint.timestamp)  # datetime
 if fingerprint != frozen_fingerprint:
     raise FrozenManifestMismatchError(...)`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

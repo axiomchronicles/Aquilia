@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Database } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function DatabaseOverview() {
   const { theme } = useTheme()
@@ -176,6 +177,8 @@ async def transfer_funds(db: AquiliaDatabase, from_id: int, to_id: int, amount: 
           Auth <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

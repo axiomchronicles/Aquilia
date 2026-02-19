@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Database } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function DataStructuresPage() {
   const { theme } = useTheme()
@@ -458,6 +459,8 @@ url_str = request.url()  # Full URL string built from scope
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

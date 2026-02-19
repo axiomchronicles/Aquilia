@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AuthGuards() {
   const { theme } = useTheme()
@@ -98,6 +99,8 @@ class TenantController(Controller):
         data = await self.service.list_for_tenant(tenant)
         return ctx.json(data)`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

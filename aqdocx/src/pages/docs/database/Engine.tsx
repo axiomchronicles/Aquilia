@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Database } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function DatabaseEngine() {
   const { theme } = useTheme()
@@ -117,6 +118,8 @@ async with db.transaction() as tx:
           </table>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

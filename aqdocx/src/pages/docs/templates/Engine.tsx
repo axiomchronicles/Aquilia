@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Palette } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function TemplatesEngine() {
   const { theme } = useTheme()
@@ -169,6 +170,8 @@ from aquilia.templates import (
 
 # These are auto-registered when sessions/auth integrations are active`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

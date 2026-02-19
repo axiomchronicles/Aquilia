@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Terminal, Box, Play, Server, CheckCircle2, FileCode, Wrench } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CLICoreCommands() {
     const { theme } = useTheme()
@@ -297,6 +298,8 @@ aq test --coverage-html`}
                     <Row opt="--timeout" desc="Worker timeout in seconds" def="30" />
                 </Table>
             </section>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

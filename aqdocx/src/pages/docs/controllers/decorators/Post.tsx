@@ -2,6 +2,7 @@ import { useTheme } from '../../../../context/ThemeContext'
 import { CodeBlock } from '../../../../components/CodeBlock'
 import { Zap, ArrowLeft, ArrowRight, Box, FileJson } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../../components/NextSteps'
 
 export function DecoratorPost() {
     const { theme } = useTheme()
@@ -180,6 +181,8 @@ async def create(self, ctx: RequestCtx):
                     Next: @PUT <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

@@ -108,7 +108,7 @@ export function ProjectStructurePage() {
 
         <div className="space-y-6">
           {/* workspace.py */}
-          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+          <div>
             <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               <code>workspace.py</code>
             </h3>
@@ -147,7 +147,7 @@ app = (
           </div>
 
           {/* aquilia.yaml */}
-          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+          <div>
             <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               <code>aquilia.yaml</code> <span className={`text-sm font-normal ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>(alternative)</span>
             </h3>
@@ -190,7 +190,7 @@ cors:
           </div>
 
           {/* .env */}
-          <div className={`rounded-xl border p-5 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+          <div>
             <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               <code>.env</code>
             </h3>

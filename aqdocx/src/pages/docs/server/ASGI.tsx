@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Globe, Layers, Zap, ArrowRight, AlertCircle, Settings } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ServerASGI() {
   const { theme } = useTheme()
@@ -306,6 +307,8 @@ uvicorn my_app:server.app --host 0.0.0.0 --port 8000 \\
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

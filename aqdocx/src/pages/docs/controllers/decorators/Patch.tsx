@@ -2,6 +2,7 @@ import { useTheme } from '../../../../context/ThemeContext'
 import { CodeBlock } from '../../../../components/CodeBlock'
 import { Zap, ArrowLeft, ArrowRight, Edit, AlertCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../../components/NextSteps'
 
 export function DecoratorPatch() {
     const { theme } = useTheme()
@@ -96,6 +97,8 @@ async def update(self, ctx, id):
                     Next: @DELETE <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }

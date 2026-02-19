@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Box, ArrowLeft, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function DIProviders() {
   const { theme } = useTheme()
@@ -403,6 +404,8 @@ container.register(EnvironmentProvider("DATABASE_URL", "database_url"))`}</CodeB
           Scopes <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+    
+      <NextSteps />
     </div>
   )
 }

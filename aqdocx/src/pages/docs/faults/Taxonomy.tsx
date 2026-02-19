@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { AlertTriangle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function FaultsTaxonomy() {
   const { theme } = useTheme()
@@ -133,6 +134,8 @@ result = FaultResult.retry(delay_ms=100, max_retries=3)
 # Propagate — re-raise to the next handler
 result = FaultResult.propagate(fault)`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

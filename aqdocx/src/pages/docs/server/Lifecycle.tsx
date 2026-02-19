@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Workflow, Zap, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ServerLifecycle() {
   const { theme } = useTheme()
@@ -329,6 +330,8 @@ server.coordinator.on_event(my_custom_observer)`}
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

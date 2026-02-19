@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Binary } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function SerializerFields() {
   const { theme } = useTheme()
@@ -209,6 +210,8 @@ class UploadSerializer(Serializer):
         max_height=2048,
     )`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

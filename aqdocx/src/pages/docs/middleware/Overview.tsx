@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Layers } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MiddlewareOverview() {
   const { theme } = useTheme()
@@ -130,6 +131,8 @@ handler = stack.build_handler(final_handler)`}</CodeBlock>
           </p>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

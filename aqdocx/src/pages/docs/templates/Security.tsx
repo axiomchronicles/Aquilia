@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function TemplatesSecurity() {
   const { theme } = useTheme()
@@ -102,6 +103,8 @@ sandbox = TemplateSandbox(policy=policy)`}</CodeBlock>
     ...
 </form>`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

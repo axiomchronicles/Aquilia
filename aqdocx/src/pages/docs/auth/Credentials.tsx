@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Shield } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function AuthCredentials() {
   const { theme } = useTheme()
@@ -97,6 +98,8 @@ tokens = await manager.create_tokens(user)
 refreshed = await manager.refresh(tokens["refresh_token"])
 await manager.logout(tokens["access_token"])`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

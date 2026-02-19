@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Factory, Layers, Zap, Shield, Code, ArrowRight, AlertCircle } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ControllersFactory() {
   const { theme } = useTheme()
@@ -357,6 +358,8 @@ async def _create_per_request(self, controller_class, request_container, ctx):
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

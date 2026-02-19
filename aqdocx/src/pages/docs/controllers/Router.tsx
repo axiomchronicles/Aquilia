@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Navigation, Layers, Zap, Code, ArrowRight, Search, Link2 } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ControllersRouter() {
   const { theme } = useTheme()
@@ -344,6 +345,8 @@ async def get_user(self, ctx: RequestCtx, id: int) -> Response:
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

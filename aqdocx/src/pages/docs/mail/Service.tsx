@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Mail } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function MailService() {
   const { theme } = useTheme()
@@ -162,6 +163,8 @@ workspace.integrations([
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

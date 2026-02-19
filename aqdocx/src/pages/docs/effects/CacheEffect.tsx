@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Workflow } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function EffectsCacheEffect() {
   const { theme } = useTheme()
@@ -117,6 +118,8 @@ print(notifications.mode)   # "notifications"`}</CodeBlock>
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

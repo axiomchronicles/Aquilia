@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Gauge } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CacheDecorators() {
   const { theme } = useTheme()
@@ -130,6 +131,8 @@ workspace.integrations([
     ),
 ])`}</CodeBlock>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

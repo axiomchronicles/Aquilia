@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Globe } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function WebSocketRuntime() {
   const { theme } = useTheme()
@@ -120,6 +121,8 @@ workspace.integrations([
           ))}
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

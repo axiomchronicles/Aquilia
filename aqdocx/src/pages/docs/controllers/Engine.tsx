@@ -2,6 +2,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
 import { Cpu, Layers, Zap, Shield, ArrowRight, AlertCircle, Filter, Code } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function ControllersEngine() {
   const { theme } = useTheme()
@@ -395,6 +396,8 @@ if has_on_response:
           </Link>
         </div>
       </section>
+    
+      <NextSteps />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Brain, Rocket, Eye, GitBranch, FlaskConical, Package, Zap, Plug } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
 
 export function CLIMLOpsCommands() {
     const { theme } = useTheme()
@@ -205,6 +206,8 @@ aq plugin search [QUERY]
 aq plugin install [NAME]`}
                 </CodeBlock>
             </section>
-        </div>
+        
+      <NextSteps />
+    </div>
     )
 }
