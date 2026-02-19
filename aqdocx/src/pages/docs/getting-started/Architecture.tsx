@@ -89,7 +89,6 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
 
         {/* --- ZONE 3: DI ECOSYSTEM (Center) --- */}
         <motion.g initial={{ x: 400, y: 350 }}>
-          <rect x="0" y="0" width="400" height="340" rx="32" fill={isDark ? "rgba(34, 197, 94, 0.03)" : "rgba(34, 197, 94, 0.01)"} stroke={accentColor} strokeWidth="1.5" strokeDasharray="10,5" />
           <rect x="20" y="20" width="360" height="300" rx="24" fill={isDark ? "#121212" : "#f9fafb"} stroke={accentColor} strokeWidth="4" filter="url(#glow)" />
           <text x="200" y="-20" textAnchor="middle" fill={textColor} fontSize="18" fontWeight="black" className="font-mono tracking-tighter">03. DI HUB (MULTI-TENANT)</text>
 
@@ -128,7 +127,6 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
 
         {/* --- ZONE 4: REQUEST LIFECYCLE (Left column) --- */}
         <motion.g initial={{ x: 50, y: 300 }}>
-          <rect x="0" y="0" width="280" height="750" rx="20" fill="transparent" stroke={accentColor} strokeWidth="1" opacity="0.3" />
           <text x="140" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="black" className="font-mono">04. REQUEST LIFECYCLE</text>
 
           <g transform="translate(30, 40)">
@@ -186,7 +184,7 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
 
             <g transform="translate(20, 105)">
               <rect x="0" y="0" width="180" height="40" rx="6" fill={accentColor} opacity="0.15" />
-              <text x="90" y="25" textAnchor="middle" fill={textColor} fontSize="10" fontWeight="bold">TRANSFORMS (Pydantic V2)</text>
+              <text x="90" y="25" textAnchor="middle" fill={textColor} fontSize="10" fontWeight="bold">TRANSFORMS (Aquilia Serilizer)</text>
             </g>
 
             <g transform="translate(20, 160)">
@@ -204,7 +202,6 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
 
         {/* --- ZONE 7: AQUILARY MODELS (Center-Left Gap) --- */}
         <motion.g initial={{ x: 380, y: 820 }} animate={{ y: [820, 825, 820] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
-          <rect x="0" y="0" width="360" height="320" rx="32" fill={isDark ? "rgba(34, 197, 94, 0.03)" : "rgba(34, 197, 94, 0.01)"} stroke={accentColor} strokeWidth="1" strokeDasharray="10,5" />
           <rect x="15" y="15" width="330" height="290" rx="24" fill={isDark ? "#0c0c0e" : "#ffffff"} stroke={accentColor} strokeWidth="3" filter="url(#glow)" />
           <text x="180" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="black" className="font-mono">07. AQUILARY MODELS</text>
 
@@ -226,17 +223,16 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
           </g>
         </motion.g>
 
-        {/* --- ZONE 8: AQUILARY SERIALIZERS (Center-Right Gap) --- */}
+        {/* --- ZONE 6: AQUILARY SERIALIZERS (Center-Right Gap) --- */}
         <motion.g initial={{ x: 790, y: 820 }} animate={{ y: [820, 815, 820] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}>
-          <rect x="0" y="0" width="360" height="320" rx="32" fill={isDark ? "rgba(34, 197, 94, 0.03)" : "rgba(34, 197, 94, 0.01)"} stroke={accentColor} strokeWidth="1" strokeDasharray="10,5" />
           <rect x="15" y="15" width="330" height="290" rx="24" fill={isDark ? "#0c0c0e" : "#ffffff"} stroke={accentColor} strokeWidth="3" filter="url(#glow)" />
-          <text x="180" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="black" className="font-mono">08. AQUILARY SERIALIZERS</text>
+          <text x="180" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="black" className="font-mono">06. AQUILARY SERIALIZERS</text>
 
           <g transform="translate(35, 45)">
             <rect x="0" y="0" width="290" height="70" rx="12" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
             <text x="15" y="25" fill={textColor} fontSize="11" fontWeight="black">VALIDATION ENGINE</text>
             <text x="15" y="45" fill={mutedColor} fontSize="9">Deep recursive type checking</text>
-            <text x="15" y="58" fill={accentColor} fontSize="9" fontWeight="bold">Automatic Pydantic V2 Mapping</text>
+            <text x="15" y="58" fill={accentColor} fontSize="9" fontWeight="bold">Automatic Serilizer Mapping</text>
           </g>
 
           <g transform="translate(35, 130)">
@@ -256,10 +252,10 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
           </g>
         </motion.g>
 
-        {/* --- ZONE 6: SATELLITES (Bottom Row) --- */}
+        {/* --- ZONE 8: SATELLITES (Bottom Row) --- */}
         <motion.g initial={{ x: 50, y: 1250 }}>
           <rect x="0" y="0" width="1100" height="150" rx="24" fill="transparent" stroke={accentColor} strokeWidth="1" strokeDasharray="15,5" opacity="0.4" />
-          <text x="550" y="-25" textAnchor="middle" fill={textColor} fontSize="16" fontWeight="black" className="font-mono tracking-widest opacity-60">06. SATELLITE SUBSYSTEMS (EFFECTS & INTEGRATIONS)</text>
+          <text x="550" y="-25" textAnchor="middle" fill={textColor} fontSize="16" fontWeight="black" className="font-mono tracking-widest opacity-60">08. SATELLITE SUBSYSTEMS (EFFECTS & INTEGRATIONS)</text>
 
           <g transform="translate(35, 30)">
             <rect x="0" y="0" width="160" height="90" rx="12" fill={accentColor} opacity="0.05" stroke={accentColor} strokeDasharray="2,2" />
@@ -314,7 +310,7 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
           <path d="M 790 1020 H 740" /> {/* Serializers -> Models */}
           <path d="M 140 1050 Q 240 1150 400 1090" strokeDasharray="5,5" opacity="0.2" /> {/* Router -> Models (Journaling) */}
 
-          <path d="M 560 1180 V 1250" /> {/* Models -> Satellites */}
+          <path d="M 480 1140 V 1250" /> {/* Models -> Satellites (Shifted X to avoid text) */}
           <path d="M 970 1180 V 1250" /> {/* Serializers -> Satellites (Cache) */}
 
           <path d="M 330 550 Q 360 550 400 520" strokeDasharray="5,5" /> {/* Middleware -> DI */}
@@ -337,7 +333,7 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
         {/* Hot Path Pulse (Execution -> Serializers -> Models -> Satellites) */}
         <motion.circle r="6" fill={accentColor} filter="url(#glow)"
           animate={{
-            cx: [1010, 1010, 790, 560, 560],
+            cx: [1010, 1010, 790, 480, 480],
             cy: [390, 1020, 1020, 1020, 1250],
             opacity: [0, 1, 1, 1, 1, 0]
           }}
@@ -346,7 +342,7 @@ const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
 
         {/* Model Sync Pulse */}
         <motion.path
-          d="M 560 1180 V 1250"
+          d="M 480 1140 V 1250"
           stroke={accentColor} strokeWidth="2" strokeDasharray="10,10"
           animate={{ strokeDashoffset: [-20, 0] }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}

@@ -53,7 +53,9 @@ class UsersController(Controller):
                     <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Input Validation & Serialization</h2>
                 </div>
                 <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Aquilia offers two powerful ways to handle request bodies: <strong>Serializers</strong> (Django REST Framework style) and <strong>Blueprints</strong> (Pydantic/Type-safe style).
+                    Aquilia provides two first-class approaches for handling request bodies:
+                    <strong> Serializers</strong>, designed for structured validation and transformation,
+                    and <strong> Blueprints</strong>, focused on strict type safety and schema-driven contracts.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -181,8 +183,8 @@ async def create(self, ctx: RequestCtx):
                     Next: @PUT <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
-        
-      <NextSteps />
-    </div>
+
+            <NextSteps />
+        </div>
     )
 }

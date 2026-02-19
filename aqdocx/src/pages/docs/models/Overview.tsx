@@ -24,7 +24,7 @@ export function ModelsOverview() {
           </span>
         </h1>
         <p className={`text-xl ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          Pure Python, Django-grade, async-first ORM — define your schema as Python classes with full validation, relationships, signals, and migration support.
+          Pure Python, async-first ORM — define your schema as Python classes with full validation, relationships, signals, and migration support.
         </p>
       </div>
 
@@ -35,7 +35,7 @@ export function ModelsOverview() {
           <div>
             <h3 className={`font-semibold mb-2 ${isDark ? 'text-aquilia-300' : 'text-blue-700'}`}>Architecture</h3>
             <p className={isDark ? 'text-aquilia-200' : 'text-blue-700'}>
-              Aquilia's model system uses a metaclass-driven architecture inspired by Django. Models are plain Python classes with field descriptors.
+              Aquilia's model system uses a metaclass-driven architecture. Models are plain Python classes with field descriptors.
               A <code>ModelMeta</code> metaclass collects fields, injects auto-PKs, parses the inner <code>Meta</code> class, registers models in a global
               registry, and attaches a default <code>Manager</code>. All terminal query methods are async — every database access returns an awaitable.
             </p>
@@ -51,7 +51,7 @@ export function ModelsOverview() {
           database table, or let Aquilia generate one from the class name (lowercased).
         </p>
         <CodeBlock language="python" filename="models.py">
-{`from aquilia.models import Model
+          {`from aquilia.models import Model
 from aquilia.models.fields_module import (
     CharField, EmailField, BooleanField, DateTimeField,
     IntegerField, ForeignKey, Index,
@@ -84,7 +84,7 @@ class Post(Model):
       <section className="mb-12">
         <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>CRUD Operations</h2>
         <CodeBlock language="python">
-{`# CREATE — two ways
+          {`# CREATE — two ways
 user = User(name="Alice", email="alice@co.com")
 await user.save(db)          # INSERT — assigns user.id
 
@@ -144,7 +144,7 @@ await User.objects.filter(created_at__lt=cutoff).delete()`}
           </table>
         </div>
         <CodeBlock language="python">
-{`# Validation before save
+          {`# Validation before save
 user = User(name="", email="bad-email")
 try:
     user.full_clean()
@@ -206,7 +206,7 @@ await user.save(db, update_fields=["name"])
           </table>
         </div>
         <CodeBlock language="python">
-{`from aquilia.models.fields_module import Index, UniqueConstraint
+          {`from aquilia.models.fields_module import Index, UniqueConstraint
 from aquilia.models.constraint import CheckConstraint
 
 class Article(Model):
@@ -238,7 +238,7 @@ class Article(Model):
           table creation order (topological sort for FK dependencies) and lazy relation resolution.
         </p>
         <CodeBlock language="python">
-{`from aquilia.models.registry import ModelRegistry
+          {`from aquilia.models.registry import ModelRegistry
 
 # Get a registered model by name
 UserModel = ModelRegistry.get("User")
@@ -267,7 +267,7 @@ ModelRegistry._resolve_relations()`}
           Mark a model with <code>abstract = True</code> in its Meta class. Abstract models share fields with subclasses but have no database table themselves.
         </p>
         <CodeBlock language="python">
-{`class TimestampedModel(Model):
+          {`class TimestampedModel(Model):
     """Shared base with created_at/updated_at for all models."""
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
@@ -319,7 +319,7 @@ class Post(TimestampedModel):
           Fields <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-    
+
       <NextSteps />
     </div>
   );

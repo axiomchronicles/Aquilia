@@ -28,9 +28,10 @@ export function ConfigModule() {
         </div>
 
         <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          The <code>Module</code> class is a fluent builder for configuring individual application units
-          within a workspace. Each module represents a logical grouping of controllers, services,
-          routes, models, serializers, and middleware — analogous to Django apps or NestJS modules.
+          The <code>Module</code> class is a fluent builder for defining isolated application units
+          within a workspace. Each module represents a self-contained logical boundary that groups
+          controllers, services, routes, models, serializers, and middleware under a single, explicit
+          configuration contract.
         </p>
       </div>
 
@@ -47,7 +48,7 @@ export function ConfigModule() {
         </p>
 
         <CodeBlock language="python" title="ModuleConfig (from config_builders.py)">
-{`@dataclass
+          {`@dataclass
 class ModuleConfig:
     """Module configuration produced by Module.build()."""
     name: str = ""
@@ -127,7 +128,7 @@ class ModuleConfig:
         </p>
 
         <CodeBlock language="python" title="Module class (from config_builders.py)">
-{`class Module:
+          {`class Module:
     """Fluent module builder."""
     
     def __init__(self, name: str, version: str = "0.1.0", description: str = ""):
@@ -157,7 +158,7 @@ class ModuleConfig:
         </p>
 
         <CodeBlock language="python" title="auto_discover()">
-{`def auto_discover(self, path: str) -> "Module":
+          {`def auto_discover(self, path: str) -> "Module":
     """
     Set auto-discovery path.
     
@@ -173,7 +174,7 @@ class ModuleConfig:
         </CodeBlock>
 
         <CodeBlock language="python" title="Usage">
-{`# Scan apps/users/ for all components
+          {`# Scan apps/users/ for all components
 Module("users").auto_discover("apps/users")
 
 # Combined with explicit registrations
@@ -195,7 +196,7 @@ Module("users")
         </p>
 
         <CodeBlock language="python" title="route_prefix()">
-{`def route_prefix(self, prefix: str) -> "Module":
+          {`def route_prefix(self, prefix: str) -> "Module":
     """Set URL prefix for all routes in this module."""
     self._config.route_prefix = prefix
     return self
@@ -222,7 +223,7 @@ Module("users")
         </p>
 
         <CodeBlock language="python" title="fault_domain()">
-{`def fault_domain(self, domain: str) -> "Module":
+          {`def fault_domain(self, domain: str) -> "Module":
     """Set fault isolation domain."""
     self._config.fault_domain = domain
     return self
@@ -246,7 +247,7 @@ Module("payments")
         </p>
 
         <CodeBlock language="python" title="depends_on()">
-{`def depends_on(self, *modules: str) -> "Module":
+          {`def depends_on(self, *modules: str) -> "Module":
     """Declare module dependencies."""
     self._config.depends_on = list(modules)
     return self
@@ -271,7 +272,7 @@ Module("orders")
         </p>
 
         <CodeBlock language="python" title="tags()">
-{`def tags(self, *tags: str) -> "Module":
+          {`def tags(self, *tags: str) -> "Module":
     """Set OpenAPI tags for this module."""
     self._config.tags = list(tags)
     return self
@@ -327,7 +328,7 @@ Module("catalog")
         </div>
 
         <CodeBlock language="python" title="Registration Method Pattern">
-{`# All registration methods follow this pattern:
+          {`# All registration methods follow this pattern:
 def register_controllers(self, *names: str) -> "Module":
     """Register controller class names."""
     self._config.controllers = list(names)
@@ -342,7 +343,7 @@ def register_services(self, *names: str) -> "Module":
         </CodeBlock>
 
         <CodeBlock language="python" title="Usage">
-{`Module("users")
+          {`Module("users")
     .register_controllers("UserController", "ProfileController", "AdminController")
     .register_services("UserService", "AuthService", "TokenService")
     .register_providers("DatabaseProvider", "CacheProvider")
@@ -376,7 +377,7 @@ def register_services(self, *names: str) -> "Module":
         </p>
 
         <CodeBlock language="python" title="database() signature">
-{`def database(
+          {`def database(
     self,
     url: str = "sqlite:///db.sqlite3",
     auto_connect: bool = True,
@@ -418,7 +419,7 @@ def register_services(self, *names: str) -> "Module":
         </div>
 
         <CodeBlock language="python" title="Multi-Database Architecture">
-{`workspace = (
+          {`workspace = (
     Workspace("multi-db-app")
     
     # Workspace-level default database
@@ -460,7 +461,7 @@ def register_services(self, *names: str) -> "Module":
         </p>
 
         <CodeBlock language="python" title="ModuleConfig.to_dict() output">
-{`# Module("users")
+          {`# Module("users")
 #     .route_prefix("/users")
 #     .auto_discover("apps/users")
 #     .fault_domain("users")
@@ -498,12 +499,12 @@ def register_services(self, *names: str) -> "Module":
         </h2>
 
         <CodeBlock language="python" title="Minimal Module">
-{`# Just a name and auto-discovery — Aquilia finds everything
+          {`# Just a name and auto-discovery — Aquilia finds everything
 Module("blog").auto_discover("apps/blog")`}
         </CodeBlock>
 
         <CodeBlock language="python" title="Explicit Module">
-{`# Full control over what's registered
+          {`# Full control over what's registered
 Module("users", version="1.2.0", description="User management")
     .route_prefix("/api/v1/users")
     .fault_domain("identity")
@@ -523,7 +524,7 @@ Module("users", version="1.2.0", description="User management")
         </CodeBlock>
 
         <CodeBlock language="python" title="Hybrid Module (Auto-discover + Explicit)">
-{`# Discover most things, explicitly add edge cases
+          {`# Discover most things, explicitly add edge cases
 Module("orders")
     .auto_discover("apps/orders")          # Finds controllers, services, etc.
     .route_prefix("/orders")
@@ -546,7 +547,7 @@ Module("orders")
         </p>
 
         <CodeBlock language="yaml" title="aquilia.yaml — modules section">
-{`modules:
+          {`modules:
   - name: users
     version: "1.2.0"
     description: User management
@@ -590,7 +591,7 @@ Module("orders")
           Integrations <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-    
+
       <NextSteps />
     </div>
   )

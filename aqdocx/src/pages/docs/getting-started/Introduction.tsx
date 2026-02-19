@@ -73,7 +73,7 @@ export function IntroductionPage() {
     {
       icon: <Database className="w-5 h-5 text-emerald-400" />,
       title: 'Pure-Python ORM',
-      desc: 'Django-grade metaclass-driven ORM with 30+ field types, Q-object query builder, Manager/QuerySet, migrations, signals, transactions, and aggregation.',
+      desc: 'Metaclass-driven ORM with 30+ field types, Q-object query builder, Manager/QuerySet, migrations, signals, transactions, and aggregation.',
     },
     {
       icon: <Shield className="w-5 h-5 text-rose-400" />,
