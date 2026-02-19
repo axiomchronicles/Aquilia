@@ -125,7 +125,7 @@ app = (
           language="python"
         />
 
-        <div className={`mt-4 rounded-lg border p-4 ${isDark ? 'bg-zinc-800/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+        <div className={`mt-4`}>
           <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
             <strong>Key concepts:</strong>
           </p>
