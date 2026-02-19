@@ -1,7 +1,213 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
-import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Network, Layers, Cpu, Database, Box, Shield, Workflow, Plug, ArrowRight } from 'lucide-react'
+import { NextSteps } from '../../../components/NextSteps'
+
+const ArchitectureDiagram = ({ isDark }: { isDark: boolean }) => {
+  const accentColor = '#22c55e' // aquilia-500
+  const textColor = isDark ? '#e4e4e7' : '#1f2937'
+
+  return (
+    <div className="w-full overflow-hidden p-4 md:p-8 my-8 flex justify-center bg-transparent">
+      <svg viewBox="0 0 1000 850" className="w-full max-w-5xl h-auto">
+        <defs>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <filter id="softGlow" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="1.5" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill={accentColor} />
+          </marker>
+        </defs>
+
+        {/* --- ZONE 1: DEFINITION (Top Left) --- */}
+        <motion.g initial={{ x: 50, y: 50 }} animate={{ y: [50, 45, 50] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+          <rect x="0" y="0" width="220" height="140" rx="16" fill="transparent" stroke={accentColor} strokeWidth="1" strokeDasharray="4,4" opacity="0.4" />
+          <text x="110" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="bold" className="font-mono opacity-60">I. Definition Layer</text>
+
+          <g transform="translate(20, 20)">
+            <rect x="0" y="0" width="180" height="30" rx="6" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
+            <text x="15" y="20" fill={accentColor} fontSize="11" fontWeight="bold">Manifests (declarative.py)</text>
+          </g>
+          <g transform="translate(20, 60)">
+            <rect x="0" y="0" width="180" height="30" rx="6" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
+            <text x="15" y="20" fill={accentColor} fontSize="11" fontWeight="bold">Module Blueprints</text>
+          </g>
+          <g transform="translate(20, 100)">
+            <rect x="0" y="0" width="180" height="30" rx="6" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
+            <text x="15" y="20" fill={accentColor} fontSize="11" fontWeight="bold">Component Meta</text>
+          </g>
+        </motion.g>
+
+        {/* --- ZONE 2: CORE ENGINE (Top Center) --- */}
+        <motion.g initial={{ x: 390, y: 50 }} animate={{ y: [50, 55, 50] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}>
+          <rect x="0" y="0" width="220" height="140" rx="16" fill={isDark ? "rgba(34, 197, 94, 0.05)" : "rgba(34, 197, 94, 0.02)"} stroke={accentColor} strokeWidth="2" filter="url(#glow)" />
+          <text x="110" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="bold" className="font-mono">II. Core Engine</text>
+
+          <text x="110" y="30" textAnchor="middle" fill={accentColor} fontSize="12" fontWeight="bold">Aquilary Indexer</text>
+
+          <motion.rect x="20" y="50" width="180" height="20" rx="4" fill={accentColor} opacity="0.1" animate={{ opacity: [0.1, 0.3, 0.1] }} transition={{ duration: 2, repeat: Infinity }} />
+          <text x="30" y="64" fill={textColor} fontSize="9" fontWeight="medium">Lifecycle Coordinator</text>
+
+          <motion.rect x="20" y="80" width="180" height="20" rx="4" fill={accentColor} opacity="0.1" animate={{ opacity: [0.1, 0.3, 0.1] }} transition={{ duration: 2, repeat: Infinity, delay: 0.6 }} />
+          <text x="30" y="94" fill={textColor} fontSize="9" fontWeight="medium">Config Merging (AQ_*)</text>
+
+          <motion.rect x="20" y="110" width="180" height="20" rx="4" fill={accentColor} opacity="0.1" animate={{ opacity: [0.1, 0.3, 0.1] }} transition={{ duration: 2, repeat: Infinity, delay: 1.2 }} />
+          <text x="30" y="124" fill={textColor} fontSize="9" fontWeight="medium">Route Snapshoter</text>
+        </motion.g>
+
+        {/* --- ZONE 3: DI HUB (Center) --- */}
+        <motion.g initial={{ x: 350, y: 250 }} animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+          <rect x="0" y="0" width="300" height="220" rx="24" fill={isDark ? "rgba(34, 197, 94, 0.08)" : "rgba(34, 197, 94, 0.04)"} stroke={accentColor} strokeWidth="3" filter="url(#glow)" />
+          <text x="150" y="-20" textAnchor="middle" fill={textColor} fontSize="16" fontWeight="extrabold" className="font-mono tracking-tighter">DI HUB (CONTAINER)</text>
+
+          <g transform="translate(20, 30)">
+            <rect x="0" y="0" width="260" height="40" rx="8" fill={accentColor} opacity="0.15" stroke={accentColor} strokeWidth="1" />
+            <text x="20" y="25" fill={textColor} fontSize="11" fontWeight="bold">SINGLETON SCOPE (Global)</text>
+            <circle cx="240" cy="20" r="4" fill={accentColor} filter="url(#softGlow)" />
+          </g>
+
+          <g transform="translate(20, 85)">
+            <rect x="0" y="0" width="260" height="60" rx="8" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" strokeDasharray="3,3" />
+            <text x="20" y="25" fill={textColor} fontSize="11" fontWeight="bold">APP SCOPE (Per-Module)</text>
+            <text x="20" y="45" fill={accentColor} fontSize="9" opacity="0.7">Services, Providers, Managers</text>
+          </g>
+
+          <g transform="translate(20, 160)">
+            <rect x="0" y="0" width="260" height="40" rx="8" fill={accentColor} opacity="0.2" stroke={accentColor} strokeWidth="2" />
+            <text x="20" y="25" fill={textColor} fontSize="11" fontWeight="black">REQUEST SCOPE (Ephemera)</text>
+            <motion.circle cx="240" cy="20" r="5" fill={accentColor} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1, repeat: Infinity }} filter="url(#glow)" />
+          </g>
+        </motion.g>
+
+        {/* --- ZONE 4: REQUEST PIPELINE (Left column) --- */}
+        <motion.g initial={{ x: 50, y: 250 }}>
+          <rect x="0" y="0" width="220" height="450" rx="20" fill="transparent" stroke={accentColor} strokeWidth="1" opacity="0.3" />
+          <text x="110" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="bold" className="font-mono opacity-60">III. Request Flow</text>
+
+          <g transform="translate(20, 40)">
+            <rect x="0" y="0" width="180" height="40" rx="10" fill={accentColor} stroke={accentColor} strokeWidth="2" opacity="0.15" />
+            <text x="90" y="25" textAnchor="middle" fill={textColor} fontSize="12" fontWeight="bold">ASGI ADAPTER</text>
+          </g>
+
+          {/* Middleware Tower */}
+          <g transform="translate(30, 100)">
+            <rect x="0" y="0" width="160" height="280" rx="12" fill={isDark ? "#121212" : "#f8f8f8"} stroke={accentColor} strokeWidth="1.5" />
+            <text x="80" y="25" textAnchor="middle" fill={accentColor} fontSize="10" fontWeight="black">MIDDLEWARE STACK</text>
+
+            {['AUTH', 'SESSION', 'RATELIMIT', 'FAULT', 'TRACE'].map((mw, i) => (
+              <g key={mw} transform={`translate(15, ${50 + i * 45})`}>
+                <rect x="0" y="0" width="130" height="35" rx="6" fill={accentColor} opacity={0.1 + i * 0.05} />
+                <text x="65" y="22" textAnchor="middle" fill={textColor} fontSize="9" fontWeight="bold">{mw}</text>
+              </g>
+            ))}
+          </g>
+
+          <g transform="translate(20, 400)">
+            <rect x="0" y="0" width="180" height="40" rx="10" fill={accentColor} opacity="0.3" stroke={accentColor} strokeWidth="1" />
+            <text x="90" y="25" textAnchor="middle" fill={textColor} fontSize="12" fontWeight="black">ROUTER (MATCH)</text>
+          </g>
+        </motion.g>
+
+        {/* --- ZONE 5: EXECUTION HUB (Right column) --- */}
+        <motion.g initial={{ x: 730, y: 250 }} animate={{ y: [250, 260, 250] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}>
+          <rect x="0" y="0" width="220" height="300" rx="24" fill={isDark ? "rgba(34, 197, 94, 0.05)" : "rgba(34, 197, 94, 0.02)"} stroke={accentColor} strokeWidth="2" filter="url(#glow)" />
+          <text x="110" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="bold" className="font-mono">IV. Execution Hub</text>
+
+          <g transform="translate(20, 30)">
+            <rect x="0" y="0" width="180" height="40" rx="8" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
+            <text x="90" y="25" textAnchor="middle" fill={textColor} fontSize="11" fontWeight="bold">CONTROLLER FACTORY</text>
+          </g>
+
+          <g transform="translate(20, 85)">
+            <rect x="0" y="0" width="180" height="130" rx="12" fill="transparent" stroke={accentColor} strokeWidth="1" opacity="0.4" />
+            <text x="90" y="20" textAnchor="middle" fill={accentColor} fontSize="9" fontWeight="black">PIPELINE NODES</text>
+
+            <rect x="20" y="35" width="140" height="25" rx="4" fill={accentColor} opacity="0.1" />
+            <text x="90" y="52" textAnchor="middle" fill={textColor} fontSize="9">Guards (AuthZ)</text>
+
+            <rect x="20" y="70" width="140" height="25" rx="4" fill={accentColor} opacity="0.1" />
+            <text x="90" y="87" textAnchor="middle" fill={textColor} fontSize="9">Transformers (Pydantic)</text>
+
+            <rect x="20" y="105" width="140" height="15" rx="2" fill={accentColor} opacity="0.4" filter="url(#softGlow)" />
+            <text x="90" y="117" textAnchor="middle" fill={textColor} fontSize="9" fontWeight="bold">HANDLER</text>
+          </g>
+
+          <g transform="translate(20, 230)">
+            <rect x="0" y="0" width="180" height="40" rx="8" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
+            <text x="90" y="25" textAnchor="middle" fill={textColor} fontSize="11" fontWeight="bold">RESPONSE ENGINE</text>
+          </g>
+        </motion.g>
+
+        {/* --- ZONE 6: PERIPHERAL SYSTEMS (Bottom) --- */}
+        <motion.g initial={{ x: 50, y: 730 }}>
+          <rect x="0" y="0" width="900" height="100" rx="20" fill="transparent" stroke={accentColor} strokeWidth="1" strokeDasharray="10,5" opacity="0.3" />
+          <text x="450" y="-15" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="bold" className="font-mono opacity-50">V. Satellite Subsystems</text>
+
+          <g transform="translate(40, 30)">
+            <rect x="0" y="0" width="150" height="40" rx="8" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
+            <text x="75" y="25" textAnchor="middle" fill={textColor} fontSize="11" fontWeight="bold">EFFECTS (DB/CACHE)</text>
+          </g>
+          <g transform="translate(210, 30)">
+            <rect x="0" y="0" width="150" height="40" rx="8" fill={accentColor} opacity="0.15" stroke={accentColor} strokeWidth="1" />
+            <text x="75" y="25" textAnchor="middle" fill={textColor} fontSize="11" fontWeight="bold">MLOPS REGISTRY</text>
+          </g>
+          <g transform="translate(380, 30)">
+            <rect x="0" y="0" width="150" height="40" rx="8" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
+            <text x="75" y="25" textAnchor="middle" fill={textColor} fontSize="11" fontWeight="bold">MAIL / TEMPLATES</text>
+          </g>
+          <g transform="translate(550, 30)">
+            <rect x="0" y="0" width="150" height="40" rx="8" fill={accentColor} opacity="0.15" stroke={accentColor} strokeWidth="1" />
+            <text x="75" y="25" textAnchor="middle" fill={textColor} fontSize="11" fontWeight="bold">TASK QUEUE (CELERY)</text>
+          </g>
+          <g transform="translate(720, 30)">
+            <rect x="0" y="0" width="140" height="40" rx="8" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="1" />
+            <text x="70" y="25" textAnchor="middle" fill={textColor} fontSize="11" fontWeight="bold">FAULT ENGINE</text>
+          </g>
+        </motion.g>
+
+        {/* --- CONNECTIONS (Circuit Paths) --- */}
+        <g opacity="0.4">
+          {/* I -> II */}
+          <path d="M 270 120 L 390 120" stroke={accentColor} strokeWidth="2" fill="none" strokeDasharray="5,5" />
+
+          {/* II -> III */}
+          <path d="M 500 190 L 500 250" stroke={accentColor} strokeWidth="2" fill="none" />
+
+          {/* III -> IV (Middleware to DI) */}
+          <path d="M 270 500 L 350 400" stroke={accentColor} strokeWidth="2" fill="none" strokeDasharray="3,3" />
+
+          {/* Router -> Hub */}
+          <path d="M 270 670 H 840 V 550" stroke={accentColor} strokeWidth="2" fill="none" />
+
+          {/* Hub -> Subsystems */}
+          <path d="M 840 550 V 730" stroke={accentColor} strokeWidth="2" fill="none" markerEnd="url(#arrow-green)" />
+        </g>
+
+        {/* DATA PACKETS (Pulses) */}
+        <motion.circle r="4" fill={accentColor} filter="url(#glow)"
+          animate={{ cx: [270, 390], cy: 120, opacity: [0, 1, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        />
+
+        <motion.circle r="5" fill={accentColor} filter="url(#glow)"
+          animate={{ cx: [270, 840, 840], cy: [670, 670, 550], opacity: [0, 1, 1, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+
+        <motion.circle r="3" fill={accentColor} filter="url(#glow)"
+          animate={{ cx: [30, 30, 140], cy: [290, 650, 650], opacity: [0, 1, 1, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+        />
+      </svg>
+    </div>
+  )
+}
 
 export function ArchitecturePage() {
   const { theme } = useTheme()
@@ -34,28 +240,13 @@ export function ArchitecturePage() {
           Overview
         </h2>
 
-        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+        <p className={`mb-8 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
           Aquilia follows a <strong>manifest → compile → serve</strong> architecture. Unlike
           frameworks that discover components at import time, Aquilia separates declaration
           from execution through a two-phase pipeline:
         </p>
 
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-          <ol className={`space-y-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-aquilia-500/20 text-aquilia-400 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
-              <div><strong>Declaration phase</strong> — You write manifests (or use Workspace/Module/Integration builders) that declare what exists: controllers, services, models, middleware, templates.</div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-aquilia-500/20 text-aquilia-400 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
-              <div><strong>Compilation phase</strong> — The Aquilary registry validates manifests and compiles them into a RuntimeRegistry with DI containers, compiled routes, and model schemas.</div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-aquilia-500/20 text-aquilia-400 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
-              <div><strong>Serving phase</strong> — AquiliaServer builds the middleware stack, ASGI adapter, and lifecycle coordinator, then serves requests through the compiled controller router.</div>
-            </li>
-          </ol>
-        </div>
+        <ArchitectureDiagram isDark={isDark} />
       </section>
 
       {/* Boot Pipeline */}
@@ -353,21 +544,7 @@ ctx = RequestCtx(
         </div>
       </section>
 
-      {/* Next Steps */}
-      <section className="mb-10">
-        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Next Steps</h2>
-        <div className="flex flex-col gap-2">
-          <Link to="/docs/project-structure" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
-            → Project Structure: File layout and conventions
-          </Link>
-          <Link to="/docs/server/aquilia-server" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
-            → AquiliaServer: Server initialization in depth
-          </Link>
-          <Link to="/docs/aquilary/overview" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
-            → Aquilary Registry: Manifest compilation internals
-          </Link>
-        </div>
-      </section>
+      <NextSteps />
     </div>
   )
 }
