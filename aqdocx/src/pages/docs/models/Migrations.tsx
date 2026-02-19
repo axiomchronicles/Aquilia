@@ -18,7 +18,12 @@ export function ModelsMigrations() {
           <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>/</span>
           <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Migrations</span>
         </div>
-        <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Migrations</h1>
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Migrations
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
+        </h1>
         <p className={`text-xl ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
           Aquilia's 4-layer migration system — from high-level DSL operations to raw DDL, with auto-generation, tracking, and rollback support.
         </p>

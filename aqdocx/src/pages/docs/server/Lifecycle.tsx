@@ -16,7 +16,12 @@ export function ServerLifecycle() {
             <Workflow className="w-5 h-5 text-aquilia-400" />
           </div>
           <div>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Lifecycle</h1>
+            <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+                Lifecycle
+                <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+              </span>
+            </h1>
             <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>aquilia.lifecycle — Dependency-ordered startup and shutdown</p>
           </div>
         </div>

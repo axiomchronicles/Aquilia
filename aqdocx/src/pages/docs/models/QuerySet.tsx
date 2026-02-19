@@ -18,7 +18,12 @@ export function ModelsQuerySet() {
           <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>/</span>
           <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>QuerySet</span>
         </div>
-        <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>QuerySet</h1>
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            QuerySet
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
+        </h1>
         <p className={`text-xl ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
           Aquilia's query engine: an immutable, clone-on-write async query builder with 20+ chain methods and 15+ terminal methods.
         </p>

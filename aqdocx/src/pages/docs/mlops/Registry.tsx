@@ -14,8 +14,11 @@ export function MLOpsRegistry() {
           <Brain className="w-4 h-4" />
           MLOps / Registry
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Model Registry
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Model Registry
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           <code className="text-aquilia-400">RegistryService</code> is a versioned model registry with stage transitions (staging → production → archived), rollback capability, and integration with the <code className="text-aquilia-400">ContentStore</code>.

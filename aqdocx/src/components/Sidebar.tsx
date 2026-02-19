@@ -73,6 +73,8 @@ const sections: SidebarSection[] = [
           { label: 'Controller Factory', path: '/docs/controllers/factory' },
           { label: 'Controller Engine', path: '/docs/controllers/engine' },
           { label: 'Controller Compiler', path: '/docs/controllers/compiler' },
+          { label: 'Controller Router', path: '/docs/controllers/router' },
+          { label: 'OpenAPI Generation', path: '/docs/controllers/openapi' },
         ]
       },
       {

@@ -21,7 +21,12 @@ export function PlaceholderPage({ title: propTitle, section }: PlaceholderProps 
       <div className={`flex flex-col items-center justify-center py-20 text-center rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
         <Construction className="w-16 h-16 text-aquilia-500 mb-6 animate-pulse" />
         {section && <span className="text-aquilia-500 text-sm font-semibold tracking-wider uppercase mb-2">{section}</span>}
-        <h1 className={`text-3xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h1>
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            {title}
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
+        </h1>
         <p className={`max-w-md ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           This documentation page is being written. Check back soon for comprehensive coverage of this topic.
         </p>

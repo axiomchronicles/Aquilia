@@ -10,7 +10,12 @@ export function FaultsOverview() {
     <div className="max-w-4xl mx-auto">
       <div className="mb-12">
         <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4"><AlertTriangle className="w-4 h-4" />Advanced</div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>AquilaFaults — Fault System</h1>
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            AquilaFaults — Fault System
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
+        </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Faults are <em>not</em> bare exceptions — they are first-class structured values with machine-readable codes, severity levels, domain classification, and recovery strategies. They can be raised <em>or</em> returned.
         </p>

@@ -14,8 +14,11 @@ export function TraceSpans() {
           <Activity className="w-4 h-4" />
           Trace / Spans & Exporters
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Tracing — Spans & Exporters
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Tracing — Spans & Exporters
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           <code className="text-aquilia-400">AquiliaTracer</code> provides distributed tracing with automatic span creation for requests, DB queries, cache operations, and template rendering. Export to Jaeger, Zipkin, or any OpenTelemetry-compatible backend.

@@ -15,8 +15,11 @@ export function MLOpsOverview() {
           <Cpu className="w-4 h-4" />
           Advanced / MLOps
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          MLOps Platform
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            MLOps Platform
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Aquilia's MLOps module provides production-ready model packaging (Modelpack), a content-addressable registry, dynamic serving with batching, observability with drift detection, and rollout management — fully integrated with the framework's DI, fault, and lifecycle systems.

@@ -13,8 +13,11 @@ export function TestingClient() {
           <FlaskConical className="w-4 h-4" />
           Testing / TestClient
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          TestClient
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            TestClient
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           <code className="text-aquilia-400">TestClient</code> provides an in-process HTTP client for testing Aquilia applications without starting a server. Supports HTTP, WebSocket, and streaming requests.

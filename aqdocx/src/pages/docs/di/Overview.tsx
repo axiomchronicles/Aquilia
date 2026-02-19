@@ -11,7 +11,12 @@ export function DIOverview() {
     <div className="max-w-4xl mx-auto">
       <div className="mb-12">
         <div className="flex items-center gap-2 text-sm text-aquilia-500 font-medium mb-4"><Box className="w-4 h-4" />Dependency Injection</div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Dependency Injection Overview</h1>
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Dependency Injection Overview
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
+        </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Aquilia ships with a production-grade dependency injection container — hierarchical scopes, async-first resolution, cycle detection via Tarjan's algorithm, manifest-driven registration, rich diagnostics, and cached lookups under 3&micro;s.
         </p>

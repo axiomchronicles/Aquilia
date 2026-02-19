@@ -13,8 +13,11 @@ export function MiddlewareStack() {
           <Layers className="w-4 h-4" />
           Middleware / Stack & Composition
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Middleware Stack
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Middleware Stack
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           <code className="text-aquilia-400">MiddlewareStack</code> manages the ordered chain of middleware. Middleware execute in LIFO order — the last added runs first (outermost wrapper).

@@ -15,7 +15,12 @@ export function RequestPage() {
           <ArrowDownToLine className="w-4 h-4" />
           Core
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Request</h1>
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Request
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
+        </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           The <code className="text-aquilia-500">Request</code> class is a production-grade, <code className="text-aquilia-500">__slots__</code>-optimized HTTP request wrapper built on the ASGI scope.
           It provides async body streaming, JSON/form/multipart parsing with model validation, cookie handling, proxy-aware client IP detection,

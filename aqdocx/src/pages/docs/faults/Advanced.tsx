@@ -14,8 +14,11 @@ export function FaultsAdvanced() {
           <AlertTriangle className="w-4 h-4" />
           Faults / Handlers & Domains
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Fault Handlers & Domains
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Fault Handlers & Domains
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Aquilia's fault system goes beyond simple exception handling. Fault handlers let you customize error responses, while fault domains organize errors by subsystem for better diagnostics and recovery.

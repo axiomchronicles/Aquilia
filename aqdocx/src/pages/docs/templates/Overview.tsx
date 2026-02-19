@@ -15,8 +15,11 @@ export function TemplatesOverview() {
           <FileText className="w-4 h-4" />
           Advanced / Templates
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Template Engine
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Template Engine
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           AquilaTemplates is a first-class Jinja2-based template rendering system with async support, sandboxed execution, bytecode caching, DI integration, session/auth context injection, and hot-reload in development.

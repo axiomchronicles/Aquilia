@@ -14,8 +14,11 @@ export function AuthAdvanced() {
           <Shield className="w-4 h-4" />
           Auth / Advanced
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Credentials, AuthManager, OAuth2 & MFA
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Credentials, AuthManager, OAuth2 & MFA
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Deep dive into AquilAuth's credential system, authentication manager, OAuth2/OIDC provider, and multi-factor authentication engine.

@@ -16,7 +16,12 @@ export function ModelsOverview() {
           <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>/</span>
           <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Models</span>
         </div>
-        <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Models</h1>
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Models
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
+        </h1>
         <p className={`text-xl ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
           Pure Python, Django-grade, async-first ORM — define your schema as Python classes with full validation, relationships, signals, and migration support.
         </p>

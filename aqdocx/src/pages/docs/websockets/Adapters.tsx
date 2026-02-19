@@ -14,8 +14,11 @@ export function WebSocketAdapters() {
           <Globe className="w-4 h-4" />
           WebSockets / Adapters
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          WebSocket Adapters
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            WebSocket Adapters
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Adapters enable horizontal scaling by synchronizing room memberships and broadcast messages across multiple server instances. Aquilia provides three adapters out of the box.

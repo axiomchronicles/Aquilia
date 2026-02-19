@@ -15,8 +15,11 @@ export function CLIOverview() {
           <Terminal className="w-4 h-4" />
           Tooling / CLI
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          CLI — The <code className="text-aquilia-500">aq</code> Command
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            CLI — The <code className="text-aquilia-500">aq</code> Command
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Aquilate (<code className="text-aquilia-500">aq</code>) is Aquilia's native CLI for manifest-driven, artifact-first project orchestration. It handles workspace initialization, module scaffolding, validation, compilation, development serving, and inspection.

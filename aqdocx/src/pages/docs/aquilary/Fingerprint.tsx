@@ -13,8 +13,11 @@ export function AquilaryFingerprint() {
           <Boxes className="w-4 h-4" />
           Aquilary / Fingerprinting
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Fingerprinting
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Fingerprinting
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Fingerprinting produces a deterministic hash of the entire module registry. Used for deployment verification, cache invalidation, and ensuring frozen manifests match the live state.

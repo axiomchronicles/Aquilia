@@ -14,8 +14,11 @@ export function AuthZPage() {
           <Lock className="w-4 h-4" />
           Security / Authorization
         </div>
-        <h1 className={`text-4xl font-extrabold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Authorization
+        <h1 className={`text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <span className="font-bold tracking-tighter gradient-text font-mono relative group inline-block">
+            Authorization
+            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
+          </span>
         </h1>
         <p className={`text-lg leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Aquilia provides multiple authorization engines — RBAC, ABAC, and a Policy DSL — that integrate directly with guards, middleware, and the DI system. Default-deny ensures secure-by-default access control.
