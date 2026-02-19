@@ -6,7 +6,6 @@ import { ArrowLeft, ArrowRight, Puzzle } from 'lucide-react'
 export function DIAdvanced() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const boxClass = `p-6 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -138,7 +137,7 @@ class CacheClient(Lifecycle):
 # Startup:  DatabasePool.on_init() → CacheClient.on_init()
 # Shutdown: CacheClient.on_dispose() → DatabasePool.on_dispose()`}</CodeBlock>
 
-        <div className={`mt-6 ${boxClass}`}>
+        <div className="mt-6">
           <h3 className={`text-sm font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Disposal Strategies</h3>
           <div className={`overflow-hidden rounded-xl border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
             <table className="w-full text-sm">

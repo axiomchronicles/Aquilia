@@ -130,9 +130,9 @@ SCOPES = {
       {/* Scope Hierarchy Visualization */}
       <section className="mb-16">
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Scope Hierarchy</h2>
-        <div className={`p-8 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="w-full">
           <svg viewBox="0 0 600 280" className="w-full h-auto">
-            <rect width="600" height="280" rx="16" fill={isDark ? '#0A0A0A' : '#f8fafc'} />
+            <rect width="600" height="280" rx="16" fill="transparent" />
 
             {/* Longest-lived label */}
             <text x="20" y="30" fill={isDark ? '#555' : '#94a3b8'} fontSize="10" fontWeight="600">LONGEST-LIVED</text>

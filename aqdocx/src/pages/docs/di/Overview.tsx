@@ -25,9 +25,9 @@ export function DIOverview() {
       {/* Architecture SVG */}
       <section className="mb-16">
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>System Architecture</h2>
-        <div className={`p-8 rounded-2xl border ${isDark ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="w-full">
           <svg viewBox="0 0 720 400" className="w-full h-auto">
-            <rect width="720" height="400" rx="16" fill={isDark ? '#0A0A0A' : '#f8fafc'} />
+            <rect width="720" height="400" rx="16" fill="transparent" />
 
             {/* Registry */}
             <rect x="40" y="30" width="200" height="65" rx="12" fill={isDark ? '#1a1a2e' : '#e0f2fe'} stroke="#22c55e" strokeWidth="2">
@@ -182,25 +182,23 @@ export function DIOverview() {
         <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           The <code className="text-aquilia-500">Registry.from_manifests()</code> pipeline processes manifests through four sequential phases before building the container:
         </p>
-        <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
-          <div className="space-y-4">
-            {[
-              { phase: 'Phase 1', title: 'Load Manifest Services', desc: 'Iterate each manifest\'s services list. Create Provider instances (ClassProvider for classes, FactoryProvider for factories). Attach ProviderMeta with scope, tags, module, line number.' },
-              { phase: 'Phase 2', title: 'Build Dependency Graph', desc: 'For each provider, extract constructor dependencies via inspect.signature(). Add nodes and edges to DependencyGraph.adj_list. Supports Annotated[Type, Inject(tag="...")] for tagged lookups.' },
-              { phase: 'Phase 3', title: 'Detect Cycles (Tarjan\'s)', desc: 'Run Tarjan\'s strongly-connected-component algorithm. Filter out trivial SCCs (single node, no self-loop). Raise DependencyCycleError with cycle trace and locations. Suggest allow_lazy=True or interface extraction.' },
-              { phase: 'Phase 4', title: 'Validate Cross-App Dependencies', desc: 'When enforce_cross_app=True, verify that every inter-app dependency is declared in the consumer manifest\'s depends_on list. Raise CrossAppDependencyError with fix suggestion if violated.' },
-            ].map((p, i) => (
-              <div key={i} className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-aquilia-500/20 text-aquilia-500 text-xs font-bold">{i + 1}</span>
-                </div>
-                <div>
-                  <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{p.title}</h4>
-                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{p.desc}</p>
-                </div>
+        <div className="space-y-4">
+          {[
+            { phase: 'Phase 1', title: 'Load Manifest Services', desc: 'Iterate each manifest\'s services list. Create Provider instances (ClassProvider for classes, FactoryProvider for factories). Attach ProviderMeta with scope, tags, module, line number.' },
+            { phase: 'Phase 2', title: 'Build Dependency Graph', desc: 'For each provider, extract constructor dependencies via inspect.signature(). Add nodes and edges to DependencyGraph.adj_list. Supports Annotated[Type, Inject(tag="...")] for tagged lookups.' },
+            { phase: 'Phase 3', title: 'Detect Cycles (Tarjan\'s)', desc: 'Run Tarjan\'s strongly-connected-component algorithm. Filter out trivial SCCs (single node, no self-loop). Raise DependencyCycleError with cycle trace and locations. Suggest allow_lazy=True or interface extraction.' },
+            { phase: 'Phase 4', title: 'Validate Cross-App Dependencies', desc: 'When enforce_cross_app=True, verify that every inter-app dependency is declared in the consumer manifest\'s depends_on list. Raise CrossAppDependencyError with fix suggestion if violated.' },
+          ].map((p, i) => (
+            <div key={i} className="flex gap-4">
+              <div className="flex-shrink-0">
+                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-aquilia-500/20 text-aquilia-500 text-xs font-bold">{i + 1}</span>
               </div>
-            ))}
-          </div>
+              <div>
+                <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{p.title}</h4>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{p.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         <CodeBlock language="python" filename="Registry Pipeline">{`from aquilia.di import Registry
