@@ -201,7 +201,7 @@ class TasksController(Controller):
           language="python"
         />
 
-        <div className={`mt-4 rounded-lg border p-4 ${isDark ? 'bg-zinc-800/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+        <div className={`mt-4 rounded-lg`}>
           <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
             <strong>Route parameters:</strong> Aquilia uses <code>«name:type»</code> syntax for URL
             parameters. Supported types: <code>int</code>, <code>str</code>, <code>uuid</code>, <code>slug</code>, <code>path</code>.

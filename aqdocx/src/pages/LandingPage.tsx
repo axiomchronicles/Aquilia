@@ -72,7 +72,7 @@ export function LandingPage() {
                 </motion.p>
 
                 <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-12 w-full lg:w-auto">
-                  <Link to="/docs/getting-started/quick-start" className={`group relative px-8 py-4 font-bold rounded-lg transition-all overflow-hidden text-center flex justify-center ${isDark ? 'bg-white text-black hover:bg-gray-100 hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.1)]' : 'bg-aquilia-600 text-white hover:bg-aquilia-700 hover:scale-105'}`}>
+                  <Link to="/docs" className={`group relative px-8 py-4 font-bold rounded-lg transition-all overflow-hidden text-center flex justify-center ${isDark ? 'bg-white text-black hover:bg-gray-100 hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.1)]' : 'bg-aquilia-600 text-white hover:bg-aquilia-700 hover:scale-105'}`}>
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       Get Started Free
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -171,7 +171,7 @@ export function LandingPage() {
                 </div>
               </div>
 
-              <div className={`p-8 rounded-3xl border backdrop-blur-xl ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-white border-gray-200 shadow-xl'}`}>
+              <div className={`p-8`}>
                 <div className="mb-8">
                   <h4 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Benchmark: JSON-Large (Req/s)</h4>
                   <div className="space-y-6">

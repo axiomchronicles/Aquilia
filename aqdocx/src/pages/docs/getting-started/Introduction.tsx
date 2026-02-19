@@ -268,7 +268,7 @@ export function IntroductionPage() {
           Every Aquilia application follows a deterministic pipeline from boot to request handling:
         </p>
 
-        <div className={`rounded-3xl border p-8 overflow-hidden relative ${isDark ? 'bg-[#0A0A0B] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+        <div className={`rounded-3xl overflow-hidden relative`}>
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0)', backgroundSize: '20px 20px' }}></div>
           <RequestLifecycle />
         </div>

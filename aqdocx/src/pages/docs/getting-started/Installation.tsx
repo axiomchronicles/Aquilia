@@ -32,7 +32,7 @@ export function InstallationPage() {
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>System Requirements</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className={`p-5 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className={`p-5 rounded-xl`}>
             <div className="flex items-center gap-3 mb-3">
               <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                 <Terminal className="w-5 h-5" />
@@ -54,7 +54,7 @@ export function InstallationPage() {
             </p>
           </div>
 
-          <div className={`p-5 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className={`p-5 rounded-xl`}>
             <div className="flex items-center gap-3 mb-3">
               <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
                 <Package className="w-5 h-5" />
@@ -75,12 +75,12 @@ export function InstallationPage() {
                 <span>Native Windows (Limited Support)</span>
               </li>
             </ul>
-          </div>
-        </div>
-      </section>
+          </div >
+        </div >
+      </section >
 
       {/* Install from PyPI */}
-      <section className="mb-10">
+      < section className="mb-10" >
         <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Install from PyPI</h2>
 
         <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -94,10 +94,10 @@ export function InstallationPage() {
         </p>
 
         <CodeBlock code={`uv pip install aquilia`} language="bash" />
-      </section>
+      </section >
 
       {/* Extras */}
-      <section className="mb-10">
+      < section className="mb-10" >
         <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Optional Extras</h2>
 
         <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -140,10 +140,10 @@ pip install "aquilia[redis,postgres,auth]"
 
 # Install everything
 pip install "aquilia[all]"`} language="bash" />
-      </section>
+      </section >
 
       {/* Development Install */}
-      <section className="mb-10">
+      < section className="mb-10" >
         <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Development Install (From Source)</h2>
 
         <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -164,10 +164,10 @@ pip install -r requirements-dev.txt
 aq version`}
           language="bash"
         />
-      </section>
+      </section >
 
       {/* Verify */}
-      <section className="mb-10">
+      < section className="mb-10" >
         <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Verify Installation</h2>
 
         <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -192,10 +192,10 @@ $ aq doctor
           The <code>aq doctor</code> command checks your environment for common issues — missing optional
           dependencies, incompatible Python versions, and misconfigured workspace files.
         </p>
-      </section>
+      </section >
 
       {/* CLI entry point */}
-      <section className="mb-10">
+      < section className="mb-10" >
         <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>CLI Entry Points</h2>
 
         <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -218,14 +218,14 @@ $ aq doctor
             </li>
           </ul>
         </div>
-      </section>
+      </section >
 
       {/* Troubleshooting */}
-      <section className="mb-10">
+      < section className="mb-10" >
         <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Troubleshooting</h2>
 
         <div className="space-y-4">
-          <div className={`rounded-xl border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+          <div className={`rounded-xl'}`}>
             <div className="flex items-start gap-2">
               <AlertCircle className={`w-4 h-4 mt-0.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
               <div>
@@ -238,7 +238,7 @@ $ aq doctor
             </div>
           </div>
 
-          <div className={`rounded-xl border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+          <div className={`rounded-xl'}`}>
             <div className="flex items-start gap-2">
               <AlertCircle className={`w-4 h-4 mt-0.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
               <div>
@@ -251,7 +251,7 @@ $ aq doctor
             </div>
           </div>
 
-          <div className={`rounded-xl border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+          <div className={`rounded-xl'}`}>
             <div className="flex items-start gap-2">
               <AlertCircle className={`w-4 h-4 mt-0.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
               <div>
@@ -264,10 +264,10 @@ $ aq doctor
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
       {/* Next Steps */}
-      <section className="mb-10">
+      < section className="mb-10" >
         <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Next Steps</h2>
         <div className="flex flex-col gap-2">
           <Link to="/docs/quickstart" className={`text-sm font-medium ${isDark ? 'text-aquilia-400 hover:text-aquilia-300' : 'text-aquilia-600 hover:text-aquilia-500'}`}>
@@ -280,7 +280,7 @@ $ aq doctor
             → Project Structure: Understand the workspace layout
           </Link>
         </div>
-      </section>
-    </div>
+      </section >
+    </div >
   )
 }
