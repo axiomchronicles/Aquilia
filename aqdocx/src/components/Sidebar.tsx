@@ -480,8 +480,8 @@ export function Sidebar() {
       <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto pt-6 pb-12 px-4">
         {/* SDK Badge */}
         <div className="relative group mb-6">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-aquilia-500 to-blue-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition" />
-          <div className={`relative flex items-center gap-3 px-4 py-3 rounded-xl border ${isDark ? 'bg-zinc-900/90 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className="bg-gradient-to-r from-aquilia-500 to-blue-500 rounded-xl blur opacity-20" />
+          <div className={`relative flex items-center gap-3 px-4 py-3`}>
             <img src="/logo.png" alt="Aquilia" className="w-8 h-8 rounded-lg shadow-lg shadow-aquilia-500/20" />
             <div>
               <div className={`font-bold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Aquilia Framework</div>

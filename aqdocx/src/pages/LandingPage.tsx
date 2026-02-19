@@ -383,7 +383,7 @@ export function LandingPage() {
                       initial={{ opacity: 0, scale: 0.8 }}
                       whileInView={{ opacity: 1, scale: 1 }}
                       transition={{ delay: i * 0.1 }}
-                      className={`aspect-square rounded-2xl flex items-center justify-center border ${isDark ? 'bg-zinc-900/50 border-white/5 text-gray-400 hover:text-aquilia-400 hover:border-aquilia-500/30' : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-aquilia-600 hover:border-aquilia-500/30'} transition-all hover:scale-105 pointer-events-none`}
+                      className={`aspect-square rounded-2xl flex items-center justify-center `}
                     >
                       <Icon className="w-10 h-10" />
                     </motion.div>
