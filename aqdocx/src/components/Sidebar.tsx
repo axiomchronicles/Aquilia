@@ -271,7 +271,11 @@ const sections: SidebarSection[] = [
       {
         label: 'CLI', path: '/docs/cli', icon: <Terminal className="w-3.5 h-3.5" />,
         children: [
-          { label: 'Commands', path: '/docs/cli/commands' },
+          { label: 'Overview', path: '/docs/cli' },
+          { label: 'Core Commands', path: '/docs/cli/core' },
+          { label: 'Database', path: '/docs/cli/database' },
+          { label: 'MLOps', path: '/docs/cli/mlops' },
+          { label: 'Inspection', path: '/docs/cli/inspection' },
           { label: 'Generators', path: '/docs/cli/generators' },
         ]
       },

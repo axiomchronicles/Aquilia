@@ -143,6 +143,10 @@ import { MLOpsDrift } from './pages/docs/mlops/Drift'
 import { CLIOverview } from './pages/docs/cli/Overview'
 import { CLICommands } from './pages/docs/cli/Commands'
 import { CLIGenerators } from './pages/docs/cli/Generators'
+import { CLICoreCommands } from './pages/docs/cli/CoreCommands'
+import { CLIDatabaseCommands } from './pages/docs/cli/DatabaseCommands'
+import { CLIMLOpsCommands } from './pages/docs/cli/MLOpsCommands'
+import { CLIInspectionCommands } from './pages/docs/cli/InspectionCommands'
 
 // Testing
 import { TestingOverview } from './pages/docs/testing/Overview'
@@ -324,6 +328,10 @@ export default function App() {
           <Route path="cli" element={<CLIOverview />} />
           <Route path="cli/commands" element={<CLICommands />} />
           <Route path="cli/generators" element={<CLIGenerators />} />
+          <Route path="cli/core" element={<CLICoreCommands />} />
+          <Route path="cli/database" element={<CLIDatabaseCommands />} />
+          <Route path="cli/mlops" element={<CLIMLOpsCommands />} />
+          <Route path="cli/inspection" element={<CLIInspectionCommands />} />
 
           {/* Testing */}
           <Route path="testing" element={<TestingOverview />} />

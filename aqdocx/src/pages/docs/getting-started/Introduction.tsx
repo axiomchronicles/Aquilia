@@ -1,7 +1,58 @@
 import { useTheme } from '../../../context/ThemeContext'
 import { CodeBlock } from '../../../components/CodeBlock'
 import { Link } from 'react-router-dom'
-import { BookOpen, Zap, Shield, Layers, Database, Plug, Cpu, Rocket, Globe, Terminal, Box, Workflow, Brain, AlertCircle, Gauge } from 'lucide-react'
+import { motion } from 'framer-motion'
+import {
+  Zap, Shield, Layers, Database, Plug, Cpu, Globe, Brain, AlertCircle, Gauge,
+  Rocket, Box, Terminal, Code2, GitBranch, Copy
+} from 'lucide-react'
+
+const RequestLifecycle = () => {
+  const steps = [
+    { id: 'request', label: 'Request', icon: <Globe className="w-4 h-4" />, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { id: 'middleware', label: 'Middleware', icon: <Layers className="w-4 h-4" />, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+    { id: 'router', label: 'Router', icon: <GitBranch className="w-4 h-4" />, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { id: 'controller', label: 'Controller', icon: <Code2 className="w-4 h-4" />, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    { id: 'di', label: 'DI Container', icon: <Plug className="w-4 h-4" />, color: 'text-pink-400', bg: 'bg-pink-500/10' },
+    { id: 'response', label: 'Response', icon: <Zap className="w-4 h-4" />, color: 'text-aquilia-400', bg: 'bg-aquilia-500/10' },
+  ]
+
+  return (
+    <div className="relative py-12">
+      {/* Connection Line */}
+      <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-gray-700 to-transparent -translate-y-1/2 opacity-30" />
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 relative z-10">
+        {steps.map((step, i) => (
+          <motion.div
+            key={step.id}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            className="flex flex-col items-center gap-3"
+          >
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/10 ${step.bg} ${step.color} shadow-lg shadow-black/20`}>
+              {step.icon}
+            </div>
+            <div className="text-xs font-mono font-medium opacity-60">{step.label}</div>
+
+            {/* Flow Particles */}
+            {i < steps.length - 1 && (
+              <div className="hidden lg:block absolute top-1/2 left-[calc(16.66%*${i}+8.33%)] w-[16.66%] h-0.5 -translate-y-1/2 overflow-hidden pointer-events-none">
+                <motion.div
+                  className={`w-1/2 h-full bg-gradient-to-r from-transparent to-${step.color.split('-')[1]}-500/50`}
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: i * 0.2 }}
+                />
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export function IntroductionPage() {
   const { theme } = useTheme()
@@ -69,6 +120,38 @@ export function IntroductionPage() {
           <p className={`text-lg leading-relaxed mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
             <strong>Stop writing routing, config, and deployment boilerplate. Focus only on business logic.</strong>
           </p>
+
+          <div className="flex flex-col items-start gap-6 mb-12">
+            <div className="flex flex-wrap gap-4">
+              <Link
+                to="/docs/getting-started/quickstart"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-aquilia-600 hover:bg-aquilia-500 text-white font-semibold shadow-lg shadow-aquilia-500/20 transition-all hover:scale-105 active:scale-95"
+              >
+                <Rocket className="w-5 h-5" />
+                Quick Start
+              </Link>
+              <Link
+                to="/docs/architecture"
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl border font-semibold transition-all hover:scale-105 active:scale-95 ${isDark ? 'border-white/10 hover:bg-white/5 text-gray-300 hover:text-white' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}
+              >
+                <Cpu className="w-5 h-5" />
+                Architecture
+              </Link>
+            </div>
+
+            {/* Quick Install */}
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-mono text-sm ${isDark ? 'bg-black/40 border-white/10 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
+              <span className="text-aquilia-500">$</span>
+              <span>pip install aquilia</span>
+              <button
+                onClick={() => navigator.clipboard.writeText('pip install aquilia')}
+                className="ml-4 p-1.5 rounded-lg hover:bg-white/10 transition-colors text-gray-500 hover:text-aquilia-400"
+                title="Copy to clipboard"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
 
           <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mt-8`}>
             <div>
@@ -181,25 +264,10 @@ export function IntroductionPage() {
           Every Aquilia application follows a deterministic pipeline from boot to request handling:
         </p>
 
-        <CodeBlock
-          code={`# ──── Boot Pipeline ────────────────────────────────────────────
-#
-#   Manifests           →  Aquilary.from_manifests()
-#   Aquilary            →  RuntimeRegistry.from_metadata()
-#   RuntimeRegistry     →  DI containers + compiled routes + model schemas
-#   AquiliaServer       →  MiddlewareStack + ControllerRouter + ASGIAdapter
-#
-# ──── Request Pipeline ────────────────────────────────────────
-#
-#   ASGI scope          →  ASGIAdapter.__call__()
-#   Middleware chain     →  RequestId → Exception → Logging → Session → Auth → …
-#   Pattern matching     →  ControllerRouter.match(path, method)
-#   Controller engine    →  ControllerEngine.handle(compiled_route, ctx)
-#   Controller factory   →  ControllerFactory.create(cls)   [per-request DI]
-#   Handler method       →  controller.method(ctx: RequestCtx)
-#   Response             →  Response.json() / .html() / .stream() / .sse() / .file()`}
-          language="python"
-        />
+        <div className={`rounded-3xl border p-8 overflow-hidden relative ${isDark ? 'bg-[#0A0A0B] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0)', backgroundSize: '20px 20px' }}></div>
+          <RequestLifecycle />
+        </div>
       </section>
 
       {/* Minimal Example */}

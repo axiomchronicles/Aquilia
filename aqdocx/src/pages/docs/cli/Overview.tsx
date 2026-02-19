@@ -43,38 +43,49 @@ export function CLIOverview() {
         </div>
       </section>
 
-      {/* Commands */}
+      {/* Sections Grid */}
       <section className="mb-16">
-        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Command Reference</h2>
-        <div className={`overflow-hidden rounded-xl border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className={isDark ? 'bg-zinc-900' : 'bg-gray-50'}>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Command</th>
-                <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Description</th>
-              </tr>
-            </thead>
-            <tbody className={isDark ? 'divide-y divide-white/5' : 'divide-y divide-gray-100'}>
-              {[
-                { cmd: 'aq init workspace <name>', desc: 'Scaffold a new Aquilia project with workspace.py, modules/, config/, and artifacts/' },
-                { cmd: 'aq add module <name>', desc: 'Generate a new module with controller, models, and serializers stubs' },
-                { cmd: 'aq validate', desc: 'Validate workspace manifest, module graph, and configuration without starting the server' },
-                { cmd: 'aq compile', desc: 'Compile the workspace into .crous artifacts for production deployment' },
-                { cmd: 'aq run', desc: 'Start the development server with hot-reload and debug toolbar' },
-                { cmd: 'aq serve', desc: 'Start the production ASGI server (uvicorn/hypercorn)' },
-                { cmd: 'aq freeze', desc: 'Freeze the current state — export all routes, providers, and schemas' },
-                { cmd: 'aq inspect <target>', desc: 'Inspect compiled state: routes, providers, modules, fingerprint, config' },
-                { cmd: 'aq migrate', desc: 'Run database migrations (generate, apply, rollback)' },
-                { cmd: 'aq cache stats', desc: 'Show cache statistics (hit rate, size, evictions)' },
-                { cmd: 'aq cache clear', desc: 'Clear all cache entries' },
-              ].map((row, i) => (
-                <tr key={i} className={isDark ? 'bg-[#0A0A0A]' : 'bg-white'}>
-                  <td className="py-3 px-4"><code className="text-aquilia-500 font-mono text-xs">{row.cmd}</code></td>
-                  <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{row.desc}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Documentation Sections</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link to="/docs/cli/core" className={`group p-6 rounded-xl border transition-all ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-aquilia-500/50' : 'bg-white border-gray-200 hover:border-aquilia-500/50'}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <Terminal className="w-5 h-5 text-aquilia-500" />
+              <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>Core Commands</h3>
+            </div>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>lifecycle management: init, run, serve, deploy.</p>
+          </Link>
+
+          <Link to="/docs/cli/database" className={`group p-6 rounded-xl border transition-all ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-purple-500/50' : 'bg-white border-gray-200 hover:border-purple-500/50'}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-5 h-5 rounded bg-purple-500/20 flex items-center justify-center text-purple-500">DB</div>
+              <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>Database</h3>
+            </div>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Migrations, introspection, schema dumps, and shell.</p>
+          </Link>
+
+          <Link to="/docs/cli/mlops" className={`group p-6 rounded-xl border transition-all ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-blue-500/50' : 'bg-white border-gray-200 hover:border-blue-500/50'}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center text-blue-500">ML</div>
+              <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>MLOps</h3>
+            </div>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Pack, deploy, observe, lineage, and experiments.</p>
+          </Link>
+
+          <Link to="/docs/cli/inspection" className={`group p-6 rounded-xl border transition-all ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-green-500/50' : 'bg-white border-gray-200 hover:border-green-500/50'}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center text-green-500">In</div>
+              <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>Inspection</h3>
+            </div>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>DI graph, routes, analytics, caching & mail diagnosis.</p>
+          </Link>
+
+          <Link to="/docs/cli/generators" className={`group p-6 rounded-xl border transition-all ${isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-orange-500/50' : 'bg-white border-gray-200 hover:border-orange-500/50'}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-5 h-5 rounded bg-orange-500/20 flex items-center justify-center text-orange-500">Gn</div>
+              <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>Generators</h3>
+            </div>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Code scaffolding and custom templates.</p>
+          </Link>
         </div>
       </section>
 
