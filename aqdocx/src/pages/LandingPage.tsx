@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
+import { Sidebar } from '../components/Sidebar'
 import { useTheme } from '../context/ThemeContext'
-import { ArrowRight, Github, BookOpen, Zap, Shield, Database, Layers, Box, Workflow, Code, Terminal, Globe, Activity, Rocket, Cpu as CpuIcon } from 'lucide-react'
+import { ArrowRight, Github, BookOpen, Zap, Shield, Database, Layers, Box, Workflow, Terminal, Globe, Activity, Rocket, Cpu as CpuIcon, Copy } from 'lucide-react'
 import { PostgresSQLIcon, RedisIcon, RabbitMQIcon, SentryIcon, OpenTelemetryIcon, AwsS3Icon, ElasticsearchIcon, DockerIcon } from '../components/BrandIcons'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -11,6 +12,7 @@ export function LandingPage() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const [copied, setCopied] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const copyCmd = () => {
     navigator.clipboard.writeText('pip install aquilia')
@@ -39,7 +41,8 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
-      <Navbar />
+      <Navbar onToggleSidebar={() => setIsSidebarOpen(true)} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <main className="flex-grow pt-16 relative">
         {/* Grid Background */}
         <div className={`fixed inset-0 z-[-1] opacity-20 ${isDark ? '' : 'opacity-5'}`} style={{ backgroundImage: 'linear-gradient(#27272a 1px, transparent 1px), linear-gradient(90deg, #27272a 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -106,7 +109,7 @@ export function LandingPage() {
                   <span className={`font-mono text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>$</span>
                   <span className={`font-mono text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>pip install aquilia</span>
                   <div className={`pl-4 border-l transition-colors ${isDark ? 'border-white/10 text-gray-500 group-hover:text-aquilia-400' : 'border-gray-200 text-gray-400 group-hover:text-aquilia-600'}`}>
-                    <Code className="w-4 h-4" />
+                    <Copy className="w-4 h-4" />
                   </div>
                   {copied && <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-aquilia-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg">Copied!</span>}
                 </motion.div>
