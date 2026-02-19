@@ -12,7 +12,16 @@ import { ProjectStructurePage } from './pages/docs/getting-started/ProjectStruct
 
 // Controllers
 import { ControllersOverview } from './pages/docs/controllers/Overview'
-import { ControllersDecorators } from './pages/docs/controllers/decorators'
+import { ControllersDecorators } from './pages/docs/controllers/decorators/Overview'
+import { DecoratorGet } from './pages/docs/controllers/decorators/Get'
+import { DecoratorPost } from './pages/docs/controllers/decorators/Post'
+import { DecoratorPut } from './pages/docs/controllers/decorators/Put'
+import { DecoratorPatch } from './pages/docs/controllers/decorators/Patch'
+import { DecoratorDelete } from './pages/docs/controllers/decorators/Delete'
+import { DecoratorHead } from './pages/docs/controllers/decorators/Head'
+import { DecoratorOptions } from './pages/docs/controllers/decorators/Options'
+import { DecoratorWS } from './pages/docs/controllers/decorators/WS'
+import { DecoratorRoute } from './pages/docs/controllers/decorators/Route'
 import { ControllersRequestCtx } from './pages/docs/controllers/RequestCtx'
 import { ControllersFactory } from './pages/docs/controllers/Factory'
 import { ControllersEngine } from './pages/docs/controllers/Engine'
@@ -194,6 +203,15 @@ export default function App() {
           <Route path="controllers" element={<ControllersOverview />} />
           <Route path="controllers/overview" element={<ControllersOverview />} />
           <Route path="controllers/decorators" element={<ControllersDecorators />} />
+          <Route path="controllers/decorators/get" element={<DecoratorGet />} />
+          <Route path="controllers/decorators/post" element={<DecoratorPost />} />
+          <Route path="controllers/decorators/put" element={<DecoratorPut />} />
+          <Route path="controllers/decorators/patch" element={<DecoratorPatch />} />
+          <Route path="controllers/decorators/delete" element={<DecoratorDelete />} />
+          <Route path="controllers/decorators/head" element={<DecoratorHead />} />
+          <Route path="controllers/decorators/options" element={<DecoratorOptions />} />
+          <Route path="controllers/decorators/ws" element={<DecoratorWS />} />
+          <Route path="controllers/decorators/route" element={<DecoratorRoute />} />
           <Route path="controllers/request-ctx" element={<ControllersRequestCtx />} />
           <Route path="controllers/factory" element={<ControllersFactory />} />
           <Route path="controllers/engine" element={<ControllersEngine />} />

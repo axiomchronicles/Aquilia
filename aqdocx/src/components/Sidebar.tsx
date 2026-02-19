@@ -1,12 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   BookOpen, Download, Rocket, Zap, Layers, Database, Shield, Settings,
   AlertCircle, Terminal, GitBranch, ChevronDown, ChevronRight,
   Server, Box, Mail, Palette, TestTube, Brain, BarChart, Plug,
   FileCode, Cpu, Globe, Lock, HardDrive, RefreshCw, Wrench, Layout,
-  Blocks, Workflow, Binary, Gauge, Network, Boxes, Cog
+  Blocks, Workflow, Binary, Gauge, Network, Boxes, Cog, Tag
 } from 'lucide-react'
 
 interface SidebarSection {
@@ -18,8 +18,8 @@ interface SidebarSection {
 interface SidebarItem {
   label: string
   path: string
-  icon: React.ReactNode
-  children?: { label: string; path: string }[]
+  icon?: React.ReactNode
+  children?: SidebarItem[]
 }
 
 const sections: SidebarSection[] = [
@@ -68,13 +68,27 @@ const sections: SidebarSection[] = [
         label: 'Controllers', path: '/docs/controllers', icon: <Layout className="w-3.5 h-3.5" />,
         children: [
           { label: 'Overview', path: '/docs/controllers/overview' },
-          { label: 'Route Decorators', path: '/docs/controllers/decorators' },
           { label: 'RequestCtx', path: '/docs/controllers/request-ctx' },
           { label: 'Controller Factory', path: '/docs/controllers/factory' },
           { label: 'Controller Engine', path: '/docs/controllers/engine' },
           { label: 'Controller Compiler', path: '/docs/controllers/compiler' },
           { label: 'Controller Router', path: '/docs/controllers/router' },
           { label: 'OpenAPI Generation', path: '/docs/controllers/openapi' },
+          {
+            label: 'Route Decorators', path: '/docs/controllers/decorators', icon: <Tag className="w-3.5 h-3.5" />,
+            children: [
+              { label: 'Overview', path: '/docs/controllers/decorators' },
+              { label: '@GET', path: '/docs/controllers/decorators/get' },
+              { label: '@POST', path: '/docs/controllers/decorators/post' },
+              { label: '@PUT', path: '/docs/controllers/decorators/put' },
+              { label: '@PATCH', path: '/docs/controllers/decorators/patch' },
+              { label: '@DELETE', path: '/docs/controllers/decorators/delete' },
+              { label: '@HEAD', path: '/docs/controllers/decorators/head' },
+              { label: '@OPTIONS', path: '/docs/controllers/decorators/options' },
+              { label: '@WS', path: '/docs/controllers/decorators/ws' },
+              { label: '@route', path: '/docs/controllers/decorators/route' },
+            ]
+          },
         ]
       },
       {
@@ -303,24 +317,155 @@ export function Sidebar() {
   const location = useLocation()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
-    // Auto-expand section that contains current path
-    const init: Record<string, boolean> = {}
-    sections.forEach(section => {
-      section.items.forEach(item => {
-        if (location.pathname.startsWith(item.path)) {
-          init[item.path] = true
-        }
-      })
-    })
-    return init
-  })
 
-  const toggleExpand = (path: string) => {
+  // State for expanded items
+  // We initialize based on current location to expand relevant sections
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    // Determine which items should be expanded based on the current URL
+    const openItems: Record<string, boolean> = {}
+
+    // Better approach: simply expand everything that is a prefix of current path
+    sections.forEach(section => {
+      const crawl = (items: SidebarItem[]) => {
+        items.forEach(item => {
+          if (item.children) {
+            // If the current location starts with this item's path, expand it
+            // Exception: if path is just prefix for children but not exact match... logic holds.
+            if (location.pathname.startsWith(item.path)) {
+              openItems[item.path] = true
+            }
+            crawl(item.children)
+          }
+        })
+      }
+      crawl(section.items)
+    })
+
+    setExpanded(prev => ({ ...prev, ...openItems }))
+  }, [location.pathname])
+
+
+  const toggleExpand = (e: React.MouseEvent, path: string) => {
+    e.preventDefault()
     setExpanded(prev => ({ ...prev, [path]: !prev[path] }))
   }
 
   const isActive = (path: string) => location.pathname === path
+
+  // Recursive Item Component
+  const SidebarMenuItem = ({ item, depth = 0 }: { item: SidebarItem, depth?: number }) => {
+    const hasChildren = item.children && item.children.length > 0
+    const isExpanded = expanded[item.path]
+    const active = isActive(item.path)
+
+    // Padding logic handled via inline styles and conditional classes
+
+
+    // If it has children, it's a collapsible parent
+    if (hasChildren) {
+      return (
+        <li>
+          <button
+            onClick={(e) => toggleExpand(e, item.path)}
+            className={`w-full group flex items-center justify-between py-2 rounded-lg text-sm transition-all ${depth === 0 ? 'px-3' : 'pl-4 pr-3'
+              } ${active
+                ? 'sidebar-link-active'
+                : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+              }`}
+            style={{ paddingLeft: depth > 0 ? `${depth * 16 + 12}px` : undefined }}
+          >
+            <span className="flex items-center gap-2">
+              {item.icon && item.icon}
+              {item.label}
+            </span>
+            {isExpanded ? (
+              <ChevronDown className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5" />
+            )}
+          </button>
+
+          {isExpanded && (
+            <ul className={`space-y-0.5 mt-1 border-l ml-5 ${isDark ? 'border-white/10' : 'border-gray-200'}`} style={{ marginLeft: depth > 0 ? `${depth * 16 + 20}px` : '20px' }}>
+              {item.children!.map(child => (
+                <SidebarMenuItem key={child.path} item={child} depth={depth + 1} />
+              ))}
+            </ul>
+          )}
+        </li>
+      )
+    }
+
+    // Leaf node
+    return (
+      <li>
+        <Link
+          to={item.path}
+          className={`block py-1.5 text-sm rounded-r-lg transition-all ${active
+            ? `font-medium border-l-2 -ml-px ${isDark ? 'text-aquilia-400 border-aquilia-500' : 'text-aquilia-600 border-aquilia-600'}`
+            : `${isDark ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-gray-800'}`
+            }`}
+          style={{ paddingLeft: '16px' }} // Standard indent for list items inside the border-l
+        >
+          <span className="flex items-center gap-2">
+            {item.icon && item.icon}
+            {item.label}
+          </span>
+        </Link>
+      </li>
+    )
+  }
+
+  // Root level item wrapper to handle top-level styling differences
+  const RootItem = ({ item }: { item: SidebarItem }) => {
+    const hasChildren = item.children && item.children.length > 0
+    const isExpanded = expanded[item.path]
+    const active = isActive(item.path)
+
+    if (hasChildren) {
+      return (
+        <li>
+          <button
+            onClick={(e) => toggleExpand(e, item.path)}
+            className={`w-full group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${active
+              ? 'sidebar-link-active'
+              : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+              }`}
+          >
+            <span className="flex items-center gap-2">
+              {item.icon && item.icon}
+              {item.label}
+            </span>
+            {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          </button>
+          {isExpanded && (
+            <ul className={`ml-5 mt-1 space-y-0.5 border-l ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              {item.children!.map(child => (
+                <SidebarMenuItem key={child.path} item={child} depth={0} />
+              ))}
+            </ul>
+          )}
+        </li>
+      )
+    }
+
+    return (
+      <li>
+        <Link
+          to={item.path}
+          className={`group flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${active
+            ? 'sidebar-link-active'
+            : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+            }`}
+        >
+          {item.icon && item.icon}
+          {item.label}
+        </Link>
+      </li>
+    )
+  }
 
   return (
     <div className={`lg:w-72 flex-shrink-0 border-b lg:border-b-0 lg:border-r ${isDark ? 'border-white/10 bg-black/30' : 'border-gray-200 bg-white/50'} backdrop-blur-xl`}>
@@ -346,57 +491,7 @@ export function Sidebar() {
               </h4>
               <ul className="space-y-0.5">
                 {section.items.map(item => (
-                  <li key={item.path}>
-                    {item.children ? (
-                      <>
-                        <button
-                          onClick={() => toggleExpand(item.path)}
-                          className={`w-full group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${isActive(item.path)
-                            ? 'sidebar-link-active'
-                            : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                            }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            {item.icon}
-                            {item.label}
-                          </span>
-                          {expanded[item.path] ? (
-                            <ChevronDown className="w-3.5 h-3.5" />
-                          ) : (
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                        {expanded[item.path] && (
-                          <ul className={`ml-5 mt-1 space-y-0.5 border-l ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-                            {item.children.map(child => (
-                              <li key={child.path}>
-                                <Link
-                                  to={child.path}
-                                  className={`block pl-4 py-1.5 text-sm rounded-r-lg transition-all ${isActive(child.path)
-                                    ? `font-medium border-l-2 -ml-px ${isDark ? 'text-aquilia-400 border-aquilia-500' : 'text-aquilia-600 border-aquilia-600'}`
-                                    : `${isDark ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-gray-800'}`
-                                    }`}
-                                >
-                                  {child.label}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </>
-                    ) : (
-                      <Link
-                        to={item.path}
-                        className={`group flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${isActive(item.path)
-                          ? 'sidebar-link-active'
-                          : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                          }`}
-                      >
-                        {item.icon}
-                        {item.label}
-                      </Link>
-                    )}
-                  </li>
+                  <RootItem key={item.path} item={item} />
                 ))}
               </ul>
             </div>
