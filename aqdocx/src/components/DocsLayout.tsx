@@ -32,7 +32,7 @@ export function DocsLayout() {
                   </p>
                   <div className="flex gap-4">
                     <a href="https://github.com/axiomchronicles/Aquilia" target="_blank" rel="noopener" className={`flex items-center gap-2 text-sm transition-colors ${isDark ? 'text-gray-500 hover:text-aquilia-400' : 'text-gray-400 hover:text-aquilia-600'}`}>
-                      Edit on GitHub
+                      Crafted with ❤️ using Aquilia
                     </a>
                   </div>
                 </div>
