@@ -129,16 +129,20 @@ export function Navbar() {
               onMouseLeave={handleMouseLeave}
             >
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden group ${dropdownOpen
-                  ? `${isDark ? 'bg-aquilia-500/10 text-aquilia-400 border border-aquilia-500/30' : 'bg-aquilia-50 text-aquilia-700 border border-aquilia-200'}`
-                  : `${isDark ? 'text-gray-300 hover:text-white hover:bg-white/5 border border-transparent' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-transparent'}`
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${dropdownOpen
+                  ? isDark
+                    ? 'text-aquilia-400'
+                    : 'text-aquilia-700'
+                  : isDark
+                    ? 'text-gray-300 hover:text-aquilia-400'
+                    : 'text-gray-600 hover:text-aquilia-700'
                   }`}
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Documentation</span>
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
                 {/* Shimmer effect */}
-                <div className={`absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r ${isDark ? 'from-transparent via-white/5 to-transparent' : 'from-transparent via-gray-200 to-transparent'}`} />
+                {/* <div className={`absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r ${isDark ? 'from-transparent via-white/5 to-transparent' : 'from-transparent via-gray-200 to-transparent'}`} /> */}
               </button>
 
               {/* Mega-menu dropdown — hover-triggered */}

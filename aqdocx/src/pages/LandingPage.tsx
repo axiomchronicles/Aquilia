@@ -46,7 +46,7 @@ export function LandingPage() {
         <div className="fixed inset-0 z-[-1] bg-gradient-to-b from-transparent via-[var(--bg-primary)]/80 to-[var(--bg-primary)]" />
 
         {/* Hero */}
-        <section className={`relative pt-8 pb-20 sm:pt-12 sm:pb-32 overflow-hidden ${isDark ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-aquilia-900/20 via-black to-black' : ''}`}>
+        <section className={`relative pt-4 pb-12 sm:pt-8 sm:pb-20 overflow-hidden ${isDark ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-aquilia-900/20 via-black to-black' : ''}`}>
           <div className={`absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]`} />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -58,22 +58,22 @@ export function LandingPage() {
                 variants={containerVariants}
                 className="text-left flex flex-col items-start"
               >
-                <motion.div variants={itemVariants} className={`inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full border text-sm font-medium backdrop-blur-md relative overflow-hidden group ${isDark ? 'border-aquilia-500/30 bg-aquilia-500/10 text-aquilia-400' : 'border-aquilia-600/30 bg-aquilia-500/10 text-aquilia-600'}`}>
+                <motion.div variants={itemVariants} className={`inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border text-sm font-medium backdrop-blur-md relative overflow-hidden group ${isDark ? 'border-aquilia-500/30 bg-aquilia-500/10 text-aquilia-400' : 'border-aquilia-600/30 bg-aquilia-500/10 text-aquilia-600'}`}>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                   <span className="flex h-2 w-2 rounded-full bg-aquilia-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
                   v1.0.0 — Production Ready
                 </motion.div>
 
-                <motion.h1 variants={itemVariants} className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight w-full">
+                <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 leading-tight w-full">
                   The speed of a microframework.<br />
                   <span className="gradient-text relative inline-block">The reliability</span> of an enterprise engine.
                 </motion.h1>
 
-                <motion.p variants={itemVariants} className={`mt-6 text-lg mb-10 leading-relaxed max-w-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                <motion.p variants={itemVariants} className={`mt-4 text-base mb-6 leading-relaxed max-w-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                   Stop choosing between developer velocity and production stability. Aquilia’s Manifest-First, async-native architecture removes routing and deployment boilerplate so you can build, test, and ship faster — with production manifests and ML deployment generated automatically.
                 </motion.p>
 
-                <motion.div variants={itemVariants} className="space-y-4 mb-12">
+                <motion.div variants={itemVariants} className="space-y-2 mb-8">
                   {[
                     "Auto-discover routes, services, models — zero routing boilerplate.",
                     "Generate Docker / Compose / Kubernetes manifests in one command.",
@@ -88,15 +88,15 @@ export function LandingPage() {
                   ))}
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-12 w-full lg:w-auto">
-                  <Link to="/docs" className={`group relative px-8 py-3.5 font-bold rounded-xl transition-all overflow-hidden text-center flex justify-center items-center shadow-lg hover:shadow-aquilia-500/25 ${isDark ? 'bg-white text-black hover:scale-105' : 'bg-aquilia-600 text-white hover:bg-aquilia-700 hover:scale-105'}`}>
+                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-8 w-full lg:w-auto">
+                  <Link to="/docs" className={`group relative px-6 py-3 font-bold rounded-xl transition-all overflow-hidden text-center flex justify-center items-center shadow-lg hover:shadow-aquilia-500/25 ${isDark ? 'bg-white text-black hover:scale-105' : 'bg-aquilia-600 text-white hover:bg-aquilia-700 hover:scale-105'}`}>
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:animate-shimmer" />
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       Get Started
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </Link>
-                  <Link to="/docs/architecture" className={`px-8 py-3.5 border rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group hover:bg-white/5 ${isDark ? 'bg-zinc-900 border-zinc-800 text-white hover:border-aquilia-500/50' : 'bg-white border-gray-300 text-gray-800 hover:border-aquilia-500/50'}`}>
+                  <Link to="/docs/architecture" className={`px-6 py-3 border rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group hover:bg-white/5 ${isDark ? 'bg-zinc-900 border-zinc-800 text-white hover:border-aquilia-500/50' : 'bg-white border-gray-300 text-gray-800 hover:border-aquilia-500/50'}`}>
                     Architecture Guide
                   </Link>
                 </motion.div>
@@ -113,7 +113,7 @@ export function LandingPage() {
               </motion.div>
 
               {/* Right: Gyroscope SVG */}
-              <div className="hidden lg:flex justify-end items-center relative lg:-mt-72">
+              <div className="hidden lg:flex justify-end items-center relative lg:-mt-24">
                 <div className="absolute inset-0 bg-aquilia-500/10 blur-[100px] rounded-full animate-breathing" />
                 <div className="relative w-full max-w-lg aspect-square flex items-center justify-center animate-float">
                   <svg className="w-full h-full" viewBox="0 0 500 500" fill="none">
@@ -160,8 +160,10 @@ export function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <div>
                 <h2 className="text-aquilia-500 font-bold tracking-wide uppercase text-sm mb-4">Unrivaled Performance</h2>
-                <h3 className={`text-4xl md:text-5xl font-bold mb-6 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Scaling Without<br />Limits.
+                <h3 className={`text-4xl md:text-5xl mb-6 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <span className="font-bold tracking-tighter gradient-text font-mono">
+                    Scaling Without<br />Limits.
+                  </span>
                 </h3>
                 <p className={`text-lg mb-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                   Aquilia is engineered for high-throughput I/O. Our benchmark report shows that for large JSON payload serialization, Aquilia is nearly <strong>6× faster than FastAPI</strong>.
@@ -249,7 +251,11 @@ export function LandingPage() {
         <section className={`py-20 relative overflow-hidden border-b ${isDark ? 'bg-black/50 border-white/5' : 'bg-gray-50/30 border-gray-200'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h3 className={`text-3xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>The Full Picture</h3>
+              <h3 className={`text-3xl mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <span className="font-bold tracking-tighter gradient-text font-mono">
+                  The Full Picture
+                </span>
+              </h3>
               <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>How Aquilia stacks up against the Python ecosystem.</p>
             </div>
 
@@ -267,7 +273,7 @@ export function LandingPage() {
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-50'}`}>
                   {[
-                    { feature: 'JSON-Large (Req/s)', a: '2,747 (🔥 High)', f: '480 (Pydantic bottleneck)', s: '4,000 (ujson)', d: '~120', fl: '~150' },
+                    { feature: 'JSON-Large (Req/s)', a: '2,747 (High)', f: '480 (Pydantic bottleneck)', s: '4,000 (ujson)', d: '~120', fl: '~150' },
                     { feature: 'Architecture', a: 'Compile-time Manifest', f: 'Runtime Hooking', s: 'Runtime Event-loop', d: 'MVT / Middleware', fl: 'WSGI / Minimal' },
                     { feature: 'Dependency Injection', a: 'Built-in (First-class)', f: 'Parameters-only', s: 'Manual / Extension', d: 'Manual / Global', fl: 'Manual / Globals' },
                     { feature: 'Integrated ORM', a: 'Yes (Async Native)', f: 'External (SQLAlchemy)', s: 'External', d: 'Yes (Sync/Bridge)', fl: 'External (SQLAlchemy)' },
@@ -297,8 +303,10 @@ export function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-aquilia-500 font-bold tracking-wide uppercase text-sm mb-4">Deeply Engineered</h2>
-              <h3 className={`text-4xl md:text-5xl font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Manifest-First Architecture
+              <h3 className={`text-4xl md:text-5xl leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <span className="font-bold tracking-tighter gradient-text font-mono">
+                  Manifest-First Architecture
+                </span>
               </h3>
               <p className={`mt-4 text-lg max-w-2xl mx-auto ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                 Unlike discovery-heavy frameworks, Aquilia uses a two-phase <strong>manifest → compile</strong> pipeline, optimizing your application for maximum performance before the first request arrives.
@@ -335,7 +343,16 @@ export function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-20">
               <h2 className="text-aquilia-500 font-bold tracking-wide uppercase text-sm mb-4">Everything Built-In</h2>
-              <h3 className={`text-4xl md:text-5xl font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>One Framework.<br /><span className={isDark ? 'text-white/50' : 'text-gray-400'}>Zero Compromises.</span></h3>
+              <h3 className={`text-4xl md:text-5xl leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <span className="font-bold tracking-tighter gradient-text font-mono relative inline-block">
+                  One Framework.
+                  <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400" />
+                </span>
+                <br />
+                <span className={isDark ? 'text-white/50' : 'text-gray-400'}>
+                  Zero Compromises.
+                </span>
+              </h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
