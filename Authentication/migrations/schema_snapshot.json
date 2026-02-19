@@ -1,0 +1,64 @@
+{
+  "checksum": "a3917d2147812ba4",
+  "models": {
+    "Users": {
+      "fields": {
+        "active": {
+          "column": "active",
+          "default": false,
+          "field_class": "BooleanField",
+          "type": "INTEGER"
+        },
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "email": {
+          "column": "email",
+          "field_class": "EmailField",
+          "max_length": 254,
+          "type": "VARCHAR(254)",
+          "unique": true
+        },
+        "id": {
+          "column": "id",
+          "field_class": "AutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "name": {
+          "column": "name",
+          "field_class": "CharField",
+          "max_length": 150,
+          "type": "VARCHAR(150)"
+        },
+        "password": {
+          "column": "password",
+          "field_class": "CharField",
+          "max_length": 255,
+          "type": "VARCHAR(255)"
+        }
+      },
+      "indexes": [
+        {
+          "columns": [
+            "email"
+          ],
+          "name": "idx_users_email",
+          "unique": false
+        }
+      ],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-created_at"
+        ]
+      },
+      "table": "users"
+    }
+  },
+  "version": 1
+}
