@@ -1,4 +1,0 @@
-# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di.py
-# hypothesis_version: 6.150.3
-
-['DIContainer', 'T', '__ainit__', 'cls', 'dispose', 'finalize', 'request', 'root', 'scope', 'self', 'singleton', 'transient']

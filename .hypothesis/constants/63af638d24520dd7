@@ -1,4 +1,0 @@
-# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/router.py
-# hypothesis_version: 6.150.3
-
-['*', '/', ':', 'RadixNode', '_wildcard', 'effects', 'handler', 'handler_name', 'method', 'module', 'param', 'pattern', 'unknown', '{', '}']

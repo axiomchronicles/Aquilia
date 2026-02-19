@@ -53,3 +53,6 @@ p.html
 
 node_modules/
 dist/       
+
+.vite
+.qodo

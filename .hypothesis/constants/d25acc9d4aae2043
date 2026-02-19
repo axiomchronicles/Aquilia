@@ -1,4 +1,0 @@
-# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/patterns/transforms/__init__.py
-# hypothesis_version: 6.150.3
-
-['TransformRegistry', 'register_transform']

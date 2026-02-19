@@ -1,4 +1,0 @@
-# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/request.py
-# hypothesis_version: 6.150.3
-
-['/', 'GET', 'T', 'body', 'client', 'content-type', 'headers', 'host', 'http', 'http.disconnect', 'http.request', 'localhost', 'method', 'model_validate', 'more_body', 'parse_obj', 'path', 'path_params', 'query_string', 'scheme', 'type', 'utf-8']

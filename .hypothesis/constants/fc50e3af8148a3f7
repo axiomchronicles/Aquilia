@@ -1,4 +1,0 @@
-# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/manifest.py
-# hypothesis_version: 6.150.3
-
-['.', ':', '_', 'author', 'controllers', 'depends_on', 'description', 'kwargs', 'middlewares', 'name', 'path', 'services', 'version']
