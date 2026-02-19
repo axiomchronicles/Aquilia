@@ -42,7 +42,9 @@ export function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       <Navbar onToggleSidebar={() => setIsSidebarOpen(true)} />
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <div className="lg:hidden">
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      </div>
       <main className="flex-grow pt-16 relative">
         {/* Grid Background */}
         <div className={`fixed inset-0 z-[-1] opacity-20 ${isDark ? '' : 'opacity-5'}`} style={{ backgroundImage: 'linear-gradient(#27272a 1px, transparent 1px), linear-gradient(90deg, #27272a 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -500,6 +502,6 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   )
 }
