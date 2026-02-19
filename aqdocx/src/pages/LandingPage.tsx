@@ -45,7 +45,7 @@ export function LandingPage() {
         <div className="fixed inset-0 z-[-1] bg-gradient-to-b from-transparent via-[var(--bg-primary)]/80 to-[var(--bg-primary)]" />
 
         {/* Hero */}
-        <section className={`relative pt-16 pb-20 sm:pt-24 sm:pb-32 overflow-hidden ${isDark ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-aquilia-900/20 via-black to-black' : ''}`}>
+        <section className={`relative pt-8 pb-20 sm:pt-12 sm:pb-32 overflow-hidden ${isDark ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-aquilia-900/20 via-black to-black' : ''}`}>
           <div className={`absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]`} />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -63,25 +63,39 @@ export function LandingPage() {
                 </motion.div>
 
                 <motion.h1 variants={itemVariants} className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight w-full">
-                  The Production-Ready<br />
-                  <span className="gradient-text relative inline-block">Async Python</span> Web Framework.
+                  The speed of a microframework.<br />
+                  <span className="gradient-text relative inline-block">The reliability</span> of an enterprise engine.
                 </motion.h1>
 
                 <motion.p variants={itemVariants} className={`mt-6 text-lg mb-10 leading-relaxed max-w-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Aquilia is a full-featured, async-native Python web framework with built-in DI, ORM, auth, sessions, caching, WebSockets, MLOps, and more. Everything you need — zero compromises.
+                  Stop choosing between developer velocity and production stability. Aquilia’s Manifest-First, async-native architecture removes routing and deployment boilerplate so you can build, test, and ship faster — with production manifests and ML deployment generated automatically.
                 </motion.p>
 
+                <motion.div variants={itemVariants} className="space-y-4 mb-12">
+                  {[
+                    "Auto-discover routes, services, models — zero routing boilerplate.",
+                    "Generate Docker / Compose / Kubernetes manifests in one command.",
+                    "Native ML model deployment and async performance out of the box."
+                  ].map((benefit, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-5 h-5 rounded-full bg-aquilia-500/20 flex items-center justify-center">
+                        <Zap className="w-3 h-3 text-aquilia-500" />
+                      </div>
+                      <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{benefit}</span>
+                    </div>
+                  ))}
+                </motion.div>
+
                 <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-12 w-full lg:w-auto">
-                  <Link to="/docs" className={`group relative px-8 py-4 font-bold rounded-lg transition-all overflow-hidden text-center flex justify-center ${isDark ? 'bg-white text-black hover:bg-gray-100 hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.1)]' : 'bg-aquilia-600 text-white hover:bg-aquilia-700 hover:scale-105'}`}>
+                  <Link to="/docs" className={`group relative px-6 py-2.5 font-bold rounded-lg transition-all overflow-hidden text-center flex justify-center items-center ${isDark ? 'bg-white text-black hover:bg-gray-100 hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.1)]' : 'bg-aquilia-600 text-white hover:bg-aquilia-700 hover:scale-105'}`}>
                     <span className="relative z-10 flex items-center justify-center gap-2">
-                      Get Started Free
+                      Get Started — 5-Minute Quickstart
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </Link>
-                  <a href="https://github.com/axiomchronicles/Aquilia" target="_blank" rel="noopener" className={`px-8 py-4 border rounded-lg font-semibold transition-all flex items-center justify-center gap-2 group ${isDark ? 'bg-zinc-900 border-zinc-800 text-white hover:border-aquilia-500/50' : 'bg-white border-gray-300 text-gray-800 hover:border-aquilia-500/50'}`}>
-                    <Github className="w-5 h-5" />
-                    View Source
-                  </a>
+                  <Link to="/docs/architecture" className={`px-6 py-2.5 border rounded-lg font-semibold transition-all flex items-center justify-center gap-2 group ${isDark ? 'bg-zinc-900 border-zinc-800 text-white hover:border-aquilia-500/50' : 'bg-white border-gray-300 text-gray-800 hover:border-aquilia-500/50'}`}>
+                    See the Architecture →
+                  </Link>
                 </motion.div>
 
                 {/* Install command */}
@@ -96,7 +110,7 @@ export function LandingPage() {
               </motion.div>
 
               {/* Right: Gyroscope SVG */}
-              <div className="hidden lg:flex justify-end items-center relative">
+              <div className="hidden lg:flex justify-end items-center relative lg:-mt-72">
                 <div className="absolute inset-0 bg-aquilia-500/10 blur-[100px] rounded-full animate-breathing" />
                 <div className="relative w-full max-w-lg aspect-square flex items-center justify-center animate-float">
                   <svg className="w-full h-full" viewBox="0 0 500 500" fill="none">
@@ -401,7 +415,7 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className={`p-16 rounded-[3rem] border relative overflow-hidden ${isDark ? 'bg-zinc-900 border-white/10' : 'bg-gray-50 border-gray-200'}`}
+              className={`p-16 rounded-[3rem] relative overflow-hidden`}
             >
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <Rocket className="w-64 h-64 text-aquilia-500 -rotate-12" />

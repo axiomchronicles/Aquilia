@@ -113,6 +113,9 @@ export function Navbar() {
             </div>
             <span className="font-bold text-xl tracking-tighter gradient-text font-mono hidden sm:inline relative">
               Aquilia
+              <span className="block text-[10px] uppercase tracking-widest text-gray-500 font-sans -mt-1 opacity-70">
+                Zero-Boilerplate Python Framework
+              </span>
               <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
             </span>
           </Link>

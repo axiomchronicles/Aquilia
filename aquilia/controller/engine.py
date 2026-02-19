@@ -987,7 +987,7 @@ class ControllerEngine:
         elif isinstance(result, (list, tuple)):
             return Response.json(result)
         elif isinstance(result, str):
-            return Response(result, content_type="text/plain")
+            return Response(result, media_type="text/plain")
         elif result is None:
             return Response("", status=204)
         else:
