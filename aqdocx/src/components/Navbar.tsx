@@ -127,8 +127,8 @@ export function Navbar() {
             >
               <button
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden group ${dropdownOpen
-                    ? `${isDark ? 'bg-aquilia-500/10 text-aquilia-400 border border-aquilia-500/30' : 'bg-aquilia-50 text-aquilia-700 border border-aquilia-200'}`
-                    : `${isDark ? 'text-gray-300 hover:text-white hover:bg-white/5 border border-transparent' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-transparent'}`
+                  ? `${isDark ? 'bg-aquilia-500/10 text-aquilia-400 border border-aquilia-500/30' : 'bg-aquilia-50 text-aquilia-700 border border-aquilia-200'}`
+                  : `${isDark ? 'text-gray-300 hover:text-white hover:bg-white/5 border border-transparent' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-transparent'}`
                   }`}
               >
                 <BookOpen className="w-4 h-4" />
@@ -171,8 +171,8 @@ export function Navbar() {
                                     <Link
                                       to={link.path}
                                       className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm transition-all duration-200 group/link relative overflow-hidden ${isActive
-                                          ? `font-medium ${isDark ? 'text-aquilia-400 bg-aquilia-500/10' : 'text-aquilia-700 bg-aquilia-50'}`
-                                          : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`
+                                        ? `font-medium ${isDark ? 'text-aquilia-400 bg-aquilia-500/10' : 'text-aquilia-700 bg-aquilia-50'}`
+                                        : `${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`
                                         }`}
                                     >
                                       <LinkIcon className={`w-3.5 h-3.5 transition-transform duration-200 group-hover/link:scale-110 ${isActive ? 'animate-pulse' : ''}`} />
@@ -213,8 +213,8 @@ export function Navbar() {
             <Link
               to="/docs"
               className={`hidden md:flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg group/guide relative overflow-hidden ${location.pathname === '/docs'
-                  ? 'text-aquilia-400'
-                  : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`
+                ? 'text-aquilia-400'
+                : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`
                 }`}
             >
               <BookOpen className="w-4 h-4 group-hover/guide:scale-110 transition-transform duration-200" />
