@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { useState } from 'react'
 import { Navbar } from './Navbar'
 import { Sidebar } from './Sidebar'
 import { useTheme } from '../context/ThemeContext'
@@ -6,10 +7,11 @@ import { useTheme } from '../context/ThemeContext'
 export function DocsLayout() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
     <div className="min-h-screen">
-      <Navbar />
+      <Navbar onToggleSidebar={() => setIsSidebarOpen(true)} />
       {/* Ambient Background */}
       <div className="fixed inset-0 -z-10">
         <div className={isDark ? 'absolute inset-0 bg-black' : 'absolute inset-0 bg-[#fafafa]'} />
@@ -20,7 +22,7 @@ export function DocsLayout() {
 
       <div className="relative pt-16 min-h-screen">
         <div className="flex flex-col lg:flex-row max-w-[90rem] mx-auto">
-          <Sidebar />
+          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
           <div className="flex-1 min-w-0">
             <div className="max-w-4xl px-4 sm:px-6 lg:px-12 py-12">
               <Outlet />

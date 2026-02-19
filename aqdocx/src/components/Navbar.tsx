@@ -4,7 +4,7 @@ import {
   Sun, Moon, Github, ChevronDown, Rocket, Zap, Box,
   Shield, Layers, Wrench, BookOpen, Download, Cpu,
   Settings, Database, Lock, Key, Code, Bug, Wifi,
-  Mail, FileText, Brain, Terminal, TestTube, FileCode, Eye
+  Mail, FileText, Brain, Terminal, TestTube, FileCode, Eye, Menu
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
@@ -77,7 +77,11 @@ const navSections = [
   },
 ]
 
-export function Navbar() {
+interface NavbarProps {
+  onToggleSidebar?: () => void
+}
+
+export function Navbar({ onToggleSidebar }: NavbarProps) {
   const { theme, toggle } = useTheme()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const location = useLocation()
@@ -101,30 +105,42 @@ export function Navbar() {
     <nav className="fixed w-full z-50 glass border-b border-[var(--border-color)]/50">
       <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0 flex items-center gap-3 group relative">
-            <div className="relative">
-              <img
-                src="/logo.png"
-                alt="Aquilia"
-                className="w-9 h-9 rounded-lg shadow-lg shadow-aquilia-500/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-aquilia-500/40"
-              />
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-tr from-aquilia-500/0 via-aquilia-400/0 to-aquilia-300/0 group-hover:from-aquilia-500/20 group-hover:via-aquilia-400/10 group-hover:to-transparent transition-all duration-300" />
-            </div>
-            <span className="font-bold text-xl tracking-tighter gradient-text font-mono hidden sm:inline relative">
-              Aquilia
-              <span className="block text-[10px] uppercase tracking-widest text-gray-500 font-sans -mt-1 opacity-70">
-                Zero-Boilerplate Python Framework
+          {/* Left: Hamburger + Logo */}
+          <div className="flex items-center gap-4">
+            {/* Hamburger for mobile */}
+            <button
+              onClick={onToggleSidebar}
+              className={`lg:hidden p-2 -ml-2 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Logo */}
+            <Link to="/" className="flex-shrink-0 flex items-center gap-3 group relative">
+              <div className="relative">
+                <img
+                  src="/logo.png"
+                  alt="Aquilia"
+                  className="w-9 h-9 rounded-lg shadow-lg shadow-aquilia-500/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-aquilia-500/40"
+                />
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-tr from-aquilia-500/0 via-aquilia-400/0 to-aquilia-300/0 group-hover:from-aquilia-500/20 group-hover:via-aquilia-400/10 group-hover:to-transparent transition-all duration-300" />
+              </div>
+              <span className="font-bold text-xl tracking-tighter gradient-text font-mono hidden sm:inline relative">
+                Aquilia
+                <span className="block text-[10px] uppercase tracking-widest text-gray-500 font-sans -mt-1 opacity-70">
+                  Zero-Boilerplate Python Framework
+                </span>
+                <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
               </span>
-              <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-aquilia-500 to-aquilia-400 group-hover:w-full transition-all duration-300" />
-            </span>
-          </Link>
+            </Link>
+          </div>
 
           {/* Center: hover dropdown nav */}
           <div className="flex items-center gap-1">
+
             <div
               ref={dropdownRef}
-              className="relative"
+              className="relative hidden lg:block"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >

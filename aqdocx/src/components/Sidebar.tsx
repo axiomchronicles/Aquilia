@@ -6,7 +6,7 @@ import {
   AlertCircle, Terminal, GitBranch, ChevronDown, ChevronRight,
   Server, Box, Mail, Palette, TestTube, Brain, BarChart, Plug,
   FileCode, Cpu, Globe, Lock, HardDrive, RefreshCw, Wrench, Layout,
-  Blocks, Workflow, Binary, Gauge, Network, Boxes, Cog, Tag
+  Blocks, Workflow, Binary, Gauge, Network, Boxes, Cog, Tag, X
 } from 'lucide-react'
 
 interface SidebarSection {
@@ -315,7 +315,12 @@ export const sections: SidebarSection[] = [
   },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const location = useLocation()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -346,6 +351,11 @@ export function Sidebar() {
     })
 
     setExpanded(prev => ({ ...prev, ...openItems }))
+  }, [location.pathname])
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    if (onClose) onClose()
   }, [location.pathname])
 
 
@@ -476,36 +486,68 @@ export function Sidebar() {
   }
 
   return (
-    <div className={`lg:w-72 flex-shrink-0 border-b lg:border-b-0 lg:border-r ${isDark ? 'border-white/10 bg-black/30' : 'border-gray-200 bg-white/50'} backdrop-blur-xl`}>
-      <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto pt-6 pb-12 px-4">
-        {/* SDK Badge */}
-        <div className="relative group mb-6">
-          <div className="bg-gradient-to-r from-aquilia-500 to-blue-500 rounded-xl blur opacity-20" />
-          <div className={`relative flex items-center gap-3 px-4 py-3`}>
-            <img src="/logo.png" alt="Aquilia" className="w-8 h-8 rounded-lg shadow-lg shadow-aquilia-500/20" />
-            <div>
-              <div className={`font-bold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Aquilia Framework</div>
-              <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>v1.0.0 • Latest</div>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-200"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar Container */}
+      <div className={`
+        fixed lg:static inset-y-0 left-0 z-50 w-72 
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        flex-shrink-0 border-r 
+        ${isDark ? 'border-white/10 bg-[#09090b]' : 'border-gray-200 bg-white'} 
+        lg:bg-transparent lg:backdrop-blur-xl
+      `}>
+        <div className="h-full overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+          {/* Mobile Header with Close Button */}
+          <div className="lg:hidden flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="Aquilia" className="w-8 h-8 rounded-lg" />
+              <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Menu</span>
+            </div>
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-600'}`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Apps/SDK Badge (Desktop only or adjusted) */}
+          <div className="relative group mb-6 hidden lg:block">
+            <div className="bg-gradient-to-r from-aquilia-500 to-blue-500 rounded-xl blur opacity-20" />
+            <div className={`relative flex items-center gap-3 px-4 py-3`}>
+              <img src="/logo.png" alt="Aquilia" className="w-8 h-8 rounded-lg shadow-lg shadow-aquilia-500/20" />
+              <div>
+                <div className={`font-bold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Aquilia Framework</div>
+                <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>v1.0.0 • Latest</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <nav className="space-y-6">
-          {sections.map(section => (
-            <div key={section.title}>
-              <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 px-3 flex items-center gap-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                {section.icon}
-                {section.title}
-              </h4>
-              <ul className="space-y-0.5">
-                {section.items.map(item => (
-                  <RootItem key={item.path} item={item} />
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
+          <nav className="space-y-6">
+            {sections.map(section => (
+              <div key={section.title}>
+                <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 px-3 flex items-center gap-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  {section.icon}
+                  {section.title}
+                </h4>
+                <ul className="space-y-0.5">
+                  {section.items.map(item => (
+                    <RootItem key={item.path} item={item} />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
