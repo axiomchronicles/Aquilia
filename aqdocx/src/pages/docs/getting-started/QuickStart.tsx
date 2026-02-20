@@ -313,6 +313,18 @@ aq run --host 0.0.0.0 --port 8000 --reload`}
         />
       </section>
 
+      <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+        Open <a href="http://localhost:8000" target="_blank" rel="noopener noreferrer" className="text-aquilia-400 hover:underline font-mono">http://localhost:8000</a> in your browser to experience the Aquilia starter page — your command center for development, debugging, and exploration.
+      </p>
+
+      <div className="mb-10 rounded-2xl overflow-hidden shadow-2xl">
+        <img
+          src="/starter.png"
+          alt="Aquilia Starter Page"
+          className="w-full h-auto"
+        />
+      </div>
+
       {/* Step 6: Test */}
       <section className="mb-10">
         <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
