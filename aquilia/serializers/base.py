@@ -401,13 +401,65 @@ class Serializer(metaclass=SerializerMeta):
         if container is not None:
             ctx["container"] = container
 
-        # Parse request body
-        data = empty
-        try:
-            data = await request.json()
-        except Exception:
+        data = {}
+        content_type = request.content_type() or ""
+        
+        # 1. JSON handling
+        if request.is_json() or content_type.startswith("application/json"):
             try:
-                data = await request.form()
+                data = await request.json()
+            except Exception:
+                # If parsing fails, pass empty/None and let validation catch it
+                pass
+
+        # 2. Form Data Handling (urlencoded or multipart)
+        elif content_type.startswith(("application/x-www-form-urlencoded", "multipart/form-data")):
+            try:
+                if content_type.startswith("multipart/form-data"):
+                    form_data = await request.multipart()
+                else:
+                    form_data = await request.form()
+                data = {}
+                
+                # Identify fields that expect lists (to preserve multiple values)
+                # We inspect _declared_fields to see if semantic type is ListField
+                list_field_names = set()
+                for name, field in cls._declared_fields.items():
+                    if isinstance(field, ListField):
+                        list_field_names.add(name)
+                        # Also track by source if different
+                        if field.source and field.source != name:
+                            list_field_names.add(field.source)
+
+                # Helper to merge items from MultiDicts (fields/files)
+                def _merge_items(source: Any):
+                    if not source: return
+                    # source.items() yields (key, list_of_values) for MultiDict
+                    for key, values in source.items():
+                        if not values:
+                            continue
+                            
+                        # If field expects a list, or we have multiple values and explicit list support
+                        if key in list_field_names:
+                            data[key] = values
+                        else:
+                            # Standard fields (Char, Int, etc) expect a single scalar.
+                            # Take the first value from the MultiDict list.
+                            data[key] = values[0]
+
+                if hasattr(form_data, "fields"):
+                    _merge_items(form_data.fields)
+                    
+                if hasattr(form_data, "files"):
+                    _merge_items(form_data.files)
+                    
+            except Exception:
+                pass
+
+        # 3. Fallback / Parsing attempt
+        else:
+            try:
+                data = await request.json()
             except Exception:
                 pass
 
