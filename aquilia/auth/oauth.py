@@ -356,7 +356,6 @@ class OAuth2Manager:
         access_token = await self.token_manager.issue_access_token(
             identity_id=identity_id,
             scopes=scopes,
-            client_id=client_id,
         )
 
         refresh_token = await self.token_manager.issue_refresh_token(
@@ -413,7 +412,6 @@ class OAuth2Manager:
         access_token = await self.token_manager.issue_access_token(
             identity_id=client_id,  # Client is the identity
             scopes=requested_scopes,
-            client_id=client_id,
         )
 
         return {
@@ -524,7 +522,6 @@ class OAuth2Manager:
         access_token = await self.token_manager.issue_access_token(
             identity_id=identity_id,
             scopes=scopes,
-            client_id=client_id,
         )
 
         refresh_token = await self.token_manager.issue_refresh_token(

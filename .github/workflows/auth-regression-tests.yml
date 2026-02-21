@@ -1,0 +1,48 @@
+name: Auth Regression Tests
+
+on:
+  push:
+    branches: [main, "test/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  auth-regression:
+    name: Auth E2E Regression Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run auth e2e tests
+        run: |
+          python -m pytest tests/e2e/auth/ \
+            -v --tb=short \
+            --junitxml=tests/e2e/auth/report.xml \
+            --cov=aquilia.auth \
+            --cov-report=term-missing
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-regression-report-py${{ matrix.python-version }}
+          path: tests/e2e/auth/report.xml
+          retention-days: 30
