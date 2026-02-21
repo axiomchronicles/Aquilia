@@ -1,0 +1,38 @@
+version: "3.9"
+
+# docker-compose.test.yml
+# Auth E2E regression tests — test infrastructure
+# NOTE: All auth tests use in-memory stores by default.
+# This compose file is provided for environments that need
+# Redis-backed token store or database testing.
+
+services:
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6399:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    tmpfs:
+      - /data
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      redis-test:
+        condition: service_healthy
+    environment:
+      - AQUILIA_ENV=test
+      - REDIS_URL=redis://redis-test:6379/0
+      - PYTHONDONTWRITEBYTECODE=1
+    command: >
+      python -m pytest tests/e2e/auth/ -v --tb=short
+      --junitxml=tests/e2e/report.xml
+    volumes:
+      - .:/app
+      - /app/.venv

@@ -1,0 +1,461 @@
+{
+    "public_apis": [
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "Identity",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "IdentityType",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "IdentityStatus",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "Credential",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "PasswordCredential",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "ApiKeyCredential",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "MFACredential",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "OAuthClient",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "TokenClaims",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "AuthResult",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "IdentityStore",
+            "type": "protocol"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "CredentialStore",
+            "type": "protocol"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "name": "OAuthClientStore",
+            "type": "protocol"
+        },
+        {
+            "file": "aquilia/auth/tokens.py",
+            "name": "KeyDescriptor",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/tokens.py",
+            "name": "KeyRing",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/tokens.py",
+            "name": "TokenManager",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/tokens.py",
+            "name": "TokenConfig",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/tokens.py",
+            "name": "TokenStore",
+            "type": "protocol"
+        },
+        {
+            "file": "aquilia/auth/hashing.py",
+            "name": "PasswordHasher",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/hashing.py",
+            "name": "PasswordPolicy",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/manager.py",
+            "name": "AuthManager",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/manager.py",
+            "name": "RateLimiter",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/guards.py",
+            "name": "AuthGuard",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/guards.py",
+            "name": "ApiKeyGuard",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/guards.py",
+            "name": "ScopeGuard",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/guards.py",
+            "name": "RoleGuard",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/guards.py",
+            "name": "AuthzGuard",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/authz.py",
+            "name": "AuthzEngine",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/authz.py",
+            "name": "RBACEngine",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/authz.py",
+            "name": "ABACEngine",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/authz.py",
+            "name": "ScopeChecker",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/authz.py",
+            "name": "PolicyBuilder",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/oauth.py",
+            "name": "OAuth2Manager",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/oauth.py",
+            "name": "PKCEVerifier",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/mfa.py",
+            "name": "TOTPProvider",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/mfa.py",
+            "name": "MFAManager",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/stores.py",
+            "name": "MemoryIdentityStore",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/stores.py",
+            "name": "MemoryCredentialStore",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/stores.py",
+            "name": "MemoryTokenStore",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/stores.py",
+            "name": "MemoryOAuthClientStore",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/stores.py",
+            "name": "RedisTokenStore",
+            "type": "class"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTH_INVALID_CREDENTIALS",
+            "type": "fault"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTH_ACCOUNT_SUSPENDED",
+            "type": "fault"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTH_ACCOUNT_LOCKED",
+            "type": "fault"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTH_MFA_REQUIRED",
+            "type": "fault"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTH_KEY_EXPIRED",
+            "type": "fault"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTH_KEY_REVOKED",
+            "type": "fault"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTHZ_INSUFFICIENT_SCOPE",
+            "type": "fault"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTHZ_INSUFFICIENT_ROLE",
+            "type": "fault"
+        },
+        {
+            "file": "aquilia/auth/faults.py",
+            "name": "AUTHZ_TENANT_MISMATCH",
+            "type": "fault"
+        }
+    ],
+    "http_endpoints": [
+        {
+            "method": "POST",
+            "path": "/auth/login",
+            "handler": "AuthManager.authenticate_password",
+            "note": "via controller integration"
+        },
+        {
+            "method": "POST",
+            "path": "/auth/api-key",
+            "handler": "AuthManager.authenticate_api_key",
+            "note": "via controller integration"
+        },
+        {
+            "method": "POST",
+            "path": "/auth/refresh",
+            "handler": "TokenManager.refresh_access_token",
+            "note": "via controller integration"
+        },
+        {
+            "method": "POST",
+            "path": "/auth/revoke",
+            "handler": "TokenManager.revoke_token",
+            "note": "via controller integration"
+        },
+        {
+            "method": "GET",
+            "path": "/oauth/authorize",
+            "handler": "OAuth2Manager.authorize",
+            "note": "via controller integration"
+        },
+        {
+            "method": "POST",
+            "path": "/oauth/token",
+            "handler": "OAuth2Manager.exchange_authorization_code",
+            "note": "via controller integration"
+        },
+        {
+            "method": "POST",
+            "path": "/oauth/device",
+            "handler": "OAuth2Manager.device_authorization",
+            "note": "via controller integration"
+        }
+    ],
+    "db_models": [
+        {
+            "note": "No ORM models in auth — uses protocol-based stores. DB schema defined externally."
+        }
+    ],
+    "cache_keys_patterns": [
+        {
+            "pattern": "session:{session_id}",
+            "module": "middleware_ext/session_middleware.py"
+        },
+        {
+            "pattern": "rate_limit:{identity_key}",
+            "module": "auth/manager.py"
+        },
+        {
+            "pattern": "token_revoked:{token_id}",
+            "module": "auth/stores.py (RedisTokenStore)"
+        },
+        {
+            "pattern": "bloom_filter:revoked_tokens",
+            "module": "auth/stores.py (RedisTokenStore)"
+        }
+    ],
+    "background_jobs": [
+        {
+            "note": "No dedicated background job framework detected (no celery/dramatiq). Auth operations are synchronous or async-inline."
+        }
+    ],
+    "cli_commands": [
+        {
+            "name": "aq init",
+            "file": "aquilia/cli/__main__.py"
+        },
+        {
+            "name": "aq run",
+            "file": "aquilia/cli/__main__.py"
+        },
+        {
+            "name": "aq add module",
+            "file": "aquilia/cli/commands/migrate.py"
+        },
+        {
+            "name": "aq trace",
+            "file": "aquilia/cli/commands/trace.py"
+        },
+        {
+            "name": "aq artifact",
+            "file": "aquilia/cli/commands/artifacts.py"
+        },
+        {
+            "name": "aq deploy",
+            "file": "aquilia/cli/commands/deploy_gen.py"
+        },
+        {
+            "name": "aq pack/model/deploy/observe/export/plugin/lineage/experiment",
+            "file": "aquilia/cli/commands/mlops_cmds.py"
+        }
+    ],
+    "di_bindings": [
+        {
+            "scope": "SINGLETON",
+            "note": "Cache backends, token stores, key rings"
+        },
+        {
+            "scope": "APP",
+            "note": "AuthManager, OAuth2Manager, MFAManager"
+        },
+        {
+            "scope": "REQUEST",
+            "note": "Identity (injected by AuthGuard), RequestCtx"
+        }
+    ],
+    "external_integrations": [
+        {
+            "name": "Redis",
+            "module": "aquilia/cache/backends/redis.py",
+            "note": "Optional cache backend + token store"
+        },
+        {
+            "name": "SMTP/Email",
+            "module": "aquilia/mail/",
+            "note": "Password reset, notifications"
+        },
+        {
+            "name": "WebSocket",
+            "module": "aquilia/sockets/",
+            "note": "Real-time communication"
+        }
+    ],
+    "likely_issues": [
+        {
+            "file": "aquilia/auth/manager.py",
+            "line": 58,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+, use datetime.now(UTC)"
+        },
+        {
+            "file": "aquilia/auth/manager.py",
+            "line": 71,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/manager.py",
+            "line": 75,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/manager.py",
+            "line": 82,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/oauth.py",
+            "line": 269,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/oauth.py",
+            "line": 320,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/oauth.py",
+            "line": 458,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/oauth.py",
+            "line": 506,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/stores.py",
+            "line": 111,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/stores.py",
+            "line": 347,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "datetime.utcnow() deprecated in Python 3.12+"
+        },
+        {
+            "file": "aquilia/auth/core.py",
+            "line": 8,
+            "issue_type": "deprecated_utcnow",
+            "short_explanation": "Identity default_factory uses utcnow()"
+        },
+        {
+            "file": "aquilia/auth/tokens.py",
+            "line": 444,
+            "issue_type": "race_condition_potential",
+            "short_explanation": "validate_refresh_token reads data then checks revocation — small TOCTOU window under high concurrency"
+        }
+    ]
+}

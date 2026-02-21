@@ -1,0 +1,55 @@
+{
+    "languages": [
+        "python"
+    ],
+    "test_frameworks": [
+        "pytest",
+        "pytest-asyncio",
+        "pytest-cov",
+        "hypothesis"
+    ],
+    "service_deps": [
+        "in-memory-stores (MemoryIdentityStore, MemoryCredentialStore, MemoryTokenStore, MemoryOAuthClientStore)",
+        "optional: redis (RedisTokenStore - not required for tests)"
+    ],
+    "entrypoints": [
+        "aquilia.server:AquiliaServer",
+        "aquilia.cli.__main__:cli",
+        "aquilia.auth.manager:AuthManager",
+        "aquilia.auth.tokens:TokenManager",
+        "aquilia.auth.oauth:OAuth2Manager"
+    ],
+    "auth_endpoints": [
+        "AuthManager.authenticate_password",
+        "AuthManager.authenticate_api_key",
+        "AuthManager.verify_token",
+        "TokenManager.issue_access_token",
+        "TokenManager.validate_access_token",
+        "TokenManager.issue_refresh_token",
+        "TokenManager.validate_refresh_token",
+        "TokenManager.refresh_access_token",
+        "TokenManager.revoke_token",
+        "TokenManager.revoke_tokens_by_identity",
+        "TokenManager.revoke_tokens_by_session",
+        "OAuth2Manager.authorize",
+        "OAuth2Manager.grant_authorization_code",
+        "OAuth2Manager.exchange_authorization_code",
+        "OAuth2Manager.client_credentials_grant",
+        "OAuth2Manager.device_authorization",
+        "OAuth2Manager.device_token",
+        "AuthGuard.__call__",
+        "ScopeGuard.__call__",
+        "RoleGuard.__call__",
+        "AuthzEngine.check_scope",
+        "AuthzEngine.check_role",
+        "AuthzEngine.check_tenant",
+        "AuthzEngine.check_permission",
+        "MFAManager.enroll_totp",
+        "MFAManager.verify_totp",
+        "MFAManager.verify_backup_code"
+    ],
+    "docker_required": false,
+    "python_version": ">=3.11",
+    "asyncio_mode": "auto",
+    "notes": "All tests use in-memory stores. No Docker, Redis, or DB required."
+}
