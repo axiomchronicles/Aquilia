@@ -74,6 +74,17 @@ from .testing import (
     MockProvider,
 )
 
+from .dep import (
+    Dep,
+    Header,
+    Query,
+    Body,
+)
+
+from .request_dag import (
+    RequestDAG,
+)
+
 # Legacy compatibility
 from .compat import RequestCtx
 
@@ -127,6 +138,13 @@ __all__ = [
     # Testing
     "TestRegistry",
     "MockProvider",
+    
+    # Dep (annotation-driven DI)
+    "Dep",
+    "Header",
+    "Query",
+    "Body",
+    "RequestDAG",
     
     # Legacy
     "RequestCtx",

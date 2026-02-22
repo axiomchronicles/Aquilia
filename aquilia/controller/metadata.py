@@ -258,7 +258,7 @@ def _extract_constructor_params(controller_class: Type) -> List[ParameterMetadat
             if get_origin(param_type) is not None:
                 # Handle Annotated types
                 origin = get_origin(param_type)
-                if origin is type(Annotated):  # type: ignore
+                if Annotated is not None and origin is Annotated:
                     is_di = True
             
             params.append(ParameterMetadata(
@@ -364,8 +364,33 @@ def _extract_method_params(
                 # Blueprint subclass → auto-parse request body
                 source = 'body'
             elif get_origin(param_type) is not None:
-                # Check for Inject annotation
-                source = 'di'
+                # Check for Inject/Dep annotation in Annotated types
+                origin = get_origin(param_type)
+                if Annotated is not None and origin is Annotated:
+                    args = get_args(param_type)
+                    has_inject_or_dep = False
+                    for meta in args[1:]:
+                        # Check for Inject marker
+                        if hasattr(meta, '_inject_token') or hasattr(meta, '_inject_tag'):
+                            has_inject_or_dep = True
+                            break
+                        # Check for Dep marker
+                        try:
+                            from aquilia.di.dep import Dep
+                            if isinstance(meta, Dep):
+                                has_inject_or_dep = True
+                                source = 'dep'
+                                break
+                        except ImportError:
+                            pass
+                    if has_inject_or_dep and source != 'dep':
+                        source = 'di'
+                    elif not has_inject_or_dep:
+                        # Generic Annotated without DI marker → treat as query
+                        source = 'query'
+                else:
+                    # Non-Annotated generic types (Optional[str], List[int]) → query
+                    source = 'query'
             elif param_name == "session" or (hasattr(param_type, "__name__") and param_type.__name__ == "Session"):
                 # Always treat Session as DI source
                 source = 'di'

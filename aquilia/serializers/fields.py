@@ -108,7 +108,10 @@ class SerializerField:
     ):
         # Auto-derive required: False if default is set or read_only
         if required is None:
-            required = (default is empty) and (not read_only)
+            if hasattr(default, "required"):
+                required = default.required
+            else:
+                required = (default is empty) and (not read_only)
 
         self.required = required
         self.default = default
@@ -1301,5 +1304,9 @@ class InjectDefault(_DIAwareDefault):
 
 
 def is_di_default(default: Any) -> bool:
-    """Check if a default value is DI-aware and needs container resolution."""
-    return isinstance(default, _DIAwareDefault)
+    """Check if a default value is DI-aware and needs container resolution.
+    Supports both _DIAwareDefault subclasses and duck-typed objects with .resolve()."""
+    # Duck-typing enables Header, Query, and Body from aquilia.di.dep to act as extractors
+    return getattr(default, "_is_di_default", False) or (
+        hasattr(default, "resolve") and callable(default.resolve)
+    )

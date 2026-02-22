@@ -234,19 +234,37 @@ class ExceptionMiddleware:
                 "AUTH_010",           # AUTH_REQUIRED
                 "AUTHENTICATION_REQUIRED",  # AuthenticationRequiredFault / session decorators
                 "SESSION_REQUIRED",   # SessionRequiredFault
+                "INVALID_CREDENTIALS", # Auth module login failure
             }
+            _CONFLICT_CODES = {
+                "USER_ALREADY_EXISTS",  # Auth module registration failure
+            }
+            
             status_map = {
                 FaultDomain.ROUTING: 404,
                 FaultDomain.SECURITY: 403,
                 FaultDomain.IO: 502,
                 FaultDomain.EFFECT: 503,
+                FaultDomain.MODEL: 404,        # DB Not Found usually
+                FaultDomain.SERIALIZATION: 400, # Validation error
+                FaultDomain.CACHE: 502,
                 FaultDomain.CONFIG: 500,
                 FaultDomain.REGISTRY: 500,
                 FaultDomain.DI: 500,
                 FaultDomain.FLOW: 500,
                 FaultDomain.SYSTEM: 500,
             }
-            if getattr(e, "code", None) in _UNAUTHENTICATED_CODES:
+            
+            code = getattr(e, "code", None)
+            if code in _UNAUTHENTICATED_CODES:
+                status = 401
+            elif code in _CONFLICT_CODES:
+                status = 409
+            elif code and ("NOT_FOUND" in code or "MISSING" in code):
+                status = 404
+            elif code and ("VALIDATION" in code or "INVALID" in code):
+                status = 400
+            elif str(e.domain) == "auth":  # Catch-all for our custom AUTH domain
                 status = 401
             else:
                 status = status_map.get(e.domain, 500)

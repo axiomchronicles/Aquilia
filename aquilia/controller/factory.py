@@ -225,36 +225,58 @@ class ControllerFactory:
         """
         Resolve a single parameter from DI container.
         
-        Handles Annotated[T, Inject(...)] syntax.
+        Handles Annotated[T, Inject(...)] and Annotated[T, Dep(...)] syntax.
         """
         try:
             origin = get_origin(param_type)
             if origin is not None:
-                # Handle Annotated[T, Inject(...)]
-                args = get_args(param_type)
-                if args:
-                    actual_type = args[0]
-                    # Look for Inject metadata using duck typing
-                    for arg in args[1:]:
-                        
-                        if hasattr(arg, '_inject_tag') or hasattr(arg, '_inject_token'):
-                            # print(f"DEBUG: Found Inject-like metadata: {arg}")
-                            # Extract tag if any
-                            tag = getattr(arg, 'tag', None)
-                            # Extract token if any
-                            token = getattr(arg, 'token', None)
-                            
-                            resolve_key = token if token else actual_type
-                            
-                            # Resolve from container with tag
-                            if hasattr(container, 'resolve_async'):
-                                return await container.resolve_async(resolve_key, tag=tag)
-                            elif hasattr(container, 'resolve'):
-                                result = container.resolve(resolve_key, tag=tag)
-                                if asyncio.iscoroutine(result):
-                                    return await result
-                                return result
-                            return await self._simple_resolve(resolve_key, container)
+                try:
+                    from typing import Annotated
+                    if origin is Annotated:
+                        args = get_args(param_type)
+                        if args:
+                            actual_type = args[0]
+                            for arg in args[1:]:
+                                # Check for Dep descriptor
+                                try:
+                                    from aquilia.di.dep import Dep as DepCls
+                                    if isinstance(arg, DepCls):
+                                        if arg.is_container_lookup:
+                                            return await self._simple_resolve(
+                                                actual_type, container, tag=arg.tag
+                                            )
+                                        # Dep with callable → mini resolve
+                                        from aquilia.di.request_dag import RequestDAG
+                                        dag = RequestDAG(container)
+                                        try:
+                                            return await dag.resolve(arg, actual_type)
+                                        finally:
+                                            await dag.teardown()
+                                except ImportError:
+                                    pass
+
+                                # Check for Inject marker (explicit isinstance)
+                                try:
+                                    from aquilia.di.decorators import Inject
+                                    if isinstance(arg, Inject):
+                                        tag = arg.tag
+                                        token = arg.token if arg.token else actual_type
+                                        return await self._simple_resolve(
+                                            token, container, tag=tag
+                                        )
+                                except ImportError:
+                                    pass
+
+                                # Fallback: duck-typing for backwards compat
+                                if hasattr(arg, '_inject_tag') or hasattr(arg, '_inject_token'):
+                                    tag = getattr(arg, 'tag', None)
+                                    token = getattr(arg, 'token', None)
+                                    resolve_key = token if token else actual_type
+                                    return await self._simple_resolve(
+                                        resolve_key, container, tag=tag
+                                    )
+                except ImportError:
+                    pass
             
             # Simple type resolution
             return await self._simple_resolve(param_type, container)
@@ -263,13 +285,13 @@ class ControllerFactory:
             # If anything fails, try simple resolution
             return await self._simple_resolve(param_type, container)
     
-    async def _simple_resolve(self, param_type: Type, container: Any) -> Any:
+    async def _simple_resolve(self, param_type: Type, container: Any, tag: str = None) -> Any:
         """Simple resolution from container."""
         if hasattr(container, 'resolve_async'):
             # Prefer async resolution
-            return await container.resolve_async(param_type)
+            return await container.resolve_async(param_type, tag=tag)
         elif hasattr(container, 'resolve'):
-            result = container.resolve(param_type)
+            result = container.resolve(param_type, tag=tag)
             if asyncio.iscoroutine(result):
                 return await result
             return result
