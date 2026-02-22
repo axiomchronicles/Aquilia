@@ -152,6 +152,8 @@ class AquilAuthMiddleware:
             await self.session_engine.commit(session, response)
             return response
         
+        initial_auth_state = session.is_authenticated
+        
         # Phase 4: Inject identity into request and DI
         request.state["identity"] = identity
         request.state["authenticated"] = identity is not None
@@ -179,7 +181,9 @@ class AquilAuthMiddleware:
             raise
         
         # Phase 6: Commit session
-        await self.session_engine.commit(session, response)
+        # Check if privilege changed (transitioned from anonymous to authenticated or vice versa)
+        privilege_changed = (session.is_authenticated != initial_auth_state)
+        await self.session_engine.commit(session, response, privilege_changed=privilege_changed)
         
         return response
     
