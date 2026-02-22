@@ -1,0 +1,32 @@
+{% extends "auth/layout.html" %}
+
+{% block title %}Dashboard - Aquilia Auth{% endblock %}
+
+{% block content %}
+<h1>Welcome, {{ user.full_name }}!</h1>
+
+<div style="background: #e9ecef; padding: 20px; border-radius: 5px;">
+    <h2>Your Profile</h2>
+    {% if user.profile %}
+    <div style="margin-bottom: 20px;">
+        <img src="{{ user.profile }}" alt="Profile Photo"
+            style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #6c757d;">
+    </div>
+    {% else %}
+    <div
+        style="margin-bottom: 20px; width: 150px; height: 150px; border-radius: 50%; background: #ced4da; display: flex; align-items: center; justify-content: center; color: #495057;">
+        No Photo
+    </div>
+    {% endif %}
+    <p><strong>ID:</strong> {{ user.id }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Joined:</strong> {{ user.created_at }}</p>
+</div>
+
+<script>
+    // Simple script to handle logout by clearing token and redirecting
+    // Since we are using Bearer tokens, browser navigation doesn't automatically send them.
+    // For a real app, we'd use cookies or local storage management.
+    // This dashboard assumes the server rendered it with the user context from a cookie-based session or similar.
+</script>
+{% endblock %}

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/authentication/workspace.py
+# hypothesis_version: 6.151.9
+
+[86400, '/auth', '/dashboard', '/static', '/uploads', '0.1.0', 'Aquilia workspace', 'Auth module', 'Dashboard module', 'auth', 'authentication', 'auto', 'cookie', 'core', 'dashboard', 'default', 'evict_oldest', 'lax', 'memory', 'propagate', 'sqlite:///db.sqlite', 'static', 'templates', 'user', 'workspace']

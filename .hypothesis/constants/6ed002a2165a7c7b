@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/faults/default_handlers.py
+# hypothesis_version: 6.151.9
+
+[0.1, 2.0, 10.0, 401, 403, 404, 500, 502, 503, 'Access denied', 'Content-Type', 'FILE_NOT_FOUND', 'PERMISSION_DENIED', 'Security error', 'TYPE_ERROR', 'VALUE_ERROR', 'application/json', 'aquilia.faults', 'code', 'connect', 'domain', 'error', 'fault', 'fault_context', 'fingerprint', 'message', 'metadata', 'request', 'retry_attempt', 'retry_delay', 'severity', 'trace_id']

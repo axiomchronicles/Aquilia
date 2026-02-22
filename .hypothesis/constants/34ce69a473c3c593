@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/migrations.py
+# hypothesis_version: 6.151.9
+
+[255, '    pass', ' CASCADE', '%Y%m%d_%H%M%S', "'", "''", '*.py', ',\n  ', ', ', ';', 'BIGINT', 'BLOB', 'BOOLEAN', 'CASCADE', 'DATETIME', 'FALSE', 'INTEGER', 'JSON', 'JSONB', 'NOT NULL', 'NULL', 'REAL', 'TEXT', 'TIMESTAMP', 'TRUE', 'UNIQUE', 'UNIQUE ', 'UUID', 'VARCHAR(36)', '[^a-z0-9]+', '_', '__', 'applied', 'applied_count', 'aquilia_migrations', 'checksum', 'downgrade', 'id', 'last_applied', 'migrations', 'mysql', 'pending', 'pending_count', 'postgresql', 'reason', 'revision', 'sqlite', 'total', 'upgrade', 'utf-8']

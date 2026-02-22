@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/manifest_integration.py
+# hypothesis_version: 6.151.9
+
+['*.html', '.', '1.0', 'cache', 'enabled', 'env', 'generated_at', 'memory', 'module.aq', 'mtime', 'path', 'precompile', 'r', 'search_paths', 'size', 'templates', 'version', 'w']

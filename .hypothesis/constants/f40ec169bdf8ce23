@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sockets/guards.py
+# hypothesis_version: 6.151.9
+
+[1.0, 300, '*', '*.', 'Session required', 'origin']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/backends/composite.py
+# hypothesis_version: 6.151.9
+
+['*', '_async_l2_write', '_l1', '_l2', '_l2_healthy', '_promote_on_l2_hit', 'default', 'health_check']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/faults/integrations/registry.py
+# hypothesis_version: 6.151.9
+
+['APP_CONTEXT_INVALID', 'MANIFEST_LOAD_FAILED', 'app_name', 'code', 'error', 'error_count', 'errors', 'message', 'metadata', 'path', 'reason', 'registry_fault', 'trace_id']

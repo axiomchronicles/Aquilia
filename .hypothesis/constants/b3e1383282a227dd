@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/parser.py
+# hypothesis_version: 6.151.9
+
+['"', '#', '(', ')', '*.amdl', ',', '<string>', '<unknown>', '=', 'PK', 'back', 'default', 'default:=', 'fk', 'max', 'note', 'note=', 'now_utc()', 'nullable', 'seq()', 'through', 'unique', 'utf-8', 'uuid4()']

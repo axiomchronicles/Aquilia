@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/debug/pages.py
+# hypothesis_version: 6.151.9
+
+['(#.*)$', '/', '</div>', 'Dev', 'GET', 'Headers', 'Method', 'Path', 'Path Params', 'Query Params', '\\b(\\d+)\\b', '__', 'active', 'activity', 'alert', 'arrow-right', 'book', 'box', 'chevron-down', 'code-line', 'code-line active', 'copy', 'cpu', 'debug', 'filename', 'func', 'github', 'headers', 'home', 'icon', 'is_app', 'layout', 'lib/python', 'lineno', 'locals', 'lock', 'method', 'moon', 'path', 'path_params', 'platform', 'python_version', 'query_params', 'search', 'server-crash', 'shield', 'short_filename', 'site-packages', 'source', 'sun', 'terminal', 'zap']

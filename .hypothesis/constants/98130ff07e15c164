@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/faults/engine.py
+# hypothesis_version: 6.151.9
+
+[100, 'UNHANDLED_EXCEPTION', 'app', 'app_name', 'aquilia.faults', 'async cancellation', 'controller', 'current_app', 'current_request_id', 'current_route', 'debug', 'exception_message', 'exception_type', 'fault_context', 'fingerprint', 'global', 'handlers', 'history_size', 'listeners', 'request_id', 'route', 'route_pattern', 'trace_id']

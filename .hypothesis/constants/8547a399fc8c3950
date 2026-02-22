@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/testing/client.py
+# hypothesis_version: 6.151.9
+
+[b'\r\n', 0.0, 2.0, 5.0, 200, 300, 400, 500, 600, 1000, 8000, 12345, ',', ', ', '/ws', '127.0.0.1', '3.0', ';', '; ', '=', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', '_json_cache', 'app', 'application/json', 'asgi', 'authorization', 'body', 'bytes', 'charset', 'charset=', 'client', 'code', 'content-length', 'content-type', 'content_type', 'cookie', 'elapsed', 'headers', 'http', 'http.response.body', 'http.response.start', 'http://testserver', 'latin-1', 'location', 'path', 'query_string', 'raw_path', 'request_method', 'request_path', 'scheme', 'server', 'set-cookie', 'status', 'status_code', 'subprotocols', 'text', 'type', 'utf-8', 'version', 'websocket', 'websocket.accept', 'websocket.close', 'websocket.connect', 'websocket.disconnect', 'websocket.receive', 'ws']

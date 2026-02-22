@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sessions/engine.py
+# hypothesis_version: 6.151.9
+
+['aquilia.sessions', 'authenticated', 'client_ip', 'event', 'expired', 'id', 'idle_timeout', 'kind', 'policy', 'principal', 'request_method', 'request_path', 'scope', 'session_committed', 'session_created', 'session_destroyed', 'session_expired', 'session_id_hash', 'session_idle_timeout', 'session_invalid', 'session_loaded', 'session_refreshed', 'session_rotated', 'timestamp', 'unknown']

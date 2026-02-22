@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/sql_builder.py
+# hypothesis_version: 6.151.9
+
+[' AND ', ' WHERE ', '(', ')', '*', ',\n  ', ', ', '-', '.', '1 = 0', '?', 'CreateTableBuilder', 'DISTINCT ', 'DeleteBuilder', 'HAVING ', 'IF NOT EXISTS ', 'INNER', 'InsertBuilder', 'LEFT', 'No rows to insert', 'ORDER BY ', 'RIGHT', 'SELECT COUNT(*)', 'SQLBuilder', 'UpdateBuilder', 'WHERE ', 'mysql', 'postgresql', 'sqlite']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/pagination.py
+# hypothesis_version: 6.151.9
+
+[b'host', b'localhost', 1000, '-', '-id', '.', '/', '=', '==', 'BasePagination', 'CursorPagination', 'NoPagination', 'PageNumberPagination', 'count', 'cursor', 'd', 'headers', 'http', 'items', 'limit', 'localhost', 'next', 'offset', 'page', 'page_size', 'path', 'prev', 'previous', 'query_params', 'results', 'scheme', 'scope', 'to_dict', 'total_pages', 'utf-8', 'v']

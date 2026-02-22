@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/backends/redis.py
+# hypothesis_version: 6.151.9
+
+[5.0, 1000, '*', '_connect_timeout', '_initialized', '_key_prefix', '_max_connections', '_redis', '_retry_on_timeout', '_serializer', '_socket_timeout', '_start_time', '_stats', '_url', 'aq:', 'aquilia.cache.redis', 'db0', 'default', 'keys', 'keyspace', 'memory', 'redis', 'used_memory', 'utf-8']

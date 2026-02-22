@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/patterns/compiler/compiler.py
+# hypothesis_version: 6.151.9
+
+['(?:', '(?:/', ')?', '/', '/?$', '^/', '^[a-z0-9-]+$', 'any', 'bool', 'boolean', 'constraints', 'default', 'end', 'enum', 'file', 'float', 'format', 'in', 'index', 'int', 'integer', 'json', 'kind', 'max', 'maxLength', 'maximum', 'min', 'minLength', 'minimum', 'name', 'number', 'object', 'openapi', 'parameters', 'params', 'path', 'pattern', 'query', 'raw', 'regex', 'required', 'schema', 'segments', 'slug', 'span', 'specificity', 'start', 'static_prefix', 'str', 'string', 'transform', 'type', 'uuid', 'value']

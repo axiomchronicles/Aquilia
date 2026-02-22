@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/aquilary/errors.py
+# hypothesis_version: 6.151.9
+
+['\n   Details:', ' → ', 'actual', 'app_name', 'cycle', 'cycle_length', 'details', 'error_count', 'errors', 'expected', 'file', 'manifest', 'message', 'method', 'path', 'provider_count', 'reason', 'resource_name', 'resource_type', 'source_app', 'source_count', 'target_app', 'type', 'warning_count', 'warnings']

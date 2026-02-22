@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sessions/transport.py
+# hypothesis_version: 6.151.9
+
+['/', ';', '; ', '=', 'CookieTransport', 'HeaderTransport', 'HttpOnly', 'Max-Age=0', 'Secure', 'Set-Cookie', 'X-Aquilia-Session', 'X-GraphQL-Session', 'X-Mobile-Session', 'X-Service-Session', 'X-Session-ID', 'aquilia_session', 'aquilia_spa_session', 'aquilia_web_session', 'cookie', 'delete_cookie', 'header', 'lax', 'none', 'strict', 'token']

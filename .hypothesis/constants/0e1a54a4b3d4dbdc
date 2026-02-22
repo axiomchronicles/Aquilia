@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/context.py
+# hypothesis_version: 6.151.9
+
+['Aquilia', 'Identity', 'Request', 'RequestCtx', 'Session', '_', 'app_name', 'config', 'csp_nonce', 'csrf_token', 'debug', 'gettext', 'identity', 'request', 'session', 'state', 'static', 'static_url', 'template_config', 'template_csrf_token', 'template_static', 'template_url_for', 'url_for']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/faults/integrations/models.py
+# hypothesis_version: 6.151.9
+
+['(multiple)', '_retry_count', 'name', 'unknown']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/testing/cases.py
+# hypothesis_version: 6.151.9
+
+[0.05, 3.0, 100, '/auth/login', '127.0.0.1', '_amdl_database', 'begin', 'error', 'password', 'test@test.com', 'username']

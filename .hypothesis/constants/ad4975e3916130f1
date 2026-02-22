@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/stores.py
+# hypothesis_version: 6.151.9
+
+[b'expires_at', b'identity_id', b'metadata', b'scopes', b'session_id', 100, 86400, ':', 'aquilauth:', 'authorized', 'client_id', 'code_challenge', 'created_at', 'denied', 'expires_at', 'identity', 'identity_id', 'metadata', 'pending', 'redirect_uri', 'revoked', 'scopes', 'session', 'session_id', 'status', 'token', 'tokens', 'used', 'user_code']

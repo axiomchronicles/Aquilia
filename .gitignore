@@ -40,8 +40,14 @@ Thumbs.db
 
 # Environment
 .env
+.env.test
 .env.local
 .env.*.local
+
+# Test reports
+tests/e2e/report.xml
+tests/e2e/fuzz-reports/
+tests/e2e/minimal-failures/
 
 # Logs
 *.log

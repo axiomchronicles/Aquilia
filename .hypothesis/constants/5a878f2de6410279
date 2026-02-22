@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/db/backends/postgres.py
+# hypothesis_version: 6.151.9
+
+["'", "''", ':', '?', '@', 'PostgresAdapter', 'UNIQUE', 'YES', 'column_default', 'column_name', 'data_type', 'definition', 'e', 'indexdef', 'indexname', 'is_nullable', 'name', 'numeric', 'pool_max_size', 'pool_min_size', 'postgresql', 'table_name', 'unique']

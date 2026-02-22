@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/policy/__init__.py
+# hypothesis_version: 6.151.9
+
+['Abstain', 'Allow', 'Deny', 'Policy', 'PolicyDecision', 'PolicyRegistry', 'PolicyResult', '__is_policy_rule__', 'abstain', 'allow', 'can_', 'deny', 'rule']

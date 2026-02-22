@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/integration/di_providers.py
+# hypothesis_version: 6.151.9
+
+[900, 3600, 'AuthConfig', 'AuthManagerProvider', 'AuthzEngineProvider', 'KeyRingProvider', 'MFAManagerProvider', 'RateLimiterProvider', 'TokenManagerProvider', 'TokenStoreProvider', '__di_scope__', 'access_ttl_minutes', 'app', 'default', 'enabled', 'idle_timeout_hours', 'lockout_duration', 'max_attempts', 'max_sessions', 'mfa', 'oauth', 'p', 'policy', 'provide', 'rate_limit', 'refresh_ttl_days', 'required', 'return', 'session', 'tokens', 'ttl_days', 'user', 'window_seconds']

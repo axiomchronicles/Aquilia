@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/aquilary/validator.py
+# hypothesis_version: 6.151.9
+
+['.', ':', '__source__', 'app', 'apps', 'class_path', 'controller', 'controllers', 'depends_on', 'middlewares', 'name', 'prod', 'services', 'unknown', 'version']

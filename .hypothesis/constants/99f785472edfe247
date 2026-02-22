@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/auth_integration.py
+# hypothesis_version: 6.151.9
+
+['<Anonymous>', 'AuthManager', 'AuthzEngine', 'Identity', 'RequestCtx', 'TemplateEngine', '_template_engine', 'active', 'admin', 'anonymous', 'authenticated', 'blue', 'can', 'display_name', 'email', 'gray', 'guest', 'has_all_roles', 'has_any_role', 'has_role', 'identity', 'identity_link', 'is_authenticated', 'is_owner', 'moderator', 'orange', 'owner_id', 'red', 'role_badge', 'roles', 'status', 'user', 'username']

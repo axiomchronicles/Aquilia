@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/metaclass.py
+# hypothesis_version: 6.151.9
+
+['Meta', 'ModelMeta', '_fields', '_m2m_fields', 'id', 'objects', 'table', 'table_name']

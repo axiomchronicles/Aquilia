@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/fields/enum_field.py
+# hypothesis_version: 6.151.9
+
+['Cannot be null', 'ENUM', 'EnumField', 'INTEGER', 'choices', 'enum_class', 'max_length', 'sqlite', 'store_name']

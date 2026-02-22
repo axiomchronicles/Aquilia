@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sockets/adapters/__init__.py
+# hypothesis_version: 6.151.9
+
+['Adapter', 'InMemoryAdapter', 'RedisAdapter', 'RoomInfo']

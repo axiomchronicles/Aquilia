@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/authentication/modules/auth/__init__.py
+# hypothesis_version: 6.151.9
+
+['AuthController', 'AuthService', 'User', 'manifest']

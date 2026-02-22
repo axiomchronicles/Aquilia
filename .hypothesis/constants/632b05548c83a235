@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/db/backends/__init__.py
+# hypothesis_version: 6.151.9
+
+['AdapterCapabilities', 'ColumnInfo', 'DatabaseAdapter', 'IntrospectionResult', 'MySQLAdapter', 'PostgresAdapter', 'SQLiteAdapter', 'TableInfo']

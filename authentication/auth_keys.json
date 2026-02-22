@@ -1,0 +1,15 @@
+{
+  "current_kid": "auth-key-1",
+  "keys": [
+    {
+      "kid": "auth-key-1",
+      "algorithm": "RS256",
+      "public_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6b9/puk6p3fA7kfewtmI\n6VxmxS3F9TW31tISqPOh/t/dm51X9zykFpzPVxIQvwQvKRLNUojNxnYFhbnSOzNM\nyxK0sLQM3PTR8L3YSbCt9m4jULADWs7D8aLnELOx3+cNzhyF3TUpMJEm7x3zbaLb\neW3NY1KjacDnk0L7nvlh9zcKDsEcSNUbzeQaLR9oI1O6roquAcWhkot/LEMoRRWc\nUZY1OBiAbr+VLVe8TjLrKpbr1CPdecRF11q0NoM7X+g6NDxPJLZK/vki2vaPQO/j\nthE0aiWaY6YWwqBBWls7bLjBlXABD/d+6F/61siRF/fsJG9Yy2pQQ341+tBqKzEd\n9QIDAQAB\n-----END PUBLIC KEY-----\n",
+      "status": "active",
+      "created_at": "2026-02-20T08:26:17.812459+00:00",
+      "retire_after": null,
+      "revoked_at": null,
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDpv3+m6Tqnd8Du\nR97C2YjpXGbFLcX1NbfW0hKo86H+392bnVf3PKQWnM9XEhC/BC8pEs1SiM3GdgWF\nudI7M0zLErSwtAzc9NHwvdhJsK32biNQsANazsPxoucQs7Hf5w3OHIXdNSkwkSbv\nHfNtott5bc1jUqNpwOeTQvue+WH3NwoOwRxI1RvN5BotH2gjU7quiq4BxaGSi38s\nQyhFFZxRljU4GIBuv5UtV7xOMusqluvUI915xEXXWrQ2gztf6Do0PE8ktkr++SLa\n9o9A7+O2ETRqJZpjphbCoEFaWztsuMGVcAEP937oX/rWyJEX9+wkb1jLalBDfjX6\n0GorMR31AgMBAAECggEADNJ3YyWKFSOpjqicnJ2oN/zcmlZfdIsE0aDmayQqL7wC\nAQZJjANkkOT7LrCMAJ5vI9anMq7Uct2IggRmdt7iiIU3KjZGOlyno4gWdDxf3pO+\nFjABjxqmfvvLpwvkZv7asAK6iR7gaoyb0SQYdVwoo+mVCay/0A5H5bkX6mmNqSzd\n5JHOZVOHbkIygsHHtdiTdlOFTxVYgkyRbdHq7vO5Q/SmC1+ShzmFKKNGvXTlDMtk\nhajezNj1+V/dvnenaD5dT+H2kLHtp2Z0Sve9e2ToPdCQRc0NX+fwF4b48EgrzEJK\niIJxg28w0zYohQrik+Ko0Su9mHxb6e5abEZmN6ogBQKBgQD7KFU58FXJJ0tsdgF4\ny0mRGTWj4Tq09yafmpHNDJ6yD+DTlHTkz1GaVIbD1Rllg4GoSIdDszMFZ2iFCO2i\nEOMF0CQiJNxHb7kCCFDB2NBK3e9Mw28ZAFuF1AuW2lyX0QUJHwV2k5k9lv80w0WO\nNCglGA1gJH2h11agf67LDonLtwKBgQDuQTxRfr4TgKr++BxoABMvJQkDY+6TejRm\nDqRFcIf9b1w5+ULE8GRW1sqbIr95/xEurVZa2Jm9B+tpMMKvCPdHdSpNbKAYZpT2\nERi0C+D1S29yRWq5t8uZTTbZaMW8koJ1QScaey2+HtHyEdhZEgKSSzivpUo5DDc5\nk0jAgT+7swKBgQCcoUedTXPCcd4IswMx+N1VPvqDzEeXafbNXFEHJpKli19zs8a+\nl0hVzdcJtBEVjNDESQ8KOmxcN2Qoayv/gTaDfo26OXCioFspmFP8wCEOP6AoKE1V\nszJgoJ/loSJTj4fra0w16dCMZ2ma1xi+mWpbz8cvqTIsRyYADADPI67tuwKBgQDm\nF+Jk4f43X3/ElWD5n3jnguDdgVka3F5WYbWLyk3LGAz9gBhXkcGVjAJHKJu6+fZi\nGczYF28B+/ABurGJ0SLew+yCsXE7n3Yk3gX5e69Ztex/c0LK8RGTj9p0xJaSsvuC\nudVF4cgfYCxpl4pVGuuY1UR9fSfdSErdM7yDDU+7uQKBgBtcI4e4LuVQwePSR1Pc\nNFFiA+hCVq68W1IciyPkAHm7TK0ZLP4r7Git5K48eehyeOpjHjDJ8vcJVha6lCpK\noqlrs0v3pEIRMBleeu5As84vIsiWz/AJNy6mJKaPv41EKWcOt6zyaAvZI7Dr5IOz\nS5TJ3ptkcmY/z7q5FoCf9eOO\n-----END PRIVATE KEY-----\n"
+    }
+  ]
+}

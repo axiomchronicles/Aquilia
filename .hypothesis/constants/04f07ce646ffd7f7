@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di/diagnostics.py
+# hypothesis_version: 6.151.9
+
+['lifecycle_shutdown', 'lifecycle_startup', 'registration', 'resolution_failure', 'resolution_start', 'resolution_success']

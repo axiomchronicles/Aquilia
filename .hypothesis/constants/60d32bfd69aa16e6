@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/integration/aquila_sessions.py
+# hypothesis_version: 6.151.9
+
+['/', 'AuthPrincipal', 'Authorization', 'SessionAuthBridge', 'X-Device-Session', 'api_session_policy', 'aquilia_auth', 'attributes', 'auth_api', 'auth_device', 'auth_user', 'bind_identity', 'bind_token_claims', 'cookie', 'device', 'evict_oldest', 'exp', 'get_identity_id', 'get_roles', 'get_scopes', 'get_tenant_id', 'header', 'iat', 'identity_id', 'is_mfa_verified', 'iss', 'lax', 'mfa_verified', 'principal_id', 'redis', 'reject', 'roles', 'scopes', 'set_mfa_verified', 'status', 'sub', 'tenant_id', 'token_claims', 'user', 'user_session_policy']

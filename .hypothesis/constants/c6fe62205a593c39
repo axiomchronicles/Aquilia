@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/decorators.py
+# hypothesis_version: 6.151.9
+
+[200, 'DELETE', 'F', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'WS', '_', '__route_metadata__', 'deprecated', 'description', 'filterset_class', 'filterset_fields', 'func_name', 'http_method', 'ordering_fields', 'pagination_class', 'path', 'pipeline', 'renderer_classes', 'request_blueprint', 'request_serializer', 'response_blueprint', 'response_model', 'response_serializer', 'search_fields', 'signature', 'status_code', 'summary', 'tags']

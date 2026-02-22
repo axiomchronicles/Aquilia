@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sockets/decorators.py
+# hypothesis_version: 6.151.9
+
+[65536, 'F', 'ack', 'allowed_origins', 'compression', 'event', 'guard', 'max_connections', 'max_message_size', 'message_rate_limit', 'on_connect', 'on_disconnect', 'path', 'priority', 'schema', 'subprotocols', 'subscribe', 'type', 'unsubscribe']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sockets/envelope.py
+# hypothesis_version: 6.151.9
+
+['ack', 'control', 'data', 'error', 'event', 'id', 'max', 'max_length', 'meta', 'min', 'min_length', 'ok', 'original_id', 'payload', 'status', 'system', 'trace_id', 'ts', 'type', 'utf-8']

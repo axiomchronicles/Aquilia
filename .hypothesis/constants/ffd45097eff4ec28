@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/trace/manifests.py
+# hypothesis_version: 6.151.9
+
+['TraceManifest', '_dependency_graph', '_root', 'app_contexts', 'app_count', 'apps', 'aquilary', 'captured_at', 'content_hash', 'controllers', 'dependency_graph', 'depends_on', 'fingerprint', 'has_shutdown', 'has_startup', 'load_order', 'manifest.json', 'middleware_count', 'mode', 'models', 'name', 'runtime', 'schema_version', 'services', 'unknown', 'version']

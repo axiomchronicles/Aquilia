@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/trace/routes.py
+# hypothesis_version: 6.151.9
+
+['/', 'GET', 'TraceRouteMap', '_root', 'added', 'captured_at', 'changed', 'controller', 'controller_router', 'controllers', 'current', 'handler', 'method', 'method_counts', 'path', 'previous', 'removed', 'routes', 'routes.json', 'schema_version', 'specificity', 'total']

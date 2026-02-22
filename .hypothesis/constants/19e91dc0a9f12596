@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/compiler.py
+# hypothesis_version: 6.151.9
+
+['/', ':', '\\{([^}]+)\\}', 'bool', 'conflicts', 'controller', 'controllers', 'dynamic', 'float', 'handler', 'int', 'method', 'module', 'path', 'pattern', 'prefix', 'reason', 'route1', 'route2', 'route_name', 'routes', 'specificity', 'static', 'str', 'total_routes', '«', '»']

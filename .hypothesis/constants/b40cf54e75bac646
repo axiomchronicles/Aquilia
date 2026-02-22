@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/options.py
+# hypothesis_version: 6.151.9
+
+['Options', '_model_cls', 'abstract', 'add', 'app_label', 'change', 'constraints', 'db_tablespace', 'default_permissions', 'default_related_name', 'delete', 'get_latest_by', 'indexes', 'managed', 'ordering', 'permissions', 'proxy', 'required_db_features', 'required_db_vendor', 'select_on_save', 'table', 'table_name', 'unique_together', 'verbose_name', 'verbose_name_plural', 'view']

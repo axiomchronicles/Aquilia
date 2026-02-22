@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/testing/server.py
+# hypothesis_version: 6.151.9
+
+['0.0.1-test', 'TestServer', 'TestServer started', 'TestServer stopped', '_auth_manager', '_cache_service', '_effect_registry', '_mail_provider', '_session_engine', 'auth', 'cache', 'debug', 'docs_enabled', 'enabled', 'integrations', 'mail', 'mode', 'runtime', 'sessions', 'templates', 'test', 'test_app']

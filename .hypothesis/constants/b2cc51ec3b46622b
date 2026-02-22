@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sockets/connection.py
+# hypothesis_version: 6.151.9
+
+[1000, 'ack', 'anonymous', 'closed', 'closing', 'connected', 'connecting', 'data', 'error', 'ok', 'status', 'utf-8']

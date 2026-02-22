@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/guards.py
+# hypothesis_version: 6.151.9
+
+['Access denied', 'Bearer ', 'access', 'action', 'api_key_scopes', 'authorization', 'authz_context', 'deny', 'headers', 'identity', 'request', 'resource', 'resource_attributes', 'scopes', 'token_claims', 'unknown', 'x-api-key']

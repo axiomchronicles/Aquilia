@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/blueprints/integration.py
+# hypothesis_version: 6.151.9
+
+['container', 'is_blueprint_class', 'request', 'state']

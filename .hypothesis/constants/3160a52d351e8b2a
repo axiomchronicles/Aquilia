@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/router.py
+# hypothesis_version: 6.151.9
+
+['&', '/', '_TrieNode', '__name__', 'children', 'compiled_pattern', 'controller', 'handler', 'method', 'param_child', 'param_name', 'path', 'pipeline', 'route', 'specificity']

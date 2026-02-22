@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/engine.py
+# hypothesis_version: 6.151.9
+
+[200, 204, 403, '/', '1', 'GET', 'Identity', 'PATCH', 'POST', 'PUT', 'Session', '__name__', '_blueprint', '_bp', '_handler_ref', '_raw_metadata', '_ser', '_serializer', 'all', 'app_name', 'blueprint', 'body', 'bool', 'container', 'context', 'controller', 'ctx', 'di', 'error', 'filter', 'filterset_class', 'filterset_fields', 'float', 'handler', 'headers', 'http', 'identity', 'instantiation_mode', 'int', 'method', 'on_request', 'on_response', 'on_shutdown', 'on_startup', 'ordering_fields', 'paginate_queryset', 'pagination_class', 'path', 'per_request', 'query', 'query_string', 'renderer_classes', 'req', 'request', 'request_blueprint', 'request_id', 'request_serializer', 'response_blueprint', 'response_serializer', 'result', 'search_fields', 'serializer', 'session', 'singleton', 'text/plain', 'to_dict', 'true', 'type', 'yes']

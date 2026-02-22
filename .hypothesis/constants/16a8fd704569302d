@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/ast_nodes.py
+# hypothesis_version: 6.151.9
+
+['Auto', 'BigInt', 'Bool', 'Bytes', 'Date', 'DateTime', 'Decimal', 'Enum', 'Float', 'ForeignKey', 'Int', 'JSON', 'MANY', 'MANY_THROUGH', 'ONE', 'Str', 'Text', 'Time', 'UUID', 'default', 'fields', 'indexes', 'max', 'name', 'nullable', 'pk', 'slots', 'table', 'type', 'unique']

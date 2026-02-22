@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/db/backends/mysql.py
+# hypothesis_version: 6.151.9
+
+[3306, '%s', "'", "''", '/', '?', 'COLUMN_NAME', 'INDEX_NAME', 'MySQL disconnected', 'MySQLAdapter', 'NON_UNIQUE', 'YES', 'autocommit', 'cnt', 'column_default', 'column_name', 'column_type', 'columns', 'db', 'format', 'host', 'is_nullable', 'localhost', 'mysql', 'name', 'password', 'port', 'table_name', 'unique', 'user']

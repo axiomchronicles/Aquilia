@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/db/engine.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.5, 200, '<not configured>', '<raw>', '<transaction>', 'AquiliaDatabase', '_adapter', '_connect_retries', '_connect_retry_delay', '_connected', '_driver', '_in_transaction', '_last_activity', '_lock', '_options', '_url', 'app', 'aquilia.db', 'connect_retries', 'connect_retry_delay', 'default', 'execute', 'execute_many', 'fetch_all', 'fetch_one', 'fetch_val', 'mysql', 'postgres', 'postgresql', 'savepoint', 'sql', 'sqlite', 'sqlite:///db.sqlite3']

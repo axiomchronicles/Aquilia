@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/authentication/modules/dashboard/faults.py
+# hypothesis_version: 6.151.9
+
+['DASHBOARD', 'DASHBOARD_NOT_FOUND', 'Validation failed', 'errors', 'item_id', 'operation', 'reason']

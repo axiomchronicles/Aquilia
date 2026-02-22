@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/index.py
+# hypothesis_version: 6.151.9
+
+[', ', ';', 'BRIN', 'BrinIndex', 'FunctionalIndex', 'GIN', 'GIST', 'GinIndex', 'GistIndex', 'HASH', 'HashIndex', 'Index', 'UniqueConstraint', 'condition', 'expression', 'fields', 'index_type', 'name', 'opclasses', 'sqlite', 'type']

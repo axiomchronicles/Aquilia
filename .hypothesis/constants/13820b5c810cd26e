@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/tokens.py
+# hypothesis_version: 6.151.9
+
+[b'=', 2048, 3600, 65537, 2592000, ',', '.', ':', '=', 'ES256', 'EdDSA', 'Invalid signature', 'JWT', 'RS256', 'Token expired', 'Token not yet valid', 'Token revoked', 'active', 'alg', 'algorithm', 'api', 'aquilia', 'aud', 'created_at', 'current_kid', 'exp', 'expires_at', 'iat', 'identity_id', 'iss', 'jti', 'keys', 'kid', 'nbf', 'private_key', 'public_key', 'retire_after', 'retired', 'revoked', 'revoked_at', 'roles', 'rotating', 'scopes', 'session_id', 'sid', 'status', 'sub', 'tenant_id', 'typ', 'w']

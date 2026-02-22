@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/di_providers.py
+# hypothesis_version: 6.151.9
+
+[100, 'AuthManager', 'SessionEngine', 'app', 'config', 'crous', 'memory', 'none', 'strict', 'templates', 'templates.cache', 'templates.cache_size', 'templates.sandbox', 'tests', 'transient']

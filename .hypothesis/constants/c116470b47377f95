@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/authz.py
+# hypothesis_version: 6.151.9
+
+['Access denied', 'abstain', 'action', 'admin', 'allow', 'default', 'deny', 'identity_id', 'owner_id', 'resource', 'roles', 'scopes']

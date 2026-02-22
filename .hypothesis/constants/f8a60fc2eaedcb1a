@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/faults.py
+# hypothesis_version: 6.151.9
+
+['MAIL_CONFIG_ERROR', 'MAIL_ERROR', 'MAIL_RATE_LIMITED', 'MAIL_SEND_PERMANENT', 'MAIL_SEND_TRANSIENT', 'MAIL_SUPPRESSED', 'MAIL_TEMPLATE_ERROR', 'column', 'config_key', 'email', 'envelope_id', 'field', 'global', 'line', 'mail', 'provider', 'retry_after', 'scope', 'suppressed', 'suppression_reason', 'template_name', 'transient', 'unknown']

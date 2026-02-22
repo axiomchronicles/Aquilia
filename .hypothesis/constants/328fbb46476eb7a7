@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/service.py
+# hypothesis_version: 6.151.9
+
+[587, '/tmp/aquilia_mail', 'MailService', 'all', 'api_key', 'app', 'aquilia.mail', 'console', 'file', 'host', 'localhost', 'mail.enabled', 'mail.providers', 'output_dir', 'password', 'port', 'priority', 'region', 'sendgrid', 'ses', 'smtp', 'us-east-1', 'username']

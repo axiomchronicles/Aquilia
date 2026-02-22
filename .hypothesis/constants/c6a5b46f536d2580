@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sessions/policy.py
+# hypothesis_version: 6.151.9
+
+['/', 'AQUILIA_ENV', 'SessionPolicyBuilder', 'X-API-Token', 'X-Session-ID', 'adapter', 'admin_session', 'allow', 'api_session', 'api_token', 'aquilia_session', 'behavior_on_limit', 'compress', 'concurrency', 'cookie', 'cookie_domain', 'cookie_httponly', 'cookie_name', 'cookie_path', 'cookie_samesite', 'cookie_secure', 'default', 'enabled', 'ephemeral', 'evict_all', 'evict_oldest', 'expired', 'header', 'header_name', 'idle_timeout', 'lax', 'mobile_session', 'none', 'persistence', 'production', 'reject', 'request', 'rotate_on_use', 'scope', 'store_name', 'strict', 'token', 'transport', 'ttl', 'user', 'user_default', 'valid', 'web_session', 'write_through']

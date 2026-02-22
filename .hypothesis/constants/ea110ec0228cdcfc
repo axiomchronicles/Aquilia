@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/serializers/exceptions.py
+# hypothesis_version: 6.151.9
+
+['SERIALIZATION', 'SERIALIZATION_ERROR', 'Serialization failed', 'VALIDATION_FAILED', 'Validation failed', 'errors', 'field', 'messages', 'value']

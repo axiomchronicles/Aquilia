@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/trace/core.py
+# hypothesis_version: 6.151.9
+
+[1000, '.aquilia', '.gitignore', '.tmp', 'TraceConfigSnapshot', 'TraceDIGraph', 'TraceDiagnostics', 'TraceManifest', 'TraceRouteMap', 'TraceSchemaLedger', '_boot_mono', '_boot_ts', '_config_snap', '_di_graph', '_diagnostics', '_journal', '_manifest', '_root', '_routes', '_schema', '_snapshot_timings', 'active_subsystems', 'aquilia.trace', 'boot_ts', 'config', 'di_graph', 'diagnostics', 'duration_ms', 'exists', 'files', 'healthy', 'hostname', 'journal_events', 'last_boot_ts', 'last_shutdown_ts', 'last_uptime_s', 'lock.json', 'locked', 'manifest', 'pid', 'provider_count', 'root', 'route_count', 'routes', 'schema', 'schema_count', 'snapshot_timings_ms', 'subsystem_status', 'ts', 'unknown', 'uptime_s', 'version']

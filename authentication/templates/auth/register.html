@@ -1,0 +1,42 @@
+{% extends "auth/layout.html" %}
+
+{% block title %}Register - Aquilia Auth{% endblock %}
+
+{% block content %}
+<h1>Register</h1>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+<form method="POST" action="/auth/register" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="profile">Profile photo</label>
+        <input type="file" id="profile" name="profile" accept="image/*">
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+
+    <div class="form-group">
+        <label for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" required>
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="8">
+    </div>
+
+    <div class="form-group">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
+    </div>
+
+    <button type="submit">Create Account</button>
+</form>
+
+<p>Already have an account? <a href="/auth/login">Login here</a>.</p>
+{% endblock %}

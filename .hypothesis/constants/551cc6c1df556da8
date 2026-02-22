@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/providers/ses.py
+# hypothesis_version: 6.151.9
+
+[15.0, 30.0, 60.0, ', ', '/', '<', '>', '@', 'BccAddresses', 'Body', 'Cc', 'CcAddresses', 'Charset', 'Code', 'ConfigurationSetName', 'Content', 'Content-Disposition', 'Content-ID', 'Data', 'Date', 'Destination', 'EmailTags', 'Error', 'From', 'FromEmailAddress', 'Html', 'Max24HourSend', 'Message-ID', 'MessageId', 'MessageRejected', 'Name', 'Raw', 'Reply-To', 'ReplyToAddresses', 'SendQuota', 'Simple', 'Subject', 'Text', 'Throttling', 'ThrottlingException', 'To', 'ToAddresses', 'UTF-8', 'Value', 'X-Aquilia-Trace-ID', 'alternative', 'aquilia_envelope_id', 'aquilia_tenant_id', 'attachment', 'aws_access_key_id', 'aws_session_token', 'endpoint_url', 'get_account', 'html', 'inline', 'localhost', 'mixed', 'plain', 'rate', 'region_name', 'response', 'send_email', 'service_name', 'ses', 'sesv2', 'throttl', 'us-east-1', 'utf-8']

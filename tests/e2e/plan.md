@@ -1,48 +1,127 @@
-# Brutal Auth E2E Test Plan
+# E2E Test Plan — Controllers + DI Regression Suite
 
-## Regression Sequences
+## Overview
 
-| ID | Title | Prerequisites | Request(s) | Expected Side-Effects | Cleanup | Risk |
-|----|-------|--------------|------------|----------------------|---------|------|
-| REG-01 | Token revocation → reuse | Seed user, login | 1) `authenticate_password` 2) `revoke_token(refresh)` 3) `refresh_access_token(revoked)` | Step 3 raises `ValueError("Refresh token revoked")`, token in `_revoked_tokens` set | Fixtures auto-cleanup | high |
-| REG-02 | Concurrent password resets | Seed user | 10× concurrent `authenticate_password` with wrong pw then 1× correct | Rate limiter tracks all 10 attempts, possible lockout race | Reset rate limiter | high |
-| REG-03 | Session fixation | Seed user | 1) Forge `sess_EVIL` 2) Login gets `sess_NEW` 3) Validate `sess_EVIL` fails | Login always generates new session_id, forged ID never enters store | None | high |
-| REG-04 | Concurrent writes to same user | Seed user | 10× concurrent credential updates | Last write wins, no crashes, store consistent | Re-seed | high |
-| REG-05 | Login→Refresh→Logout full cycle | Seed user | Login → validate → refresh (old revoked) → logout (session revoked) | Audit trail: login+refresh+revoke events | Fixtures | high |
-| REG-06 | Duplicate registration | Seed user | Create same identity ID twice | Second create raises or overwrites deterministically | Delete | medium |
+This plan covers **14 existing controller tests** and **13 new DI-specific tests** plus chaos/fuzz/stress scenarios exercising the full Aquilia DI system and its controller integration.
 
-## Chaos Tests
+---
 
-| ID | Title | Prerequisites | Steps | Expected | Cleanup | Risk |
-|----|-------|--------------|-------|----------|---------|------|
-| CHS-01 | Store corruption mid-operation | Auth manager | Monkey-patch store to raise mid-`save_password` | AuthManager returns structured fault, no partial state | Restore patches | high |
-| CHS-02 | Cache corruption: invalid JSON | Token store | Write garbage bytes to `_refresh_tokens[id]` | `validate_refresh_token` raises `ValueError`, no crash | Clear store | medium |
-| CHS-03 | Token store unavailable | Auth manager | Monkey-patch token_store to raise `ConnectionError` | Login fails with structured fault, no token leak | Restore | high |
-| CHS-04 | Chained failure: corrupt+concurrent | Auth manager, stores | Corrupt cache → concurrent refresh → restore → consistency check | No duplicate tokens, no orphaned sessions, store consistent | Full teardown | high |
+## Existing Controller Tests
 
-## Fuzzing
+| File | Coverage |
+|------|----------|
+| `test_auth_login.py` | Login flow, token issuance, invalid credentials |
+| `test_registration.py` | User registration, duplicate detection, validation |
+| `test_me_endpoint.py` | Authenticated /me endpoint |
+| `test_token_refresh.py` | Token rotation, expired refresh |
+| `test_token_revocation.py` | Token revocation |
+| `test_session_management.py` | Session create/read/invalidate |
+| `test_dashboard_crud.py` | Dashboard CRUD operations |
+| `test_template_rendering.py` | Template rendering via controllers |
+| `test_cache_sensitive.py` | Cache behavior, invalidation |
+| `test_file_uploads.py` | Multipart uploads |
+| `test_chaos.py` | Chaos scenarios (cache corruption, DB kill) |
+| `test_fuzz.py` | Token parser fuzzing |
+| `test_stress.py` | Concurrency/stress |
 
-| ID | Title | Input | Expected | Risk |
-|----|-------|-------|----------|------|
-| FUZ-01 | Token parser: random bytes | 1000 random byte strings as access tokens | All raise `ValueError`, no crash/hang | high |
-| FUZ-02 | Token parser: massive length | Tokens with 1MB+ payload | Raises `ValueError`, no OOM | high |
-| FUZ-03 | Token parser: invalid base64 | Malformed base64 in header/payload/sig | Raises `ValueError` | high |
-| FUZ-04 | Token parser: bad signatures | Valid header+payload, random signature | Raises `ValueError("Invalid signature")` | high |
-| FUZ-05 | PKCE verifier fuzz | 500 random strings as code_verifier | `verify_code_challenge` returns False, no crash | medium |
-| FUZ-06 | Password policy fuzz (Hypothesis) | Property test: any string → policy returns well-formed result | No exceptions, returns `(bool, list[str])` | medium |
+---
 
-## Fault Injection
+## DI Test Plan
 
-| ID | Title | Injection | Expected | Risk |
-|----|-------|-----------|----------|------|
-| FLT-01 | External email provider down | Monkey-patch mail send to raise | Password reset returns structured error, no sensitive data leaked | medium |
-| FLT-02 | Rate limiter misconfiguration | Set max_attempts=0 | Immediate lockout on any attempt | medium |
-| FLT-03 | Memory pressure on token store | Fill store with 10000 tokens then operate | Operations succeed within timeout, cleanup works | medium |
+### DI-01: Provider resolution (risk: low)
+- **Target**: `Container.resolve_async`, `ValueProvider`, `ClassProvider`
+- **Test**: Register token → resolve → verify correct instance and methods work
+- **File**: `tests/e2e/di/test_di_resolution.py`
 
-## Performance / Stress
+### DI-02: Singleton vs transient (risk: medium)
+- **Target**: `Container._cache`, scope behavior
+- **Test**: Singleton → `id(a) == id(b)`;  transient → `id(a) != id(b)`
+- **File**: `tests/e2e/di/test_di_resolution.py`
 
-| ID | Title | Setup | Steps | Threshold | Risk |
-|----|-------|-------|-------|-----------|------|
-| PRF-01 | 200 concurrent login+refresh | Seed user | 200× asyncio.gather(login→refresh) for 10s | No deadlocks, all complete, no resource exhaustion | high |
-| PRF-02 | Token validation throughput | Issue 1000 tokens | Validate all 1000 sequentially | < 10s total, no memory leak | medium |
-| PRF-03 | Concurrent token revocation | Issue 100 tokens | 100× concurrent revoke_token | All revoked, no races, store consistent | high |
+### DI-03: Request-scoped providers (risk: high)
+- **Target**: `Container.create_request_scope`, request cache isolation
+- **Test**: Two request scopes → unique instances; shutdown clears cache
+- **File**: `tests/e2e/di/test_di_resolution.py`
+
+### DI-04: Lifecycle hooks (risk: medium)
+- **Target**: `Lifecycle.on_startup`, `on_shutdown`, `register_finalizer`
+- **Test**: Priority ordering, LIFO/FIFO/parallel finalizers, failure tolerance
+- **File**: `tests/e2e/di/test_di_lifecycle.py`
+
+### DI-05: Factory provider errors (risk: high)
+- **Target**: Factory `instantiate` raising → no partial cache
+- **Test**: First call fails, not cached; second call succeeds
+- **File**: `tests/e2e/di/test_di_errors.py`
+
+### DI-06: Missing binding (risk: medium)
+- **Target**: `ProviderNotFoundError`, optional resolution
+- **Test**: Resolve missing → error with token name; optional → None
+- **File**: `tests/e2e/di/test_di_errors.py`
+
+### DI-07: Circular dependency handling (risk: high)
+- **Target**: `DependencyGraph.detect_cycles`, `ResolveCtx.in_cycle`
+- **Test**: A→B→A cycle detected; self-loop detected; acyclic graph passes
+- **File**: `tests/e2e/di/test_di_errors.py`
+
+### DI-08: Override in tests (risk: medium)
+- **Target**: `override_provider`, `spy_provider`, `DITestHarness.override`
+- **Test**: Override → mock used → exit restores original
+- **File**: `tests/e2e/di/test_di_overrides.py`
+
+### DI-09: Concurrency stress (risk: high)
+- **Target**: `resolve_async` under 500 concurrent calls
+- **Test**: No data races, correct scope semantics
+- **File**: `tests/e2e/di/test_di_concurrency.py`
+
+### DI-10: Hot-rebind (risk: medium)
+- **Target**: `TestContainer.register` overwrite, cache invalidation
+- **Test**: Replace provider → new calls get new impl
+- **File**: `tests/e2e/di/test_di_overrides.py`
+
+### DI-11: Async provider init/teardown (risk: high)
+- **Target**: Provider with `async_init()`, no hung tasks
+- **Test**: Init completes, no leaked asyncio tasks after shutdown
+- **File**: `tests/e2e/di/test_di_lifecycle.py`
+
+### DI-12: Controller integration with DI (risk: high)
+- **Target**: `ControllerFactory.create`, constructor injection
+- **Test**: Controller gets correct DI instances; override propagates; singleton mode
+- **File**: `tests/e2e/di/test_di_controller_integration.py`
+
+### DI-13: DI + background worker context (risk: medium-high)
+- **Target**: App container resolution outside HTTP request scope
+- **Test**: Workers resolve singletons, share state with HTTP handlers
+- **File**: `tests/e2e/di/test_di_controller_integration.py`
+
+---
+
+## Chaos & Fuzz Scenarios
+
+| Scenario | File | Risk |
+|----------|------|------|
+| Factory intermittent failures under concurrency | `test_di_chaos.py` | high |
+| Provider init crash → no half-open state | `test_di_chaos.py` | high |
+| Harness failure injection + restore | `test_di_chaos.py` | medium |
+| Fuzz token names (empty, 10K chars, unicode, injections) | `test_di_fuzz.py` | medium |
+| Provider metadata edge cases | `test_di_fuzz.py` | low |
+| Cache key collisions | `test_di_fuzz.py` | medium |
+
+## Controller + DI Combined Scenarios
+
+| Scenario | File | Risk |
+|----------|------|------|
+| Slow provider + 200 concurrent requests | `test_controller_di_stress.py` | high |
+| Removed provider → fail fast + recovery | `test_controller_di_stress.py` | high |
+| Corrupted cached instance detection | `test_controller_di_stress.py` | medium |
+
+---
+
+## Running
+
+```bash
+# DI tests only
+python -m pytest tests/e2e/di/ -v --tb=short
+
+# Full suite with JUnit output
+python -m pytest tests/e2e/ -v --tb=short --junitxml=tests/e2e/report.xml
+```

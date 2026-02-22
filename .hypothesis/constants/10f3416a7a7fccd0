@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/migration_gen.py
+# hypothesis_version: 6.151.9
+
+['    columns as C,', '"""', '%Y%m%d_%H%M%S', ')', ', ', '255', 'BLOB', 'CASCADE', 'DATE', 'DECIMAL', 'INTEGER', 'REAL', 'TEXT', 'TIME', 'TIMESTAMP', 'UUID', 'VARCHAR', 'VARCHAR(36)', '[^a-z0-9]+', '\\((\\d+),\\s*(\\d+)\\)', '\\((\\d+)\\)', ']', '_', 'checksum', 'class Meta:', 'models', 'null=True', 'operations = [', 'schema_snapshot.json', 'unique=True', 'utf-8', 'version']

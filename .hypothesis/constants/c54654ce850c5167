@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/di_providers.py
+# hypothesis_version: 6.151.9
+
+['Container', 'MailConfigProvider', 'MailProviderRegistry', 'MailServiceProvider', 'app', 'aquilia.mail.di', 'initialize', 'provider', 'provider_type', 'send', 'shutdown']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di/core.py
+# hypothesis_version: 6.151.9
+
+[':', 'Container', 'Registry', 'T', '__aexit__', '__args__', '__module__', '__name__', '__origin__', '_cache', '_dep_graph', '_diagnostics', '_finalizers', '_lifecycle', '_parent', '_providers', '_resolve_plans', '_scope', 'allow_lazy', 'app', 'binding', 'cache', 'class', 'cls', 'container', 'depends_on', 'interface', 'line', 'module', 'name', 'on_shutdown', 'on_startup', 'qualname', 'request', 'scope', 'self', 'services', 'shutdown', 'singleton', 'stack', 'tags', 'token', 'unknown', 'version']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/manager.py
+# hypothesis_version: 6.151.9
+
+['(', ',', '.aq', '.tmp', '/', '1.0', ':', 'Template not found', '__format__', 'artifact_type', 'cached', 'code', 'column', 'compiled', 'compiled_at', 'config', 'context', 'count', 'created_at', 'crous', 'csrf_token', 'disallowed-filter', 'error', 'fingerprint', 'hash', 'identity', 'line', 'lint-error', 'message', 'module', 'mtime', 'name', 'not-found', 'output', 'path', 'payload', 'request', 'save', 'schema_version', 'session', 'severity', 'size', 'syntax-error', 'template_name', 'templates', 'undefined-variable', 'utf-8', 'warning', 'wb', '|']

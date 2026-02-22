@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/trace/journal.py
+# hypothesis_version: 6.151.9
+
+['_boot_mono', '_providers', '_root', 'a', 'app', 'app_contexts', 'app_count', 'aquilary', 'boot', 'context', 'controller_router', 'custom', 'detail', 'di_containers', 'di_providers', 'duration_ms', 'error', 'event', 'fingerprint', 'journal.jsonl', 'mode', 'name', 'phase', 'pid', 'route_count', 'runtime', 'shutdown', 'ts', 'unknown', 'uptime_s', 'value', 'warning']

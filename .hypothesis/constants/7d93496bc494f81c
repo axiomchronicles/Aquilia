@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/faults/core.py
+# hypothesis_version: 6.151.9
+
+[':', 'Configuration errors', 'I/O operations', 'Security and auth', 'Side effect failures', 'System level faults', '__traceback__', '_cause', '_transform_chain', 'app', 'break', 'cache', 'cause', 'code', 'config', 'di', 'domain', 'effect', 'error', 'fallback', 'fatal', 'fault', 'fingerprint', 'flow', 'global', 'info', 'io', 'mask', 'message', 'metadata', 'model', 'parent_code', 'parent_trace_id', 'propagate', 'public', 'registry', 'request_id', 'retry', 'retryable', 'route', 'routing', 'scope', 'security', 'serialization', 'severity', 'stack_depth', 'system', 'timestamp', 'trace_id', 'warn']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di/providers.py
+# hypothesis_version: 6.151.9
+
+['FIFO', 'LIFO', 'T', '__di_name__', '_auto_validate', '_cls', '_container', '_created', '_dependencies', '_factory', '_has_async_init', '_inject_optional', '_inject_tag', '_inject_token', '_inner_provider', '_instance', '_is_async', '_max_size', '_meta', '_pool', '_proxy_class', '_scope', '_serializer_cls', '_strategy', '_tag', '_target_tag', '_target_token', '_token', '_value', 'alias', 'app', 'async_init', 'close', 'cls', 'container', 'identity', 'lazy_proxy', 'optional', 'pool', 'pooled', 'request', 'self', 'singleton', 'state', 'tag', 'token', 'value']

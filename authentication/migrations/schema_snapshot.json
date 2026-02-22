@@ -1,0 +1,74 @@
+{
+  "checksum": "ec8e2a4dd0f2af1c",
+  "models": {
+    "User": {
+      "fields": {
+        "created_at": {
+          "column": "created_at",
+          "default": "<callable:<lambda>>",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        },
+        "email": {
+          "column": "email",
+          "field_class": "EmailField",
+          "max_length": 255,
+          "type": "VARCHAR(255)",
+          "unique": true
+        },
+        "full_name": {
+          "column": "full_name",
+          "field_class": "CharField",
+          "max_length": 255,
+          "nullable": true,
+          "type": "VARCHAR(255)"
+        },
+        "id": {
+          "column": "id",
+          "field_class": "AutoField",
+          "primary_key": true,
+          "type": "INTEGER"
+        },
+        "is_active": {
+          "column": "is_active",
+          "default": true,
+          "field_class": "BooleanField",
+          "type": "INTEGER"
+        },
+        "is_superuser": {
+          "column": "is_superuser",
+          "default": false,
+          "field_class": "BooleanField",
+          "type": "INTEGER"
+        },
+        "password_hash": {
+          "column": "password_hash",
+          "field_class": "CharField",
+          "max_length": 255,
+          "type": "VARCHAR(255)"
+        },
+        "profile": {
+          "column": "profile",
+          "field_class": "CharField",
+          "max_length": 255,
+          "type": "VARCHAR(255)"
+        },
+        "updated_at": {
+          "column": "updated_at",
+          "field_class": "DateTimeField",
+          "type": "TIMESTAMP"
+        }
+      },
+      "indexes": [],
+      "meta": {
+        "abstract": false,
+        "managed": true,
+        "ordering": [
+          "-created_at"
+        ]
+      },
+      "table": "auth_users"
+    }
+  },
+  "version": 1
+}

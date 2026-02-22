@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/artifacts/store.py
+# hypothesis_version: 6.151.9
+
+['-', '.aq.json', '.tmp', '/', '1.0.0', ':', 'GC removed: %s', '_', '_artifacts', 'artifacts', 'bundle', 'count', 'payload', 'root', 'sha256:', 'utf-8']

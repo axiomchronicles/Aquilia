@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/enums.py
+# hypothesis_version: 6.151.9
+
+['Choices', 'IntegerChoices', 'TextChoices', '_']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/aquilary/route_compiler.py
+# hypothesis_version: 6.151.9
+
+['.', '/', ':', 'Controller', '__flow__', 'class', 'conflicts', 'controller', 'controllers', 'handler', 'handler_name', 'method', 'module', 'name', 'pattern', 'routes', 'total_routes', 'wrapped']

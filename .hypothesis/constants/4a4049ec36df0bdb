@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/faults/integrations/routing.py
+# hypothesis_version: 6.151.9
+
+[400, 404, 405, 500, ', ', 'Allow', 'Content-Type', 'GET', 'METHOD_NOT_ALLOWED', 'PATTERN_INVALID', 'ROUTE_AMBIGUOUS', 'ROUTE_CONFLICT', 'ROUTE_LOOKUP_ERROR', 'ROUTE_NOT_FOUND', 'actual_type', 'allowed_methods', 'application/json', 'code', 'conflict_count', 'conflicts', 'domain', 'error', 'expected_type', 'message', 'method', 'param_name', 'parameter', 'path', 'pattern', 'trace_id', 'value', '{', '}']

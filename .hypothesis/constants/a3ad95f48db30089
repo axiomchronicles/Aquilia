@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/serializers/relations.py
+# hypothesis_version: 6.151.9
+
+['array', 'id', 'integer', 'items', 'pk', 'pk_related', 'read_only', 'related', 'slug_related', 'string', 'string_related', 'type']

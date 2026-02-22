@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/utils/scanner.py
+# hypothesis_version: 6.151.9
+
+[0.0, 300, '.', '.pyc', 'None', '__module__', '__path__', '__pycache__', '__qualname__', 'aquilia.scanner', 'cache_hits', 'cache_misses', 'classes_found', 'errors_encountered', 'fixture', 'migration', 'mock', 'modules_scanned', 'scan_time', 'static', 'template', 'test']

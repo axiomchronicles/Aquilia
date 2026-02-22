@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/artifacts/core.py
+# hypothesis_version: 6.151.9
+
+[0.0, ',', '--short', '1.0', ':', '<none>', 'Artifact', 'ArtifactEnvelope', 'ArtifactIntegrity', 'ArtifactProvenance', 'HEAD', '__format__', '_envelope', 'algorithm', 'aquilia', 'aquilia-artifact', 'build_tool', 'bundle', 'code', 'config', 'created_at', 'created_by', 'custom', 'derived_from', 'di_graph', 'digest', 'git', 'git_sha', 'hostname', 'integrity', 'kind', 'metadata', 'migration', 'model', 'module', 'name', 'payload', 'provenance', 'registry', 'rev-parse', 'route', 'schema_version', 'sha256', 'source_path', 'tags', 'template', 'utf-8', 'version', 'workspace', '…']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/middleware_ext/session_middleware.py
+# hypothesis_version: 6.151.9
+
+['SessionEngine', 'SessionMiddleware', 'di_container', 'request', 'session']

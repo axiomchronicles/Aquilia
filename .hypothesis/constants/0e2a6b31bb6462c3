@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/_uploads.py
+# hypothesis_version: 6.151.9
+
+[200, 1024, '\x00', '"', '*', '.', '/', ':', '<', '>', '?', '\\', '_', 'ab', 'aquilia_uploads', 'filename', 'rb', 'unnamed', 'uploads', 'wb', '|']

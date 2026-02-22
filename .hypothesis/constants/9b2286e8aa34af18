@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/authentication/modules/auth/controllers.py
+# hypothesis_version: 6.151.9
+
+[201, 302, 400, 401, 3600, '/', '/auth/dashboard', '/auth/login', '/dashboard', '/login', '/me', '/refresh', '/register', 'AuthService', 'Authorization', 'Bearer ', 'Invalid credentials', 'access_token', 'auth', 'auth/dashboard.html', 'auth/login.html', 'auth/register.html', 'content-type', 'email', 'error', 'errors', 'refresh_token', 'unknown', 'user', 'user_id']

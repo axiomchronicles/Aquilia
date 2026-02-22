@@ -4,52 +4,131 @@
     ],
     "test_frameworks": [
         "pytest",
-        "pytest-asyncio",
-        "pytest-cov",
-        "hypothesis"
+        "pytest-asyncio"
     ],
     "service_deps": [
-        "in-memory-stores (MemoryIdentityStore, MemoryCredentialStore, MemoryTokenStore, MemoryOAuthClientStore)",
-        "optional: redis (RedisTokenStore - not required for tests)"
+        "sqlite-in-memory"
     ],
     "entrypoints": [
-        "aquilia.server:AquiliaServer",
-        "aquilia.cli.__main__:cli",
-        "aquilia.auth.manager:AuthManager",
-        "aquilia.auth.tokens:TokenManager",
-        "aquilia.auth.oauth:OAuth2Manager"
+        "aquilia.cli.__main__:main",
+        "aquilia.server:AquiliaServer"
     ],
+    "controller_list": [
+        "aquilia.controller.base:Controller",
+        "aquilia.controller.engine:ControllerEngine",
+        "aquilia.controller.factory:ControllerFactory",
+        "aquilia.controller.compiler:CompiledRoute",
+        "aquilia.controller.decorators:RouteDecorator",
+        "aquilia.controller.filters:FilterSet",
+        "aquilia.controller.pagination:Paginator",
+        "aquilia.controller.renderers:Renderer",
+        "aquilia.controller.router:ControllerRouter",
+        "aquilia.controller.openapi:OpenAPIGenerator",
+        "aquilia.controller.metadata:RouteMetadata",
+        "aquilia.sockets.controller:SocketController",
+        "aquilia.mlops.controller:MLOpsController"
+    ],
+    "di_summary": {
+        "containers": [
+            {
+                "name": "Container",
+                "file": "aquilia/di/core.py",
+                "scopes": [
+                    "app",
+                    "request"
+                ]
+            },
+            {
+                "name": "TestContainer",
+                "file": "aquilia/testing/di.py",
+                "scopes": [
+                    "test"
+                ]
+            }
+        ],
+        "providers": [
+            {
+                "name": "ClassProvider",
+                "file": "aquilia/di/providers.py"
+            },
+            {
+                "name": "FactoryProvider",
+                "file": "aquilia/di/providers.py"
+            },
+            {
+                "name": "ValueProvider",
+                "file": "aquilia/di/providers.py"
+            },
+            {
+                "name": "PoolProvider",
+                "file": "aquilia/di/providers.py"
+            },
+            {
+                "name": "AliasProvider",
+                "file": "aquilia/di/providers.py"
+            },
+            {
+                "name": "LazyProxyProvider",
+                "file": "aquilia/di/providers.py"
+            },
+            {
+                "name": "ScopedProvider",
+                "file": "aquilia/di/providers.py"
+            },
+            {
+                "name": "SerializerProvider",
+                "file": "aquilia/di/providers.py"
+            },
+            {
+                "name": "MockProvider",
+                "file": "aquilia/di/testing.py"
+            },
+            {
+                "name": "_MockProvider",
+                "file": "aquilia/testing/di.py"
+            },
+            {
+                "name": "_FactoryProvider",
+                "file": "aquilia/testing/di.py"
+            },
+            {
+                "name": "_SpyProvider",
+                "file": "aquilia/testing/di.py"
+            }
+        ],
+        "scopes": [
+            "singleton",
+            "app",
+            "request",
+            "transient",
+            "pooled",
+            "ephemeral"
+        ],
+        "overrides": [
+            {
+                "name": "override_provider",
+                "file": "aquilia/testing/di.py"
+            },
+            {
+                "name": "override_container",
+                "file": "aquilia/di/testing.py"
+            },
+            {
+                "name": "spy_provider",
+                "file": "aquilia/testing/di.py"
+            },
+            {
+                "name": "TestRegistry.from_manifests",
+                "file": "aquilia/di/testing.py"
+            }
+        ]
+    },
     "auth_endpoints": [
-        "AuthManager.authenticate_password",
-        "AuthManager.authenticate_api_key",
-        "AuthManager.verify_token",
-        "TokenManager.issue_access_token",
-        "TokenManager.validate_access_token",
-        "TokenManager.issue_refresh_token",
-        "TokenManager.validate_refresh_token",
-        "TokenManager.refresh_access_token",
-        "TokenManager.revoke_token",
-        "TokenManager.revoke_tokens_by_identity",
-        "TokenManager.revoke_tokens_by_session",
-        "OAuth2Manager.authorize",
-        "OAuth2Manager.grant_authorization_code",
-        "OAuth2Manager.exchange_authorization_code",
-        "OAuth2Manager.client_credentials_grant",
-        "OAuth2Manager.device_authorization",
-        "OAuth2Manager.device_token",
-        "AuthGuard.__call__",
-        "ScopeGuard.__call__",
-        "RoleGuard.__call__",
-        "AuthzEngine.check_scope",
-        "AuthzEngine.check_role",
-        "AuthzEngine.check_tenant",
-        "AuthzEngine.check_permission",
-        "MFAManager.enroll_totp",
-        "MFAManager.verify_totp",
-        "MFAManager.verify_backup_code"
-    ],
-    "docker_required": false,
-    "python_version": ">=3.11",
-    "asyncio_mode": "auto",
-    "notes": "All tests use in-memory stores. No Docker, Redis, or DB required."
+        "/auth/register",
+        "/auth/login",
+        "/auth/logout",
+        "/auth/me",
+        "/auth/refresh",
+        "/auth/revoke"
+    ]
 }

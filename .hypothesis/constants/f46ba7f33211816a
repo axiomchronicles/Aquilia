@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/artifacts/builder.py
+# hypothesis_version: 6.151.9
+
+[',', '0.0.0', ':', 'Artifact', 'ArtifactBuilder', '_files', '_kind', '_metadata', '_name', '_payload', '_provenance', '_tags', '_version', 'custom', 'data', 'derived_from', 'digest', 'path', 'role', 'size', 'utf-8']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/aggregate.py
+# hypothesis_version: 6.151.9
+
+['*', ',', '-', 'ARRAY_AGG', 'AVG', 'Aggregate', 'ArrayAgg', 'Avg', 'BOOL_AND', 'BOOL_OR', 'BoolAnd', 'BoolOr', 'COUNT', 'Count', 'DISTINCT ', 'GROUP_CONCAT', 'GroupConcat', 'MAX', 'MIN', 'Max', 'Min', 'STDDEV', 'STRING_AGG', 'SUM', 'StdDev', 'StringAgg', 'Sum', 'VARIANCE', 'Variance', 'mysql', 'sqlite']

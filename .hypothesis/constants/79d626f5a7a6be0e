@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/faults/integrations/di.py
+# hypothesis_version: 6.151.9
+
+[' → ', 'CIRCULAR_DEPENDENCY', 'PROVIDER_NOT_FOUND', 'SCOPE_VIOLATION', 'already registered', 'candidates', 'code', 'cycle', 'cycle_length', 'error', 'message', 'metadata', 'reason', 'suggestions', 'tag', 'token', 'trace_id', 'unknown']

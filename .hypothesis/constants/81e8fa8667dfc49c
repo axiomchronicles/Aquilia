@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/testing/config.py
+# hypothesis_version: 6.151.9
+
+['.', '__', '_base', '_merged', '_overrides', 'auth', 'cache', 'integrations.auth', 'integrations.cache', 'integrations.mail', 'mail', 'sessions', 'templates']
