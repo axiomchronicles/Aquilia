@@ -150,6 +150,10 @@ class SerializerMeta(type):
         # Collect fields from this class
         declared: list[tuple[str, SerializerField]] = []
         for key, value in list(namespace.items()):
+            if isinstance(value, type) and issubclass(value, SerializerField):
+                # Auto-instantiate if a class was provided (e.g. name = NameSerializer)
+                value = value()
+            
             if isinstance(value, SerializerField):
                 declared.append((key, value))
                 namespace.pop(key)
@@ -178,7 +182,7 @@ class SerializerMeta(type):
 # Serializer
 # ============================================================================
 
-class Serializer(metaclass=SerializerMeta):
+class Serializer(SerializerField, metaclass=SerializerMeta):
     """
     Base serializer with declarative field-based validation.
 
@@ -205,22 +209,23 @@ class Serializer(metaclass=SerializerMeta):
         """Override in subclasses for configuration."""
         pass
 
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
+        # Automatically delegate to ListSerializer if many=True
+        if kwargs.pop("many", False):
+            return cls.many(*args, **kwargs)
+        return super().__new__(cls)
+
     def __init__(
         self,
         instance: Any = None,
         data: Any = empty,
         *,
-        many: bool = False,
         partial: bool = False,
         context: dict[str, Any] | None = None,
         **kwargs: Any,
     ):
-        if many:
-            # Delegate to ListSerializer — this __init__ won't run further
-            raise TypeError(
-                "Use `ListSerializer` or the classmethod `Serializer.many_init()` "
-                "for many=True.  Or use `MySerializer.many(data=[...])` shortcut."
-            )
+        # Initialize SerializerField base
+        super().__init__(**kwargs)
 
         self.instance = instance
         self.initial_data = data
@@ -402,10 +407,11 @@ class Serializer(metaclass=SerializerMeta):
             ctx["container"] = container
 
         data = {}
-        content_type = request.content_type() or ""
+        content_type = request.content_type() if hasattr(request, "content_type") else ""
+        is_json = request.is_json() if hasattr(request, "is_json") else False
         
         # 1. JSON handling
-        if request.is_json() or content_type.startswith("application/json"):
+        if is_json or content_type.startswith("application/json"):
             try:
                 data = await request.json()
             except Exception:
@@ -590,14 +596,10 @@ class Serializer(metaclass=SerializerMeta):
         """Return validation errors."""
         return self._errors
 
-    def run_validation(self, data: Any) -> dict[str, Any]:
+    def to_internal_value(self, data: Any) -> dict[str, Any]:
         """
-        Full validation pipeline:
-        1. Check data is a dict
-        2. Per-field: to_internal_value → validate → run_validators
-        3. Cross-field: validate_{field}() hooks
-        4. Object-level: validate() hook
-        5. DI-aware defaults are resolved from container context
+        Per-field validation and extraction.
+        When used as a nested serializer field, this does the parsing.
         """
         if not isinstance(data, Mapping):
             raise ValidationFault(
@@ -605,7 +607,7 @@ class Serializer(metaclass=SerializerMeta):
             )
 
         result: dict[str, Any] = {}
-        errors: dict[str, list[str]] = {}
+        errors: dict[str, Any] = {}
 
         # --- Per-field validation ---
         for field_name, field in self.fields.items():
@@ -673,6 +675,8 @@ class Serializer(metaclass=SerializerMeta):
                 field.run_validators(value)
                 value = field.validate(value)
                 result[field_name] = value
+            except ValidationFault as exc:
+                errors[field_name] = exc.errors
             except (ValueError, TypeError) as exc:
                 errors[field_name] = [str(exc)]
 
@@ -687,22 +691,45 @@ class Serializer(metaclass=SerializerMeta):
             if method is not None:
                 try:
                     result[field_name] = method(self, result[field_name])
+                except ValidationFault as exc:
+                    errors[field_name] = exc.errors
                 except (ValueError, TypeError) as exc:
                     errors.setdefault(field_name, []).append(str(exc))
 
         if errors:
             raise ValidationFault(errors=errors)
+            
+        return result
 
-        # --- Object-level validation ---
+    def run_validation(self, data: Any) -> dict[str, Any]:
+        """
+        Top-level validation pipeline. Calls to_internal_value, then validators and validate hooks.
+        """
+        # 1. Per-field and custom field hooks
+        value = self.to_internal_value(data)
+        
+        errors: dict[str, Any] = {}
+        
+        # 2. Run object-level validators
         try:
-            result = self.validate(result)
+            self.run_validators(value)
         except (ValueError, TypeError) as exc:
             errors.setdefault("__all__", []).append(str(exc))
+        except ValidationFault as exc:
+            errors.update(exc.errors)
+
+        # 3. Object-level validation
+        try:
+            value = self.validate(value)
+        except (ValueError, TypeError) as exc:
+            errors.setdefault("__all__", []).append(str(exc))
+        except ValidationFault as exc:
+            # If validate() raises a structured fault
+            errors.update(exc.errors)
 
         if errors:
             raise ValidationFault(errors=errors)
-
-        return result
+        return value
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         """
@@ -751,6 +778,10 @@ class Serializer(metaclass=SerializerMeta):
     async def save(self, **kwargs: Any) -> Any:
         """
         Persist the object using ``create()`` or ``update()``.
+
+        Note: When using Intent Serializers, persistence should be
+        managed in the Service layer. The `.save()` method is primarily
+        for ModelSerializers.
 
         Args:
             **kwargs: Extra fields to merge into validated_data.
@@ -817,6 +848,23 @@ class Serializer(metaclass=SerializerMeta):
 
         return schema
 
+    # ── Attribute Access (DTO Pattern) ───────────────────────────────────
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        Proxy attribute access to validated_data.
+        Provides elegant dot-notation access to mapped fields (e.g. data.username).
+        Must only be called after `is_valid()` has run successfully.
+        """
+        if name.startswith("_") or name in ("fields", "initial_data", "instance", "partial", "context"):
+            raise AttributeError(name)
+            
+        if getattr(self, "_validated_data", empty) is not empty:
+            if name in self._validated_data:
+                return self._validated_data[name]
+                
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+
     # ── Representation ───────────────────────────────────────────────────
 
     def __repr__(self) -> str:
@@ -829,7 +877,7 @@ class Serializer(metaclass=SerializerMeta):
 # ListSerializer
 # ============================================================================
 
-class ListSerializer:
+class ListSerializer(SerializerField):
     """
     Handles serialization/deserialization of lists of objects.
 
@@ -848,7 +896,7 @@ class ListSerializer:
     def __init__(
         self,
         *,
-        child: Serializer,
+        child: Any,
         instance: Any = None,
         data: Any = empty,
         partial: bool = False,
@@ -856,12 +904,13 @@ class ListSerializer:
         **kwargs: Any,
     ):
         self.child = child
+        super().__init__(**kwargs)
         self.instance = instance
         self.initial_data = data
         self.partial = partial
         self.context = context or {}
         self._validated_data: Any = empty
-        self._errors: list[dict[str, list[str]]] = []
+        self._errors: Any = []
         self._data: Any = None
 
     @property
@@ -884,6 +933,39 @@ class ListSerializer:
             for item in instances
         ]
 
+    def to_internal_value(self, data: Any) -> list:
+        """Process a list of input dicts."""
+        if not isinstance(data, (list, tuple)):
+            raise ValidationFault(errors={"__all__": ["Expected a list of items."]})
+
+        results = []
+        errors = []
+        has_errors = False
+
+        for idx, item in enumerate(data):
+            # Create a fresh child for each item
+            child = self.child.__class__(
+                data=item, 
+                partial=self.partial, 
+                context=self.context
+            )
+            try:
+                results.append(child.run_validation(item))
+                errors.append({})
+            except ValidationFault as exc:
+                has_errors = True
+                results.append({})
+                errors.append(exc.errors)
+            except (ValueError, TypeError) as exc:
+                has_errors = True
+                results.append({})
+                errors.append({"__all__": [str(exc)]})
+
+        if has_errors:
+            raise ValidationFault(errors=errors)
+
+        return results
+
     def is_valid(self, *, raise_fault: bool = False) -> bool:
         """Validate a list of input dicts."""
         if self.initial_data is empty:
@@ -892,38 +974,17 @@ class ListSerializer:
                 message="Cannot call is_valid() without passing `data=`.",
             )
 
-        if not isinstance(self.initial_data, (list, tuple)):
-            self._errors = [{"__all__": ["Expected a list of items."]}]
-            if raise_fault:
-                raise ValidationFault(errors={"__all__": ["Expected a list of items."]})
-            return False
-
-        results: list[dict] = []
-        errors: list[dict[str, list[str]]] = []
-        has_errors = False
-
-        for idx, item in enumerate(self.initial_data):
-            child = self.child.__class__(data=item, partial=self.partial, context=self.context)
-            if child.is_valid():
-                results.append(child.validated_data)
-                errors.append({})
-            else:
-                has_errors = True
-                results.append({})
-                errors.append(child.errors)
-
-        self._errors = errors
-        if not has_errors:
-            self._validated_data = results
-        else:
+        self._errors = []
+        try:
+            self._validated_data = self.to_internal_value(self.initial_data)
+        except ValidationFault as exc:
+            self._errors = exc.errors
             self._validated_data = empty
 
-        if has_errors and raise_fault:
-            raise ValidationFault(
-                errors={"__all__": [f"Item {i}: {e}" for i, e in enumerate(errors) if e]},
-            )
+        if self._errors and raise_fault:
+            raise ValidationFault(errors={"__all__": [f"Item {i}: {e}" for i, e in enumerate(self._errors) if e]})
 
-        return not has_errors
+        return not bool(self._errors)
 
     @property
     def validated_data(self) -> list[dict[str, Any]]:

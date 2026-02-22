@@ -166,10 +166,16 @@ class ControllerEngine:
         if is_simple:
             # Direct call — skip _bind_parameters, lifecycle hooks, serializer
             try:
-                if path_params:
-                    result = await self._safe_call(handler_method, ctx, **path_params)
-                else:
-                    result = await self._safe_call(handler_method, ctx)
+                # Signature-aware call
+                sig = self._get_cached_signature(handler_method)
+                has_ctx = "ctx" in sig.parameters or "context" in sig.parameters
+                
+                final_kwargs = {**path_params}
+                if has_ctx:
+                    ctx_key = "ctx" if "ctx" in sig.parameters else "context"
+                    final_kwargs[ctx_key] = ctx
+                
+                result = await self._safe_call(handler_method, **final_kwargs)
                 return self._to_response(result)
             except Exception as e:
                 self.logger.error(
@@ -217,7 +223,14 @@ class ControllerEngine:
             if has_on_request:
                 await self._safe_call(controller.on_request, ctx)
 
-            result = await self._safe_call(handler_method, ctx, **kwargs)
+            # Signature-aware call
+            sig = self._get_cached_signature(handler_method)
+            has_ctx = "ctx" in sig.parameters or "context" in sig.parameters
+            if has_ctx:
+                ctx_key = "ctx" if "ctx" in sig.parameters else "context"
+                kwargs[ctx_key] = ctx
+
+            result = await self._safe_call(handler_method, **kwargs)
             result = await self._apply_filters_and_pagination(result, route_metadata, request)
             result = self._apply_response_serializer(result, route_metadata, ctx)
             result = self._apply_response_blueprint(result, route_metadata, ctx)
@@ -460,8 +473,8 @@ class ControllerEngine:
         for param in route_metadata.parameters:
             param_name = param.name
             
-            # Skip ctx (already handled)
-            if param_name == "ctx":
+            # Skip ctx/context (injected directly in execute)
+            if param_name in ("ctx", "context"):
                 continue
             
             # ── FastAPI-style Serializer injection ───────────────────────
@@ -1003,6 +1016,21 @@ class ControllerEngine:
     # Cache for coroutine function checks
     _is_coro_cache: Dict[int, bool] = {}  # id(func) -> is_coroutine
     
+    def _get_cached_signature(self, func: Any) -> inspect.Signature:
+        """Get and cache function signature."""
+        # For bound methods, use the underlying function to get a stable ID
+        # and avoid "self" issues if any.
+        target = func
+        if hasattr(func, "__func__"):
+            target = func.__func__
+            
+        fid = id(target)
+        sig = ControllerEngine._signature_cache.get(fid)
+        if sig is None:
+            sig = inspect.signature(target)
+            ControllerEngine._signature_cache[fid] = sig
+        return sig
+
     async def _safe_call(self, func: Any, *args, **kwargs) -> Any:
         """Safely call function (sync or async)."""
         fid = id(func)

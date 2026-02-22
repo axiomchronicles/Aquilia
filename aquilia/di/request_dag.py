@@ -228,9 +228,9 @@ class RequestDAG:
                 self._request, container=self._container
             )
             serializer.is_valid(raise_fault=True)
-            if pname == "serializer" or pname.endswith("_serializer") or pname.endswith("_ser"):
-                return serializer
-            return serializer.validated_data
+            # DTO Pattern: Always inject the Serializer instance itself.
+            # The injected object can be queried via dot-notation (data.username).
+            return serializer
 
         # No Dep/extractor annotation → resolve from container by type
         return await self._resolve_from_container(ptype, tag=None)

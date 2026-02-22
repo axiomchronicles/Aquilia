@@ -17,10 +17,9 @@ def generate_openapi_params(pattern: CompiledPattern) -> List[Dict[str, Any]]:
 
 def generate_openapi_path(pattern: CompiledPattern) -> str:
     """
-    Convert AquilaPattern to OpenAPI path template.
-
+    Convert aquilia pattern to OpenAPI path template format.
     Example:
-        /users/«id:int» -> /users/{id}
+        /users/<id:int> -> /users/{id}
     """
     parts = []
 

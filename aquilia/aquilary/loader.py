@@ -313,6 +313,19 @@ class ManifestLoader:
             middlewares = data.get("middlewares", [])
             depends_on = data.get("depends_on", [])
             
+            # Additional config sections
+            database = None
+            if "database" in data:
+                from aquilia.manifest import DatabaseConfig
+                from dataclasses import fields
+                db_data = data["database"]
+                def get_valid_data(db_data, db_config):
+                    from dataclasses import fields
+                    valid_keys = {f.name for f in fields(db_config)}
+                    return {k: v for k, v in db_data.items() if k in valid_keys}
+                
+                database = DatabaseConfig(**get_valid_data(db_data, DatabaseConfig))
+            
             @staticmethod
             def on_startup():
                 pass

@@ -34,6 +34,7 @@ from ..fields_module import (
     # Numeric
     AutoField,
     BigAutoField,
+    SmallAutoField,
     IntegerField,
     BigIntegerField,
     SmallIntegerField,
@@ -43,6 +44,7 @@ from ..fields_module import (
     DecimalField,
     # Text
     CharField,
+    VarcharField,
     TextField,
     SlugField,
     EmailField,
@@ -155,6 +157,7 @@ __all__ = [
     # Numeric
     "AutoField",
     "BigAutoField",
+    "SmallAutoField",
     "IntegerField",
     "BigIntegerField",
     "SmallIntegerField",
@@ -164,6 +167,7 @@ __all__ = [
     "DecimalField",
     # Text
     "CharField",
+    "VarcharField",
     "TextField",
     "SlugField",
     "EmailField",

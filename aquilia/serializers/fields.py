@@ -105,6 +105,7 @@ class SerializerField:
         help_text: str = "",
         validators: list[Callable] | None = None,
         error_messages: dict[str, str] | None = None,
+        **kwargs: Any,
     ):
         # Auto-derive required: False if default is set or read_only
         if required is None:

@@ -55,8 +55,9 @@ def generate_lsp_metadata(
 def generate_hover_docs() -> Dict[str, str]:
     """Generate hover documentation for pattern syntax."""
     return {
-        "«»": "Token parameter: «name:type|constraints=default@transform»",
-        "[]": "Optional segment group",
+        "<>": "Token parameter: <name:type|constraints=default@transform>",
+        "[": "Optional group: [/segment]",
+        "]": "End of optional group",
         "*": "Splat (multi-segment capture)",
         ":": "Type annotation",
         "|": "Constraint separator",
@@ -73,34 +74,40 @@ def generate_autocomplete_snippets() -> List[Dict[str, Any]]:
     """Generate autocomplete snippets for VS Code."""
     snippets = [
         {
-            "label": "token-int",
-            "insertText": "«${1:name}:int»",
-            "description": "Integer parameter",
+            "label": "Integer parameter",
+            "kind": CompletionItemKind.Snippet,
+            "insertText": "<${1:name}:int>",
+            "documentation": "Add an integer path parameter",
         },
         {
-            "label": "token-str",
-            "insertText": "«${1:name}:str»",
-            "description": "String parameter",
+            "label": "String parameter",
+            "kind": CompletionItemKind.Snippet,
+            "insertText": "<${1:name}:str>",
+            "documentation": "Add a string path parameter",
         },
         {
-            "label": "token-uuid",
-            "insertText": "«${1:name}:uuid»",
-            "description": "UUID parameter",
+            "label": "UUID parameter",
+            "kind": CompletionItemKind.Snippet,
+            "insertText": "<${1:name}:uuid>",
+            "documentation": "Add a UUID parameter",
         },
         {
-            "label": "token-slug",
-            "insertText": "«${1:name}:slug»",
-            "description": "Slug parameter",
+            "label": "Slug parameter",
+            "kind": CompletionItemKind.Snippet,
+            "insertText": "<${1:name}:slug>",
+            "documentation": "Add a slug parameter",
         },
         {
-            "label": "token-constrained",
-            "insertText": "«${1:name}:${2:type}|${3:constraint}»",
-            "description": "Parameter with constraint",
+            "label": "Parameter with constraint",
+            "kind": CompletionItemKind.Snippet,
+            "insertText": "<${1:name}:${2:type}|${3:constraint}>",
+            "documentation": "Add a parameter with constraints",
         },
         {
-            "label": "token-default",
-            "insertText": "«${1:name}:${2:type}=${3:default}»",
-            "description": "Parameter with default value",
+            "label": "Optional parameter with default",
+            "kind": CompletionItemKind.Snippet,
+            "insertText": "<${1:name}:${2:type}=${3:default}>",
+            "documentation": "Add an optional parameter with a default value",
         },
         {
             "label": "optional-group",
@@ -178,7 +185,7 @@ def generate_vscode_extension(output_dir: Path):
     snippets = {
         "AquilaPattern Token": {
             "prefix": "aptoken",
-            "body": ["«${1:name}:${2:int}»"],
+            "body": ["<${1:name}:${2:int}>"],
             "description": "AquilaPattern token parameter",
         },
         "AquilaPattern Optional": {

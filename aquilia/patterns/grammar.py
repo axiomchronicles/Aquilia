@@ -8,7 +8,7 @@ Grammar Specification
 <segment-list> ::= <segment> ( "/" <segment> )*
 <segment> ::= <static> | <token> | <optional> | <splat>
 <static> ::= <char>+
-<token> ::= "«" <ident> [ ":" <type> ] [ "|" <constraint-list> ] [ "=" <default> ] [ "@" <transform> ] "»"
+<token> ::= "<" <ident> [ ":" <type> ] [ "|" <constraint-list> ] [ "=" <default> ] [ "@" <transform> ] ">"
 <optional> ::= "[" <segment-list> "]"
 <splat> ::= "*" <ident> [ ":" <type> ]
 <constraint-list> ::= <constraint> ( "|" <constraint> )*
@@ -36,25 +36,25 @@ Built-in Types
 
 Token Examples
 ==============
-«id:int»                          # Single segment, cast to int
-«slug:slug|re=^[a-z0-9-]+$»      # Slug with regex constraint
-«year:int|min=1900|max=2100»     # Integer with range
-«tag:str|in=(python,rust,go)»    # Enum constraint
-«data:json»                       # JSON object
+<id:int>                          # Single segment, cast to int
+<slug:slug|re=^[a-z0-9-]+$>      # Slug with regex constraint
+<year:int|min=1900|max=2100>     # Integer with range
+<tag:str|in=(python,rust,go)>    # Enum constraint
+<data:json>                       # JSON object
 *path                             # Multi-segment capture
-*path:path                        # Multi-segment as string
+<path>                            # Multi-segment capture
 
 Complete Pattern Examples
 =========================
-/users/«id:int»
+/users/<id:int>
 /files/*path
-/articles[/«year:int»[/«month:int»]]
+/articles[/<year:int>[/<month:int>]]
 /search?query:str|min=1&limit:int=10
-/api/«v:ver@semver»/items
-/blog/«slug:str|re=^[a-z0-9-]+$»
-/data/«id:uuid»
-/archive/«date:str|re=^\d{4}-\d{2}-\d{2}$»
-/products[/«category:slug»]/«id:int»
+/api/<v:ver@semver>/items
+/blog/<slug:str|re=^[a-z0-9-]+$>
+/data/<id:uuid>
+/archive/<date:str|re=^\d{4}-\d{2}-\d{2}$>
+/products[/<category:slug>]/<id:int>
 """
 
 EBNF_GRAMMAR = """
@@ -62,7 +62,7 @@ pattern        = "/" segment_list [ "/" ] [ "?" query_list ]
 segment_list   = segment ( "/" segment )*
 segment        = static | token | optional | splat
 static         = char+
-token          = "«" ident [ ":" type ] [ "|" constraint_list ] [ "=" default ] [ "@" transform ] "»"
+token          = "<" ident [ ":" type ] [ "|" constraint_list ] [ "=" default ] [ "@" transform ] ">"
 optional       = "[" segment_list "]"
 splat          = "*" ident [ ":" type ]
 constraint_list = constraint ( "|" constraint )*
@@ -80,8 +80,8 @@ default        = string_literal | number
 # Token types for the lexer
 TOKEN_TYPES = [
     "SLASH",           # /
-    "LGUIL",           # «
-    "RGUIL",           # »
+    "LANGLE",          # <
+    "RANGLE",          # >
     "LBRACKET",        # [
     "RBRACKET",        # ]
     "LPAREN",          # (

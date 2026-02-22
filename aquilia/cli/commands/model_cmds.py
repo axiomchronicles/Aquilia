@@ -149,6 +149,7 @@ def _discover_models(
     search_dirs: Optional[List[str]] = None,
     app: Optional[str] = None,
     verbose: bool = False,
+    ignore_errors: bool = False,
 ) -> list:
     """
     Discover all Model subclasses in the workspace.
@@ -205,6 +206,13 @@ def _discover_models(
                             )
                         )
         except Exception as e:
+            if not ignore_errors:
+                import traceback
+                error_details = traceback.format_exc()
+                click.secho(f"\nError: Failed to import or process model file: {py_path}", fg="red", bold=True)
+                click.secho(f"{error_details}", fg="red")
+                raise click.ClickException(f"Failed to load model from {py_path}. Please fix the syntax/import errors before continuing.")
+
             if verbose:
                 click.echo(
                     click.style(f"  ! Failed to import {py_path}: {e}", fg="yellow")

@@ -156,7 +156,7 @@ class ControllerCompiler:
         # Robust join
         full_path = join_paths(base, ctrl_prefix, route_path)
         
-        # Convert to pattern format (« » style)
+        # Convert to pattern format (< > style)
         pattern_path = self._convert_to_pattern_syntax(full_path, route_metadata)
         
         # Parse pattern
@@ -193,8 +193,8 @@ class ControllerCompiler:
         Convert path with parameters to pattern syntax.
         
         Converts:
-        - /users/{id} -> /users/«id:int»
-        - /posts/{slug} -> /posts/«slug:str»
+        - /users/{id} -> /users/<id:int>
+        - /posts/{slug} -> /posts/<slug:str>
         
         Uses parameter metadata to determine types.
         """
@@ -208,18 +208,18 @@ class ControllerCompiler:
                 type_str = self._python_type_to_pattern_type(param.type)
                 param_map[param.name] = type_str
         
-        # Replace {param} with «param:type»
+        # Replace {param} with <param:type>
         import re
         def replace_param(match):
             param_name = match.group(1)
             # Check for type annotation in original: {id:int}
             if ":" in param_name:
                 name, type_hint = param_name.split(":", 1)
-                return f"«{name}:{type_hint}»"
+                return f"<{name}:{type_hint}>"
             else:
                 # Use type from metadata
                 param_type = param_map.get(param_name, "str")
-                return f"«{param_name}:{param_type}»"
+                return f"<{param_name}:{param_type}>"
         
         pattern = re.sub(r'\{([^}]+)\}', replace_param, pattern)
         
@@ -316,9 +316,9 @@ class ControllerCompiler:
         if len(parts1) != len(parts2):
             return False
         
-        # Helper to extract type from "«name:type»" or return None if static
+        # Helper to extract type from "<name:type>" or return None if static
         def get_segment_info(segment):
-            if segment.startswith("«") and segment.endswith("»"):
+            if segment.startswith("<") and segment.endswith(">"):
                 content = segment[1:-1]
                 if ":" in content:
                     _, type_str = content.split(":", 1)
