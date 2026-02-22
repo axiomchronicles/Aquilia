@@ -74,10 +74,10 @@ mlops-all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/aquilia"
-Documentation = "https://github.com/yourusername/aquilia/docs"
-Repository = "https://github.com/yourusername/aquilia"
-Issues = "https://github.com/yourusername/aquilia/issues"
+Homepage = "https://github.com/axiomchronicles/aquilia"
+Documentation = "https://github.com/axiomchronicles/aquilia/docs"
+Repository = "https://github.com/axiomchronicles/aquilia"
+Issues = "https://github.com/axiomchronicles/aquilia/issues"
 
 [project.scripts]
 aq = "aquilia.cli.__main__:main"
