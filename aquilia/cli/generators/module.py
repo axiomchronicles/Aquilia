@@ -292,7 +292,7 @@ class ModuleGenerator:
                     item = await self.service.create(data)
                     return Response.json(item, status=201)
                 
-                @GET("/«id:int»")
+                @GET("/<id:int>")
                 async def get_{self.singular}(self, ctx: RequestCtx, id: int):
                     """
                     Get a {self.singular} by ID.
@@ -306,7 +306,7 @@ class ModuleGenerator:
                     
                     return Response.json(item)
                 
-                @PUT("/«id:int»")
+                @PUT("/<id:int>")
                 async def update_{self.singular}(self, ctx: RequestCtx, id: int):
                     """
                     Update a {self.singular} by ID.
@@ -323,7 +323,7 @@ class ModuleGenerator:
                     
                     return Response.json(item)
                 
-                @DELETE("/«id:int»")
+                @DELETE("/<id:int>")
                 async def delete_{self.singular}(self, ctx: RequestCtx, id: int):
                     """
                     Delete a {self.singular} by ID.
@@ -526,7 +526,7 @@ class ModuleGenerator:
                         "controller": "Test{self.name.capitalize()}Controller"
                     }})
                 
-                @GET("/echo/«message:str»")
+                @GET("/echo/<message:str>")
                 async def echo(self, ctx: RequestCtx, message: str):
                     """Echo back a message with path parameter."""
                     return Response.json({{
