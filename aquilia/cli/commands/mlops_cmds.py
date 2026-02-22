@@ -53,7 +53,7 @@ def pack_save(model_path, name, version, framework, env_lock, output, sign_key):
 
     Examples:
       aq pack save model.pt -n my-model -V v1.0.0 -f pytorch
-      aq pack save model.onnx -n my-model -V v2.0.0 -f onnx --env-lock requirements.txt
+      aq pack save model.onnx -n my-model -V v1.0.0 -f onnx --env-lock requirements.txt
     """
     from aquilia.mlops.pack.builder import ModelpackBuilder
 

@@ -62,7 +62,7 @@ class KeyDescriptor:
     
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
-        return {
+        res = {
             "kid": self.kid,
             "algorithm": self.algorithm,
             "public_key": self.public_key_pem,
@@ -71,6 +71,9 @@ class KeyDescriptor:
             "retire_after": self.retire_after.isoformat() if self.retire_after else None,
             "revoked_at": self.revoked_at.isoformat() if self.revoked_at else None,
         }
+        if self.private_key_pem:
+            res["private_key"] = self.private_key_pem
+        return res
     
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> KeyDescriptor:
@@ -79,6 +82,7 @@ class KeyDescriptor:
             kid=data["kid"],
             algorithm=data["algorithm"],
             public_key_pem=data["public_key"],
+            private_key_pem=data.get("private_key"),
             status=data.get("status", KeyStatus.ACTIVE),
             created_at=datetime.fromisoformat(data["created_at"]),
             retire_after=datetime.fromisoformat(data["retire_after"]) if data.get("retire_after") else None,

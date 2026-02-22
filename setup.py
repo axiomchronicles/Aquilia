@@ -27,7 +27,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Aquilia Contributors",
-    url="https://github.com/yourusername/aquilia",
+    url="https://github.com/axiomchronicles/aquilia",
     packages=find_packages(exclude=["tests", "tests.*", "examples", "docs"]),
     include_package_data=True,
     python_requires=">=3.10",
@@ -66,8 +66,8 @@ setup(
     ],
     keywords="web framework async asgi http api",
     project_urls={
-        "Documentation": "https://github.com/yourusername/aquilia/docs",
-        "Source": "https://github.com/yourusername/aquilia",
-        "Issues": "https://github.com/yourusername/aquilia/issues",
+        "Documentation": "https://github.com/`yourusername`/aquilia/docs",
+        "Source": "https://github.com/`yourusername`/aquilia",
+        "Issues": "https://github.com/`yourusername`/aquilia/issues",
     },
 )

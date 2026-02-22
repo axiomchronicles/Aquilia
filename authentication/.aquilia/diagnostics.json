@@ -1,0 +1,108 @@
+{
+  "schema_version": 2,
+  "captured_at": "2026-02-20T09:42:16.351815+00:00",
+  "faults": {
+    "active": true,
+    "total_faults": 0,
+    "active_circuit_breakers": 0,
+    "error_budget_remaining": null
+  },
+  "middleware": {
+    "count": 10,
+    "layers": [
+      {
+        "name": "exception",
+        "priority": 1,
+        "scope": "global"
+      },
+      {
+        "name": "faults",
+        "priority": 2,
+        "scope": "global"
+      },
+      {
+        "name": "request_scope",
+        "priority": 5,
+        "scope": "global"
+      },
+      {
+        "name": "static_files",
+        "priority": 6,
+        "scope": "global"
+      },
+      {
+        "name": "security_headers",
+        "priority": 7,
+        "scope": "global"
+      },
+      {
+        "name": "request_id",
+        "priority": 10,
+        "scope": "global"
+      },
+      {
+        "name": "rate_limit",
+        "priority": 12,
+        "scope": "global"
+      },
+      {
+        "name": "session",
+        "priority": 15,
+        "scope": "global"
+      },
+      {
+        "name": "logging",
+        "priority": 20,
+        "scope": "global"
+      },
+      {
+        "name": "templates",
+        "priority": 25,
+        "scope": "global"
+      }
+    ]
+  },
+  "websockets": {
+    "active": true,
+    "handler_count": 0,
+    "active_connections": 0
+  },
+  "effects": {
+    "active": true,
+    "provider_count": 0,
+    "provider_names": []
+  },
+  "artifacts": {
+    "count": 0,
+    "names": []
+  },
+  "sessions": {
+    "active": true,
+    "backend": "SessionEngine"
+  },
+  "auth": {
+    "active": false
+  },
+  "templates": {
+    "active": true,
+    "engine": "TemplateEngine",
+    "search_paths": []
+  },
+  "mail": {
+    "active": false
+  },
+  "cache": {
+    "active": false
+  },
+  "database": {
+    "active": true,
+    "driver": "sqlite"
+  },
+  "process": {
+    "pid": 12396,
+    "python_version": "3.14.0",
+    "max_rss_mb": 72.58,
+    "user_time_s": 0.646,
+    "system_time_s": 0.08
+  }
+}

@@ -1,0 +1,395 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-02-20T09:38:16.082090+00:00",
+  "total_providers": 32,
+  "container_count": 2,
+  "containers": {
+    "dashboard": {
+      "scope": "app",
+      "provider_count": 16,
+      "providers": [
+        {
+          "name": "dashboard_config",
+          "token": "Config",
+          "scope": "singleton",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "DashboardService",
+          "token": "modules.dashboard.services.DashboardService",
+          "scope": "app",
+          "tags": [],
+          "module": "modules.dashboard.services",
+          "qualname": "DashboardService",
+          "line": 12,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.faults.engine.FaultEngine",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.effects.EffectRegistry",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "session_engine_instance",
+          "token": "aquilia.sessions.engine.SessionEngine",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "TemplateLoaderProvider",
+          "token": "aquilia.templates.di_providers.TemplateLoaderProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "TemplateLoaderProvider",
+          "line": 48,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "BytecodeCacheProvider",
+          "token": "aquilia.templates.di_providers.BytecodeCacheProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "BytecodeCacheProvider",
+          "line": 100,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "TemplateSandboxProvider",
+          "token": "aquilia.templates.di_providers.TemplateSandboxProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "TemplateSandboxProvider",
+          "line": 136,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "TemplateEngineProvider",
+          "token": "aquilia.templates.di_providers.TemplateEngineProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "TemplateEngineProvider",
+          "line": 167,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "TemplateManagerProvider",
+          "token": "aquilia.templates.di_providers.TemplateManagerProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "TemplateManagerProvider",
+          "line": 241,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.templates.engine.TemplateEngine",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.templates.loader.TemplateLoader",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.templates.bytecode_cache.BytecodeCache",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.templates.security.TemplateSandbox",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.models.base.ModelRegistry",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.db.engine.AquiliaDatabase",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        }
+      ],
+      "has_parent": false,
+      "cached_count": 1
+    },
+    "auth": {
+      "scope": "app",
+      "provider_count": 16,
+      "providers": [
+        {
+          "name": "auth_config",
+          "token": "Config",
+          "scope": "singleton",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "AuthService",
+          "token": "modules.auth.services.AuthService",
+          "scope": "app",
+          "tags": [],
+          "module": "modules.auth.services",
+          "qualname": "AuthService",
+          "line": 73,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.faults.engine.FaultEngine",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.effects.EffectRegistry",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "session_engine_instance",
+          "token": "aquilia.sessions.engine.SessionEngine",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "TemplateLoaderProvider",
+          "token": "aquilia.templates.di_providers.TemplateLoaderProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "TemplateLoaderProvider",
+          "line": 48,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "BytecodeCacheProvider",
+          "token": "aquilia.templates.di_providers.BytecodeCacheProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "BytecodeCacheProvider",
+          "line": 100,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "TemplateSandboxProvider",
+          "token": "aquilia.templates.di_providers.TemplateSandboxProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "TemplateSandboxProvider",
+          "line": 136,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "TemplateEngineProvider",
+          "token": "aquilia.templates.di_providers.TemplateEngineProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "TemplateEngineProvider",
+          "line": 167,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "TemplateManagerProvider",
+          "token": "aquilia.templates.di_providers.TemplateManagerProvider",
+          "scope": "app",
+          "tags": [],
+          "module": "aquilia.templates.di_providers",
+          "qualname": "TemplateManagerProvider",
+          "line": 241,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.templates.engine.TemplateEngine",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.templates.loader.TemplateLoader",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.templates.bytecode_cache.BytecodeCache",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.templates.security.TemplateSandbox",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.models.base.ModelRegistry",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        },
+        {
+          "name": "value",
+          "token": "aquilia.db.engine.AquiliaDatabase",
+          "scope": "app",
+          "tags": [],
+          "module": "",
+          "qualname": "",
+          "line": null,
+          "version": null,
+          "allow_lazy": false
+        }
+      ],
+      "has_parent": false,
+      "cached_count": 0
+    }
+  },
+  "token_index": {
+    "Config": "auth",
+    "modules.dashboard.services.DashboardService": "dashboard",
+    "aquilia.faults.engine.FaultEngine": "auth",
+    "aquilia.effects.EffectRegistry": "auth",
+    "aquilia.sessions.engine.SessionEngine": "auth",
+    "aquilia.templates.di_providers.TemplateLoaderProvider": "auth",
+    "aquilia.templates.di_providers.BytecodeCacheProvider": "auth",
+    "aquilia.templates.di_providers.TemplateSandboxProvider": "auth",
+    "aquilia.templates.di_providers.TemplateEngineProvider": "auth",
+    "aquilia.templates.di_providers.TemplateManagerProvider": "auth",
+    "aquilia.templates.engine.TemplateEngine": "auth",
+    "aquilia.templates.loader.TemplateLoader": "auth",
+    "aquilia.templates.bytecode_cache.BytecodeCache": "auth",
+    "aquilia.templates.security.TemplateSandbox": "auth",
+    "aquilia.models.base.ModelRegistry": "auth",
+    "aquilia.db.engine.AquiliaDatabase": "auth",
+    "modules.auth.services.AuthService": "auth"
+  }
+}

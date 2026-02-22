@@ -1,0 +1,1434 @@
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.39, "ts": "2026-02-19T15:43:19.006085+00:00", "pid": 46815}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.97, "ts": "2026-02-19T15:43:19.007185+00:00", "pid": 46815}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.78, "ts": "2026-02-19T15:43:19.008017+00:00", "pid": 46815}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:43:19.008065+00:00", "pid": 46815}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:43:19.008104+00:00", "pid": 46815}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.07, "ts": "2026-02-19T15:43:19.008135+00:00", "pid": 46815}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.3, "ts": "2026-02-19T15:43:19.008464+00:00", "pid": 46815}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-19T15:43:19.008513+00:00", "pid": 46815}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 2.87, "ts": "2026-02-19T15:43:19.029079+00:00", "pid": 46815}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:45:15.024849+00:00", "pid": 46815}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:45:15.026636+00:00", "pid": 46815}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.13, "ts": "2026-02-19T15:45:15.026937+00:00", "pid": 46815}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-19T15:45:15.027294+00:00", "pid": 46815}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T15:45:15.027522+00:00", "pid": 46815}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-19T15:45:15.027777+00:00", "pid": 46815}
+{"event": "shutdown", "mode": "dev", "uptime_s": 115.999, "ts": "2026-02-19T15:45:15.027999+00:00", "pid": 46815}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.34, "ts": "2026-02-19T15:45:15.382390+00:00", "pid": 47179}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-19T15:45:15.383201+00:00", "pid": 47179}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.77, "ts": "2026-02-19T15:45:15.384027+00:00", "pid": 47179}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:45:15.384078+00:00", "pid": 47179}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:45:15.384119+00:00", "pid": 47179}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-19T15:45:15.384152+00:00", "pid": 47179}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.3, "ts": "2026-02-19T15:45:15.384483+00:00", "pid": 47179}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T15:45:15.384534+00:00", "pid": 47179}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 6, "di_providers": 14, "duration_ms": 2.53, "ts": "2026-02-19T15:45:15.397742+00:00", "pid": 47179}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:46:47.815339+00:00", "pid": 47179}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:46:47.817174+00:00", "pid": 47179}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.48, "ts": "2026-02-19T15:46:47.817616+00:00", "pid": 47179}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.21, "ts": "2026-02-19T15:46:47.818105+00:00", "pid": 47179}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.02, "ts": "2026-02-19T15:46:47.818368+00:00", "pid": 47179}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.12, "ts": "2026-02-19T15:46:47.818689+00:00", "pid": 47179}
+{"event": "shutdown", "mode": "dev", "uptime_s": 92.421, "ts": "2026-02-19T15:46:47.818895+00:00", "pid": 47179}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.44, "ts": "2026-02-19T15:46:48.173831+00:00", "pid": 47481}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.85, "ts": "2026-02-19T15:46:48.174784+00:00", "pid": 47481}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 68.5, "ts": "2026-02-19T15:46:48.243376+00:00", "pid": 47481}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:46:48.243504+00:00", "pid": 47481}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:46:48.243560+00:00", "pid": 47481}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-19T15:46:48.243604+00:00", "pid": 47481}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.44, "ts": "2026-02-19T15:46:48.244079+00:00", "pid": 47481}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T15:46:48.244149+00:00", "pid": 47481}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 6, "di_providers": 15, "duration_ms": 70.81, "ts": "2026-02-19T15:46:48.256469+00:00", "pid": 47481}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:46:49.975940+00:00", "pid": 47481}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:46:49.976762+00:00", "pid": 47481}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.28, "ts": "2026-02-19T15:46:49.977073+00:00", "pid": 47481}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.22, "ts": "2026-02-19T15:46:49.977480+00:00", "pid": 47481}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.02, "ts": "2026-02-19T15:46:49.977735+00:00", "pid": 47481}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-19T15:46:49.978002+00:00", "pid": 47481}
+{"event": "shutdown", "mode": "dev", "uptime_s": 1.722, "ts": "2026-02-19T15:46:49.978196+00:00", "pid": 47481}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.37, "ts": "2026-02-19T15:46:50.224920+00:00", "pid": 47503}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.57, "ts": "2026-02-19T15:46:50.225587+00:00", "pid": 47503}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 39.33, "ts": "2026-02-19T15:46:50.264980+00:00", "pid": 47503}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:46:50.265122+00:00", "pid": 47503}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:46:50.265179+00:00", "pid": 47503}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-19T15:46:50.265222+00:00", "pid": 47503}
+{"event": "phase", "phase": "models_registered", "duration_ms": 0.4, "ts": "2026-02-19T15:46:50.265667+00:00", "pid": 47503}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T15:46:50.265737+00:00", "pid": 47503}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 5, "di_providers": 15, "duration_ms": 41.25, "ts": "2026-02-19T15:46:50.275415+00:00", "pid": 47503}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:46:59.068153+00:00", "pid": 47503}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:46:59.069110+00:00", "pid": 47503}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.27, "ts": "2026-02-19T15:46:59.069332+00:00", "pid": 47503}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.21, "ts": "2026-02-19T15:46:59.069699+00:00", "pid": 47503}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T15:46:59.069836+00:00", "pid": 47503}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.11, "ts": "2026-02-19T15:46:59.070069+00:00", "pid": 47503}
+{"event": "shutdown", "mode": "dev", "uptime_s": 8.795, "ts": "2026-02-19T15:46:59.070298+00:00", "pid": 47503}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-19T15:46:59.297877+00:00", "pid": 47534}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.55, "ts": "2026-02-19T15:46:59.298535+00:00", "pid": 47534}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 28.0, "ts": "2026-02-19T15:46:59.326597+00:00", "pid": 47534}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:46:59.326775+00:00", "pid": 47534}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:46:59.326838+00:00", "pid": 47534}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-19T15:46:59.326892+00:00", "pid": 47534}
+{"event": "phase", "phase": "models_registered", "duration_ms": 4.44, "ts": "2026-02-19T15:46:59.331372+00:00", "pid": 47534}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T15:46:59.331469+00:00", "pid": 47534}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 5, "di_providers": 16, "duration_ms": 34.09, "ts": "2026-02-19T15:46:59.342912+00:00", "pid": 47534}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:48:06.406375+00:00", "pid": 47534}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:48:06.408087+00:00", "pid": 47534}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.23, "ts": "2026-02-19T15:48:06.408526+00:00", "pid": 47534}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.19, "ts": "2026-02-19T15:48:06.408978+00:00", "pid": 47534}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T15:48:06.409222+00:00", "pid": 47534}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-19T15:48:06.409523+00:00", "pid": 47534}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 2.09, "ts": "2026-02-19T15:48:06.411830+00:00", "pid": 47534}
+{"event": "shutdown", "mode": "dev", "uptime_s": 67.069, "ts": "2026-02-19T15:48:06.412173+00:00", "pid": 47534}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.34, "ts": "2026-02-19T15:48:06.740932+00:00", "pid": 47754}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.63, "ts": "2026-02-19T15:48:06.741640+00:00", "pid": 47754}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 45.98, "ts": "2026-02-19T15:48:06.787683+00:00", "pid": 47754}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:48:06.787781+00:00", "pid": 47754}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:48:06.787836+00:00", "pid": 47754}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-19T15:48:06.787875+00:00", "pid": 47754}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.16, "ts": "2026-02-19T15:48:06.789082+00:00", "pid": 47754}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.03, "detail": "0 providers", "ts": "2026-02-19T15:48:06.789155+00:00", "pid": 47754}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 5, "di_providers": 16, "duration_ms": 48.62, "ts": "2026-02-19T15:48:06.802661+00:00", "pid": 47754}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:49:09.638253+00:00", "pid": 47754}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:49:09.639091+00:00", "pid": 47754}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.2, "ts": "2026-02-19T15:49:09.639349+00:00", "pid": 47754}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.13, "ts": "2026-02-19T15:49:09.639599+00:00", "pid": 47754}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T15:49:09.639757+00:00", "pid": 47754}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-19T15:49:09.639935+00:00", "pid": 47754}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.87, "ts": "2026-02-19T15:49:09.641029+00:00", "pid": 47754}
+{"event": "shutdown", "mode": "dev", "uptime_s": 62.839, "ts": "2026-02-19T15:49:09.641226+00:00", "pid": 47754}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.36, "ts": "2026-02-19T15:49:09.843492+00:00", "pid": 47957}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.6, "ts": "2026-02-19T15:49:09.844235+00:00", "pid": 47957}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 50.0, "ts": "2026-02-19T15:49:09.894316+00:00", "pid": 47957}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:49:09.894477+00:00", "pid": 47957}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:49:09.894542+00:00", "pid": 47957}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-19T15:49:09.894588+00:00", "pid": 47957}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.15, "ts": "2026-02-19T15:49:09.895780+00:00", "pid": 47957}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T15:49:09.895868+00:00", "pid": 47957}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 5, "di_providers": 16, "duration_ms": 52.8, "ts": "2026-02-19T15:49:09.904998+00:00", "pid": 47957}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:49:21.016786+00:00", "pid": 47957}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:49:21.017728+00:00", "pid": 47957}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.55, "ts": "2026-02-19T15:49:21.018156+00:00", "pid": 47957}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.22, "ts": "2026-02-19T15:49:21.018680+00:00", "pid": 47957}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.02, "ts": "2026-02-19T15:49:21.018983+00:00", "pid": 47957}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-19T15:49:21.019298+00:00", "pid": 47957}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.37, "ts": "2026-02-19T15:49:21.020900+00:00", "pid": 47957}
+{"event": "shutdown", "mode": "dev", "uptime_s": 11.116, "ts": "2026-02-19T15:49:21.021293+00:00", "pid": 47957}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.37, "ts": "2026-02-19T15:49:21.230752+00:00", "pid": 48005}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.57, "ts": "2026-02-19T15:49:21.231464+00:00", "pid": 48005}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 147.99, "ts": "2026-02-19T15:49:21.379524+00:00", "pid": 48005}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:49:21.379755+00:00", "pid": 48005}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:49:21.379994+00:00", "pid": 48005}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.3, "ts": "2026-02-19T15:49:21.380042+00:00", "pid": 48005}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.23, "ts": "2026-02-19T15:49:21.381321+00:00", "pid": 48005}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T15:49:21.381410+00:00", "pid": 48005}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 5, "di_providers": 16, "duration_ms": 151.09, "ts": "2026-02-19T15:49:21.390803+00:00", "pid": 48005}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:49:49.370846+00:00", "pid": 48005}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:49:49.371796+00:00", "pid": 48005}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.34, "ts": "2026-02-19T15:49:49.372075+00:00", "pid": 48005}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.13, "ts": "2026-02-19T15:49:49.372376+00:00", "pid": 48005}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T15:49:49.372580+00:00", "pid": 48005}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-19T15:49:49.372727+00:00", "pid": 48005}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.96, "ts": "2026-02-19T15:49:49.373810+00:00", "pid": 48005}
+{"event": "shutdown", "mode": "dev", "uptime_s": 27.983, "ts": "2026-02-19T15:49:49.374018+00:00", "pid": 48005}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.36, "ts": "2026-02-19T15:49:49.604684+00:00", "pid": 48272}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.73, "ts": "2026-02-19T15:49:49.605515+00:00", "pid": 48272}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 75.03, "ts": "2026-02-19T15:49:49.680631+00:00", "pid": 48272}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T15:49:49.680831+00:00", "pid": 48272}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T15:49:49.681026+00:00", "pid": 48272}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.24, "ts": "2026-02-19T15:49:49.681067+00:00", "pid": 48272}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.71, "ts": "2026-02-19T15:49:49.682819+00:00", "pid": 48272}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T15:49:49.682899+00:00", "pid": 48272}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 5, "di_providers": 16, "duration_ms": 78.64, "ts": "2026-02-19T15:49:49.692626+00:00", "pid": 48272}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T15:50:06.764815+00:00", "pid": 48272}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T15:50:06.765619+00:00", "pid": 48272}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.21, "ts": "2026-02-19T15:50:06.765909+00:00", "pid": 48272}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.15, "ts": "2026-02-19T15:50:06.766217+00:00", "pid": 48272}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T15:50:06.766384+00:00", "pid": 48272}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-19T15:50:06.766598+00:00", "pid": 48272}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.58, "ts": "2026-02-19T15:50:06.768323+00:00", "pid": 48272}
+{"event": "shutdown", "mode": "dev", "uptime_s": 17.076, "ts": "2026-02-19T15:50:06.768563+00:00", "pid": 48272}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.39, "ts": "2026-02-19T17:06:24.449934+00:00", "pid": 60687}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-19T17:06:24.450868+00:00", "pid": 60687}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 59.79, "ts": "2026-02-19T17:06:24.510721+00:00", "pid": 60687}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:06:24.510824+00:00", "pid": 60687}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:06:24.510879+00:00", "pid": 60687}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-19T17:06:24.510920+00:00", "pid": 60687}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.54, "ts": "2026-02-19T17:06:24.512498+00:00", "pid": 60687}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:06:24.512587+00:00", "pid": 60687}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 63.13, "ts": "2026-02-19T17:06:24.528036+00:00", "pid": 60687}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:11:56.417831+00:00", "pid": 60687}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:11:56.419798+00:00", "pid": 60687}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.57, "ts": "2026-02-19T17:11:56.420261+00:00", "pid": 60687}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.2, "ts": "2026-02-19T17:11:56.420688+00:00", "pid": 60687}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:11:56.420938+00:00", "pid": 60687}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.23, "ts": "2026-02-19T17:11:56.421302+00:00", "pid": 60687}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.46, "ts": "2026-02-19T17:11:56.422922+00:00", "pid": 60687}
+{"event": "shutdown", "mode": "dev", "uptime_s": 331.896, "ts": "2026-02-19T17:11:56.423308+00:00", "pid": 60687}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-19T17:11:56.785741+00:00", "pid": 62064}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-19T17:11:56.786560+00:00", "pid": 62064}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 35.55, "ts": "2026-02-19T17:11:56.822170+00:00", "pid": 62064}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:11:56.822336+00:00", "pid": 62064}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:11:56.822390+00:00", "pid": 62064}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-19T17:11:56.822434+00:00", "pid": 62064}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.47, "ts": "2026-02-19T17:11:56.823940+00:00", "pid": 62064}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-19T17:11:56.824025+00:00", "pid": 62064}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 38.75, "ts": "2026-02-19T17:11:56.838667+00:00", "pid": 62064}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:12:08.250174+00:00", "pid": 62064}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:12:08.251724+00:00", "pid": 62064}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.96, "ts": "2026-02-19T17:12:08.252050+00:00", "pid": 62064}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.16, "ts": "2026-02-19T17:12:08.252379+00:00", "pid": 62064}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:12:08.252542+00:00", "pid": 62064}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-19T17:12:08.252740+00:00", "pid": 62064}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.96, "ts": "2026-02-19T17:12:08.253856+00:00", "pid": 62064}
+{"event": "shutdown", "mode": "dev", "uptime_s": 11.416, "ts": "2026-02-19T17:12:08.254174+00:00", "pid": 62064}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.41, "ts": "2026-02-19T17:12:09.584552+00:00", "pid": 62119}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.72, "ts": "2026-02-19T17:12:09.585343+00:00", "pid": 62119}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 49.72, "ts": "2026-02-19T17:12:09.635121+00:00", "pid": 62119}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:12:09.635241+00:00", "pid": 62119}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:12:09.635301+00:00", "pid": 62119}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-19T17:12:09.635344+00:00", "pid": 62119}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.32, "ts": "2026-02-19T17:12:09.636700+00:00", "pid": 62119}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:12:09.636778+00:00", "pid": 62119}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 52.7, "ts": "2026-02-19T17:12:09.648538+00:00", "pid": 62119}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:16:05.731549+00:00", "pid": 62119}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:16:05.734316+00:00", "pid": 62119}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 3.76, "ts": "2026-02-19T17:16:05.734828+00:00", "pid": 62119}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.71, "ts": "2026-02-19T17:16:05.735862+00:00", "pid": 62119}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:16:05.736213+00:00", "pid": 62119}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.21, "ts": "2026-02-19T17:16:05.736634+00:00", "pid": 62119}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.79, "ts": "2026-02-19T17:16:05.738662+00:00", "pid": 62119}
+{"event": "shutdown", "mode": "dev", "uptime_s": 236.091, "ts": "2026-02-19T17:16:05.738995+00:00", "pid": 62119}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.49, "ts": "2026-02-19T17:16:06.098822+00:00", "pid": 63140}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.93, "ts": "2026-02-19T17:16:06.099868+00:00", "pid": 63140}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 137.3, "ts": "2026-02-19T17:16:06.237238+00:00", "pid": 63140}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:16:06.237473+00:00", "pid": 63140}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:16:06.237704+00:00", "pid": 63140}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.28, "ts": "2026-02-19T17:16:06.237749+00:00", "pid": 63140}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.41, "ts": "2026-02-19T17:16:06.239195+00:00", "pid": 63140}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:16:06.239299+00:00", "pid": 63140}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 141.05, "ts": "2026-02-19T17:16:06.254640+00:00", "pid": 63140}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:16:30.669331+00:00", "pid": 63140}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:16:30.671343+00:00", "pid": 63140}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.54, "ts": "2026-02-19T17:16:30.671741+00:00", "pid": 63140}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.16, "ts": "2026-02-19T17:16:30.672156+00:00", "pid": 63140}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:16:30.672399+00:00", "pid": 63140}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-19T17:16:30.672679+00:00", "pid": 63140}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.02, "ts": "2026-02-19T17:16:30.673920+00:00", "pid": 63140}
+{"event": "shutdown", "mode": "dev", "uptime_s": 24.42, "ts": "2026-02-19T17:16:30.674318+00:00", "pid": 63140}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.45, "ts": "2026-02-19T17:16:31.014586+00:00", "pid": 63508}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.8, "ts": "2026-02-19T17:16:31.015484+00:00", "pid": 63508}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 27.3, "ts": "2026-02-19T17:16:31.042860+00:00", "pid": 63508}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:16:31.043067+00:00", "pid": 63508}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:16:31.043139+00:00", "pid": 63508}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.14, "ts": "2026-02-19T17:16:31.043185+00:00", "pid": 63508}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.57, "ts": "2026-02-19T17:16:31.044800+00:00", "pid": 63508}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:16:31.044907+00:00", "pid": 63508}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 30.84, "ts": "2026-02-19T17:16:31.057330+00:00", "pid": 63508}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:17:03.990328+00:00", "pid": 63508}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:17:03.992019+00:00", "pid": 63508}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.04, "ts": "2026-02-19T17:17:03.992280+00:00", "pid": 63508}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.17, "ts": "2026-02-19T17:17:03.992614+00:00", "pid": 63508}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:17:03.992788+00:00", "pid": 63508}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-19T17:17:03.993004+00:00", "pid": 63508}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.87, "ts": "2026-02-19T17:17:03.994021+00:00", "pid": 63508}
+{"event": "shutdown", "mode": "dev", "uptime_s": 32.937, "ts": "2026-02-19T17:17:03.994287+00:00", "pid": 63508}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.44, "ts": "2026-02-19T17:17:05.508382+00:00", "pid": 63635}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.79, "ts": "2026-02-19T17:17:05.509270+00:00", "pid": 63635}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 50.05, "ts": "2026-02-19T17:17:05.559401+00:00", "pid": 63635}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:17:05.559521+00:00", "pid": 63635}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:17:05.559570+00:00", "pid": 63635}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-19T17:17:05.559613+00:00", "pid": 63635}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.27, "ts": "2026-02-19T17:17:05.560930+00:00", "pid": 63635}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:17:05.561020+00:00", "pid": 63635}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 53.15, "ts": "2026-02-19T17:17:05.575546+00:00", "pid": 63635}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:17:32.662352+00:00", "pid": 63635}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:17:32.664082+00:00", "pid": 63635}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.2, "ts": "2026-02-19T17:17:32.664506+00:00", "pid": 63635}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.15, "ts": "2026-02-19T17:17:32.664859+00:00", "pid": 63635}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:17:32.664998+00:00", "pid": 63635}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-19T17:17:32.665161+00:00", "pid": 63635}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.64, "ts": "2026-02-19T17:17:32.665916+00:00", "pid": 63635}
+{"event": "shutdown", "mode": "dev", "uptime_s": 27.091, "ts": "2026-02-19T17:17:32.666141+00:00", "pid": 63635}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:17:33.008793+00:00", "pid": 63726}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.72, "ts": "2026-02-19T17:17:33.009594+00:00", "pid": 63726}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 147.73, "ts": "2026-02-19T17:17:33.157392+00:00", "pid": 63726}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:17:33.157625+00:00", "pid": 63726}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:17:33.157825+00:00", "pid": 63726}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.3, "ts": "2026-02-19T17:17:33.157912+00:00", "pid": 63726}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.4, "ts": "2026-02-19T17:17:33.159346+00:00", "pid": 63726}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:17:33.159427+00:00", "pid": 63726}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 151.12, "ts": "2026-02-19T17:17:33.171542+00:00", "pid": 63726}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:20:28.965510+00:00", "pid": 63726}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:20:28.967421+00:00", "pid": 63726}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.51, "ts": "2026-02-19T17:20:28.967936+00:00", "pid": 63726}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.18, "ts": "2026-02-19T17:20:28.968364+00:00", "pid": 63726}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:20:28.968503+00:00", "pid": 63726}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-19T17:20:28.968657+00:00", "pid": 63726}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.86, "ts": "2026-02-19T17:20:28.969604+00:00", "pid": 63726}
+{"event": "shutdown", "mode": "dev", "uptime_s": 175.798, "ts": "2026-02-19T17:20:28.969855+00:00", "pid": 63726}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.44, "ts": "2026-02-19T17:20:30.262605+00:00", "pid": 64706}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.78, "ts": "2026-02-19T17:20:30.263468+00:00", "pid": 64706}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 57.87, "ts": "2026-02-19T17:20:30.321407+00:00", "pid": 64706}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:20:30.321540+00:00", "pid": 64706}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:20:30.321593+00:00", "pid": 64706}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-19T17:20:30.321637+00:00", "pid": 64706}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.36, "ts": "2026-02-19T17:20:30.323032+00:00", "pid": 64706}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:20:30.323117+00:00", "pid": 64706}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 61.01, "ts": "2026-02-19T17:20:30.338601+00:00", "pid": 64706}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:21:51.920973+00:00", "pid": 64706}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:21:51.922769+00:00", "pid": 64706}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.19, "ts": "2026-02-19T17:21:51.923105+00:00", "pid": 64706}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-19T17:21:51.923377+00:00", "pid": 64706}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:21:51.923502+00:00", "pid": 64706}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.09, "ts": "2026-02-19T17:21:51.923701+00:00", "pid": 64706}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.64, "ts": "2026-02-19T17:21:51.924462+00:00", "pid": 64706}
+{"event": "shutdown", "mode": "dev", "uptime_s": 81.586, "ts": "2026-02-19T17:21:51.924719+00:00", "pid": 64706}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.39, "ts": "2026-02-19T17:21:52.290953+00:00", "pid": 65250}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-19T17:22:42.943380+00:00", "pid": 65410}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.81, "ts": "2026-02-19T17:22:42.944392+00:00", "pid": 65410}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 28.31, "ts": "2026-02-19T17:22:42.972809+00:00", "pid": 65410}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:22:42.972937+00:00", "pid": 65410}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:22:42.973003+00:00", "pid": 65410}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-19T17:22:42.973054+00:00", "pid": 65410}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.46, "ts": "2026-02-19T17:22:42.974566+00:00", "pid": 65410}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-19T17:22:42.974662+00:00", "pid": 65410}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 31.75, "ts": "2026-02-19T17:22:42.989270+00:00", "pid": 65410}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:24:06.430432+00:00", "pid": 65410}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:24:06.431864+00:00", "pid": 65410}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.86, "ts": "2026-02-19T17:24:06.432234+00:00", "pid": 65410}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.14, "ts": "2026-02-19T17:24:06.432616+00:00", "pid": 65410}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:24:06.432824+00:00", "pid": 65410}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-19T17:24:06.433048+00:00", "pid": 65410}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.71, "ts": "2026-02-19T17:24:06.433934+00:00", "pid": 65410}
+{"event": "shutdown", "mode": "dev", "uptime_s": 83.445, "ts": "2026-02-19T17:24:06.434144+00:00", "pid": 65410}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-19T17:24:06.783151+00:00", "pid": 65955}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.8, "ts": "2026-02-19T17:24:06.784039+00:00", "pid": 65955}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 102.15, "ts": "2026-02-19T17:24:06.886261+00:00", "pid": 65955}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:24:06.886582+00:00", "pid": 65955}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:24:06.886659+00:00", "pid": 65955}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.15, "ts": "2026-02-19T17:24:06.886703+00:00", "pid": 65955}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.17, "ts": "2026-02-19T17:24:06.889913+00:00", "pid": 65955}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.03, "detail": "0 providers", "ts": "2026-02-19T17:24:06.890020+00:00", "pid": 65955}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 107.34, "ts": "2026-02-19T17:24:06.909857+00:00", "pid": 65955}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:26:13.150822+00:00", "pid": 65955}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:26:13.153567+00:00", "pid": 65955}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 3.57, "ts": "2026-02-19T17:26:13.154015+00:00", "pid": 65955}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.55, "ts": "2026-02-19T17:26:13.154743+00:00", "pid": 65955}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:26:13.154999+00:00", "pid": 65955}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.2, "ts": "2026-02-19T17:26:13.155322+00:00", "pid": 65955}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.06, "ts": "2026-02-19T17:26:13.156519+00:00", "pid": 65955}
+{"event": "shutdown", "mode": "dev", "uptime_s": 126.247, "ts": "2026-02-19T17:26:13.156732+00:00", "pid": 65955}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:26:28.734712+00:00", "pid": 66793}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.77, "ts": "2026-02-19T17:26:28.735569+00:00", "pid": 66793}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 92.15, "ts": "2026-02-19T17:26:28.827774+00:00", "pid": 66793}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:26:28.827916+00:00", "pid": 66793}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:26:28.828126+00:00", "pid": 66793}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.28, "ts": "2026-02-19T17:26:28.828190+00:00", "pid": 66793}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.33, "ts": "2026-02-19T17:26:28.829560+00:00", "pid": 66793}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:26:28.829646+00:00", "pid": 66793}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 95.42, "ts": "2026-02-19T17:26:28.842973+00:00", "pid": 66793}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:26:31.572170+00:00", "pid": 66793}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:26:31.573367+00:00", "pid": 66793}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.57, "ts": "2026-02-19T17:26:31.573645+00:00", "pid": 66793}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.25, "ts": "2026-02-19T17:26:31.574086+00:00", "pid": 66793}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:26:31.574269+00:00", "pid": 66793}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-19T17:26:31.574511+00:00", "pid": 66793}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.86, "ts": "2026-02-19T17:26:31.575547+00:00", "pid": 66793}
+{"event": "shutdown", "mode": "dev", "uptime_s": 2.733, "ts": "2026-02-19T17:26:31.575757+00:00", "pid": 66793}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.39, "ts": "2026-02-19T17:26:41.891945+00:00", "pid": 66845}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.6, "ts": "2026-02-19T17:26:41.892620+00:00", "pid": 66845}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 59.85, "ts": "2026-02-19T17:26:41.952529+00:00", "pid": 66845}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:26:41.952678+00:00", "pid": 66845}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:26:41.952891+00:00", "pid": 66845}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.29, "ts": "2026-02-19T17:26:41.952964+00:00", "pid": 66845}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.29, "ts": "2026-02-19T17:26:41.954299+00:00", "pid": 66845}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-19T17:26:41.954375+00:00", "pid": 66845}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 62.88, "ts": "2026-02-19T17:26:41.964549+00:00", "pid": 66845}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:27:46.345391+00:00", "pid": 66845}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:27:46.347059+00:00", "pid": 66845}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.3, "ts": "2026-02-19T17:27:46.347445+00:00", "pid": 66845}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.2, "ts": "2026-02-19T17:27:46.347893+00:00", "pid": 66845}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:27:46.348140+00:00", "pid": 66845}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.12, "ts": "2026-02-19T17:27:46.348490+00:00", "pid": 66845}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.97, "ts": "2026-02-19T17:27:46.349880+00:00", "pid": 66845}
+{"event": "shutdown", "mode": "dev", "uptime_s": 64.386, "ts": "2026-02-19T17:27:46.350368+00:00", "pid": 66845}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 1.06, "ts": "2026-02-19T17:27:46.734449+00:00", "pid": 67336}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.36, "ts": "2026-02-19T17:27:46.736072+00:00", "pid": 67336}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 82.7, "ts": "2026-02-19T17:27:46.818881+00:00", "pid": 67336}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:27:46.819100+00:00", "pid": 67336}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:27:46.819325+00:00", "pid": 67336}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.3, "ts": "2026-02-19T17:27:46.819401+00:00", "pid": 67336}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.44, "ts": "2026-02-19T17:27:46.820894+00:00", "pid": 67336}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.03, "detail": "0 providers", "ts": "2026-02-19T17:27:46.821009+00:00", "pid": 67336}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 87.72, "ts": "2026-02-19T17:27:46.835836+00:00", "pid": 67336}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:27:55.219700+00:00", "pid": 67336}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:27:55.221483+00:00", "pid": 67336}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.14, "ts": "2026-02-19T17:27:55.221728+00:00", "pid": 67336}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.1, "ts": "2026-02-19T17:27:55.221974+00:00", "pid": 67336}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:27:55.222115+00:00", "pid": 67336}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-19T17:27:55.222354+00:00", "pid": 67336}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.83, "ts": "2026-02-19T17:27:55.223394+00:00", "pid": 67336}
+{"event": "shutdown", "mode": "dev", "uptime_s": 8.388, "ts": "2026-02-19T17:27:55.223740+00:00", "pid": 67336}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.39, "ts": "2026-02-19T17:27:55.469213+00:00", "pid": 67368}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.65, "ts": "2026-02-19T17:27:55.469973+00:00", "pid": 67368}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 64.53, "ts": "2026-02-19T17:27:55.534567+00:00", "pid": 67368}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:27:55.534785+00:00", "pid": 67368}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:27:55.534999+00:00", "pid": 67368}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.3, "ts": "2026-02-19T17:27:55.535081+00:00", "pid": 67368}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.36, "ts": "2026-02-19T17:27:55.536492+00:00", "pid": 67368}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:27:55.536586+00:00", "pid": 67368}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 67.85, "ts": "2026-02-19T17:27:55.547746+00:00", "pid": 67368}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:29:18.887348+00:00", "pid": 67368}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:29:18.889120+00:00", "pid": 67368}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.15, "ts": "2026-02-19T17:29:18.889355+00:00", "pid": 67368}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.17, "ts": "2026-02-19T17:29:18.889816+00:00", "pid": 67368}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:29:18.889964+00:00", "pid": 67368}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-19T17:29:18.890131+00:00", "pid": 67368}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.62, "ts": "2026-02-19T17:29:18.890869+00:00", "pid": 67368}
+{"event": "shutdown", "mode": "dev", "uptime_s": 83.343, "ts": "2026-02-19T17:29:18.891009+00:00", "pid": 67368}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:29:19.253101+00:00", "pid": 67629}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.8, "ts": "2026-02-19T17:29:19.253983+00:00", "pid": 67629}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 50.35, "ts": "2026-02-19T17:29:19.304403+00:00", "pid": 67629}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:29:19.304580+00:00", "pid": 67629}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:29:19.304634+00:00", "pid": 67629}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-19T17:29:19.304675+00:00", "pid": 67629}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.35, "ts": "2026-02-19T17:29:19.306065+00:00", "pid": 67629}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:29:19.306149+00:00", "pid": 67629}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 53.53, "ts": "2026-02-19T17:29:19.319195+00:00", "pid": 67629}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:29:49.509340+00:00", "pid": 67629}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:29:49.511120+00:00", "pid": 67629}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.25, "ts": "2026-02-19T17:29:49.511510+00:00", "pid": 67629}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.23, "ts": "2026-02-19T17:29:49.512000+00:00", "pid": 67629}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:29:49.512319+00:00", "pid": 67629}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-19T17:29:49.512629+00:00", "pid": 67629}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.81, "ts": "2026-02-19T17:29:49.513657+00:00", "pid": 67629}
+{"event": "shutdown", "mode": "dev", "uptime_s": 30.195, "ts": "2026-02-19T17:29:49.513963+00:00", "pid": 67629}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.38, "ts": "2026-02-19T17:29:49.836946+00:00", "pid": 67735}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-19T17:29:49.837767+00:00", "pid": 67735}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 80.94, "ts": "2026-02-19T17:29:49.918777+00:00", "pid": 67735}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:29:49.918918+00:00", "pid": 67735}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:29:49.919126+00:00", "pid": 67735}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.28, "ts": "2026-02-19T17:29:49.919196+00:00", "pid": 67735}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.37, "ts": "2026-02-19T17:29:49.920606+00:00", "pid": 67735}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:29:49.920690+00:00", "pid": 67735}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 84.19, "ts": "2026-02-19T17:29:49.934058+00:00", "pid": 67735}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:30:20.431335+00:00", "pid": 67735}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:30:20.433363+00:00", "pid": 67735}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.64, "ts": "2026-02-19T17:30:20.434328+00:00", "pid": 67735}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.25, "ts": "2026-02-19T17:30:20.434819+00:00", "pid": 67735}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:30:20.434984+00:00", "pid": 67735}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-19T17:30:20.435193+00:00", "pid": 67735}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.91, "ts": "2026-02-19T17:30:20.436223+00:00", "pid": 67735}
+{"event": "shutdown", "mode": "dev", "uptime_s": 30.502, "ts": "2026-02-19T17:30:20.436380+00:00", "pid": 67735}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:30:21.844002+00:00", "pid": 67897}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.72, "ts": "2026-02-19T17:30:21.844801+00:00", "pid": 67897}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 112.93, "ts": "2026-02-19T17:30:21.957798+00:00", "pid": 67897}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:30:21.957938+00:00", "pid": 67897}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:30:21.958154+00:00", "pid": 67897}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.27, "ts": "2026-02-19T17:30:21.958197+00:00", "pid": 67897}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.25, "ts": "2026-02-19T17:30:21.959501+00:00", "pid": 67897}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:30:21.959584+00:00", "pid": 67897}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 116.06, "ts": "2026-02-19T17:30:21.972528+00:00", "pid": 67897}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:30:38.235682+00:00", "pid": 67897}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:30:38.236481+00:00", "pid": 67897}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.09, "ts": "2026-02-19T17:30:38.236701+00:00", "pid": 67897}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.11, "ts": "2026-02-19T17:30:38.236964+00:00", "pid": 67897}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:30:38.237153+00:00", "pid": 67897}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-19T17:30:38.237340+00:00", "pid": 67897}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.63, "ts": "2026-02-19T17:30:38.238069+00:00", "pid": 67897}
+{"event": "shutdown", "mode": "dev", "uptime_s": 16.266, "ts": "2026-02-19T17:30:38.238342+00:00", "pid": 67897}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.41, "ts": "2026-02-19T17:30:38.466007+00:00", "pid": 68038}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.82, "ts": "2026-02-19T17:30:38.467112+00:00", "pid": 68038}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 60.6, "ts": "2026-02-19T17:30:38.527785+00:00", "pid": 68038}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:30:38.527974+00:00", "pid": 68038}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:30:38.528038+00:00", "pid": 68038}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-19T17:30:38.528083+00:00", "pid": 68038}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.37, "ts": "2026-02-19T17:30:38.529491+00:00", "pid": 68038}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:30:38.529570+00:00", "pid": 68038}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 64.04, "ts": "2026-02-19T17:30:38.542091+00:00", "pid": 68038}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:30:54.263510+00:00", "pid": 68038}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:30:54.264170+00:00", "pid": 68038}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.95, "ts": "2026-02-19T17:30:54.264406+00:00", "pid": 68038}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.13, "ts": "2026-02-19T17:30:54.264750+00:00", "pid": 68038}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:30:54.264928+00:00", "pid": 68038}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-19T17:30:54.265130+00:00", "pid": 68038}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.54, "ts": "2026-02-19T17:30:54.265777+00:00", "pid": 68038}
+{"event": "shutdown", "mode": "dev", "uptime_s": 15.724, "ts": "2026-02-19T17:30:54.266040+00:00", "pid": 68038}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:30:54.485496+00:00", "pid": 68375}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.64, "ts": "2026-02-19T17:30:54.486236+00:00", "pid": 68375}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 65.21, "ts": "2026-02-19T17:30:54.551515+00:00", "pid": 68375}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:30:54.551682+00:00", "pid": 68375}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:30:54.551913+00:00", "pid": 68375}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.29, "ts": "2026-02-19T17:30:54.551963+00:00", "pid": 68375}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.4, "ts": "2026-02-19T17:30:54.553405+00:00", "pid": 68375}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-19T17:30:54.553481+00:00", "pid": 68375}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 68.48, "ts": "2026-02-19T17:30:54.563411+00:00", "pid": 68375}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:31:11.123063+00:00", "pid": 68375}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:31:11.124425+00:00", "pid": 68375}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.8, "ts": "2026-02-19T17:31:11.124789+00:00", "pid": 68375}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.11, "ts": "2026-02-19T17:31:11.125136+00:00", "pid": 68375}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:31:11.125366+00:00", "pid": 68375}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-19T17:31:11.125615+00:00", "pid": 68375}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.74, "ts": "2026-02-19T17:31:11.126563+00:00", "pid": 68375}
+{"event": "shutdown", "mode": "dev", "uptime_s": 16.563, "ts": "2026-02-19T17:31:11.126787+00:00", "pid": 68375}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.43, "ts": "2026-02-19T17:31:11.415650+00:00", "pid": 68534}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.83, "ts": "2026-02-19T17:31:11.416596+00:00", "pid": 68534}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 61.31, "ts": "2026-02-19T17:31:11.477989+00:00", "pid": 68534}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:31:11.478261+00:00", "pid": 68534}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:31:11.478332+00:00", "pid": 68534}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.14, "ts": "2026-02-19T17:31:11.478380+00:00", "pid": 68534}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.69, "ts": "2026-02-19T17:31:11.480114+00:00", "pid": 68534}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.03, "detail": "0 providers", "ts": "2026-02-19T17:31:11.480229+00:00", "pid": 68534}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 65.08, "ts": "2026-02-19T17:31:11.493625+00:00", "pid": 68534}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:31:37.132526+00:00", "pid": 68534}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:31:37.133260+00:00", "pid": 68534}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.09, "ts": "2026-02-19T17:31:37.133573+00:00", "pid": 68534}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.14, "ts": "2026-02-19T17:31:37.133984+00:00", "pid": 68534}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:31:37.134222+00:00", "pid": 68534}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-19T17:31:37.134511+00:00", "pid": 68534}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.79, "ts": "2026-02-19T17:31:37.135555+00:00", "pid": 68534}
+{"event": "shutdown", "mode": "dev", "uptime_s": 25.642, "ts": "2026-02-19T17:31:37.135975+00:00", "pid": 68534}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.39, "ts": "2026-02-19T17:31:37.347133+00:00", "pid": 68703}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.62, "ts": "2026-02-19T17:31:37.347861+00:00", "pid": 68703}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 53.97, "ts": "2026-02-19T17:31:37.401912+00:00", "pid": 68703}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:31:37.402055+00:00", "pid": 68703}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:31:37.402126+00:00", "pid": 68703}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-19T17:31:37.402180+00:00", "pid": 68703}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.36, "ts": "2026-02-19T17:31:37.403586+00:00", "pid": 68703}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-19T17:31:37.403698+00:00", "pid": 68703}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 57.02, "ts": "2026-02-19T17:31:37.413217+00:00", "pid": 68703}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:31:44.992575+00:00", "pid": 68703}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:31:44.993566+00:00", "pid": 68703}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.48, "ts": "2026-02-19T17:31:44.993927+00:00", "pid": 68703}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.27, "ts": "2026-02-19T17:31:44.994473+00:00", "pid": 68703}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:31:44.994739+00:00", "pid": 68703}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.09, "ts": "2026-02-19T17:31:44.995065+00:00", "pid": 68703}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.78, "ts": "2026-02-19T17:31:44.996032+00:00", "pid": 68703}
+{"event": "shutdown", "mode": "dev", "uptime_s": 7.583, "ts": "2026-02-19T17:31:44.996361+00:00", "pid": 68703}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.41, "ts": "2026-02-19T17:31:45.233599+00:00", "pid": 68737}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.64, "ts": "2026-02-19T17:31:45.234393+00:00", "pid": 68737}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 51.47, "ts": "2026-02-19T17:31:45.285939+00:00", "pid": 68737}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:31:45.286125+00:00", "pid": 68737}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:31:45.286188+00:00", "pid": 68737}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.15, "ts": "2026-02-19T17:31:45.286272+00:00", "pid": 68737}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.37, "ts": "2026-02-19T17:31:45.287680+00:00", "pid": 68737}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:31:45.287752+00:00", "pid": 68737}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 54.63, "ts": "2026-02-19T17:31:45.298072+00:00", "pid": 68737}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:31:54.387268+00:00", "pid": 68737}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:31:54.387954+00:00", "pid": 68737}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.06, "ts": "2026-02-19T17:31:54.388291+00:00", "pid": 68737}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.15, "ts": "2026-02-19T17:31:54.388655+00:00", "pid": 68737}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:31:54.388827+00:00", "pid": 68737}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-19T17:31:54.388997+00:00", "pid": 68737}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.77, "ts": "2026-02-19T17:31:54.389867+00:00", "pid": 68737}
+{"event": "shutdown", "mode": "dev", "uptime_s": 9.092, "ts": "2026-02-19T17:31:54.390148+00:00", "pid": 68737}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.37, "ts": "2026-02-19T17:31:54.611139+00:00", "pid": 68863}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.59, "ts": "2026-02-19T17:31:54.611832+00:00", "pid": 68863}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 19.92, "ts": "2026-02-19T17:31:54.631813+00:00", "pid": 68863}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:31:54.631911+00:00", "pid": 68863}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:31:54.631956+00:00", "pid": 68863}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-19T17:31:54.631990+00:00", "pid": 68863}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.17, "ts": "2026-02-19T17:31:54.633197+00:00", "pid": 68863}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:31:54.633273+00:00", "pid": 68863}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 22.57, "ts": "2026-02-19T17:31:54.645628+00:00", "pid": 68863}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:32:03.535579+00:00", "pid": 68863}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:32:03.536503+00:00", "pid": 68863}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.31, "ts": "2026-02-19T17:32:03.536821+00:00", "pid": 68863}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-19T17:32:03.537195+00:00", "pid": 68863}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:32:03.537310+00:00", "pid": 68863}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-19T17:32:03.537434+00:00", "pid": 68863}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.65, "ts": "2026-02-19T17:32:03.538185+00:00", "pid": 68863}
+{"event": "shutdown", "mode": "dev", "uptime_s": 8.893, "ts": "2026-02-19T17:32:03.538582+00:00", "pid": 68863}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.36, "ts": "2026-02-19T17:32:03.756028+00:00", "pid": 68980}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.57, "ts": "2026-02-19T17:32:03.756729+00:00", "pid": 68980}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 51.8, "ts": "2026-02-19T17:32:03.808629+00:00", "pid": 68980}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:32:03.808809+00:00", "pid": 68980}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:32:03.808888+00:00", "pid": 68980}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.15, "ts": "2026-02-19T17:32:03.808948+00:00", "pid": 68980}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.25, "ts": "2026-02-19T17:32:03.810242+00:00", "pid": 68980}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:32:03.810314+00:00", "pid": 68980}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 54.71, "ts": "2026-02-19T17:32:03.819526+00:00", "pid": 68980}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:32:20.914620+00:00", "pid": 68980}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:32:20.916539+00:00", "pid": 68980}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.47, "ts": "2026-02-19T17:32:20.916937+00:00", "pid": 68980}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.17, "ts": "2026-02-19T17:32:20.917332+00:00", "pid": 68980}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.02, "ts": "2026-02-19T17:32:20.917547+00:00", "pid": 68980}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.11, "ts": "2026-02-19T17:32:20.917806+00:00", "pid": 68980}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.76, "ts": "2026-02-19T17:32:20.918722+00:00", "pid": 68980}
+{"event": "shutdown", "mode": "dev", "uptime_s": 17.1, "ts": "2026-02-19T17:32:20.919054+00:00", "pid": 68980}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.39, "ts": "2026-02-19T17:32:21.140048+00:00", "pid": 69132}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.65, "ts": "2026-02-19T17:32:21.140799+00:00", "pid": 69132}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 41.84, "ts": "2026-02-19T17:32:21.182703+00:00", "pid": 69132}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:32:21.182880+00:00", "pid": 69132}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:32:21.182943+00:00", "pid": 69132}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-19T17:32:21.182991+00:00", "pid": 69132}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.38, "ts": "2026-02-19T17:32:21.184423+00:00", "pid": 69132}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:32:21.184511+00:00", "pid": 69132}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 44.92, "ts": "2026-02-19T17:32:21.196197+00:00", "pid": 69132}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:32:48.472535+00:00", "pid": 69132}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:32:48.473318+00:00", "pid": 69132}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.21, "ts": "2026-02-19T17:32:48.473646+00:00", "pid": 69132}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.09, "ts": "2026-02-19T17:32:48.473872+00:00", "pid": 69132}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:32:48.473972+00:00", "pid": 69132}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-19T17:32:48.474097+00:00", "pid": 69132}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.44, "ts": "2026-02-19T17:32:48.474616+00:00", "pid": 69132}
+{"event": "shutdown", "mode": "dev", "uptime_s": 27.279, "ts": "2026-02-19T17:32:48.474792+00:00", "pid": 69132}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:32:48.695255+00:00", "pid": 69650}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.66, "ts": "2026-02-19T17:32:48.696025+00:00", "pid": 69650}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 59.99, "ts": "2026-02-19T17:32:48.756085+00:00", "pid": 69650}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:32:48.756259+00:00", "pid": 69650}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:32:48.756459+00:00", "pid": 69650}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.27, "ts": "2026-02-19T17:32:48.756523+00:00", "pid": 69650}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.28, "ts": "2026-02-19T17:32:48.757852+00:00", "pid": 69650}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:32:48.757934+00:00", "pid": 69650}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 63.17, "ts": "2026-02-19T17:32:48.768322+00:00", "pid": 69650}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:33:13.812672+00:00", "pid": 69650}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:33:13.814187+00:00", "pid": 69650}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.9, "ts": "2026-02-19T17:33:13.814539+00:00", "pid": 69650}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.31, "ts": "2026-02-19T17:33:13.815117+00:00", "pid": 69650}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.02, "ts": "2026-02-19T17:33:13.815458+00:00", "pid": 69650}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-19T17:33:13.815715+00:00", "pid": 69650}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.92, "ts": "2026-02-19T17:33:13.816801+00:00", "pid": 69650}
+{"event": "shutdown", "mode": "dev", "uptime_s": 25.049, "ts": "2026-02-19T17:33:13.817114+00:00", "pid": 69650}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:33:14.082648+00:00", "pid": 69899}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-19T17:33:14.083477+00:00", "pid": 69899}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 49.48, "ts": "2026-02-19T17:33:14.133017+00:00", "pid": 69899}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:33:14.133208+00:00", "pid": 69899}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:33:14.133269+00:00", "pid": 69899}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-19T17:33:14.133312+00:00", "pid": 69899}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.4, "ts": "2026-02-19T17:33:14.134748+00:00", "pid": 69899}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:33:14.134841+00:00", "pid": 69899}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 52.69, "ts": "2026-02-19T17:33:14.147575+00:00", "pid": 69899}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:33:37.776114+00:00", "pid": 69899}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:33:37.776662+00:00", "pid": 69899}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.79, "ts": "2026-02-19T17:33:37.776852+00:00", "pid": 69899}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.11, "ts": "2026-02-19T17:33:37.777062+00:00", "pid": 69899}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:33:37.777175+00:00", "pid": 69899}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-19T17:33:37.777296+00:00", "pid": 69899}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.53, "ts": "2026-02-19T17:33:37.777915+00:00", "pid": 69899}
+{"event": "shutdown", "mode": "dev", "uptime_s": 23.631, "ts": "2026-02-19T17:33:37.778090+00:00", "pid": 69899}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-19T17:33:37.986584+00:00", "pid": 70064}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.61, "ts": "2026-02-19T17:33:37.987295+00:00", "pid": 70064}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 51.04, "ts": "2026-02-19T17:33:38.038421+00:00", "pid": 70064}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:33:38.038582+00:00", "pid": 70064}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:33:38.038648+00:00", "pid": 70064}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-19T17:33:38.038697+00:00", "pid": 70064}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.32, "ts": "2026-02-19T17:33:38.040062+00:00", "pid": 70064}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:33:38.040148+00:00", "pid": 70064}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 54.04, "ts": "2026-02-19T17:33:38.049724+00:00", "pid": 70064}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:33:45.428219+00:00", "pid": 70064}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:33:45.429300+00:00", "pid": 70064}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.57, "ts": "2026-02-19T17:33:45.429651+00:00", "pid": 70064}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.19, "ts": "2026-02-19T17:33:45.430085+00:00", "pid": 70064}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:33:45.430344+00:00", "pid": 70064}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.1, "ts": "2026-02-19T17:33:45.430648+00:00", "pid": 70064}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.22, "ts": "2026-02-19T17:33:45.432082+00:00", "pid": 70064}
+{"event": "shutdown", "mode": "dev", "uptime_s": 7.383, "ts": "2026-02-19T17:33:45.432474+00:00", "pid": 70064}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.37, "ts": "2026-02-19T17:33:45.660364+00:00", "pid": 70093}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.64, "ts": "2026-02-19T17:33:45.661125+00:00", "pid": 70093}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 30.23, "ts": "2026-02-19T17:33:45.691431+00:00", "pid": 70093}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:33:45.691631+00:00", "pid": 70093}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:33:45.691696+00:00", "pid": 70093}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-19T17:33:45.691750+00:00", "pid": 70093}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.38, "ts": "2026-02-19T17:33:45.693164+00:00", "pid": 70093}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:33:45.693247+00:00", "pid": 70093}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 33.33, "ts": "2026-02-19T17:33:45.704602+00:00", "pid": 70093}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.41, "ts": "2026-02-19T17:34:06.060984+00:00", "pid": 70638}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.8, "ts": "2026-02-19T17:34:06.062008+00:00", "pid": 70638}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:34:06.075197+00:00", "pid": 70093}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:34:06.075480+00:00", "pid": 70093}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.42, "ts": "2026-02-19T17:34:06.075594+00:00", "pid": 70093}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.06, "ts": "2026-02-19T17:34:06.075739+00:00", "pid": 70093}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:34:06.075829+00:00", "pid": 70093}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-19T17:34:06.075936+00:00", "pid": 70093}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.31, "ts": "2026-02-19T17:34:06.076330+00:00", "pid": 70093}
+{"event": "shutdown", "mode": "dev", "uptime_s": 20.372, "ts": "2026-02-19T17:34:06.076432+00:00", "pid": 70093}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 28.61, "ts": "2026-02-19T17:34:06.090693+00:00", "pid": 70638}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:34:06.090840+00:00", "pid": 70638}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:34:06.090896+00:00", "pid": 70638}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-19T17:34:06.090935+00:00", "pid": 70638}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.42, "ts": "2026-02-19T17:34:06.092387+00:00", "pid": 70638}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:34:06.092487+00:00", "pid": 70638}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 31.98, "ts": "2026-02-19T17:34:06.104155+00:00", "pid": 70638}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.41, "ts": "2026-02-19T17:34:06.278798+00:00", "pid": 70639}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.62, "ts": "2026-02-19T17:34:06.279528+00:00", "pid": 70639}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 137.24, "ts": "2026-02-19T17:34:06.416826+00:00", "pid": 70639}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:34:06.417015+00:00", "pid": 70639}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:34:06.417253+00:00", "pid": 70639}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.29, "ts": "2026-02-19T17:34:06.417296+00:00", "pid": 70639}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.24, "ts": "2026-02-19T17:34:06.418573+00:00", "pid": 70639}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:34:06.418644+00:00", "pid": 70639}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 140.32, "ts": "2026-02-19T17:34:06.428208+00:00", "pid": 70639}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:34:09.260366+00:00", "pid": 70639}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:34:09.261405+00:00", "pid": 70639}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.44, "ts": "2026-02-19T17:34:09.261652+00:00", "pid": 70639}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.21, "ts": "2026-02-19T17:34:09.262014+00:00", "pid": 70639}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:34:09.262172+00:00", "pid": 70639}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-19T17:34:09.262337+00:00", "pid": 70639}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.66, "ts": "2026-02-19T17:34:09.263115+00:00", "pid": 70639}
+{"event": "shutdown", "mode": "dev", "uptime_s": 2.835, "ts": "2026-02-19T17:34:09.263309+00:00", "pid": 70639}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:34:12.869864+00:00", "pid": 70638}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:34:12.870121+00:00", "pid": 70638}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.49, "ts": "2026-02-19T17:34:12.870327+00:00", "pid": 70638}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.06, "ts": "2026-02-19T17:34:12.870440+00:00", "pid": 70638}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:34:12.870487+00:00", "pid": 70638}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-19T17:34:12.870693+00:00", "pid": 70638}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.3, "ts": "2026-02-19T17:34:12.871062+00:00", "pid": 70638}
+{"event": "shutdown", "mode": "dev", "uptime_s": 6.767, "ts": "2026-02-19T17:34:12.871158+00:00", "pid": 70638}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-19T17:34:13.056580+00:00", "pid": 70678}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.62, "ts": "2026-02-19T17:34:13.057331+00:00", "pid": 70678}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 43.89, "ts": "2026-02-19T17:34:13.101283+00:00", "pid": 70678}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:34:13.101437+00:00", "pid": 70678}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:34:13.101496+00:00", "pid": 70678}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-19T17:34:13.101542+00:00", "pid": 70678}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.34, "ts": "2026-02-19T17:34:13.102924+00:00", "pid": 70678}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:34:13.102992+00:00", "pid": 70678}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 46.88, "ts": "2026-02-19T17:34:13.112861+00:00", "pid": 70678}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:34:26.331754+00:00", "pid": 70678}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:34:26.332995+00:00", "pid": 70678}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.39, "ts": "2026-02-19T17:34:26.333103+00:00", "pid": 70678}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.07, "ts": "2026-02-19T17:34:26.333250+00:00", "pid": 70678}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:34:26.333330+00:00", "pid": 70678}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-19T17:34:26.333417+00:00", "pid": 70678}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.31, "ts": "2026-02-19T17:34:26.333788+00:00", "pid": 70678}
+{"event": "shutdown", "mode": "dev", "uptime_s": 13.221, "ts": "2026-02-19T17:34:26.333946+00:00", "pid": 70678}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:34:26.528521+00:00", "pid": 70943}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.74, "ts": "2026-02-19T17:34:26.529447+00:00", "pid": 70943}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 87.2, "ts": "2026-02-19T17:34:26.616734+00:00", "pid": 70943}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:34:26.616931+00:00", "pid": 70943}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:34:26.617143+00:00", "pid": 70943}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.27, "ts": "2026-02-19T17:34:26.617187+00:00", "pid": 70943}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.43, "ts": "2026-02-19T17:34:26.618652+00:00", "pid": 70943}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:34:26.618739+00:00", "pid": 70943}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 90.72, "ts": "2026-02-19T17:34:26.630736+00:00", "pid": 70943}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:35:00.385089+00:00", "pid": 70943}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:35:00.385376+00:00", "pid": 70943}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.54, "ts": "2026-02-19T17:35:00.385565+00:00", "pid": 70943}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.04, "ts": "2026-02-19T17:35:00.385707+00:00", "pid": 70943}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:35:00.385777+00:00", "pid": 70943}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-19T17:35:00.385844+00:00", "pid": 70943}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.27, "ts": "2026-02-19T17:35:00.386165+00:00", "pid": 70943}
+{"event": "shutdown", "mode": "dev", "uptime_s": 33.756, "ts": "2026-02-19T17:35:00.386273+00:00", "pid": 70943}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.41, "ts": "2026-02-19T17:35:00.600867+00:00", "pid": 71185}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.59, "ts": "2026-02-19T17:35:00.601558+00:00", "pid": 71185}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 55.73, "ts": "2026-02-19T17:35:00.657354+00:00", "pid": 71185}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:35:00.657532+00:00", "pid": 71185}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:35:00.657601+00:00", "pid": 71185}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-19T17:35:00.657641+00:00", "pid": 71185}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.48, "ts": "2026-02-19T17:35:00.659156+00:00", "pid": 71185}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:35:00.659257+00:00", "pid": 71185}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 58.87, "ts": "2026-02-19T17:35:00.687431+00:00", "pid": 71185}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:35:06.948627+00:00", "pid": 71185}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:35:06.948968+00:00", "pid": 71185}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.59, "ts": "2026-02-19T17:35:06.949170+00:00", "pid": 71185}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.09, "ts": "2026-02-19T17:35:06.949322+00:00", "pid": 71185}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:35:06.949379+00:00", "pid": 71185}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-19T17:35:06.949466+00:00", "pid": 71185}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.35, "ts": "2026-02-19T17:35:06.949858+00:00", "pid": 71185}
+{"event": "shutdown", "mode": "dev", "uptime_s": 6.263, "ts": "2026-02-19T17:35:06.949923+00:00", "pid": 71185}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:35:07.137186+00:00", "pid": 71225}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.58, "ts": "2026-02-19T17:35:07.137869+00:00", "pid": 71225}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 75.56, "ts": "2026-02-19T17:35:07.213492+00:00", "pid": 71225}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:35:07.213670+00:00", "pid": 71225}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:35:07.213891+00:00", "pid": 71225}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.28, "ts": "2026-02-19T17:35:07.213944+00:00", "pid": 71225}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.3, "ts": "2026-02-19T17:35:07.215282+00:00", "pid": 71225}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:35:07.215367+00:00", "pid": 71225}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 78.67, "ts": "2026-02-19T17:35:07.226390+00:00", "pid": 71225}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:35:27.327118+00:00", "pid": 71225}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:35:27.327479+00:00", "pid": 71225}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.44, "ts": "2026-02-19T17:35:27.327541+00:00", "pid": 71225}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.04, "ts": "2026-02-19T17:35:27.327632+00:00", "pid": 71225}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:35:27.327675+00:00", "pid": 71225}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-19T17:35:27.327741+00:00", "pid": 71225}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.21, "ts": "2026-02-19T17:35:27.327989+00:00", "pid": 71225}
+{"event": "shutdown", "mode": "dev", "uptime_s": 20.102, "ts": "2026-02-19T17:35:27.328042+00:00", "pid": 71225}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.56, "ts": "2026-02-19T17:35:27.596584+00:00", "pid": 71386}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.17, "ts": "2026-02-19T17:35:27.597868+00:00", "pid": 71386}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 31.67, "ts": "2026-02-19T17:35:27.629632+00:00", "pid": 71386}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:35:27.629836+00:00", "pid": 71386}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:35:27.629901+00:00", "pid": 71386}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-19T17:35:27.629950+00:00", "pid": 71386}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.39, "ts": "2026-02-19T17:35:27.631377+00:00", "pid": 71386}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.03, "detail": "0 providers", "ts": "2026-02-19T17:35:27.631472+00:00", "pid": 71386}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 35.52, "ts": "2026-02-19T17:35:27.644072+00:00", "pid": 71386}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:35:38.755675+00:00", "pid": 71386}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:35:38.755981+00:00", "pid": 71386}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.55, "ts": "2026-02-19T17:35:38.756173+00:00", "pid": 71386}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.08, "ts": "2026-02-19T17:35:38.756304+00:00", "pid": 71386}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:35:38.756357+00:00", "pid": 71386}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-19T17:35:38.756425+00:00", "pid": 71386}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.33, "ts": "2026-02-19T17:35:38.756797+00:00", "pid": 71386}
+{"event": "shutdown", "mode": "dev", "uptime_s": 11.113, "ts": "2026-02-19T17:35:38.756902+00:00", "pid": 71386}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.38, "ts": "2026-02-19T17:35:38.946197+00:00", "pid": 71427}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.63, "ts": "2026-02-19T17:35:38.946934+00:00", "pid": 71427}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 158.48, "ts": "2026-02-19T17:35:39.105484+00:00", "pid": 71427}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:35:39.105704+00:00", "pid": 71427}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:35:39.105925+00:00", "pid": 71427}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.28, "ts": "2026-02-19T17:35:39.105971+00:00", "pid": 71427}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.3, "ts": "2026-02-19T17:35:39.107327+00:00", "pid": 71427}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:35:39.107398+00:00", "pid": 71427}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 161.64, "ts": "2026-02-19T17:35:39.118358+00:00", "pid": 71427}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:35:56.293663+00:00", "pid": 71427}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:35:56.293959+00:00", "pid": 71427}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.55, "ts": "2026-02-19T17:35:56.294177+00:00", "pid": 71427}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.07, "ts": "2026-02-19T17:35:56.294299+00:00", "pid": 71427}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:35:56.294349+00:00", "pid": 71427}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-19T17:35:56.294475+00:00", "pid": 71427}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.35, "ts": "2026-02-19T17:35:56.294910+00:00", "pid": 71427}
+{"event": "shutdown", "mode": "dev", "uptime_s": 17.177, "ts": "2026-02-19T17:35:56.294974+00:00", "pid": 71427}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.38, "ts": "2026-02-19T17:35:56.501269+00:00", "pid": 71492}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.6, "ts": "2026-02-19T17:35:56.501970+00:00", "pid": 71492}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.67, "ts": "2026-02-19T17:35:56.502720+00:00", "pid": 71492}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:35:56.502785+00:00", "pid": 71492}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:35:56.502830+00:00", "pid": 71492}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-19T17:35:56.502866+00:00", "pid": 71492}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.42, "ts": "2026-02-19T17:35:56.504319+00:00", "pid": 71492}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:35:56.504393+00:00", "pid": 71492}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 3.57, "ts": "2026-02-19T17:35:56.515274+00:00", "pid": 71492}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:36:26.597114+00:00", "pid": 71492}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:36:26.598003+00:00", "pid": 71492}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.98, "ts": "2026-02-19T17:36:26.598066+00:00", "pid": 71492}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.03, "ts": "2026-02-19T17:36:26.598146+00:00", "pid": 71492}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:36:26.598193+00:00", "pid": 71492}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-19T17:36:26.598256+00:00", "pid": 71492}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.26, "ts": "2026-02-19T17:36:26.598551+00:00", "pid": 71492}
+{"event": "shutdown", "mode": "dev", "uptime_s": 30.083, "ts": "2026-02-19T17:36:26.598646+00:00", "pid": 71492}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:36:26.869037+00:00", "pid": 71689}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.73, "ts": "2026-02-19T17:36:26.869849+00:00", "pid": 71689}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 92.38, "ts": "2026-02-19T17:36:26.962307+00:00", "pid": 71689}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:36:26.962504+00:00", "pid": 71689}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:36:26.962567+00:00", "pid": 71689}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-19T17:36:26.962608+00:00", "pid": 71689}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.42, "ts": "2026-02-19T17:36:26.964071+00:00", "pid": 71689}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:36:26.964176+00:00", "pid": 71689}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 95.64, "ts": "2026-02-19T17:36:26.976439+00:00", "pid": 71689}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:36:36.972302+00:00", "pid": 71689}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:36:36.972599+00:00", "pid": 71689}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.53, "ts": "2026-02-19T17:36:36.972806+00:00", "pid": 71689}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.08, "ts": "2026-02-19T17:36:36.972931+00:00", "pid": 71689}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:36:36.972979+00:00", "pid": 71689}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-19T17:36:36.973048+00:00", "pid": 71689}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.3, "ts": "2026-02-19T17:36:36.973380+00:00", "pid": 71689}
+{"event": "shutdown", "mode": "dev", "uptime_s": 9.997, "ts": "2026-02-19T17:36:36.973484+00:00", "pid": 71689}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.4, "ts": "2026-02-19T17:36:37.235664+00:00", "pid": 71730}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.6, "ts": "2026-02-19T17:36:37.236375+00:00", "pid": 71730}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 54.72, "ts": "2026-02-19T17:36:37.291149+00:00", "pid": 71730}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:36:37.291346+00:00", "pid": 71730}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:36:37.291413+00:00", "pid": 71730}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-19T17:36:37.291458+00:00", "pid": 71730}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.38, "ts": "2026-02-19T17:36:37.292884+00:00", "pid": 71730}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:36:37.293004+00:00", "pid": 71730}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 57.82, "ts": "2026-02-19T17:36:37.304276+00:00", "pid": 71730}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:36:52.174870+00:00", "pid": 71730}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:36:52.175741+00:00", "pid": 71730}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.99, "ts": "2026-02-19T17:36:52.175844+00:00", "pid": 71730}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.04, "ts": "2026-02-19T17:36:52.175939+00:00", "pid": 71730}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:36:52.175997+00:00", "pid": 71730}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-19T17:36:52.176064+00:00", "pid": 71730}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.23, "ts": "2026-02-19T17:36:52.176327+00:00", "pid": 71730}
+{"event": "shutdown", "mode": "dev", "uptime_s": 14.872, "ts": "2026-02-19T17:36:52.176381+00:00", "pid": 71730}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.44, "ts": "2026-02-19T17:36:52.366006+00:00", "pid": 71873}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.61, "ts": "2026-02-19T17:36:52.366718+00:00", "pid": 71873}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 67.32, "ts": "2026-02-19T17:36:52.434118+00:00", "pid": 71873}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:36:52.434317+00:00", "pid": 71873}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:36:52.434517+00:00", "pid": 71873}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.25, "ts": "2026-02-19T17:36:52.434561+00:00", "pid": 71873}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.45, "ts": "2026-02-19T17:36:52.436051+00:00", "pid": 71873}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:36:52.436137+00:00", "pid": 71873}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 70.68, "ts": "2026-02-19T17:36:52.447642+00:00", "pid": 71873}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:37:11.217091+00:00", "pid": 71873}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:37:11.217362+00:00", "pid": 71873}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.38, "ts": "2026-02-19T17:37:11.217430+00:00", "pid": 71873}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.08, "ts": "2026-02-19T17:37:11.217561+00:00", "pid": 71873}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:37:11.217607+00:00", "pid": 71873}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-19T17:37:11.217676+00:00", "pid": 71873}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.33, "ts": "2026-02-19T17:37:11.218043+00:00", "pid": 71873}
+{"event": "shutdown", "mode": "dev", "uptime_s": 18.771, "ts": "2026-02-19T17:37:11.218158+00:00", "pid": 71873}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.39, "ts": "2026-02-19T17:37:11.404742+00:00", "pid": 71951}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.59, "ts": "2026-02-19T17:37:11.405429+00:00", "pid": 71951}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 29.22, "ts": "2026-02-19T17:37:11.434710+00:00", "pid": 71951}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:37:11.434860+00:00", "pid": 71951}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:37:11.434916+00:00", "pid": 71951}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-19T17:37:11.434955+00:00", "pid": 71951}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.38, "ts": "2026-02-19T17:37:11.436368+00:00", "pid": 71951}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:37:11.436438+00:00", "pid": 71951}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 32.14, "ts": "2026-02-19T17:37:11.446175+00:00", "pid": 71951}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:37:13.162204+00:00", "pid": 71951}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:37:13.162622+00:00", "pid": 71951}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.68, "ts": "2026-02-19T17:37:13.162825+00:00", "pid": 71951}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.08, "ts": "2026-02-19T17:37:13.162968+00:00", "pid": 71951}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-19T17:37:13.163025+00:00", "pid": 71951}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-19T17:37:13.163113+00:00", "pid": 71951}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.38, "ts": "2026-02-19T17:37:13.163538+00:00", "pid": 71951}
+{"event": "shutdown", "mode": "dev", "uptime_s": 1.717, "ts": "2026-02-19T17:37:13.163610+00:00", "pid": 71951}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.42, "ts": "2026-02-19T17:37:13.354266+00:00", "pid": 71967}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.63, "ts": "2026-02-19T17:37:13.354996+00:00", "pid": 71967}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 104.83, "ts": "2026-02-19T17:37:13.459890+00:00", "pid": 71967}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:37:13.460129+00:00", "pid": 71967}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:37:13.460354+00:00", "pid": 71967}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.28, "ts": "2026-02-19T17:37:13.460407+00:00", "pid": 71967}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.39, "ts": "2026-02-19T17:37:13.461836+00:00", "pid": 71967}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:37:13.461919+00:00", "pid": 71967}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 108.14, "ts": "2026-02-19T17:37:13.472734+00:00", "pid": 71967}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:37:43.852708+00:00", "pid": 71967}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:37:43.853320+00:00", "pid": 71967}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.76, "ts": "2026-02-19T17:37:43.853416+00:00", "pid": 71967}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.06, "ts": "2026-02-19T17:37:43.853601+00:00", "pid": 71967}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:37:43.853659+00:00", "pid": 71967}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-19T17:37:43.853747+00:00", "pid": 71967}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.32, "ts": "2026-02-19T17:37:43.854127+00:00", "pid": 71967}
+{"event": "shutdown", "mode": "dev", "uptime_s": 30.382, "ts": "2026-02-19T17:37:43.854259+00:00", "pid": 71967}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.44, "ts": "2026-02-19T17:37:46.940766+00:00", "pid": 72137}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.86, "ts": "2026-02-19T17:37:46.941738+00:00", "pid": 72137}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 86.06, "ts": "2026-02-19T17:37:47.027868+00:00", "pid": 72137}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-19T17:37:47.028070+00:00", "pid": 72137}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-19T17:37:47.028274+00:00", "pid": 72137}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.28, "ts": "2026-02-19T17:37:47.028347+00:00", "pid": 72137}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.41, "ts": "2026-02-19T17:37:47.029807+00:00", "pid": 72137}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-19T17:37:47.029910+00:00", "pid": 72137}
+{"event": "boot", "mode": "dev", "fingerprint": "4b50098d3069643e4429fed5b4a6cea24ac97528859d3e99768e40b83e8007ea", "app_count": 1, "route_count": 8, "di_providers": 16, "duration_ms": 89.66, "ts": "2026-02-19T17:37:47.045091+00:00", "pid": 72137}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-19T17:45:30.588516+00:00", "pid": 72137}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-19T17:45:30.590278+00:00", "pid": 72137}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.12, "ts": "2026-02-19T17:45:30.590503+00:00", "pid": 72137}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.12, "ts": "2026-02-19T17:45:30.590779+00:00", "pid": 72137}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-19T17:45:30.590928+00:00", "pid": 72137}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-19T17:45:30.591107+00:00", "pid": 72137}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.52, "ts": "2026-02-19T17:45:30.591756+00:00", "pid": 72137}
+{"event": "shutdown", "mode": "dev", "uptime_s": 463.548, "ts": "2026-02-19T17:45:30.591907+00:00", "pid": 72137}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.76, "ts": "2026-02-20T08:09:10.994505+00:00", "pid": 82563}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.22, "ts": "2026-02-20T08:09:10.995973+00:00", "pid": 82563}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 43.71, "ts": "2026-02-20T08:09:11.039760+00:00", "pid": 82563}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:09:11.039909+00:00", "pid": 82563}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:09:11.039974+00:00", "pid": 82563}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.11, "ts": "2026-02-20T08:09:11.040019+00:00", "pid": 82563}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.87, "ts": "2026-02-20T08:09:11.041926+00:00", "pid": 82563}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:09:11.042074+00:00", "pid": 82563}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 48.41, "ts": "2026-02-20T08:09:11.058257+00:00", "pid": 82563}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:12:10.189660+00:00", "pid": 82563}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:12:10.191579+00:00", "pid": 82563}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.49, "ts": "2026-02-20T08:12:10.191966+00:00", "pid": 82563}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.41, "ts": "2026-02-20T08:12:10.192629+00:00", "pid": 82563}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:12:10.192881+00:00", "pid": 82563}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.11, "ts": "2026-02-20T08:12:10.193188+00:00", "pid": 82563}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.09, "ts": "2026-02-20T08:12:10.194491+00:00", "pid": 82563}
+{"event": "shutdown", "mode": "dev", "uptime_s": 179.136, "ts": "2026-02-20T08:12:10.194767+00:00", "pid": 82563}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.6, "ts": "2026-02-20T08:12:10.493761+00:00", "pid": 83863}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.04, "ts": "2026-02-20T08:12:10.494876+00:00", "pid": 83863}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 22.43, "ts": "2026-02-20T08:12:10.517365+00:00", "pid": 83863}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:12:10.517457+00:00", "pid": 83863}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:12:10.517509+00:00", "pid": 83863}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-20T08:12:10.517546+00:00", "pid": 83863}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.3, "ts": "2026-02-20T08:12:10.518881+00:00", "pid": 83863}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:12:10.518947+00:00", "pid": 83863}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 25.85, "ts": "2026-02-20T08:12:10.531962+00:00", "pid": 83863}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:13:06.157665+00:00", "pid": 83863}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:13:06.158906+00:00", "pid": 83863}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.61, "ts": "2026-02-20T08:13:06.159197+00:00", "pid": 83863}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.19, "ts": "2026-02-20T08:13:06.159567+00:00", "pid": 83863}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:13:06.159711+00:00", "pid": 83863}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.09, "ts": "2026-02-20T08:13:06.159893+00:00", "pid": 83863}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.85, "ts": "2026-02-20T08:13:06.160855+00:00", "pid": 83863}
+{"event": "shutdown", "mode": "dev", "uptime_s": 55.629, "ts": "2026-02-20T08:13:06.161134+00:00", "pid": 83863}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.63, "ts": "2026-02-20T08:13:06.517155+00:00", "pid": 84388}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.13, "ts": "2026-02-20T08:13:06.518367+00:00", "pid": 84388}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 66.13, "ts": "2026-02-20T08:13:06.584558+00:00", "pid": 84388}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:13:06.584712+00:00", "pid": 84388}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:13:06.584780+00:00", "pid": 84388}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-20T08:13:06.584827+00:00", "pid": 84388}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.46, "ts": "2026-02-20T08:13:06.586332+00:00", "pid": 84388}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:13:06.586400+00:00", "pid": 84388}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 69.94, "ts": "2026-02-20T08:13:06.599029+00:00", "pid": 84388}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:14:05.841283+00:00", "pid": 84388}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:14:05.842333+00:00", "pid": 84388}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.5, "ts": "2026-02-20T08:14:05.842710+00:00", "pid": 84388}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.23, "ts": "2026-02-20T08:14:05.843172+00:00", "pid": 84388}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:14:05.843409+00:00", "pid": 84388}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-20T08:14:05.843658+00:00", "pid": 84388}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.96, "ts": "2026-02-20T08:14:05.844816+00:00", "pid": 84388}
+{"event": "shutdown", "mode": "dev", "uptime_s": 59.246, "ts": "2026-02-20T08:14:05.845123+00:00", "pid": 84388}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.62, "ts": "2026-02-20T08:14:07.362502+00:00", "pid": 84936}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.08, "ts": "2026-02-20T08:14:07.363666+00:00", "pid": 84936}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 27.69, "ts": "2026-02-20T08:14:07.391417+00:00", "pid": 84936}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:14:07.391508+00:00", "pid": 84936}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:14:07.391562+00:00", "pid": 84936}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:14:07.391597+00:00", "pid": 84936}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.41, "ts": "2026-02-20T08:14:07.393047+00:00", "pid": 84936}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:14:07.393148+00:00", "pid": 84936}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 31.34, "ts": "2026-02-20T08:14:07.408205+00:00", "pid": 84936}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:14:32.630038+00:00", "pid": 84936}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:14:32.631017+00:00", "pid": 84936}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.39, "ts": "2026-02-20T08:14:32.631338+00:00", "pid": 84936}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.25, "ts": "2026-02-20T08:14:32.631812+00:00", "pid": 84936}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:14:32.632057+00:00", "pid": 84936}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-20T08:14:32.632328+00:00", "pid": 84936}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.07, "ts": "2026-02-20T08:14:32.633597+00:00", "pid": 84936}
+{"event": "shutdown", "mode": "dev", "uptime_s": 25.226, "ts": "2026-02-20T08:14:32.633990+00:00", "pid": 84936}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.64, "ts": "2026-02-20T08:14:32.851716+00:00", "pid": 85376}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.98, "ts": "2026-02-20T08:14:32.852788+00:00", "pid": 85376}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 27.82, "ts": "2026-02-20T08:14:32.880678+00:00", "pid": 85376}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:14:32.880773+00:00", "pid": 85376}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:14:32.880823+00:00", "pid": 85376}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-20T08:14:32.880860+00:00", "pid": 85376}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.28, "ts": "2026-02-20T08:14:32.882177+00:00", "pid": 85376}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:14:32.882245+00:00", "pid": 85376}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 31.24, "ts": "2026-02-20T08:14:32.891938+00:00", "pid": 85376}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:19:31.268942+00:00", "pid": 85376}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:19:31.271271+00:00", "pid": 85376}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.93, "ts": "2026-02-20T08:19:31.271632+00:00", "pid": 85376}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.32, "ts": "2026-02-20T08:19:31.272184+00:00", "pid": 85376}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:19:31.272297+00:00", "pid": 85376}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.09, "ts": "2026-02-20T08:19:31.272468+00:00", "pid": 85376}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.73, "ts": "2026-02-20T08:19:31.273278+00:00", "pid": 85376}
+{"event": "shutdown", "mode": "dev", "uptime_s": 298.382, "ts": "2026-02-20T08:19:31.273546+00:00", "pid": 85376}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.63, "ts": "2026-02-20T08:19:31.621852+00:00", "pid": 87807}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.06, "ts": "2026-02-20T08:19:31.622989+00:00", "pid": 87807}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 34.5, "ts": "2026-02-20T08:19:31.657555+00:00", "pid": 87807}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:19:31.657629+00:00", "pid": 87807}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:19:31.657680+00:00", "pid": 87807}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:19:31.657719+00:00", "pid": 87807}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.32, "ts": "2026-02-20T08:19:31.659070+00:00", "pid": 87807}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:19:31.659143+00:00", "pid": 87807}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 37.98, "ts": "2026-02-20T08:19:31.671943+00:00", "pid": 87807}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:19:38.938054+00:00", "pid": 87807}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:19:38.939237+00:00", "pid": 87807}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.55, "ts": "2026-02-20T08:19:38.939469+00:00", "pid": 87807}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.29, "ts": "2026-02-20T08:19:38.940025+00:00", "pid": 87807}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:19:38.940250+00:00", "pid": 87807}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.16, "ts": "2026-02-20T08:19:38.940607+00:00", "pid": 87807}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.23, "ts": "2026-02-20T08:19:38.942067+00:00", "pid": 87807}
+{"event": "shutdown", "mode": "dev", "uptime_s": 7.271, "ts": "2026-02-20T08:19:38.942440+00:00", "pid": 87807}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.61, "ts": "2026-02-20T08:19:39.265210+00:00", "pid": 87846}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.05, "ts": "2026-02-20T08:19:39.266337+00:00", "pid": 87846}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.86, "ts": "2026-02-20T08:19:39.267249+00:00", "pid": 87846}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:19:39.267297+00:00", "pid": 87846}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:19:39.267338+00:00", "pid": 87846}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-20T08:19:39.267371+00:00", "pid": 87846}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.26, "ts": "2026-02-20T08:19:39.268658+00:00", "pid": 87846}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-20T08:19:39.268715+00:00", "pid": 87846}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.17, "ts": "2026-02-20T08:19:39.279193+00:00", "pid": 87846}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:19:49.374606+00:00", "pid": 87846}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:19:49.375657+00:00", "pid": 87846}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.49, "ts": "2026-02-20T08:19:49.376001+00:00", "pid": 87846}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.28, "ts": "2026-02-20T08:19:49.376503+00:00", "pid": 87846}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:19:49.376741+00:00", "pid": 87846}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-20T08:19:49.377023+00:00", "pid": 87846}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.08, "ts": "2026-02-20T08:19:49.378298+00:00", "pid": 87846}
+{"event": "shutdown", "mode": "dev", "uptime_s": 10.1, "ts": "2026-02-20T08:19:49.378688+00:00", "pid": 87846}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.84, "ts": "2026-02-20T08:19:49.611660+00:00", "pid": 87883}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.15, "ts": "2026-02-20T08:19:49.612956+00:00", "pid": 87883}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.85, "ts": "2026-02-20T08:19:49.613875+00:00", "pid": 87883}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:19:49.613928+00:00", "pid": 87883}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:19:49.613975+00:00", "pid": 87883}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-20T08:19:49.614009+00:00", "pid": 87883}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.36, "ts": "2026-02-20T08:19:49.615400+00:00", "pid": 87883}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:19:49.615489+00:00", "pid": 87883}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.75, "ts": "2026-02-20T08:19:49.626022+00:00", "pid": 87883}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:20:12.447931+00:00", "pid": 87883}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:20:12.448860+00:00", "pid": 87883}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.29, "ts": "2026-02-20T08:20:12.449174+00:00", "pid": 87883}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.28, "ts": "2026-02-20T08:20:12.449698+00:00", "pid": 87883}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:20:12.449921+00:00", "pid": 87883}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.04, "ts": "2026-02-20T08:20:12.450156+00:00", "pid": 87883}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.14, "ts": "2026-02-20T08:20:12.451506+00:00", "pid": 87883}
+{"event": "shutdown", "mode": "dev", "uptime_s": 22.826, "ts": "2026-02-20T08:20:12.451930+00:00", "pid": 87883}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.6, "ts": "2026-02-20T08:20:12.669796+00:00", "pid": 88192}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.91, "ts": "2026-02-20T08:20:12.670805+00:00", "pid": 88192}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.73, "ts": "2026-02-20T08:20:12.671592+00:00", "pid": 88192}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:20:12.671640+00:00", "pid": 88192}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:20:12.671683+00:00", "pid": 88192}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-20T08:20:12.671716+00:00", "pid": 88192}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.26, "ts": "2026-02-20T08:20:12.673003+00:00", "pid": 88192}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:20:12.673061+00:00", "pid": 88192}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 3.92, "ts": "2026-02-20T08:20:12.683171+00:00", "pid": 88192}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:20:14.705572+00:00", "pid": 88192}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:20:14.707599+00:00", "pid": 88192}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.6, "ts": "2026-02-20T08:20:14.708013+00:00", "pid": 88192}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.28, "ts": "2026-02-20T08:20:14.708533+00:00", "pid": 88192}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:20:14.708776+00:00", "pid": 88192}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-20T08:20:14.709061+00:00", "pid": 88192}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.01, "ts": "2026-02-20T08:20:14.710271+00:00", "pid": 88192}
+{"event": "shutdown", "mode": "dev", "uptime_s": 2.027, "ts": "2026-02-20T08:20:14.710545+00:00", "pid": 88192}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.59, "ts": "2026-02-20T08:20:14.945038+00:00", "pid": 88207}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.93, "ts": "2026-02-20T08:20:14.946081+00:00", "pid": 88207}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.72, "ts": "2026-02-20T08:20:14.946861+00:00", "pid": 88207}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:20:14.946914+00:00", "pid": 88207}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:20:14.946997+00:00", "pid": 88207}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-20T08:20:14.947036+00:00", "pid": 88207}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.23, "ts": "2026-02-20T08:20:14.948303+00:00", "pid": 88207}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-20T08:20:14.948364+00:00", "pid": 88207}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 3.97, "ts": "2026-02-20T08:20:14.957293+00:00", "pid": 88207}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.66, "ts": "2026-02-20T08:20:22.456103+00:00", "pid": 88422}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.03, "ts": "2026-02-20T08:20:22.457389+00:00", "pid": 88422}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.85, "ts": "2026-02-20T08:20:22.458308+00:00", "pid": 88422}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:20:22.458381+00:00", "pid": 88422}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:20:22.458445+00:00", "pid": 88422}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.12, "ts": "2026-02-20T08:20:22.458497+00:00", "pid": 88422}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.92, "ts": "2026-02-20T08:20:22.460553+00:00", "pid": 88422}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:20:22.460651+00:00", "pid": 88422}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.28, "ts": "2026-02-20T08:20:22.474128+00:00", "pid": 88422}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:20:22.638254+00:00", "pid": 88207}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:20:22.638671+00:00", "pid": 88207}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.73, "ts": "2026-02-20T08:20:22.638875+00:00", "pid": 88207}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.1, "ts": "2026-02-20T08:20:22.639099+00:00", "pid": 88207}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:20:22.639195+00:00", "pid": 88207}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-20T08:20:22.639396+00:00", "pid": 88207}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.96, "ts": "2026-02-20T08:20:22.640570+00:00", "pid": 88207}
+{"event": "shutdown", "mode": "dev", "uptime_s": 7.684, "ts": "2026-02-20T08:20:22.640826+00:00", "pid": 88207}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.64, "ts": "2026-02-20T08:20:22.862452+00:00", "pid": 88425}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.06, "ts": "2026-02-20T08:20:22.863661+00:00", "pid": 88425}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.79, "ts": "2026-02-20T08:20:22.864519+00:00", "pid": 88425}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:20:22.864576+00:00", "pid": 88425}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:20:22.864620+00:00", "pid": 88425}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-20T08:20:22.864657+00:00", "pid": 88425}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.57, "ts": "2026-02-20T08:20:22.866267+00:00", "pid": 88425}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:20:22.866377+00:00", "pid": 88425}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.64, "ts": "2026-02-20T08:20:22.882266+00:00", "pid": 88425}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:20:27.022723+00:00", "pid": 88425}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:20:27.023712+00:00", "pid": 88425}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.45, "ts": "2026-02-20T08:20:27.024071+00:00", "pid": 88425}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.21, "ts": "2026-02-20T08:20:27.024452+00:00", "pid": 88425}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:20:27.024597+00:00", "pid": 88425}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-20T08:20:27.024811+00:00", "pid": 88425}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.75, "ts": "2026-02-20T08:20:27.025700+00:00", "pid": 88425}
+{"event": "shutdown", "mode": "dev", "uptime_s": 4.144, "ts": "2026-02-20T08:20:27.025951+00:00", "pid": 88425}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.63, "ts": "2026-02-20T08:21:47.475828+00:00", "pid": 89667}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.15, "ts": "2026-02-20T08:21:47.477191+00:00", "pid": 89667}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.23, "ts": "2026-02-20T08:21:47.478498+00:00", "pid": 89667}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:21:47.478588+00:00", "pid": 89667}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:21:47.478655+00:00", "pid": 89667}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-20T08:21:47.478699+00:00", "pid": 89667}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.49, "ts": "2026-02-20T08:21:47.480228+00:00", "pid": 89667}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:21:47.480315+00:00", "pid": 89667}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.19, "ts": "2026-02-20T08:21:47.494892+00:00", "pid": 89667}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.66, "ts": "2026-02-20T08:22:18.258047+00:00", "pid": 90238}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.2, "ts": "2026-02-20T08:22:18.259485+00:00", "pid": 90238}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.15, "ts": "2026-02-20T08:22:18.260701+00:00", "pid": 90238}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:22:18.260774+00:00", "pid": 90238}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:22:18.260828+00:00", "pid": 90238}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:22:18.260871+00:00", "pid": 90238}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.42, "ts": "2026-02-20T08:22:18.262327+00:00", "pid": 90238}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-20T08:22:18.262396+00:00", "pid": 90238}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.08, "ts": "2026-02-20T08:22:18.276017+00:00", "pid": 90238}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:22:25.645604+00:00", "pid": 90238}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:22:25.645866+00:00", "pid": 90238}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.46, "ts": "2026-02-20T08:22:25.646045+00:00", "pid": 90238}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.04, "ts": "2026-02-20T08:22:25.646139+00:00", "pid": 90238}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-20T08:22:25.646189+00:00", "pid": 90238}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-20T08:22:25.646249+00:00", "pid": 90238}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.2, "ts": "2026-02-20T08:22:25.646486+00:00", "pid": 90238}
+{"event": "shutdown", "mode": "dev", "uptime_s": 7.371, "ts": "2026-02-20T08:22:25.646545+00:00", "pid": 90238}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.73, "ts": "2026-02-20T08:22:25.840516+00:00", "pid": 90578}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.14, "ts": "2026-02-20T08:22:25.841773+00:00", "pid": 90578}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.86, "ts": "2026-02-20T08:22:25.842717+00:00", "pid": 90578}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:22:25.842780+00:00", "pid": 90578}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:22:25.842829+00:00", "pid": 90578}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-20T08:22:25.842868+00:00", "pid": 90578}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.39, "ts": "2026-02-20T08:22:25.844290+00:00", "pid": 90578}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-20T08:22:25.844357+00:00", "pid": 90578}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.63, "ts": "2026-02-20T08:22:25.854054+00:00", "pid": 90578}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.58, "ts": "2026-02-20T08:22:31.328737+00:00", "pid": 90764}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.96, "ts": "2026-02-20T08:22:31.329776+00:00", "pid": 90764}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.8, "ts": "2026-02-20T08:22:31.330648+00:00", "pid": 90764}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:22:31.330737+00:00", "pid": 90764}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:22:31.330808+00:00", "pid": 90764}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-20T08:22:31.330858+00:00", "pid": 90764}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.66, "ts": "2026-02-20T08:22:42.078989+00:00", "pid": 91148}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.1, "ts": "2026-02-20T08:22:42.080309+00:00", "pid": 91148}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.11, "ts": "2026-02-20T08:22:42.081485+00:00", "pid": 91148}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:22:42.081559+00:00", "pid": 91148}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:22:42.081621+00:00", "pid": 91148}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.15, "ts": "2026-02-20T08:22:42.081704+00:00", "pid": 91148}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.93, "ts": "2026-02-20T08:22:42.083699+00:00", "pid": 91148}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:22:42.083781+00:00", "pid": 91148}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.52, "ts": "2026-02-20T08:22:42.129466+00:00", "pid": 91148}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:23:13.265129+00:00", "pid": 91148}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:23:13.266617+00:00", "pid": 91148}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.59, "ts": "2026-02-20T08:23:13.266696+00:00", "pid": 91148}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.04, "ts": "2026-02-20T08:23:13.266790+00:00", "pid": 91148}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-20T08:23:13.266837+00:00", "pid": 91148}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.01, "ts": "2026-02-20T08:23:13.266893+00:00", "pid": 91148}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.21, "ts": "2026-02-20T08:23:13.267139+00:00", "pid": 91148}
+{"event": "shutdown", "mode": "dev", "uptime_s": 31.138, "ts": "2026-02-20T08:23:13.267233+00:00", "pid": 91148}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.62, "ts": "2026-02-20T08:23:13.544906+00:00", "pid": 91461}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.14, "ts": "2026-02-20T08:23:13.546132+00:00", "pid": 91461}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.11, "ts": "2026-02-20T08:23:13.547307+00:00", "pid": 91461}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:23:13.547374+00:00", "pid": 91461}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:23:13.547423+00:00", "pid": 91461}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:23:13.547466+00:00", "pid": 91461}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.34, "ts": "2026-02-20T08:23:13.548839+00:00", "pid": 91461}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:23:13.548908+00:00", "pid": 91461}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.68, "ts": "2026-02-20T08:23:13.563853+00:00", "pid": 91461}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:24:02.824872+00:00", "pid": 91461}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:24:02.825218+00:00", "pid": 91461}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.56, "ts": "2026-02-20T08:24:02.825412+00:00", "pid": 91461}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.04, "ts": "2026-02-20T08:24:02.825506+00:00", "pid": 91461}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-20T08:24:02.825557+00:00", "pid": 91461}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.01, "ts": "2026-02-20T08:24:02.825607+00:00", "pid": 91461}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.18, "ts": "2026-02-20T08:24:02.825824+00:00", "pid": 91461}
+{"event": "shutdown", "mode": "dev", "uptime_s": 49.262, "ts": "2026-02-20T08:24:02.825870+00:00", "pid": 91461}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.61, "ts": "2026-02-20T08:24:03.080354+00:00", "pid": 91731}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.02, "ts": "2026-02-20T08:24:03.081473+00:00", "pid": 91731}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.85, "ts": "2026-02-20T08:24:03.082403+00:00", "pid": 91731}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:24:03.082467+00:00", "pid": 91731}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:24:03.082521+00:00", "pid": 91731}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:24:03.082560+00:00", "pid": 91731}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.41, "ts": "2026-02-20T08:24:03.084005+00:00", "pid": 91731}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:24:03.084073+00:00", "pid": 91731}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.39, "ts": "2026-02-20T08:24:03.095627+00:00", "pid": 91731}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:24:35.000438+00:00", "pid": 91731}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:24:35.000739+00:00", "pid": 91731}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.53, "ts": "2026-02-20T08:24:35.000948+00:00", "pid": 91731}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.05, "ts": "2026-02-20T08:24:35.001063+00:00", "pid": 91731}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-20T08:24:35.001119+00:00", "pid": 91731}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-20T08:24:35.001178+00:00", "pid": 91731}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.23, "ts": "2026-02-20T08:24:35.001445+00:00", "pid": 91731}
+{"event": "shutdown", "mode": "dev", "uptime_s": 31.906, "ts": "2026-02-20T08:24:35.001540+00:00", "pid": 91731}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.61, "ts": "2026-02-20T08:24:35.200297+00:00", "pid": 91932}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.98, "ts": "2026-02-20T08:24:35.201385+00:00", "pid": 91932}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.9, "ts": "2026-02-20T08:24:35.202350+00:00", "pid": 91932}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:24:35.202422+00:00", "pid": 91932}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:24:35.202488+00:00", "pid": 91932}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-20T08:24:35.202540+00:00", "pid": 91932}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.48, "ts": "2026-02-20T08:24:35.204052+00:00", "pid": 91932}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:24:35.204147+00:00", "pid": 91932}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.53, "ts": "2026-02-20T08:24:35.214355+00:00", "pid": 91932}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.61, "ts": "2026-02-20T08:26:01.005925+00:00", "pid": 92574}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.98, "ts": "2026-02-20T08:26:01.006982+00:00", "pid": 92574}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 33.44, "ts": "2026-02-20T08:26:01.040496+00:00", "pid": 92574}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:26:01.040598+00:00", "pid": 92574}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:26:01.040649+00:00", "pid": 92574}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:26:01.040690+00:00", "pid": 92574}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.45, "ts": "2026-02-20T08:26:01.042175+00:00", "pid": 92574}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:26:01.042271+00:00", "pid": 92574}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 37.03, "ts": "2026-02-20T08:26:01.053433+00:00", "pid": 92574}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:26:17.406927+00:00", "pid": 92574}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:26:17.407903+00:00", "pid": 92574}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.11, "ts": "2026-02-20T08:26:17.407988+00:00", "pid": 92574}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.09, "ts": "2026-02-20T08:26:17.408128+00:00", "pid": 92574}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-20T08:26:17.408174+00:00", "pid": 92574}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.03, "ts": "2026-02-20T08:26:17.408244+00:00", "pid": 92574}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.35, "ts": "2026-02-20T08:26:17.408627+00:00", "pid": 92574}
+{"event": "shutdown", "mode": "dev", "uptime_s": 16.355, "ts": "2026-02-20T08:26:17.408724+00:00", "pid": 92574}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.7, "ts": "2026-02-20T08:26:17.758424+00:00", "pid": 92641}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.24, "ts": "2026-02-20T08:26:17.759784+00:00", "pid": 92641}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 52.99, "ts": "2026-02-20T08:26:17.812845+00:00", "pid": 92641}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:26:17.812959+00:00", "pid": 92641}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:26:17.813029+00:00", "pid": 92641}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.13, "ts": "2026-02-20T08:26:17.813081+00:00", "pid": 92641}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.68, "ts": "2026-02-20T08:26:17.814811+00:00", "pid": 92641}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.03, "detail": "0 providers", "ts": "2026-02-20T08:26:17.814933+00:00", "pid": 92641}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 57.29, "ts": "2026-02-20T08:26:17.831380+00:00", "pid": 92641}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:26:48.714059+00:00", "pid": 92641}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:26:48.715026+00:00", "pid": 92641}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.06, "ts": "2026-02-20T08:26:48.715107+00:00", "pid": 92641}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.05, "ts": "2026-02-20T08:26:48.715203+00:00", "pid": 92641}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-20T08:26:48.715247+00:00", "pid": 92641}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-20T08:26:48.715304+00:00", "pid": 92641}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.21, "ts": "2026-02-20T08:26:48.715556+00:00", "pid": 92641}
+{"event": "shutdown", "mode": "dev", "uptime_s": 30.884, "ts": "2026-02-20T08:26:48.715665+00:00", "pid": 92641}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.75, "ts": "2026-02-20T08:26:48.974411+00:00", "pid": 92955}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.04, "ts": "2026-02-20T08:26:48.975587+00:00", "pid": 92955}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.88, "ts": "2026-02-20T08:26:48.976540+00:00", "pid": 92955}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:26:48.976608+00:00", "pid": 92955}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:26:48.976655+00:00", "pid": 92955}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-20T08:26:48.976692+00:00", "pid": 92955}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.35, "ts": "2026-02-20T08:26:48.978081+00:00", "pid": 92955}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:26:48.978169+00:00", "pid": 92955}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.59, "ts": "2026-02-20T08:26:48.988866+00:00", "pid": 92955}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.66, "ts": "2026-02-20T08:29:21.090958+00:00", "pid": 94348}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.11, "ts": "2026-02-20T08:29:21.092272+00:00", "pid": 94348}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.14, "ts": "2026-02-20T08:29:21.093466+00:00", "pid": 94348}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:29:21.093540+00:00", "pid": 94348}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:29:21.093593+00:00", "pid": 94348}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:29:21.093631+00:00", "pid": 94348}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.38, "ts": "2026-02-20T08:29:21.095053+00:00", "pid": 94348}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:29:21.095136+00:00", "pid": 94348}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.9, "ts": "2026-02-20T08:29:21.107335+00:00", "pid": 94348}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:29:21.262429+00:00", "pid": 92955}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:29:21.263499+00:00", "pid": 92955}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.63, "ts": "2026-02-20T08:29:21.263702+00:00", "pid": 92955}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.26, "ts": "2026-02-20T08:29:21.264081+00:00", "pid": 92955}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:29:21.264203+00:00", "pid": 92955}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.11, "ts": "2026-02-20T08:29:21.264400+00:00", "pid": 92955}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.99, "ts": "2026-02-20T08:29:21.265485+00:00", "pid": 92955}
+{"event": "shutdown", "mode": "dev", "uptime_s": 152.277, "ts": "2026-02-20T08:29:21.265754+00:00", "pid": 92955}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.65, "ts": "2026-02-20T08:29:21.480250+00:00", "pid": 94351}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.98, "ts": "2026-02-20T08:29:21.481374+00:00", "pid": 94351}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.74, "ts": "2026-02-20T08:29:21.482174+00:00", "pid": 94351}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:29:21.482231+00:00", "pid": 94351}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:29:21.482279+00:00", "pid": 94351}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-20T08:29:21.482318+00:00", "pid": 94351}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.51, "ts": "2026-02-20T08:29:21.483867+00:00", "pid": 94351}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:29:21.483959+00:00", "pid": 94351}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.43, "ts": "2026-02-20T08:29:21.494009+00:00", "pid": 94351}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:30:55.564327+00:00", "pid": 94351}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:30:55.565815+00:00", "pid": 94351}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.67, "ts": "2026-02-20T08:30:55.565926+00:00", "pid": 94351}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.16, "ts": "2026-02-20T08:30:55.566152+00:00", "pid": 94351}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:30:55.566216+00:00", "pid": 94351}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.1, "ts": "2026-02-20T08:30:55.566367+00:00", "pid": 94351}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.57, "ts": "2026-02-20T08:30:55.566987+00:00", "pid": 94351}
+{"event": "shutdown", "mode": "dev", "uptime_s": 94.073, "ts": "2026-02-20T08:30:55.567134+00:00", "pid": 94351}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:31:04.517462+00:00", "pid": 94348}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:31:04.519658+00:00", "pid": 94348}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.56, "ts": "2026-02-20T08:31:04.519934+00:00", "pid": 94348}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.22, "ts": "2026-02-20T08:31:04.520302+00:00", "pid": 94348}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T08:31:04.520483+00:00", "pid": 94348}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.07, "ts": "2026-02-20T08:31:04.520699+00:00", "pid": 94348}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.59, "ts": "2026-02-20T08:31:04.521424+00:00", "pid": 94348}
+{"event": "shutdown", "mode": "dev", "uptime_s": 103.415, "ts": "2026-02-20T08:31:04.521661+00:00", "pid": 94348}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.64, "ts": "2026-02-20T08:31:34.718307+00:00", "pid": 95472}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.37, "ts": "2026-02-20T08:31:34.719912+00:00", "pid": 95472}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.23, "ts": "2026-02-20T08:31:34.721241+00:00", "pid": 95472}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:31:34.721306+00:00", "pid": 95472}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:31:34.721357+00:00", "pid": 95472}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:31:34.721399+00:00", "pid": 95472}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.49, "ts": "2026-02-20T08:31:34.722928+00:00", "pid": 95472}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:31:34.723022+00:00", "pid": 95472}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.43, "ts": "2026-02-20T08:31:34.737284+00:00", "pid": 95472}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T08:59:19.674772+00:00", "pid": 95472}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T08:59:19.675512+00:00", "pid": 95472}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.99, "ts": "2026-02-20T08:59:19.675628+00:00", "pid": 95472}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.19, "ts": "2026-02-20T08:59:19.675886+00:00", "pid": 95472}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.0, "ts": "2026-02-20T08:59:19.675941+00:00", "pid": 95472}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.08, "ts": "2026-02-20T08:59:19.676064+00:00", "pid": 95472}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.53, "ts": "2026-02-20T08:59:19.676637+00:00", "pid": 95472}
+{"event": "shutdown", "mode": "dev", "uptime_s": 1664.942, "ts": "2026-02-20T08:59:19.676752+00:00", "pid": 95472}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.71, "ts": "2026-02-20T08:59:20.042586+00:00", "pid": 2602}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.29, "ts": "2026-02-20T08:59:20.044001+00:00", "pid": 2602}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.22, "ts": "2026-02-20T08:59:20.045298+00:00", "pid": 2602}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T08:59:20.045358+00:00", "pid": 2602}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T08:59:20.045410+00:00", "pid": 2602}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T08:59:20.045451+00:00", "pid": 2602}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.39, "ts": "2026-02-20T08:59:20.046877+00:00", "pid": 2602}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T08:59:20.046943+00:00", "pid": 2602}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.14, "ts": "2026-02-20T08:59:20.067728+00:00", "pid": 2602}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T09:00:29.752141+00:00", "pid": 2602}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T09:00:29.754646+00:00", "pid": 2602}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 3.02, "ts": "2026-02-20T09:00:29.754933+00:00", "pid": 2602}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.23, "ts": "2026-02-20T09:00:29.755315+00:00", "pid": 2602}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T09:00:29.755498+00:00", "pid": 2602}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.14, "ts": "2026-02-20T09:00:29.755847+00:00", "pid": 2602}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.33, "ts": "2026-02-20T09:00:29.757500+00:00", "pid": 2602}
+{"event": "shutdown", "mode": "dev", "uptime_s": 69.69, "ts": "2026-02-20T09:00:29.757828+00:00", "pid": 2602}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.7, "ts": "2026-02-20T09:00:30.117447+00:00", "pid": 2851}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.2, "ts": "2026-02-20T09:00:30.118754+00:00", "pid": 2851}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.23, "ts": "2026-02-20T09:00:30.120049+00:00", "pid": 2851}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T09:00:30.120111+00:00", "pid": 2851}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T09:00:30.120160+00:00", "pid": 2851}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T09:00:30.120203+00:00", "pid": 2851}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.67, "ts": "2026-02-20T09:00:30.121949+00:00", "pid": 2851}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T09:00:30.122043+00:00", "pid": 2851}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.37, "ts": "2026-02-20T09:00:30.136752+00:00", "pid": 2851}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T09:01:30.815322+00:00", "pid": 2851}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T09:01:30.816566+00:00", "pid": 2851}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.48, "ts": "2026-02-20T09:01:30.816685+00:00", "pid": 2851}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.15, "ts": "2026-02-20T09:01:30.816904+00:00", "pid": 2851}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T09:01:30.816954+00:00", "pid": 2851}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-20T09:01:30.817049+00:00", "pid": 2851}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.46, "ts": "2026-02-20T09:01:30.817557+00:00", "pid": 2851}
+{"event": "shutdown", "mode": "dev", "uptime_s": 60.681, "ts": "2026-02-20T09:01:30.817628+00:00", "pid": 2851}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.64, "ts": "2026-02-20T09:01:31.019013+00:00", "pid": 3732}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.15, "ts": "2026-02-20T09:01:31.020246+00:00", "pid": 3732}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.35, "ts": "2026-02-20T09:01:31.021661+00:00", "pid": 3732}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T09:01:31.021737+00:00", "pid": 3732}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T09:01:31.021791+00:00", "pid": 3732}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T09:01:31.021832+00:00", "pid": 3732}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.39, "ts": "2026-02-20T09:01:31.023263+00:00", "pid": 3732}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T09:01:31.023344+00:00", "pid": 3732}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.04, "ts": "2026-02-20T09:01:31.038652+00:00", "pid": 3732}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.61, "ts": "2026-02-20T09:01:42.551813+00:00", "pid": 3958}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 0.98, "ts": "2026-02-20T09:01:42.552887+00:00", "pid": 3958}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 0.81, "ts": "2026-02-20T09:01:42.553777+00:00", "pid": 3958}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T09:01:42.553876+00:00", "pid": 3958}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T09:01:42.553981+00:00", "pid": 3958}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.19, "ts": "2026-02-20T09:01:42.554062+00:00", "pid": 3958}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.49, "ts": "2026-02-20T09:01:42.555613+00:00", "pid": 3958}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T09:01:42.555688+00:00", "pid": 3958}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.54, "ts": "2026-02-20T09:01:42.565603+00:00", "pid": 3958}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.7, "ts": "2026-02-20T09:03:50.405876+00:00", "pid": 4767}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.36, "ts": "2026-02-20T09:03:50.407448+00:00", "pid": 4767}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.38, "ts": "2026-02-20T09:03:50.408925+00:00", "pid": 4767}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T09:03:50.409001+00:00", "pid": 4767}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T09:03:50.409053+00:00", "pid": 4767}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T09:03:50.409093+00:00", "pid": 4767}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.62, "ts": "2026-02-20T09:03:50.412755+00:00", "pid": 4767}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T09:03:50.412849+00:00", "pid": 4767}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 7.75, "ts": "2026-02-20T09:03:50.431404+00:00", "pid": 4767}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T09:13:45.600915+00:00", "pid": 4767}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T09:13:45.602877+00:00", "pid": 4767}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 2.84, "ts": "2026-02-20T09:13:45.603235+00:00", "pid": 4767}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.63, "ts": "2026-02-20T09:13:45.604099+00:00", "pid": 4767}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.03, "ts": "2026-02-20T09:13:45.604601+00:00", "pid": 4767}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.23, "ts": "2026-02-20T09:13:45.605304+00:00", "pid": 4767}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 1.65, "ts": "2026-02-20T09:13:45.607279+00:00", "pid": 4767}
+{"event": "shutdown", "mode": "dev", "uptime_s": 595.177, "ts": "2026-02-20T09:13:45.607597+00:00", "pid": 4767}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.66, "ts": "2026-02-20T09:13:45.958441+00:00", "pid": 7007}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.1, "ts": "2026-02-20T09:13:45.959626+00:00", "pid": 7007}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.12, "ts": "2026-02-20T09:13:45.960804+00:00", "pid": 7007}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T09:13:45.960861+00:00", "pid": 7007}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T09:13:45.960904+00:00", "pid": 7007}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.09, "ts": "2026-02-20T09:13:45.960940+00:00", "pid": 7007}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.42, "ts": "2026-02-20T09:13:45.962390+00:00", "pid": 7007}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T09:13:45.962452+00:00", "pid": 7007}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.74, "ts": "2026-02-20T09:13:45.981003+00:00", "pid": 7007}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T09:14:02.945156+00:00", "pid": 7007}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T09:14:02.946398+00:00", "pid": 7007}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.62, "ts": "2026-02-20T09:14:02.946682+00:00", "pid": 7007}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.2, "ts": "2026-02-20T09:14:02.947099+00:00", "pid": 7007}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.02, "ts": "2026-02-20T09:14:02.947286+00:00", "pid": 7007}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.06, "ts": "2026-02-20T09:14:02.947502+00:00", "pid": 7007}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.67, "ts": "2026-02-20T09:14:02.948324+00:00", "pid": 7007}
+{"event": "shutdown", "mode": "dev", "uptime_s": 16.967, "ts": "2026-02-20T09:14:02.948745+00:00", "pid": 7007}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.66, "ts": "2026-02-20T09:14:03.184056+00:00", "pid": 7144}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.12, "ts": "2026-02-20T09:14:03.185259+00:00", "pid": 7144}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.06, "ts": "2026-02-20T09:14:03.186378+00:00", "pid": 7144}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T09:14:03.186424+00:00", "pid": 7144}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T09:14:03.186464+00:00", "pid": 7144}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.08, "ts": "2026-02-20T09:14:03.186498+00:00", "pid": 7144}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.23, "ts": "2026-02-20T09:14:03.187759+00:00", "pid": 7144}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.01, "detail": "0 providers", "ts": "2026-02-20T09:14:03.187815+00:00", "pid": 7144}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 4.47, "ts": "2026-02-20T09:14:03.198675+00:00", "pid": 7144}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T09:14:06.534413+00:00", "pid": 7144}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T09:14:06.535090+00:00", "pid": 7144}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 1.0, "ts": "2026-02-20T09:14:06.535346+00:00", "pid": 7144}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.2, "ts": "2026-02-20T09:14:06.535723+00:00", "pid": 7144}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T09:14:06.535914+00:00", "pid": 7144}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.05, "ts": "2026-02-20T09:14:06.536113+00:00", "pid": 7144}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.73, "ts": "2026-02-20T09:14:06.536966+00:00", "pid": 7144}
+{"event": "shutdown", "mode": "dev", "uptime_s": 3.338, "ts": "2026-02-20T09:14:06.537226+00:00", "pid": 7144}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.71, "ts": "2026-02-20T09:14:15.564358+00:00", "pid": 7378}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.13, "ts": "2026-02-20T09:14:15.565726+00:00", "pid": 7378}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.28, "ts": "2026-02-20T09:14:15.567061+00:00", "pid": 7378}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T09:14:15.567130+00:00", "pid": 7378}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T09:14:15.567180+00:00", "pid": 7378}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T09:14:15.567220+00:00", "pid": 7378}
+{"event": "phase", "phase": "models_registered", "duration_ms": 1.57, "ts": "2026-02-20T09:14:15.568823+00:00", "pid": 7378}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T09:14:15.568907+00:00", "pid": 7378}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 5.32, "ts": "2026-02-20T09:14:15.581153+00:00", "pid": 7378}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T09:14:26.177742+00:00", "pid": 7378}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T09:14:26.177964+00:00", "pid": 7378}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 0.43, "ts": "2026-02-20T09:14:26.178155+00:00", "pid": 7378}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.05, "ts": "2026-02-20T09:14:26.178259+00:00", "pid": 7378}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T09:14:26.178311+00:00", "pid": 7378}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.02, "ts": "2026-02-20T09:14:26.178387+00:00", "pid": 7378}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 0.28, "ts": "2026-02-20T09:14:26.178712+00:00", "pid": 7378}
+{"event": "shutdown", "mode": "dev", "uptime_s": 10.598, "ts": "2026-02-20T09:14:26.178770+00:00", "pid": 7378}
+{"event": "phase", "phase": "autodiscovery", "duration_ms": 0.71, "ts": "2026-02-20T09:38:16.073595+00:00", "pid": 12396}
+{"event": "phase", "phase": "controllers_loaded", "duration_ms": 1.07, "ts": "2026-02-20T09:38:16.074873+00:00", "pid": 12396}
+{"event": "phase", "phase": "routes_compiled", "duration_ms": 1.12, "ts": "2026-02-20T09:38:16.076050+00:00", "pid": 12396}
+{"event": "phase", "phase": "lifecycle:starting", "ts": "2026-02-20T09:38:16.076107+00:00", "pid": 12396}
+{"event": "phase", "phase": "lifecycle:ready", "ts": "2026-02-20T09:38:16.076159+00:00", "pid": 12396}
+{"event": "phase", "phase": "lifecycle_started", "duration_ms": 0.1, "ts": "2026-02-20T09:38:16.076202+00:00", "pid": 12396}
+{"event": "phase", "phase": "models_registered", "duration_ms": 3.45, "ts": "2026-02-20T09:38:16.079688+00:00", "pid": 12396}
+{"event": "phase", "phase": "effects_initialized", "duration_ms": 0.02, "detail": "0 providers", "ts": "2026-02-20T09:38:16.079768+00:00", "pid": 12396}
+{"event": "boot", "mode": "dev", "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7", "app_count": 2, "route_count": 13, "di_providers": 32, "duration_ms": 6.95, "ts": "2026-02-20T09:38:16.096129+00:00", "pid": 12396}
+{"event": "phase", "phase": "lifecycle:stopping", "ts": "2026-02-20T09:42:16.344880+00:00", "pid": 12396}
+{"event": "phase", "phase": "lifecycle:stopped", "ts": "2026-02-20T09:42:16.347524+00:00", "pid": 12396}
+{"event": "phase", "phase": "lifecycle_shutdown", "duration_ms": 3.39, "ts": "2026-02-20T09:42:16.347802+00:00", "pid": 12396}
+{"event": "phase", "phase": "di_cleanup", "duration_ms": 0.47, "ts": "2026-02-20T09:42:16.348420+00:00", "pid": 12396}
+{"event": "phase", "phase": "effects_finalized", "duration_ms": 0.01, "ts": "2026-02-20T09:42:16.348547+00:00", "pid": 12396}
+{"event": "phase", "phase": "websocket_shutdown", "duration_ms": 0.17, "ts": "2026-02-20T09:42:16.348817+00:00", "pid": 12396}
+{"event": "phase", "phase": "db_disconnect", "duration_ms": 2.51, "ts": "2026-02-20T09:42:16.351446+00:00", "pid": 12396}
+{"event": "shutdown", "mode": "dev", "uptime_s": 240.256, "ts": "2026-02-20T09:42:16.351686+00:00", "pid": 12396}

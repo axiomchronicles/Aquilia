@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "captured_at": "2026-02-22T00:29:18.186063+00:00",
+  "config": {
+    "debug": true,
+    "runtime": {
+      "mode": "test"
+    },
+    "docs_enabled": false,
+    "integrations": {
+      "mail": {
+        "enabled": false
+      }
+    },
+    "database": {
+      "url": "sqlite:///:memory:",
+      "auto_create": true,
+      "auto_migrate": true
+    },
+    "auth": "***REDACTED***",
+    "sessions": {
+      "enabled": true,
+      "transport": {
+        "cookie_name": "aq_session"
+      }
+    },
+    "templates": {
+      "enabled": true,
+      "path": "/Users/kuroyami/PyProjects/Aquilia/tests/e2e/../../authentication/templates",
+      "search_paths": [
+        "/Users/kuroyami/PyProjects/Aquilia/tests/e2e/../../authentication/templates"
+      ],
+      "auto_discover": true
+    },
+    "security": {
+      "secret_key": "***REDACTED***",
+      "token_issuer": "***REDACTED***"
+    }
+  },
+  "environment": {
+    "python_version": "3.14.0 (v3.14.0:ebf955df7a8, Oct  7 2025, 08:20:14) [Clang 16.0.0 (clang-1600.0.26.6)]",
+    "platform": "macOS-26.2-arm64-arm-64bit-Mach-O",
+    "cwd": "/Users/kuroyami/PyProjects/Aquilia",
+    "pid": 76245,
+    "debug": true
+  },
+  "subsystems": {
+    "sessions": true,
+    "auth": true,
+    "templates": true,
+    "mail": false,
+    "websockets": true,
+    "faults": true,
+    "effects": true,
+    "database": true
+  },
+  "server": {
+    "mode": "test",
+    "fingerprint": "e68ce87b9cd4c72c5efce76ddb7d27ca2f27637c1f7b2fba0603e21c265a1fca",
+    "app_count": 2
+  }
+}

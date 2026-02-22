@@ -635,16 +635,20 @@ from .trace import (
 # Testing Framework (Django-style test infrastructure)
 # ============================================================================
 
-from .testing import (
-    TestClient,
-    TestServer,
-    create_test_server,
-    override_settings,
-    AquiliaTestCase,
-    SimpleTestCase,
-    TransactionTestCase,
-    LiveServerTestCase,
-)
+try:
+    from .testing import (
+        TestClient,
+        TestServer,
+        create_test_server,
+        override_settings,
+        AquiliaTestCase,
+        SimpleTestCase,
+        TransactionTestCase,
+        LiveServerTestCase,
+    )
+except ImportError:
+    # Testing framework is optional and requires pytest
+    pass
 
 # ============================================================================
 # Exports

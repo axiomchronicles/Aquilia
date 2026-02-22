@@ -72,6 +72,17 @@ def _write_file(
     return True
 
 
+def deploy_options(f):
+    """Decorator to add shared --force and --dry-run options to subcommands."""
+    import functools
+    @click.option("--force", "-f", is_flag=True, help="Overwrite existing files")
+    @click.option("--dry-run", is_flag=True, help="Preview without writing files")
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    return wrapper
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Click group
 # ═══════════════════════════════════════════════════════════════════════════
@@ -112,8 +123,9 @@ def deploy_gen_group(ctx, force: bool, dry_run: bool):
 @click.option("--dev", "dev_mode", is_flag=True, help="Generate development Dockerfile (with hot-reload)")
 @click.option("--mlops", "mlops_mode", is_flag=True, help="Generate MLOps model-serving Dockerfile")
 @click.option("--output", "-o", type=click.Path(), default=".", help="Output directory")
+@deploy_options
 @click.pass_context
-def deploy_dockerfile(ctx, dev_mode: bool, mlops_mode: bool, output: str):
+def deploy_dockerfile(ctx, dev_mode: bool, mlops_mode: bool, output: str, force: bool, dry_run: bool):
     """
     Generate production-ready Dockerfiles.
 
@@ -133,8 +145,8 @@ def deploy_dockerfile(ctx, dev_mode: bool, mlops_mode: bool, output: str):
     workspace_root = Path.cwd()
     out = Path(output)
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
 
     try:
         wctx = _get_ctx(workspace_root)
@@ -190,8 +202,9 @@ def deploy_dockerfile(ctx, dev_mode: bool, mlops_mode: bool, output: str):
 @click.option("--dev", "dev_mode", is_flag=True, help="Also generate docker-compose.dev.yml")
 @click.option("--monitoring", is_flag=True, help="Include Prometheus + Grafana services")
 @click.option("--output", "-o", type=click.Path(), default=".", help="Output directory")
+@deploy_options
 @click.pass_context
-def deploy_compose(ctx, dev_mode: bool, monitoring: bool, output: str):
+def deploy_compose(ctx, dev_mode: bool, monitoring: bool, output: str, force: bool, dry_run: bool):
     """
     Generate docker-compose.yml for the workspace.
 
@@ -210,8 +223,8 @@ def deploy_compose(ctx, dev_mode: bool, monitoring: bool, output: str):
     workspace_root = Path.cwd()
     out = Path(output)
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
 
     try:
         wctx = _get_ctx(workspace_root)
@@ -250,8 +263,9 @@ def deploy_compose(ctx, dev_mode: bool, monitoring: bool, output: str):
 @deploy_gen_group.command("kubernetes")
 @click.option("--output", "-o", type=click.Path(), default="k8s", help="Output directory")
 @click.option("--mlops", is_flag=True, help="Force include MLOps manifests")
+@deploy_options
 @click.pass_context
-def deploy_kubernetes(ctx, output: str, mlops: bool):
+def deploy_kubernetes(ctx, output: str, mlops: bool, force: bool, dry_run: bool):
     """
     Generate production Kubernetes manifests.
 
@@ -270,8 +284,8 @@ def deploy_kubernetes(ctx, output: str, mlops: bool):
     workspace_root = Path.cwd()
     out = Path(output)
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
 
     try:
         wctx = _get_ctx(workspace_root)
@@ -324,8 +338,9 @@ def deploy_kubernetes(ctx, output: str, mlops: bool):
 
 @deploy_gen_group.command("nginx")
 @click.option("--output", "-o", type=click.Path(), default="deploy/nginx", help="Output directory")
+@deploy_options
 @click.pass_context
-def deploy_nginx(ctx, output: str):
+def deploy_nginx(ctx, output: str, force: bool, dry_run: bool):
     """
     Generate Nginx reverse-proxy configuration.
 
@@ -342,8 +357,8 @@ def deploy_nginx(ctx, output: str):
     workspace_root = Path.cwd()
     out = Path(output)
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
 
     try:
         wctx = _get_ctx(workspace_root)
@@ -383,8 +398,9 @@ def deploy_nginx(ctx, output: str):
 @click.option("--provider", type=click.Choice(["github", "gitlab"]), default="github",
               help="CI provider")
 @click.option("--output", "-o", type=click.Path(), default=None, help="Output directory")
+@deploy_options
 @click.pass_context
-def deploy_ci(ctx, provider: str, output: Optional[str]):
+def deploy_ci(ctx, provider: str, output: Optional[str], force: bool, dry_run: bool):
     """
     Generate CI/CD pipeline configuration.
 
@@ -405,8 +421,8 @@ def deploy_ci(ctx, provider: str, output: Optional[str]):
 
     workspace_root = Path.cwd()
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
 
     try:
         wctx = _get_ctx(workspace_root)
@@ -444,8 +460,9 @@ def deploy_ci(ctx, provider: str, output: Optional[str]):
 
 @deploy_gen_group.command("monitoring")
 @click.option("--output", "-o", type=click.Path(), default="deploy", help="Output base directory")
+@deploy_options
 @click.pass_context
-def deploy_monitoring(ctx, output: str):
+def deploy_monitoring(ctx, output: str, force: bool, dry_run: bool):
     """
     Generate monitoring configuration (Prometheus + Grafana).
 
@@ -465,8 +482,8 @@ def deploy_monitoring(ctx, output: str):
     workspace_root = Path.cwd()
     out = Path(output)
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
 
     try:
         wctx = _get_ctx(workspace_root)
@@ -508,8 +525,9 @@ def deploy_monitoring(ctx, output: str):
 
 @deploy_gen_group.command("env")
 @click.option("--output", "-o", type=click.Path(), default=".", help="Output directory")
+@deploy_options
 @click.pass_context
-def deploy_env(ctx, output: str):
+def deploy_env(ctx, output: str, force: bool, dry_run: bool):
     """
     Generate .env.example template with all Aquilia settings.
 
@@ -527,8 +545,8 @@ def deploy_env(ctx, output: str):
     workspace_root = Path.cwd()
     out = Path(output)
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
 
     try:
         wctx = _get_ctx(workspace_root)
@@ -563,8 +581,9 @@ def deploy_env(ctx, output: str):
 @click.option("--monitoring", is_flag=True, default=True, help="Include monitoring (default: yes)")
 @click.option("--ci-provider", type=click.Choice(["github", "gitlab", "both"]),
               default="github", help="CI/CD provider")
+@deploy_options
 @click.pass_context
-def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
+def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str, force: bool, dry_run: bool):
     """
     Generate ALL deployment files at once.
 
@@ -592,8 +611,8 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
     workspace_root = Path.cwd()
     out = Path(output)
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
     written = 0  # track files written
 
     try:
@@ -802,8 +821,9 @@ def deploy_all(ctx, output: str, monitoring: bool, ci_provider: str):
 
 @deploy_gen_group.command("makefile")
 @click.option("--output", "-o", type=click.Path(), default=".", help="Output directory")
+@deploy_options
 @click.pass_context
-def deploy_makefile(ctx, output: str):
+def deploy_makefile(ctx, output: str, force: bool, dry_run: bool):
     """
     Generate a self-documenting Makefile for dev & ops tasks.
 
@@ -820,8 +840,8 @@ def deploy_makefile(ctx, output: str):
     workspace_root = Path.cwd()
     out = Path(output)
     verbose = ctx.obj.get("verbose", False)
-    force = ctx.obj.get("force", False)
-    dry_run = ctx.obj.get("dry_run", False)
+    force = force or ctx.obj.get("force", False)
+    dry_run = dry_run or ctx.obj.get("dry_run", False)
 
     try:
         wctx = _get_ctx(workspace_root)

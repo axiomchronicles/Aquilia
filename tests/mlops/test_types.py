@@ -121,7 +121,7 @@ class TestModelpackManifest:
         m1 = self._make_manifest()
         m2 = ModelpackManifest(
             name="test-model",
-            version="v2.0.0",
+            version="v1.0.0",
             framework=Framework.PYTORCH,
             entrypoint="model.pt",
             inputs=[TensorSpec(name="x", dtype="float32", shape=[-1, 10])],

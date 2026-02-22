@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-02-22T00:29:18.185313+00:00",
+  "total": 12,
+  "method_counts": {
+    "POST": 4,
+    "GET": 6,
+    "DELETE": 1,
+    "PUT": 1
+  },
+  "controllers": {
+    "DashboardController": [
+      "/dashboard/",
+      "/dashboard/",
+      "/dashboard/\u00abid:int\u00bb",
+      "/dashboard/\u00abid:int\u00bb",
+      "/dashboard/\u00abid:int\u00bb"
+    ],
+    "AuthController": [
+      "/auth/dashboard",
+      "/auth/login",
+      "/auth/login",
+      "/auth/me",
+      "/auth/refresh",
+      "/auth/register",
+      "/auth/register"
+    ]
+  },
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/dashboard/",
+      "controller": "DashboardController",
+      "handler": "create_dashboard",
+      "specificity": 100,
+      "pipeline": []
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard/",
+      "controller": "DashboardController",
+      "handler": "list_dashboard",
+      "specificity": 100,
+      "pipeline": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/dashboard/\u00abid:int\u00bb",
+      "controller": "DashboardController",
+      "handler": "delete_dashboard",
+      "specificity": 50,
+      "pipeline": []
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard/\u00abid:int\u00bb",
+      "controller": "DashboardController",
+      "handler": "get_dashboard",
+      "specificity": 50,
+      "pipeline": []
+    },
+    {
+      "method": "PUT",
+      "path": "/dashboard/\u00abid:int\u00bb",
+      "controller": "DashboardController",
+      "handler": "update_dashboard",
+      "specificity": 50,
+      "pipeline": []
+    },
+    {
+      "method": "GET",
+      "path": "/auth/dashboard",
+      "controller": "AuthController",
+      "handler": "dashboard_view",
+      "specificity": 100,
+      "pipeline": []
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "controller": "AuthController",
+      "handler": "login",
+      "specificity": 100,
+      "pipeline": []
+    },
+    {
+      "method": "GET",
+      "path": "/auth/login",
+      "controller": "AuthController",
+      "handler": "login_view",
+      "specificity": 100,
+      "pipeline": []
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "controller": "AuthController",
+      "handler": "me",
+      "specificity": 100,
+      "pipeline": []
+    },
+    {
+      "method": "POST",
+      "path": "/auth/refresh",
+      "controller": "AuthController",
+      "handler": "refresh",
+      "specificity": 100,
+      "pipeline": []
+    },
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "controller": "AuthController",
+      "handler": "register",
+      "specificity": 100,
+      "pipeline": []
+    },
+    {
+      "method": "GET",
+      "path": "/auth/register",
+      "controller": "AuthController",
+      "handler": "register_view",
+      "specificity": 100,
+      "pipeline": []
+    }
+  ]
+}
