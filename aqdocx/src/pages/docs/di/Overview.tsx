@@ -127,6 +127,8 @@ export function DIOverview() {
             { icon: <Layers className="w-5 h-5" />, title: 'Manifest-Driven Registration', desc: 'Services are declared in app manifests. The Registry loads all manifests, builds the dependency graph, runs Tarjan\'s cycle detection, validates cross-app dependencies, then builds the Container.' },
             { icon: <Zap className="w-5 h-5" />, title: 'Async-First Resolution', desc: 'resolve_async() is the primary hot path. Token-to-key conversion is inlined and cached in _type_key_cache. Cached lookups complete in under 3µs. Singleton/app scopes delegate to the parent container.' },
             { icon: <ShieldCheck className="w-5 h-5" />, title: 'Scope Validation', desc: 'Six scope levels form a hierarchy: singleton > app > request > transient > pooled > ephemeral. The ScopeValidator prevents shorter-lived providers from being injected into longer-lived consumers.' },
+            { icon: <GitBranch className="w-5 h-5" />, title: 'Per-Request DAG', desc: 'Dependencies declared natively in route handlers via Dep() form a per-request Directed Acyclic Graph. Shared sub-dependencies are deduplicated and resolved exactly once per request. Independent branches resolve concurrently.' },
+            { icon: <Box className="w-5 h-5" />, title: 'Annotation-Driven Inject', desc: 'Inspired by FastAPI, use generic typing like Annotated[DB, Dep(get_db)] to seamlessly wire sub-dependencies inline, avoiding the need for boilerplate provider factory registration.' },
             { icon: <GitBranch className="w-5 h-5" />, title: 'Hierarchical Containers', desc: 'create_request_scope() creates a lightweight child container that shares the parent\'s _providers dict by reference but has its own _cache and a _NullLifecycle. Singleton lookups bubble up to the parent automatically.' },
           ].map((card, i) => (
             <div key={i} className={`p-5 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'}`}>
@@ -159,6 +161,8 @@ export function DIOverview() {
                 ['providers.py', 'ClassProvider, FactoryProvider, ValueProvider, PoolProvider, AliasProvider, LazyProxyProvider, ScopedProvider, SerializerProvider.'],
                 ['scopes.py', 'ServiceScope enum (6 scopes), Scope dataclass, SCOPES dict, ScopeValidator.'],
                 ['decorators.py', 'Inject, inject(), service(), factory(), provides(), auto_inject(), injectable.'],
+                ['dep.py', 'Dep descriptor for inline parameter injection. HTTP extractors: Header, Query, Body.'],
+                ['request_dag.py', 'Per-request Dependency Graph execution, deduplication, and caching.'],
                 ['lifecycle.py', 'DisposalStrategy, LifecycleHook, Lifecycle, LifecycleContext.'],
                 ['diagnostics.py', 'DIEventType, DIEvent, DiagnosticListener protocol, ConsoleDiagnosticListener, DIDiagnostics.'],
                 ['graph.py', 'DependencyGraph — Tarjan\'s SCC detection, Kahn\'s topological sort, DOT export, tree view.'],
@@ -407,6 +411,9 @@ from aquilia.di import (
     PoolProvider, AliasProvider, LazyProxyProvider,
     ScopedProvider, SerializerProvider,
 )
+
+# Inline Injection (Steroids)
+from aquilia.di import Dep, RequestDAG, Header, Query, Body
 
 # Scopes
 from aquilia.di import ServiceScope, Scope, ScopeValidator

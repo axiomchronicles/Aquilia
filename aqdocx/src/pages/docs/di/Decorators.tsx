@@ -88,6 +88,91 @@ config: Annotated[Any, inject(token="app_config")]
 logger: Annotated[Logger, inject(optional=True)]`}</CodeBlock>
       </section>
 
+      {/* Dep Descriptor (DI Steroids) */}
+      <section className="mb-16">
+        <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Dep (Per-Request Injection)</h2>
+        <div className={`mb-6 p-4 rounded-xl border ${isDark ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-indigo-50 border-indigo-200'}`}>
+          <p className={`text-sm ${isDark ? 'text-indigo-400' : 'text-indigo-800'}`}>
+            <strong>🚀 DI Steroids:</strong> <code className="text-aquilia-500">Dep</code> is Aquilia's modern, FastAPI-inspired approach to dependency injection. It allows you to wire dependencies inline directly within route handler signatures, bypassing the need for explicit Provider registration in maniests.
+          </p>
+        </div>
+        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <code className="text-aquilia-500">Dep</code> is used within <code className="text-aquilia-500">Annotated</code> type hints to specify a callable dependency. The framework builds a per-request Directed Acyclic Graph (<code className="text-aquilia-500">RequestDAG</code>) to resolve these dependencies efficiently, deduplicating shared branches and executing them concurrently.
+        </p>
+
+        <CodeBlock language="python" filename="Dep Basics">{`from typing import Annotated
+from aquilia.di import Dep
+
+# A simple dependency callable
+async def get_db_session():
+    session = AsyncSession()
+    try:
+        yield session
+    finally:
+        await session.close()
+
+# A route handler declaring inline dependencies
+@get("/users")
+async def list_users(
+    # The DI engine will call get_db_session and inject the yielded value
+    db: Annotated[AsyncSession, Dep(get_db_session)],
+    
+    # Nested dependencies work automatically as well
+    auth: Annotated[User, Dep(get_current_user)]
+):
+    return await db.query(...)`}</CodeBlock>
+
+        <h3 className={`text-lg font-semibold mb-3 mt-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>Dep Attributes</h3>
+        <div className="overflow-x-auto mb-4">
+          <table className={`w-full text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            <thead><tr className={`border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              <th className="text-left py-3 pr-4 text-aquilia-500">Attribute</th>
+              <th className="text-left py-3 pr-4">Type</th>
+              <th className="text-left py-3">Description</th>
+            </tr></thead>
+            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+              {[
+                ['call', 'Callable | None', 'The function/callable to execute. Can be sync, async, generator, or async generator. If None, uses the parameter type hint.'],
+                ['cached', 'bool', 'If True (default), deduplicates the dependency graph. The callable is executed only once per request.'],
+                ['scope', 'str | None', 'Overrides the default "request" scope. Allows pulling singletons directly.'],
+                ['tag', 'str | None', 'For resolving explicitly tagged providers from the parent Container.'],
+                ['use_cache', 'bool', 'Legacy identical behavior to \`cached\` for backward compatibility.'],
+              ].map(([attr, type_, desc], i) => (
+                <tr key={i}>
+                  <td className="py-3 pr-4"><code className="text-aquilia-500 text-xs">{attr}</code></td>
+                  <td className="py-3 pr-4"><code className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{type_}</code></td>
+                  <td className={`py-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h3 className={`text-lg font-semibold mb-3 mt-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>Generator Teardown</h3>
+        <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          If a <code className="text-aquilia-500">Dep</code> callable returns a generator (<code className="text-aquilia-500">yield</code>), Aquilia yields the value to the handler, and queues the teardown logic (code after the <code className="text-aquilia-500">yield</code>) to run <strong>after</strong> the HTTP request has finished processing. Operations are cleaned up in strict LIFO order.
+        </p>
+
+        <CodeBlock language="python" filename="Generator Teardowns">{`async def acquire_lock():
+    await redis.lock("global")
+    try:
+        yield "Lock Acquired"
+    finally:
+        # Runs after the HTTP response is sent
+        await redis.unlock("global")`}</CodeBlock>
+
+        <div className={`mt-8 mb-8 p-5 rounded-xl border ${isDark ? 'bg-[#111] border-white/10' : 'bg-white border-gray-200'} shadow-sm`}>
+          <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Dep vs Inject</h4>
+          <p className={`text-sm mb-4 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            <code className="text-aquilia-500">Dep()</code> and <code className="text-aquilia-500">Inject()</code> solve different problems natively:
+          </p>
+          <ul className={`text-sm space-y-2 list-disc list-inside ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            <li><strong className={isDark ? 'text-gray-300' : 'text-gray-800'}>Use Inject()</strong> when resolving services declared in external <code className="text-aquilia-500">Manifests</code> via <code className="text-aquilia-500">@service</code> or <code className="text-aquilia-500">@factory</code> (Application-wide graphs).</li>
+            <li><strong className={isDark ? 'text-gray-300' : 'text-gray-800'}>Use Dep()</strong> for inline, route-specific logic like extracting auth tokens, validating query scopes, or setting up per-request transactional DB sessions (Per-Request graphs).</li>
+          </ul>
+        </div>
+      </section>
+
       {/* @service */}
       <section className="mb-16">
         <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>@service()</h2>
@@ -334,7 +419,7 @@ users = Manifest(
           Lifecycle <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-    
+
       <NextSteps />
     </div>
   )
