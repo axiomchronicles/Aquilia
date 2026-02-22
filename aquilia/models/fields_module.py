@@ -279,7 +279,33 @@ class AutoField(Field):
     _field_type = "AUTO"
     _python_type = int
 
-    def __init__(self, **kwargs):
+    def __init__(self, *,
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         kwargs.setdefault("primary_key", True)
         super().__init__(**kwargs)
 
@@ -303,7 +329,33 @@ class BigAutoField(Field):
     _field_type = "BIGAUTO"
     _python_type = int
 
-    def __init__(self, **kwargs):
+    def __init__(self, *,
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         kwargs.setdefault("primary_key", True)
         super().__init__(**kwargs)
 
@@ -321,6 +373,31 @@ class BigAutoField(Field):
         if dialect == "postgresql":
             return "BIGSERIAL"
         return "INTEGER"
+
+
+class SmallAutoField(AutoField):
+    """Auto-incrementing 16-bit integer primary key."""
+
+    _field_type = "SMALLAUTO"
+    _python_type = int
+
+    def validate(self, value: Any) -> Any:
+        if value is None:
+            return None
+        if not isinstance(value, int):
+            try:
+                value = int(value)
+            except (TypeError, ValueError):
+                raise FieldValidationError(self.name, f"Expected integer, got {type(value).__name__}")
+        if not (-32768 <= value <= 32767):
+            raise FieldValidationError(self.name, f"Value {value} out of 16-bit integer range")
+        return value
+
+    def sql_type(self, dialect: str = "sqlite") -> str:
+        if dialect == "postgresql":
+            return "SMALLSERIAL"
+        return "INTEGER"
+
 
 
 class IntegerField(Field):
@@ -502,7 +579,33 @@ class DecimalField(Field):
     _field_type = "DECIMAL"
     _python_type = decimal.Decimal
 
-    def __init__(self, *, max_digits: int = 10, decimal_places: int = 2, **kwargs):
+    def __init__(self, *, max_digits: int = 10, decimal_places: int = 2, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.max_digits = max_digits
         self.decimal_places = decimal_places
         super().__init__(**kwargs)
@@ -580,7 +683,33 @@ class CharField(Field):
     _field_type = "CHAR"
     _python_type = str
 
-    def __init__(self, *, max_length: int = 255, **kwargs):
+    def __init__(self, *, max_length: int = 255, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.max_length = max_length
         super().__init__(**kwargs)
 
@@ -610,6 +739,13 @@ class CharField(Field):
         return d
 
 
+class VarcharField(CharField):
+    """Explicit alias for CharField, representing a variable-length string."""
+    _field_type = "VARCHAR"
+
+
+
+
 class TextField(Field):
     """Long text field — no length restriction."""
 
@@ -636,7 +772,33 @@ class SlugField(CharField):
     _field_type = "SLUG"
     _SLUG_RE = re.compile(r'^[-a-zA-Z0-9_]+$')
 
-    def __init__(self, *, max_length: int = 50, **kwargs):
+    def __init__(self, *, max_length: int = 50, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         super().__init__(max_length=max_length, **kwargs)
 
     def validate(self, value: Any) -> Any:
@@ -661,7 +823,33 @@ class EmailField(CharField):
         r'(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'
     )
 
-    def __init__(self, *, max_length: int = 254, **kwargs):
+    def __init__(self, *, max_length: int = 254, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         super().__init__(max_length=max_length, **kwargs)
 
     def validate(self, value: Any) -> Any:
@@ -685,7 +873,33 @@ class URLField(CharField):
         r'(?:/[^\s]*)?$'
     )
 
-    def __init__(self, *, max_length: int = 200, **kwargs):
+    def __init__(self, *, max_length: int = 200, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         super().__init__(max_length=max_length, **kwargs)
 
     def validate(self, value: Any) -> Any:
@@ -703,7 +917,33 @@ class UUIDField(Field):
     _field_type = "UUID"
     _python_type = uuid.UUID
 
-    def __init__(self, *, auto: bool = False, **kwargs):
+    def __init__(self, *, auto: bool = False, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.auto = auto
         if auto:
             kwargs.setdefault("default", uuid.uuid4)
@@ -775,7 +1015,33 @@ class DateField(Field):
     _field_type = "DATE"
     _python_type = datetime.date
 
-    def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, **kwargs):
+    def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
         # auto_now and auto_now_add fields should be blank=True (auto-populated)
@@ -834,7 +1100,33 @@ class TimeField(Field):
     _field_type = "TIME"
     _python_type = datetime.time
 
-    def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, **kwargs):
+    def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
         # auto_now and auto_now_add fields should be blank=True (auto-populated)
@@ -889,7 +1181,33 @@ class DateTimeField(Field):
     _field_type = "DATETIME"
     _python_type = datetime.datetime
 
-    def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, **kwargs):
+    def __init__(self, *, auto_now: bool = False, auto_now_add: bool = False, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
         # auto_now and auto_now_add fields should be blank=True (auto-populated)
@@ -1034,7 +1352,33 @@ class BinaryField(Field):
     _field_type = "BINARY"
     _python_type = bytes
 
-    def __init__(self, *, max_length: Optional[int] = None, **kwargs):
+    def __init__(self, *, max_length: Optional[int] = None, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.max_length = max_length
         super().__init__(**kwargs)
 
@@ -1065,7 +1409,33 @@ class JSONField(Field):
     _field_type = "JSON"
     _python_type = dict
 
-    def __init__(self, *, encoder: Optional[type] = None, decoder: Optional[Callable] = None, **kwargs):
+    def __init__(self, *, encoder: Optional[type] = None, decoder: Optional[Callable] = None, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.encoder = encoder
         self.decoder = decoder
         super().__init__(**kwargs)
@@ -1112,7 +1482,33 @@ class JSONField(Field):
 class RelationField(Field):
     """Base class for relationship fields."""
 
-    def __init__(self, to: Union[str, Type[Model]], **kwargs):
+    def __init__(self, to: Union[str, Type[Model]], *, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.to = to
         self._related_model: Optional[Type[Model]] = None
         super().__init__(**kwargs)
@@ -1211,7 +1607,33 @@ class OneToOneField(ForeignKey):
 
     _field_type = "O2O"
 
-    def __init__(self, to: Union[str, Type[Model]], **kwargs):
+    def __init__(self, to: Union[str, Type[Model]], *, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         kwargs.setdefault("unique", True)
         super().__init__(to=to, **kwargs)
 
@@ -1293,7 +1715,33 @@ class GenericIPAddressField(Field):
     _field_type = "IP"
     _python_type = str
 
-    def __init__(self, *, protocol: str = "both", unpack_ipv4: bool = False, **kwargs):
+    def __init__(self, *, protocol: str = "both", unpack_ipv4: bool = False, 
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         self.protocol = protocol.lower()
         self.unpack_ipv4 = unpack_ipv4
         super().__init__(**kwargs)
@@ -1603,7 +2051,33 @@ class OrderWrt(IntegerField):
 
     _field_type = "ORDERWRT"
 
-    def __init__(self, **kwargs):
+    def __init__(self, *,
+        null: bool = False,
+        blank: bool = False,
+        default: Any = UNSET,
+        unique: bool = False,
+        primary_key: bool = False,
+        db_index: bool = False,
+        db_column: Optional[str] = None,
+        choices: Optional[Sequence[Tuple[Any, str]]] = None,
+        validators: Optional[List[Callable]] = None,
+        help_text: str = "",
+        editable: bool = True,
+        verbose_name: Optional[str] = None):
+        kwargs = {
+            'null': null,
+            'blank': blank,
+            'default': default,
+            'unique': unique,
+            'primary_key': primary_key,
+            'db_index': db_index,
+            'db_column': db_column,
+            'choices': choices,
+            'validators': validators,
+            'help_text': help_text,
+            'editable': editable,
+            'verbose_name': verbose_name,
+        }
         kwargs.setdefault("default", 0)
         kwargs.setdefault("db_index", True)
         super().__init__(**kwargs)
