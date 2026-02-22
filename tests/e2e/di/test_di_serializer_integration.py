@@ -73,10 +73,10 @@ class TestSerializerDIIntegration:
         # the validated data dict.
         result = await dag.resolve(dep, type(None))
         
-        # It's returned as validated_data because the param name is just "params"
-        assert isinstance(result, dict)
-        assert result["page"] == 2
-        assert result["limit"] == 50
+        # It now ALWAYS returns the Serializer. We check the DTO pattern!
+        assert isinstance(result, PaginationSerializer)
+        assert result.page == 2
+        assert result.limit == 50
         
     async def test_serializer_instance_injection(self):
         """Test that ending the param with _serializer gives the instance."""
@@ -94,8 +94,8 @@ class TestSerializerDIIntegration:
         
         # Should be a full serializer instance
         assert isinstance(result, PaginationSerializer)
-        assert result.validated_data["page"] == 3
-        assert result.validated_data["limit"] == 10
+        assert result.page == 3
+        assert result.limit == 10
 
     async def test_serializer_mixed_extraction(self):
         """Test extraction from Header, Query, and Body simultaneously."""
@@ -118,11 +118,11 @@ class TestSerializerDIIntegration:
                 print("Validation Errors:", exc.errors)
             raise exc
         
-        assert isinstance(result, dict)
-        assert result["user_agent"] == "Aquilia-Agent/1.0"
-        assert result["search"] == "hello world"
-        assert result["payload_name"] == "My Payload"
-        assert result["trace_id"] == "no-trace"  # from default
+        assert isinstance(result, MetadataSerializer)
+        assert result.user_agent == "Aquilia-Agent/1.0"
+        assert result.search == "hello world"
+        assert result.payload_name == "My Payload"
+        assert result.trace_id == "no-trace"  # from default
 
     async def test_serializer_missing_required_extraction(self):
         """Test missing required Header throws validation error directly in Serializer."""
