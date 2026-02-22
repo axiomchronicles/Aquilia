@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-02-20T09:38:16.080026+00:00",
+  "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7",
+  "content_hash": "61a1b29a23f1c642",
+  "mode": "dev",
+  "app_count": 2,
+  "apps": [
+    {
+      "name": "dashboard",
+      "version": "0.1.0",
+      "load_order": 0,
+      "controllers": [
+        "modules.dashboard.controllers:DashboardController"
+      ],
+      "services": [
+        "modules.dashboard.services:DashboardService"
+      ],
+      "models": [],
+      "depends_on": [],
+      "has_startup": false,
+      "has_shutdown": false,
+      "middleware_count": 0
+    },
+    {
+      "name": "auth",
+      "version": "0.1.0",
+      "load_order": 1,
+      "controllers": [
+        "modules.auth.controllers:AuthController"
+      ],
+      "services": [
+        "modules.auth.services:AuthService"
+      ],
+      "models": [
+        "/Users/kuroyami/PyProjects/Aquilia/authentication/modules/auth/models.py"
+      ],
+      "depends_on": [],
+      "has_startup": false,
+      "has_shutdown": false,
+      "middleware_count": 0
+    }
+  ],
+  "dependency_graph": {
+    "auth": [],
+    "dashboard": []
+  }
+}

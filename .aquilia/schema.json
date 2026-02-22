@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "captured_at": "2026-02-22T00:29:18.185880+00:00",
+  "model_count": 1,
+  "models": [
+    {
+      "name": "User",
+      "table_name": "auth_users",
+      "app_label": "",
+      "field_count": 0,
+      "fields": [],
+      "relations": [],
+      "indexes": []
+    }
+  ],
+  "migration_count": 0,
+  "migrations": []
+}

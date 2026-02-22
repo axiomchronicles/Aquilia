@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-02-22T00:29:18.185145+00:00",
+  "fingerprint": "e68ce87b9cd4c72c5efce76ddb7d27ca2f27637c1f7b2fba0603e21c265a1fca",
+  "content_hash": "5471877196a37734",
+  "mode": "test",
+  "app_count": 2,
+  "apps": [
+    {
+      "name": "dashboard",
+      "version": "0.1.0",
+      "load_order": 0,
+      "controllers": [
+        "modules.dashboard.controllers:DashboardController"
+      ],
+      "services": [
+        "modules.dashboard.services:DashboardService"
+      ],
+      "models": [],
+      "depends_on": [],
+      "has_startup": false,
+      "has_shutdown": false,
+      "middleware_count": 0
+    },
+    {
+      "name": "auth",
+      "version": "0.1.0",
+      "load_order": 1,
+      "controllers": [
+        "modules.auth.controllers:AuthController"
+      ],
+      "services": [
+        "modules.auth.services:AuthService"
+      ],
+      "models": [],
+      "depends_on": [],
+      "has_startup": false,
+      "has_shutdown": false,
+      "middleware_count": 0
+    }
+  ],
+  "dependency_graph": {
+    "auth": [],
+    "dashboard": []
+  }
+}

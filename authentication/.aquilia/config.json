@@ -1,0 +1,214 @@
+{
+  "schema_version": 2,
+  "captured_at": "2026-02-20T09:38:16.094468+00:00",
+  "config": {
+    "workspace": {
+      "name": "authentication",
+      "version": "0.1.0",
+      "description": "Aquilia workspace"
+    },
+    "runtime": {
+      "mode": "dev",
+      "host": "127.0.0.1",
+      "port": 8000,
+      "reload": true,
+      "workers": 1
+    },
+    "modules": [
+      {
+        "name": "auth",
+        "version": "0.1.0",
+        "description": "Auth module",
+        "fault_domain": "AUTH",
+        "route_prefix": "/auth",
+        "depends_on": [],
+        "controllers": [
+          "modules.auth.controllers:AuthController"
+        ],
+        "routes": [],
+        "services": [
+          "modules.auth.services:AuthService"
+        ],
+        "providers": [],
+        "middlewares": [],
+        "socket_controllers": [],
+        "models": [],
+        "serializers": [],
+        "tags": [
+          "auth",
+          "core"
+        ],
+        "auto_discover": true
+      },
+      {
+        "name": "dashboard",
+        "version": "0.1.0",
+        "description": "Dashboard module",
+        "fault_domain": "DASHBOARD",
+        "route_prefix": "/dashboard",
+        "depends_on": [],
+        "controllers": [
+          "modules.dashboard.controllers:DashboardController"
+        ],
+        "routes": [],
+        "services": [
+          "modules.dashboard.services:DashboardService"
+        ],
+        "providers": [],
+        "middlewares": [],
+        "socket_controllers": [],
+        "models": [],
+        "serializers": [],
+        "tags": [
+          "dashboard",
+          "core"
+        ],
+        "auto_discover": true
+      }
+    ],
+    "integrations": {
+      "dependency_injection": {
+        "enabled": true,
+        "auto_wire": true,
+        "manifest_validation": true
+      },
+      "mode": {
+        "enabled": true,
+        "mode": "auto",
+        "fingerprint_verification": true
+      },
+      "routing": {
+        "enabled": true,
+        "strict_matching": true,
+        "version_support": true,
+        "compression": true
+      },
+      "fault_handling": {
+        "enabled": true,
+        "default_strategy": "propagate",
+        "metrics_enabled": true
+      },
+      "templates": {
+        "enabled": true,
+        "search_paths": [
+          "templates"
+        ],
+        "cache": "memory",
+        "sandbox": true,
+        "precompile": false,
+        "sandbox_policy": "strict"
+      },
+      "static_files": {
+        "_integration_type": "static_files",
+        "enabled": true,
+        "directories": {
+          "/static": "static",
+          "/uploads": "authentication/uploads"
+        },
+        "cache_max_age": 86400,
+        "immutable": false,
+        "etag": true,
+        "gzip": true,
+        "brotli": true,
+        "memory_cache": true,
+        "html5_history": false
+      },
+      "database": {
+        "enabled": true,
+        "url": "sqlite:///db.sqlite",
+        "auto_connect": true,
+        "auto_create": true,
+        "auto_migrate": false,
+        "migrations_dir": "migrations",
+        "pool_size": 5,
+        "echo": false,
+        "model_paths": [],
+        "scan_dirs": [
+          "models"
+        ]
+      },
+      "sessions": {
+        "enabled": true,
+        "policies": [
+          "SessionPolicy(name='default', ttl=datetime.timedelta(days=7), idle_timeout=datetime.timedelta(seconds=3600), rotate_on_use=False, rotate_on_privilege_change=True, persistence=PersistencePolicy(enabled=True, store_name='memory', write_through=True, compress=False), concurrency=ConcurrencyPolicy(max_sessions_per_principal=5, behavior_on_limit='evict_oldest'), transport=TransportPolicy(adapter='cookie', cookie_name='aquilia_session', cookie_httponly=True, cookie_secure=False, cookie_samesite='lax', cookie_path='/', cookie_domain=None, header_name='X-Session-ID'), scope='user')"
+        ]
+      }
+    },
+    "sessions": {
+      "enabled": true,
+      "policies": [
+        "SessionPolicy(name='default', ttl=datetime.timedelta(days=7), idle_timeout=datetime.timedelta(seconds=3600), rotate_on_use=False, rotate_on_privilege_change=True, persistence=PersistencePolicy(enabled=True, store_name='memory', write_through=True, compress=False), concurrency=ConcurrencyPolicy(max_sessions_per_principal=5, behavior_on_limit='evict_oldest'), transport=TransportPolicy(adapter='cookie', cookie_name='aquilia_session', cookie_httponly=True, cookie_secure=False, cookie_samesite='lax', cookie_path='/', cookie_domain=None, header_name='X-Session-ID'), scope='user')"
+      ]
+    },
+    "security": {
+      "enabled": true,
+      "cors_enabled": false,
+      "csrf_protection": false,
+      "helmet_enabled": true,
+      "rate_limiting": true,
+      "https_redirect": false,
+      "hsts": false,
+      "proxy_fix": false
+    },
+    "telemetry": {
+      "enabled": true,
+      "tracing_enabled": false,
+      "metrics_enabled": true,
+      "logging_enabled": true
+    },
+    "database": {
+      "enabled": true,
+      "url": "sqlite:///db.sqlite",
+      "auto_connect": true,
+      "auto_create": true,
+      "auto_migrate": false,
+      "migrations_dir": "migrations",
+      "pool_size": 5,
+      "echo": false,
+      "model_paths": [],
+      "scan_dirs": [
+        "models"
+      ]
+    },
+    "server": {
+      "mode": "dev",
+      "host": "127.0.0.1",
+      "port": 8000,
+      "reload": true,
+      "workers": 1,
+      "backlog": 2048,
+      "timeout_keep_alive": 10,
+      "timeout_notify": 30,
+      "access_log": true,
+      "debug": true
+    },
+    "debug": true,
+    "mode": "dev",
+    "apps": {
+      "auth": "***REDACTED***",
+      "dashboard": {}
+    }
+  },
+  "environment": {
+    "python_version": "3.14.0 (v3.14.0:ebf955df7a8, Oct  7 2025, 08:20:14) [Clang 16.0.0 (clang-1600.0.26.6)]",
+    "platform": "macOS-26.2-arm64-arm-64bit-Mach-O",
+    "cwd": "/Users/kuroyami/PyProjects/Aquilia/authentication",
+    "pid": 12396,
+    "debug": true
+  },
+  "subsystems": {
+    "sessions": true,
+    "auth": false,
+    "templates": true,
+    "mail": false,
+    "websockets": true,
+    "faults": true,
+    "effects": true,
+    "database": true
+  },
+  "server": {
+    "mode": "dev",
+    "fingerprint": "6ab02a92cfa4a60498fb7cccea48ce53211ed55081f4e83601bf4fae3cd221d7",
+    "app_count": 2
+  }
+}
