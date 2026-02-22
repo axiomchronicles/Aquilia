@@ -44,7 +44,7 @@ class RouteMetadata:
     
     Attributes:
         http_method: GET, POST, etc.
-        path_template: URL path with parameters (e.g., "/users/«id:int»")
+        path_template: URL path with parameters (e.g., "/users/<id:int>")
         full_path: Prefix + path_template
         handler_name: Method name
         parameters: List of method parameters
@@ -101,12 +101,12 @@ class RouteMetadata:
     @staticmethod
     def _is_static(segment: str) -> bool:
         """Check if segment is static."""
-        return not (segment.startswith('«') or segment.startswith('{'))
+        return not (segment.startswith('<') or segment.startswith('{'))
     
     @staticmethod
     def _is_typed_param(segment: str) -> bool:
         """Check if segment is typed parameter."""
-        if segment.startswith('«') and segment.endswith('»'):
+        if segment.startswith('<') and segment.endswith('>'):
             return ':' in segment
         if segment.startswith('{') and segment.endswith('}'):
             return ':' in segment
@@ -115,7 +115,7 @@ class RouteMetadata:
     @staticmethod
     def _is_param(segment: str) -> bool:
         """Check if segment is parameter."""
-        return (segment.startswith('«') and segment.endswith('»')) or \
+        return (segment.startswith('<') and segment.endswith('>')) or \
                (segment.startswith('{') and segment.endswith('}'))
 
 
@@ -287,12 +287,12 @@ def _extract_route_metadata(
     # Get path template
     path_template = route_meta['path']
     if path_template is None:
-        # Derive from method name: list -> /, get -> /«id»
+        # Derive from method name: list -> /, get -> /<id>
         func_name = route_meta['func_name']
         if func_name == 'list' or func_name == 'index':
             path_template = '/'
         else:
-            path_template = f'/«id»'
+            path_template = f'/<id>'
     
     # Combine prefix and path
     full_path = f"{prefix.rstrip('/')}/{path_template.lstrip('/')}"
@@ -337,8 +337,8 @@ def _extract_method_params(
         # Extract path parameter names from full_path
         path_params = set()
         for segment in full_path.split('/'):
-            if segment.startswith('«') and segment.endswith('»'):
-                # Parse «name» or «name:type»
+            if segment.startswith('<') and segment.endswith('>'):
+                # Parse <name> or <name:type>
                 param_spec = segment[1:-1]
                 param_name = param_spec.split(':')[0] if ':' in param_spec else param_spec
                 path_params.add(param_name)
