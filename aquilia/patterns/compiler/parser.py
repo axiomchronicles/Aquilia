@@ -28,8 +28,8 @@ from ..diagnostics.errors import PatternSyntaxError
 class TokenType(str, Enum):
     """Token types for the lexer."""
     SLASH = "SLASH"
-    LGUIL = "LGUIL"           # «
-    RGUIL = "RGUIL"           # »
+    LANGLE = "LANGLE"         # <
+    RANGLE = "RANGLE"         # >
     LBRACKET = "LBRACKET"
     RBRACKET = "RBRACKET"
     LPAREN = "LPAREN"
@@ -159,7 +159,7 @@ class Tokenizer:
     def read_static(self) -> str:
         """Read static text until special character."""
         start = self.pos
-        special = "/«[]?&*"
+        special = "/<[]?&*"
 
         while self.peek() and self.peek() not in special:
             self.advance()
@@ -184,18 +184,18 @@ class Tokenizer:
                     "/",
                     Span(start_pos, self.pos, start_line, start_col)
                 ))
-            elif ch == "«":
+            elif ch == "<":
                 self.advance()
                 self.tokens.append(PatternToken(
-                    TokenType.LGUIL,
-                    "«",
+                    TokenType.LANGLE,
+                    "<",
                     Span(start_pos, self.pos, start_line, start_col)
                 ))
-            elif ch == "»":
+            elif ch == ">":
                 self.advance()
                 self.tokens.append(PatternToken(
-                    TokenType.RGUIL,
-                    "»",
+                    TokenType.RANGLE,
+                    ">",
                     Span(start_pos, self.pos, start_line, start_col)
                 ))
             elif ch == "[":
@@ -432,7 +432,7 @@ class PatternParser:
 
     def parse_segment(self) -> BaseSegment:
         """Parse single segment."""
-        if self.match(TokenType.LGUIL):
+        if self.match(TokenType.LANGLE):
             return self.parse_token()
         elif self.match(TokenType.LBRACKET):
             return self.parse_optional()
@@ -461,8 +461,8 @@ class PatternParser:
         return StaticSegment(value=value, span=start_span)
 
     def parse_token(self) -> TokenSegment:
-        """Parse token segment «name:type|constraints=default@transform»."""
-        start = self.expect(TokenType.LGUIL).span
+        """Parse token segment <name:type|constraints=default@transform>."""
+        start = self.expect(TokenType.LANGLE).span
 
         # Parse name
         name_token = self.expect(TokenType.IDENT)
@@ -493,7 +493,7 @@ class PatternParser:
             self.advance()
             transform = self.parse_transform()
 
-        end = self.expect(TokenType.RGUIL).span
+        end = self.expect(TokenType.RANGLE).span
 
         return TokenSegment(
             name=name,
@@ -539,7 +539,7 @@ class PatternParser:
         constraints = []
         constraints.append(self.parse_constraint())
 
-        while self.match(TokenType.PIPE) and self.peek(1).type != TokenType.RGUIL:
+        while self.match(TokenType.PIPE) and self.peek(1).type != TokenType.RANGLE:
             self.advance()
             constraints.append(self.parse_constraint())
 

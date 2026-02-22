@@ -81,8 +81,8 @@ class AutoFixEngine:
             suggestions.append(FixSuggestion(
                 title=f"Did you mean '{match}'?",
                 description=f"Replace '{invalid_type}' with valid type '{match}'",
-                old_code=f"«param:{invalid_type}»",
-                new_code=f"«param:{match}»",
+                old_code=f"<{invalid_type}>",
+                new_code=f"<{match}>",
                 confidence=similarity,
             ))
         
@@ -91,8 +91,8 @@ class AutoFixEngine:
             suggestions.append(FixSuggestion(
                 title="Use 'str' type",
                 description=f"Replace unknown type '{invalid_type}' with 'str'",
-                old_code=f"«param:{invalid_type}»",
-                new_code="«param:str»",
+                old_code=f"<{invalid_type}>",
+                new_code="<param:str>",
                 confidence=0.5,
             ))
         
@@ -109,11 +109,11 @@ class AutoFixEngine:
         suggestions = []
         
         # Check for common mistakes
-        if "«" in pattern and "»" not in pattern:
-            # Missing closing guillemet
-            fixed = pattern + "»"
+        if "<" in pattern and ">" not in pattern:
+            # Missing closing angle bracket
+            fixed = pattern + ">"
             suggestions.append(FixSuggestion(
-                title="Add missing closing guillemet",
+                title="Add missing closing angle bracket",
                 description="Pattern has unclosed token delimiter",
                 old_code=pattern,
                 new_code=fixed,
@@ -166,8 +166,8 @@ class AutoFixEngine:
             suggestions.append(FixSuggestion(
                 title=f"Rename duplicate to '{new_name}'",
                 description=f"Parameter '{duplicate_name}' appears multiple times",
-                old_code=f"«{duplicate_name}:...",
-                new_code=f"«{new_name}:...",
+                old_code=f"<{duplicate_name}:...",
+                new_code=f"<{new_name}:...",
                 confidence=0.8,
             ))
         
@@ -194,8 +194,8 @@ class AutoFixEngine:
             suggestions.append(FixSuggestion(
                 title="Add constraint to disambiguate",
                 description="Add a constraint to make patterns unique",
-                old_code=f"«{param_name}:int»",
-                new_code=f"«{param_name}:int|min=100»",
+                old_code=f"<{param_name}:int>",
+                new_code=f"<{param_name}:int|min=100>",
                 confidence=0.7,
             ))
         
@@ -205,8 +205,8 @@ class AutoFixEngine:
                 suggestions.append(FixSuggestion(
                     title=f"Use more specific type for '{param_name}'",
                     description="Replace generic 'str' with specific type like 'slug' or 'uuid'",
-                    old_code=f"«{param_name}:str»",
-                    new_code=f"«{param_name}:slug»",
+                    old_code=f"<{param_name}:str>",
+                    new_code=f"<{param_name}:slug>",
                     confidence=0.6,
                 ))
         
@@ -223,14 +223,14 @@ class AutoFixEngine:
         return suggestions
     
     def suggest_empty_token_fix(self, pattern: str) -> List[FixSuggestion]:
-        """Suggest fixes for empty tokens «»."""
+        """Suggest fixes for empty tokens <>."""
         suggestions = []
         
         suggestions.append(FixSuggestion(
             title="Add parameter name",
             description="Token must have a name",
-            old_code="«»",
-            new_code="«param:str»",
+            old_code="<>",
+            new_code="<param:str>",
             confidence=0.9,
         ))
         
@@ -340,19 +340,19 @@ class ErrorRecovery:
             Recovered source or None
         """
         # Find the last opening delimiter
-        last_open = source.rfind("«", 0, pos)
+        last_open = source.rfind("<", 0, pos)
         if last_open == -1:
             return None
         
         # Check if there's a matching close after the open
-        if "»" not in source[last_open:]:
+        if ">" not in source[last_open:]:
             # Add closing delimiter
             # Find next slash or end
             next_slash = source.find("/", last_open)
             if next_slash == -1:
-                return source + "»"
+                return source + ">"
             else:
-                return source[:next_slash] + "»" + source[next_slash:]
+                return source[:next_slash] + ">" + source[next_slash:]
         
         return None
     
@@ -380,9 +380,9 @@ class ErrorRecovery:
         Returns:
             Recovered source with default token
         """
-        # Find empty token «»
-        if source[pos:pos+2] == "«»":
-            return source[:pos] + "«param:str»" + source[pos+2:]
+        # Find empty token <>
+        if source[pos:pos+2] == "<>":
+            return source[:pos] + "<param:str>" + source[pos+2:]
         
         return None
 
