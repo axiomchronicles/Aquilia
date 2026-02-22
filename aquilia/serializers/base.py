@@ -407,10 +407,11 @@ class Serializer(SerializerField, metaclass=SerializerMeta):
             ctx["container"] = container
 
         data = {}
-        content_type = request.content_type() or ""
+        content_type = request.content_type() if hasattr(request, "content_type") else ""
+        is_json = request.is_json() if hasattr(request, "is_json") else False
         
         # 1. JSON handling
-        if request.is_json() or content_type.startswith("application/json"):
+        if is_json or content_type.startswith("application/json"):
             try:
                 data = await request.json()
             except Exception:
@@ -778,6 +779,10 @@ class Serializer(SerializerField, metaclass=SerializerMeta):
         """
         Persist the object using ``create()`` or ``update()``.
 
+        Note: When using Intent Serializers, persistence should be
+        managed in the Service layer. The `.save()` method is primarily
+        for ModelSerializers.
+
         Args:
             **kwargs: Extra fields to merge into validated_data.
 
@@ -842,6 +847,23 @@ class Serializer(SerializerField, metaclass=SerializerMeta):
             schema["description"] = doc.strip().split("\n")[0]
 
         return schema
+
+    # ── Attribute Access (DTO Pattern) ───────────────────────────────────
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        Proxy attribute access to validated_data.
+        Provides elegant dot-notation access to mapped fields (e.g. data.username).
+        Must only be called after `is_valid()` has run successfully.
+        """
+        if name.startswith("_") or name in ("fields", "initial_data", "instance", "partial", "context"):
+            raise AttributeError(name)
+            
+        if getattr(self, "_validated_data", empty) is not empty:
+            if name in self._validated_data:
+                return self._validated_data[name]
+                
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
     # ── Representation ───────────────────────────────────────────────────
 
