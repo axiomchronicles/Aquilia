@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sessions/enhanced.py
+# hypothesis_version: 6.151.9
+
+['AdminGuard', 'F', 'SessionContext', 'SessionGuard', 'VerifiedEmailGuard', 'access', 'admin', 'email_verified', 'guard', 'requires', 'role', 'session']

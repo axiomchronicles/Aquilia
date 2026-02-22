@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/middleware_ext/logging.py
+# hypothesis_version: 6.151.9
+
+[1000.0, 200, 300, 400, 500, 1000, '\x1b[0m', '\x1b[1m', '\x1b[2m', '\x1b[31m', '\x1b[32m', '\x1b[33m', '\x1b[34m', '\x1b[35m', '\x1b[36m', '\x1b[37m', '%d/%b/%Y:%H:%M:%S %z', '-', '/favicon.ico', '/health', '/healthz', '/ready', '0', 'CombinedLogFormatter', 'DELETE', 'DevLogFormatter', 'GET', 'HEAD', 'LoggingMiddleware', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'RequestCtx', '_scope', 'aquilia.access', 'blue', 'bold', 'client', 'client_ip', 'combined', 'content-length', 'content_length', 'cyan', 'dev', 'dim', 'duration_ms', 'extras', 'green', 'magenta', 'method', 'path', 'red', 'referer', 'request_id', 'reset', 'status', 'structured', 'timestamp', 'user-agent', 'user_agent', 'white', 'yellow']

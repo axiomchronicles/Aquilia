@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/renderers.py
+# hypothesis_version: 6.151.9
+
+[1.0, 200, '*/*', ',', '/', '/*', ';', 'Accept', 'BaseRenderer', 'ContentNegotiator', 'HTMLRenderer', 'JSONRenderer', 'MessagePackRenderer', 'PlainTextRenderer', 'XMLRenderer', 'YAMLRenderer', '[^a-zA-Z0-9_.-]', '_', '__dict__', 'accept', 'application/json', 'application/msgpack', 'application/x-yaml', 'application/xml', 'format', 'get', 'header', 'headers', 'html', 'isoformat', 'item', 'json', 'msgpack', 'negotiate', 'q=', 'query_params', 'response', 'text', 'text/html', 'text/plain', 'to_dict', 'utf-8', 'xml', 'yaml']

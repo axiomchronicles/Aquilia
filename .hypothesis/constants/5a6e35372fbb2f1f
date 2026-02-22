@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/blueprints/core.py
+# hypothesis_version: 6.151.9
+
+['Blueprint', 'BlueprintMeta', 'Expected a list', 'None', 'Spec', '__', '__all__', '_declared_facets', '_fields', '_spec', 'allow_null', 'async_seal_', 'default_projection', 'depth', 'error', 'exclude', 'extra_facets', 'failed', 'fields', 'input', 'model', 'null', 'object', 'output', 'pending', 'projections', 'properties', 'read_only_fields', 'required', 'seal_', 'sealed', 'title', 'to', 'type', 'validators', 'write_only_fields']

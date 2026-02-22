@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/trace/config_snap.py
+# hypothesis_version: 6.151.9
+
+['***REDACTED***', '...', 'TraceConfigSnapshot', '_amdl_database', '_auth_manager', '_effect_registry', '_is_debug', '_mail_service', '_root', '_session_engine', 'app_contexts', 'app_count', 'aquila_sockets', 'aquilary', 'auth', 'captured_at', 'config', 'config.json', 'cwd', 'database', 'debug', 'effects', 'environment', 'fault_engine', 'faults', 'fingerprint', 'mail', 'mode', 'pid', 'platform', 'python_version', 'schema_version', 'server', 'sessions', 'subsystems', 'template_engine', 'templates', 'unknown', 'websockets']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/base.py
+# hypothesis_version: 6.151.9
+
+[' AND ', ', ', '1', '?', 'AQUILIA_AUTO_MIGRATE', 'INSERT INTO', '_pk_name', '_reverse_fk_cache', 'aquilia.models', 'attach', 'create', 'detach', 'fields', 'get', 'get_latest_by', 'id', 'name', 'pre_save', 'sqlite', 'table', 'true', 'yes']

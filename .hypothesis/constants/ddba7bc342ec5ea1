@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/trace/schema.py
+# hypothesis_version: 6.151.9
+
+['TraceSchemaLedger', '__name__', '_amdl_database', '_meta', '_root', 'app_label', 'applied_at', 'applied_migrations', 'captured_at', 'default', 'field', 'field_count', 'fields', 'has_default', 'indexes', 'migration_count', 'migrations', 'model', 'model_count', 'models', 'name', 'null', 'nullable', 'on_delete', 'primary_key', 'related_model', 'relations', 'schema.json', 'schema_version', 'table_name', 'target', 'to', 'type', 'unique']

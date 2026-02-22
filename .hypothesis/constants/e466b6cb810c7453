@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/loader.py
+# hypothesis_version: 6.151.9
+
+['-', '.', '.htm', '.html', '.j2', '.jinja', '.jinja2', '.txt', '.xml', '/', ':', '@', '_', 'templates']

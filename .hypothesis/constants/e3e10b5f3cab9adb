@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/faults.py
+# hypothesis_version: 6.151.9
+
+['CACHE_BACKEND_ERROR', 'CACHE_CONFIG_INVALID', 'CACHE_HEALTH_FAILED', 'CACHE_MISS', 'Health check failed', 'backend', 'cache', 'current_size', 'default', 'key', 'max_size', 'namespace', 'operation', 'reason', 'waiters']

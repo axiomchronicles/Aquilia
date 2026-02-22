@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sockets/faults.py
+# hypothesis_version: 6.151.9
+
+[400, 401, 403, 1000, 1001, 1003, 1008, 1009, 'Connection timeout', 'WS_AUTH_REQUIRED', 'WS_CONNECTION_CLOSED', 'WS_FORBIDDEN', 'WS_HANDSHAKE_FAILED', 'WS_MESSAGE_INVALID', 'WS_NOT_SUBSCRIBED', 'WS_PAYLOAD_TOO_LARGE', 'WS_PUBLISH_FAILED', 'WS_QUOTA_EXCEEDED', 'WS_ROOM_FULL', 'WS_ROOM_NOT_FOUND', 'WS_UNSUPPORTED_EVENT', 'http_status', 'network', 'ws_close_code']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/middleware_ext/rate_limit.py
+# hypothesis_version: 6.151.9
+
+[b'Rate limit exceeded', 0.0, 0.1, 1.0, 60.0, 100, 300, 429, '*', '/health', '/healthz', '/ready', '0', 'RateLimitMiddleware', 'RateLimitRule', 'RequestCtx', 'Too Many Requests', '_curr_count', '_curr_start', '_prev_count', '_prev_start', '_ratelimit_bucket', '_ratelimit_rule', '_scope', 'algorithm', 'api_key_extractor', 'authorization', 'bearer ', 'burst', 'capacity', 'client', 'client_ip', 'code', 'content-type', 'error', 'id', 'identity', 'ip:unknown', 'ip_key_extractor', 'json', 'key_func', 'last_refill', 'limit', 'max_requests', 'message', 'methods', 'rate_limit_skip', 'refill_rate', 'remaining', 'reset_time', 'retry-after', 'retry_after', 'scope', 'sliding_window', 'text/plain', 'token_bucket', 'tokens', 'user_id', 'user_key_extractor', 'window', 'window_size', 'x-api-key', 'x-fault-code', 'x-ratelimit-limit', 'x-ratelimit-reset']

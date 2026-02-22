@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/db/backends/sqlite.py
+# hypothesis_version: 6.151.9
+
+['/', ':memory:', 'BEGIN', 'NO ACTION', 'Not connected', 'SQLite disconnected', 'SQLiteAdapter', 'columns', 'dflt_value', 'from', 'from_column', 'keys', 'name', 'notnull', 'on_delete', 'on_update', 'pk', 'qmark', 'sqlite', 'sqlite:', 'sqlite://', 'sqlite:///', 'table', 'to', 'to_column', 'to_table', 'type', 'unique']

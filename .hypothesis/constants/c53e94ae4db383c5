@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/base.py
+# hypothesis_version: 6.151.9
+
+[200, 'Identity', 'Request', 'Response', 'Session', '_template_engine', 'per_request', 'templates']

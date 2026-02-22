@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/registry.py
+# hypothesis_version: 6.151.9
+
+['ModelRegistry', 'app_label']

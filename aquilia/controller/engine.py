@@ -188,7 +188,7 @@ class ControllerEngine:
                 raise
 
         # Bind parameters
-        kwargs = await self._bind_parameters(
+        kwargs, request_dag = await self._bind_parameters(
             route_metadata, request, ctx, path_params, container,
         )
 
@@ -245,6 +245,10 @@ class ControllerEngine:
                 except Exception:
                     pass
             raise
+        finally:
+            # Teardown generator deps from RequestDAG
+            if request_dag is not None:
+                await request_dag.teardown()
     
     async def _init_controller_lifecycle(
         self,
@@ -374,15 +378,20 @@ class ControllerEngine:
         ctx: RequestCtx,
         path_params: Dict[str, Any],
         container: Container,
-    ) -> Dict[str, Any]:
+    ) -> tuple[Dict[str, Any], Any]:
         """
         Bind parameters from request to handler arguments.
+        
+        Returns:
+            Tuple of (kwargs dict, RequestDAG or None).
+            The DAG must be torndown after handler execution.
         
         Sources:
         - Path parameters
         - Query parameters
         - Request body (JSON/form)
         - DI container
+        - Dep() descriptors (resolved via RequestDAG)
         - Special: ctx, request
         - **Serializer subclasses**: Auto-parsed from request body (FastAPI-style)
         - **Blueprint subclasses**: Auto-parsed, cast+sealed from request body
@@ -415,6 +424,7 @@ class ControllerEngine:
         used for body parsing.
         """
         kwargs = {}
+        request_dag = None  # Lazy — created only if handler uses Dep()
         
         # Check for request_serializer from decorator metadata
         decorator_request_serializer = getattr(route_metadata, 'request_serializer', None)
@@ -596,6 +606,37 @@ class ControllerEngine:
                         if not param.required and param.default is not inspect.Parameter.empty:
                             kwargs[param_name] = param.default
             
+            # Dep resolution (via RequestDAG)
+            elif param.source == "dep":
+                try:
+                    from aquilia.di.dep import _extract_dep_from_annotation
+                    from aquilia.di.request_dag import RequestDAG
+                    from typing import get_origin, get_args, Annotated
+
+                    dep_meta = _extract_dep_from_annotation(param.type)
+                    if dep_meta is not None:
+                        if request_dag is None:
+                            request_dag = RequestDAG(container, request)
+                        # Get base type from Annotated
+                        base_type = param.type
+                        if get_origin(param.type) is Annotated:
+                            base_type = get_args(param.type)[0]
+                        value = await request_dag.resolve(dep_meta, base_type)
+                        kwargs[param_name] = value
+                    else:
+                        # Fallback to container resolve if Dep not extractable
+                        resolve_token = param.type if param.type is not inspect.Parameter.empty else param_name
+                        value = await container.resolve_async(resolve_token, optional=not param.required)
+                        if value is not None:
+                            kwargs[param_name] = value
+                        elif not param.required and param.default is not inspect.Parameter.empty:
+                            kwargs[param_name] = param.default
+                except Exception as e:
+                    if not param.required and param.default is not inspect.Parameter.empty:
+                        kwargs[param_name] = param.default
+                    else:
+                        raise
+
             # DI injection
             elif param.source == "di":
                 try:
@@ -654,7 +695,7 @@ class ControllerEngine:
                         # Re-raise original error if it's not handled
                         raise
         
-        return kwargs
+        return kwargs, request_dag
     
     def _cast_value(self, value: str, annotation: Any) -> Any:
         """Cast string value to target type."""

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/providers/sendgrid.py
+# hypothesis_version: 6.151.9
+
+[15.0, 30.0, 60.0, 200, 201, 202, 400, 401, 403, 429, 500, 1000, '"', '/', '/v3/mail/send', '/v3/scopes', '; ', '<', '>', 'Authorization', 'Content-Type', 'Retry-After', 'User-Agent', 'X-Aquilia-Tenant-ID', 'X-Aquilia-Trace-ID', 'X-Message-Id', 'application/json', 'aquilia-mail/1.0', 'aquilia_envelope_id', 'aquilia_tenant_id', 'ascii', 'asm', 'attachment', 'attachments', 'bcc', 'categories', 'cc', 'click_tracking', 'content', 'content_id', 'custom_args', 'disposition', 'email', 'enable', 'errors', 'filename', 'from', 'group_id', 'headers', 'inline', 'ip_pool_name', 'mail_settings', 'message', 'name', 'open_tracking', 'personalizations', 'rate', 'reply_to', 'sandbox_mode', 'sendgrid', 'status_code', 'subject', 'template_id', 'text/html', 'text/plain', 'throttl', 'timeout', 'to', 'tracking_settings', 'type', 'value']

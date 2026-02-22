@@ -113,6 +113,8 @@ export const sections: SidebarSection[] = [
           { label: 'Providers', path: '/docs/di/providers' },
           { label: 'Scopes', path: '/docs/di/scopes' },
           { label: 'Decorators', path: '/docs/di/decorators' },
+          { label: 'RequestDAG', path: '/docs/di/request-dag' },
+          { label: 'HTTP Extractors', path: '/docs/di/extractors' },
           { label: 'Lifecycle', path: '/docs/di/lifecycle' },
           { label: 'Diagnostics', path: '/docs/di/diagnostics' },
           { label: 'Advanced', path: '/docs/di/advanced' },
@@ -154,6 +156,7 @@ export const sections: SidebarSection[] = [
           { label: 'Fields', path: '/docs/serializers/fields' },
           { label: 'Validators', path: '/docs/serializers/validators' },
           { label: 'Relations', path: '/docs/serializers/relations' },
+          { label: 'DI Integration', path: '/docs/serializers/di-integration' },
         ]
       },
     ]

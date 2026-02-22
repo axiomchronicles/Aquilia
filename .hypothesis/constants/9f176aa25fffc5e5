@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/startup_guard.py
+# hypothesis_version: 6.151.9
+
+['\x1b[0m', '\x1b[1m', '\x1b[93m', '*.py', '1', 'AQUILIA_AUTO_MIGRATE', 'aquilia.db.startup', 'migrations', 'sqlite:///db.sqlite3', 'true', 'yes']

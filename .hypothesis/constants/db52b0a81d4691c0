@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sessions/decorators.py
+# hypothesis_version: 6.151.9
+
+['F', 'SESSION_REQUIRED', 'SessionRequiredFault', 'authenticated', 'principal', 'request', 'session', 'state', 'stateful', 'user']

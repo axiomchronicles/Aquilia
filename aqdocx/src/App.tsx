@@ -58,6 +58,8 @@ import { DIDecorators } from './pages/docs/di/Decorators'
 import { DILifecycle } from './pages/docs/di/Lifecycle'
 import { DIDiagnostics } from './pages/docs/di/Diagnostics'
 import { DIAdvanced } from './pages/docs/di/DIAdvanced'
+import { DIRequestDAG } from './pages/docs/di/RequestDAG'
+import { DIExtractors } from './pages/docs/di/Extractors'
 
 // Models
 import { ModelsOverview } from './pages/docs/models/Overview'
@@ -73,6 +75,7 @@ import { SerializerFields } from './pages/docs/serializers/Fields'
 import { SerializerValidators } from './pages/docs/serializers/Validators'
 import { SerializerRelations } from './pages/docs/serializers/Relations'
 import { SerializerModel } from './pages/docs/serializers/ModelSerializer'
+import { SerializerDIIntegration } from './pages/docs/serializers/DIIntegration'
 
 // Database
 import { DatabaseOverview } from './pages/docs/database/Overview'
@@ -233,6 +236,8 @@ export default function App() {
           <Route path="di/scopes" element={<DIScopes />} />
           <Route path="di/decorators" element={<DIDecorators />} />
           <Route path="di/lifecycle" element={<DILifecycle />} />
+          <Route path="di/request-dag" element={<DIRequestDAG />} />
+          <Route path="di/extractors" element={<DIExtractors />} />
           <Route path="di/diagnostics" element={<DIDiagnostics />} />
           <Route path="di/advanced" element={<DIAdvanced />} />
 
@@ -256,6 +261,7 @@ export default function App() {
           <Route path="serializers/fields" element={<SerializerFields />} />
           <Route path="serializers/validators" element={<SerializerValidators />} />
           <Route path="serializers/relations" element={<SerializerRelations />} />
+          <Route path="serializers/di-integration" element={<SerializerDIIntegration />} />
 
           {/* Database */}
           <Route path="database" element={<DatabaseOverview />} />

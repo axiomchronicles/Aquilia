@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/authentication/modules/auth/services.py
+# hypothesis_version: 6.151.9
+
+[300, 3600, 'Bearer', 'access_token', 'admin', 'app', 'auth', 'auth-key-1', 'auth_keys.json', 'created_at', 'email', 'expires_at', 'expires_in', 'full_name', 'id', 'identity_id', 'password', 'profile', 'refresh_token', 'scopes', 'session_id', 'sub', 'token_id', 'token_type', 'user']

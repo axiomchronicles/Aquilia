@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di/testing.py
+# hypothesis_version: 6.151.9
+
+['TestRegistry', 'app', 'mock']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/trace/di_graph.py
+# hypothesis_version: 6.151.9
+
+['TraceDIGraph', '_cache', '_parent', '_providers', '_root', '_scope', 'cached_count', 'captured_at', 'container_count', 'containers', 'di_containers', 'di_graph.json', 'has_parent', 'key', 'meta', 'provider_count', 'providers', 'runtime', 'schema_version', 'scope', 'token', 'token_index', 'total_providers', 'type', 'unknown']

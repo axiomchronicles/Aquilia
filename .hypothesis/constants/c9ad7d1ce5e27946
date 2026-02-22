@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/middleware.py
+# hypothesis_version: 6.151.9
+
+[200, 304, 400, '1', ':', 'Accept', 'Accept-Encoding', 'Age', 'BYPASS', 'Cache-Control', 'CacheService', 'ETag', 'GET', 'HEAD', 'HIT', 'MISS', 'Request', 'RequestCtx', 'Response', 'STALE', 'X-Cache', 'X-Cache-TTL', 'body', 'cache-control', 'cached_at', 'content', 'etag', 'get', 'headers', 'http_response', 'if-none-match', 'no-cache', 'no-store', 'private', 'query_string', 'status', 'true', 'ttl', 'utf-8', 'x-cache-bypass', 'yes']

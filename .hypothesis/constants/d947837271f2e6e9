@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/message.py
+# hypothesis_version: 6.151.9
+
+['<', '<<', '<[^>]+>', '<br\\s*/?>', '>', 'EmailMessage', '\\s+', 'bcc', 'cc', 'email', 'noreply@localhost', 'text/html', 'to']

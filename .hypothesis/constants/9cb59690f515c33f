@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di/graph.py
+# hypothesis_version: 6.151.9
+
+['  node [shape=box];', '  rankdir=LR;', 'app', 'ephemeral', 'lightblue', 'lightcoral', 'lightgray', 'lightgreen', 'lightyellow', 'pooled', 'request', 'singleton', 'transient', 'white', '}', '│   ']

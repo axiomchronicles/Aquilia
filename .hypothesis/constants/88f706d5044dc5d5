@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/signals.py
+# hypothesis_version: 6.151.9
+
+[100, 'Signal', 'class_prepared', 'm2m_changed', 'post_delete', 'post_init', 'post_migrate', 'post_save', 'pre_delete', 'pre_init', 'pre_migrate', 'pre_save', 'receiver']

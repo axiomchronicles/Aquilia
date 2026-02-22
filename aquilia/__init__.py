@@ -121,6 +121,12 @@ from .di import (
     factory,
     inject,
     Inject,
+    # Annotation-driven DI (steroids)
+    Dep,
+    Header as DIHeader,
+    Query as DIQuery,
+    Body as DIBody,
+    RequestDAG,
 )
 
 # ============================================================================

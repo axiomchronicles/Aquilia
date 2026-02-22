@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/middleware.py
+# hypothesis_version: 6.151.9
+
+['&', '/', '/static', 'Handler', 'Request', 'RequestCtx', 'Response', 'app_name', 'csrf_token', 'debug', 'environment', 'state', 'template_config', 'template_csrf_token', 'template_static', 'template_url_for']

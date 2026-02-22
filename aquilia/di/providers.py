@@ -252,20 +252,68 @@ class FactoryProvider:
         pass
     
     def _extract_dependencies(self, factory: Callable) -> Dict[str, Dict[str, Any]]:
-        """Extract dependencies from factory signature."""
+        """Extract dependencies from factory signature.
+
+        Now properly handles Annotated[T, Inject(...)] annotations,
+        matching ClassProvider's behavior.
+        """
         deps = {}
         sig = inspect.signature(factory)
-        
+
+        # Try to get resolved type hints (handles Annotated properly)
+        try:
+            from typing import get_type_hints
+            type_hints = get_type_hints(factory, include_extras=True)
+        except Exception:
+            type_hints = {}
+
         for param_name, param in sig.parameters.items():
-            if param.annotation == inspect.Parameter.empty:
-                # Factory parameters must be annotated
+            if param_name in ("self", "cls"):
                 continue
-            
-            dep_info = {"token": param.annotation}
+            if param.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+                continue
+
+            annotation = type_hints.get(param_name, param.annotation)
+            if annotation == inspect.Parameter.empty:
+                # Skip unannotated params with defaults
+                if param.default != inspect.Parameter.empty:
+                    continue
+                continue
+
+            dep_info = self._parse_annotation(annotation)
             dep_info["optional"] = param.default != inspect.Parameter.empty
             deps[param_name] = dep_info
-        
+
         return deps
+
+    @staticmethod
+    def _parse_annotation(annotation: Any) -> Dict[str, Any]:
+        """Parse type annotation for Inject/Dep metadata.
+
+        Mirrors ClassProvider._parse_annotation for consistency.
+        """
+        from typing import get_origin, get_args
+
+        origin = get_origin(annotation)
+        if origin is not None:
+            try:
+                from typing import Annotated
+                if origin is Annotated:
+                    args = get_args(annotation)
+                    base_type = args[0]
+                    result = {"token": base_type}
+                    for meta in args[1:]:
+                        if hasattr(meta, "_inject_token") and meta._inject_token is not None:
+                            result["token"] = meta._inject_token
+                        if hasattr(meta, "_inject_tag"):
+                            result["tag"] = meta._inject_tag
+                        if hasattr(meta, "_inject_optional"):
+                            result["optional"] = meta._inject_optional
+                    return result
+            except ImportError:
+                pass
+
+        return {"token": annotation}
 
 
 class ValueProvider:

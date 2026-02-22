@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/constraint.py
+# hypothesis_version: 6.151.9
+
+[', ', 'CheckConstraint', 'Deferrable', 'ExclusionConstraint', 'GIST', 'check', 'condition', 'expressions', 'index_type', 'name', 'sqlite', 'type']

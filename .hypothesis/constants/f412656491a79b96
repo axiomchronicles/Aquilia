@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sockets/runtime.py
+# hypothesis_version: 6.151.9
+
+[123, 1000, 1003, '/', ':', 'Request', '__socket_handler__', 'ack', 'bearer', 'bytes', 'code', 'event', 'identity_id', 'ok', 'on_connect', 'on_disconnect', 'origin', 'path', 'reason', 'schema', 'server shutdown', 'text', 'token', 'type', 'utf-8', 'websocket.accept', 'websocket.close', 'websocket.disconnect', 'websocket.receive', 'websocket.send', 'ws_close_code']

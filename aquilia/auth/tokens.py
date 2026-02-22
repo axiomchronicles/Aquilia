@@ -452,6 +452,10 @@ class TokenManager:
         if not data:
             raise ValueError("Invalid refresh token")
         
+        # Check revocation
+        if await self.token_store.is_token_revoked(token):
+            raise ValueError("Refresh token revoked")
+        
         # Check expiration
         expires_at = data.get("expires_at")
         if expires_at and datetime.fromisoformat(expires_at) < datetime.now(timezone.utc):

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sessions/core.py
+# hypothesis_version: 6.151.9
+
+['=', '_dirty', '_encoded', '_policy_name', '_raw', 'anonymous', 'attributes', 'authenticated', 'connection', 'created_at', 'data', 'device', 'ephemeral', 'expires_at', 'flags', 'id', 'kind', 'last_accessed_at', 'locked', 'principal', 'read_only', 'renewable', 'request', 'rotatable', 'scope', 'service', 'sess_', 'user', 'version']

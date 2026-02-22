@@ -48,8 +48,8 @@ def make_test_scope(
     if headers:
         for name, value in headers:
             raw_headers.append((
-                name.encode("latin-1") if isinstance(name, str) else name,
-                value.encode("latin-1") if isinstance(value, str) else value,
+                name.encode("latin-1", errors="replace") if isinstance(name, str) else name,
+                value.encode("latin-1", errors="replace") if isinstance(value, str) else value,
             ))
 
     return {
@@ -222,8 +222,8 @@ def make_test_ws_scope(
     if headers:
         for name, value in headers:
             raw_headers.append((
-                name.encode("latin-1") if isinstance(name, str) else name,
-                value.encode("latin-1") if isinstance(value, str) else value,
+                name.encode("latin-1", errors="replace") if isinstance(name, str) else name,
+                value.encode("latin-1", errors="replace") if isinstance(value, str) else value,
             ))
 
     return {

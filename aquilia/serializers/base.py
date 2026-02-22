@@ -624,27 +624,40 @@ class Serializer(metaclass=SerializerMeta):
             if raw is empty:
                 if self.partial:
                     continue  # Skip missing fields in partial updates
-                if field.required:
-                    # Check for DI-aware default before failing
-                    if is_di_default(field.default):
-                        try:
-                            result[field_name] = field.default.resolve(self.context)
+                
+                if is_di_default(field.default):
+                    try:
+                        resolved = field.default.resolve(self.context)
+                        if getattr(field.default, "_di_requires_coercion", False):
+                            raw = resolved
+                            # Falls through to coercion
+                        else:
+                            result[field_name] = resolved
                             continue
-                        except Exception as exc:
-                            errors[field_name] = [str(exc)]
+                    except Exception as exc:
+                        errors[field_name] = [str(exc)]
+                        continue
+                elif getattr(field.source, "_is_di_default", False) or hasattr(field.source, "resolve"):
+                    # Support for extractor defined in source rather than default
+                    try:
+                        resolved = field.source.resolve(self.context)
+                        if getattr(field.source, "_di_requires_coercion", False):
+                            raw = resolved
+                        else:
+                            result[field_name] = resolved
                             continue
+                    except Exception as exc:
+                        errors[field_name] = [str(exc)]
+                        continue
+                elif field.required:
                     errors[field_name] = [field.error_messages.get("required", "This field is required.")]
                     continue
                 else:
                     try:
-                        default = field.default
-                        if is_di_default(default):
-                            result[field_name] = default.resolve(self.context)
-                        else:
-                            result[field_name] = field.get_default()
+                        raw = field.get_default()
                     except (ValueError, RuntimeError) as exc:
                         errors[field_name] = [str(exc)]
-                    continue
+                        continue
 
             # Handle null values
             if raw is None:

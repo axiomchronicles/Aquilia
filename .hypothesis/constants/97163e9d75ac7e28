@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/faults/integrations/__init__.py
+# hypothesis_version: 6.151.9
+
+['AsyncResolutionFault', 'ManifestLoadFault', 'ModelFaultHandler', 'RouteConflictFault', 'RouteParameterFault', 'patch_di_container', 'patch_model_registry', 'safe_route_lookup']

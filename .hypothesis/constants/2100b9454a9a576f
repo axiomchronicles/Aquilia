@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/backends/null.py
+# hypothesis_version: 6.151.9
+
+['*', '_stats', 'default', 'null']

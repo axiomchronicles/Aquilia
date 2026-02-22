@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/db/backends/base.py
+# hypothesis_version: 6.151.9
+
+['AdapterCapabilities', 'ColumnInfo', 'DatabaseAdapter', 'IntrospectionResult', 'TableInfo', 'aquilia.db.backends', 'base', 'lastrowid', 'qmark']

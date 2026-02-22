@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/aquilary/fingerprint.py
+# hypothesis_version: 6.151.9
+
+[',', '1.0', ':', '_', '__source__', 'actual', 'aliases', 'app', 'app_count', 'app_diffs', 'apps', 'bool', 'class_path', 'config', 'config_schema', 'controllers', 'dependency_graph', 'depends_on', 'dict', 'expected', 'extra', 'extra_apps', 'float', 'has_shutdown_hook', 'int', 'kwargs', 'list', 'middlewares', 'missing', 'missing_apps', 'mode', 'name', 'null', 'path', 'scope', 'services', 'set', 'str', 'to_dict', 'tuple', 'unknown', 'utf-8', 'version']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di/resolver.py
+# hypothesis_version: 6.151.9
+
+['__anext__', '__next__', '__qualname__', 'aquilia.di.resolver', 'callable', 'cls', 'ctx', 'is_async_gen', 'is_coroutine', 'is_gen', 'key', 'marker', 'param_name', 'request', 'self', 'sub_deps']

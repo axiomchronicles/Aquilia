@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/middleware_ext/request_scope.py
+# hypothesis_version: 6.151.9
+
+['app_container', 'app_name', 'default', 'di_container', 'dispose', 'http', 'runtime', 'shutdown', 'state', 'type']

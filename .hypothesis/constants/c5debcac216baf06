@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/providers/smtp.py
+# hypothesis_version: 6.151.9
+
+[10.0, 30.0, 60.0, 120.0, 300.0, 100, 400, 421, 450, 451, 452, 500, 550, 551, 552, 553, 554, 555, 587, ', ', '/', '<', '>', '@', 'Cc', 'Content-Disposition', 'Content-ID', 'Date', 'From', 'Message-ID', 'Reply-To', 'Subject', 'To', 'X-Aquilia-Tenant-ID', 'X-Aquilia-Trace-ID', 'alternative', 'attachment', 'code', 'exceeded', 'html', 'inline', 'limit', 'localhost', 'mixed', 'plain', 'rate', 'smtp', 'smtp_response', 'throttl', 'utf-8']

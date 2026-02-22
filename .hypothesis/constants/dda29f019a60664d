@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/_datastructures.py
+# hypothesis_version: 6.151.9
+
+[443, '"', '(\\w+)=(.+)', ',', '-', '/', ';', '=', 'ParsedContentType', 'Range', 'URL', 'boundary', 'bytes', 'charset', 'fragment', 'host', 'http', 'https', 'latin-1', 'password', 'path', 'port', 'query', 'scheme', 'username', 'utf-8']

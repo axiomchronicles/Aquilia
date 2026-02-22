@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/migration_runner.py
+# hypothesis_version: 6.151.9
+
+['*.py', '--', '/', ':memory:', 'Applied', 'Faked', 'Faked rollback', 'Meta', 'Rolled back', '_', '__', 'applied', 'applied_count', 'aquilia_migrations', 'checksum', 'dependencies', 'downgrade', 'last_applied', 'migrations', 'models', 'operations', 'pending', 'pending_count', 'reason', 'revision', 'slug', 'sqlite', 'sqlite:', 'sqlite://', 'sqlite:///', 'total', 'upgrade', 'utf-8']

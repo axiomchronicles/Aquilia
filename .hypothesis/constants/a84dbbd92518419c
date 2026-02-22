@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/middleware.py
+# hypothesis_version: 6.151.9
+
+[30.0, 1000.0, 204, 400, 401, 403, 404, 409, 500, 502, 503, 504, 1000, 3600, '%s %s - %d (%.1fms)', '*', ', ', ':', 'AUTH_010', 'Accept', 'Bad Request', 'DELETE', 'Forbidden', 'GET', 'INVALID', 'INVALID_CREDENTIALS', 'MISSING', 'NOT_FOUND', 'OPTIONS', 'POST', 'PUT', 'Request timeout', 'RequestCtx', 'SESSION_REQUIRED', 'USER_ALREADY_EXISTS', 'VALIDATION', 'X-Request-ID', '__aiter__', '__name__', 'accept', 'accept-encoding', 'app', 'aquilia.exceptions', 'aquilia.requests', 'auth', 'code', 'content-encoding', 'content-length', 'content-type', 'controller', 'detail', 'domain', 'error', 'get', 'global', 'gzip', 'headers', 'latin-1', 'message', 'middleware', 'origin', 'request_id', 'route', 'text/html', 'traceback', 'true', 'utf-8']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/schema_snapshot.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.3, 0.6, 0.7, 1.0, 255, '<callable:', 'BLOB', 'CASCADE', 'DATE', 'INT', 'INTEGER', 'ModelDiff', 'REAL', 'TEXT', 'TIME', 'TIMESTAMP', 'VARCHAR(36)', '_', 'abstract', 'checksum', 'column', 'column_name', 'columns', 'db_index', 'decimal_places', 'default', 'field_class', 'fields', 'get', 'id', 'indexes', 'managed', 'max_digits', 'max_length', 'meta', 'model', 'models', 'name', 'null', 'nullable', 'on_delete', 'on_delete_action', 'on_update', 'ordering', 'primary_key', 'references', 'table', 'table_name', 'type', 'unique', 'utf-8', 'version']

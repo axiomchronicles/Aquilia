@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/authentication/modules/auth/manifest.py
+# hypothesis_version: 6.151.9
+
+['/auth', '0.1.0', 'AUTH', 'Auth module', 'auth', 'core', 'manifest', 'modules.auth', 'propagate', 'team@company.com']

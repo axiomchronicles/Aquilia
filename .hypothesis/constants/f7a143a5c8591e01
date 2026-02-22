@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/migration_dsl.py
+# hypothesis_version: 6.151.9
+
+[255, "'", "''", '(empty)', '(none)', ',\n  ', ', ', ';', '<NO_DEFAULT>', 'AUTOINCREMENT', 'AUTO_INCREMENT', 'BIG', 'BIGINT', 'BIGSERIAL', 'BLOB', 'CASCADE', 'DATE', 'FALSE', 'INTEGER', 'NOT NULL', 'NULL', 'PRIMARY KEY', 'REAL', 'SERIAL', 'TEXT', 'TIME', 'TIMESTAMP', 'TRUE', 'UNIQUE', 'UNIQUE ', 'VARCHAR(36)', 'autoincrement', 'column', 'default', 'id', 'mysql', 'name', 'nullable', 'on_delete', 'on_update', 'postgresql', 'primary_key', 'references', 'sqlite', 'table', 'type', 'unique']

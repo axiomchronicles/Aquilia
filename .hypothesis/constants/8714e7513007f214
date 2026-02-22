@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/service.py
+# hypothesis_version: 6.151.9
+
+['*', 'Health check failed', 'T', '_backend', '_config', '_default_namespace', '_default_ttl', '_health_task', '_healthy', '_inflight', '_inflight_lock', '_initialized', '_key_builder', '_key_prefix', 'aquilia.cache', 'get', 'ok', 'set']

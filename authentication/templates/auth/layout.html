@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Aquilia Auth{% endblock %}</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+        nav { background: #f4f4f4; padding: 10px; margin-bottom: 20px; border-radius: 5px; }
+        nav a { margin-right: 15px; text-decoration: none; color: #333; font-weight: bold; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .error { color: red; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/auth/dashboard">Dashboard</a>
+        <a href="/auth/login">Login</a>
+        <a href="/auth/register">Register</a>
+    </nav>
+    
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

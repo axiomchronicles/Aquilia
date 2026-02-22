@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/fields/lookups.py
+# hypothesis_version: 6.151.9
+
+[', ', '1 = 0', '<', '<=', '=', '>', '>=', '?', 'Contains', 'Date', 'Day', 'EndsWith', 'Exact', 'Gt', 'Gte', 'IContains', 'IEndsWith', 'IExact', 'IRegex', 'IStartsWith', 'In', 'IsNull', 'LIKE', 'Lookup', 'Lt', 'Lte', 'Month', 'Range', 'Regex', 'StartsWith', 'Year', 'contains', 'date', 'day', 'endswith', 'exact', 'gt', 'gte', 'icontains', 'iendswith', 'iexact', 'in', 'iregex', 'isnull', 'istartswith', 'lookup_registry', 'lt', 'lte', 'month', 'postgresql', 'range', 'regex', 'resolve_lookup', 'sqlite', 'startswith', 'year']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/deletion.py
+# hypothesis_version: 6.151.9
+
+['CASCADE', 'DO NOTHING', 'DONOTHING', 'DO_NOTHING', 'OnDeleteHandler', 'PROTECT', 'ProtectedError', 'RESTRICT', 'RestrictedError', 'SET', 'SET DEFAULT', 'SET NULL', 'SETDEFAULT', 'SETNULL', 'SET_DEFAULT', 'SET_NULL', '_SET_CALLABLE', 'cnt', 'normalize_on_delete']

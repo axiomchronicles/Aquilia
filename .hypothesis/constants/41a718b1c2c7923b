@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/testing/di.py
+# hypothesis_version: 6.151.9
+
+['T', '__await__', 'shutdown', 'singleton', 'test', 'transient']

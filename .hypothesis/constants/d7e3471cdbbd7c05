@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/hashing.py
+# hypothesis_version: 6.151.9
+
+[65536, 600000, '$', '$argon2id', '$pbkdf2_sha256', '123123', '1234567', '12345678', '654321', ':', 'abc123', 'argon2id', 'ashley', 'bailey', 'baseball', 'dragon', 'iloveyou', 'letmein', 'master', 'monkey', 'passw0rd', 'password', 'password123', 'pbkdf2_sha256', 'qwerty', 'sha256', 'shadow', 'sunshine', 'trustno1', 'validate']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/providers/__init__.py
+# hypothesis_version: 6.151.9
+
+['ConsoleProvider', 'FileProvider', 'IMailProvider', 'ProviderResult', 'ProviderResultStatus', 'SESProvider', 'SMTPProvider', 'SendGridProvider', 'permanent_failure', 'rate_limited', 'success', 'transient_failure']

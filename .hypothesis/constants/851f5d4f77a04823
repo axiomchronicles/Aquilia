@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/config.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.1, 1.0, 30.0, 60.0, 300.0, 3600.0, 100, 253, 500, 600, 1000, 3600, 3650, 10000, 65535, 'Lower = preferred', 'MailConfig', 'Unique provider name', '_data', 'aquilia', 'base_delay', 'config', 'console', 'console_backend', 'default_from', 'default_reply_to', 'dev@localhost', 'dkim_domain', 'dkim_enabled', 'enabled', 'file', 'file_backend_path', 'host', 'mail_templates', 'max_delay', 'metrics_enabled', 'name', 'noreply@localhost', 'preview_mode', 'providers', 'queue', 'rate_limit', 'require_tls', 'retry', 'security', 'sendgrid', 'ses', 'smtp', 'subject_prefix', 'templates', 'tracing_enabled', 'type']

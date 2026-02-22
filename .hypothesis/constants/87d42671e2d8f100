@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/mfa.py
+# hypothesis_version: 6.151.9
+
+[-257, 60000, 2147483647, '=', '>I', '>Q', 'Aquilia', 'SHA1', '_challenge', 'alg', 'allowCredentials', 'attestation', 'authenticatorData', 'backup_code_hashes', 'backup_codes', 'challenge', 'created_at', 'credential_id', 'cross-platform', 'displayName', 'id', 'name', 'none', 'preferred', 'provisioning_uri', 'pubKeyCredParams', 'public-key', 'publicKey', 'public_key', 'requireResidentKey', 'response', 'rp', 'rpId', 'secret', 'signCount', 'sign_count', 'timeout', 'type', 'user', 'userVerification', 'utf-8']

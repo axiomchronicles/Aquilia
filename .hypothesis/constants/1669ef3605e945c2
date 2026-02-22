@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/backends/memory.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.85, 0.9, 30.0, 1000, 10000, '*', '_capacity_warned', '_eviction_policy', '_freq_counter', '_initialized', '_lock', '_max_memory_bytes', '_max_size', '_namespace_index', '_start_time', '_stats', '_store', '_sweep_interval', '_sweeper_task', '_tag_index', '_ttl_heap', 'aquilia.cache.memory', 'default', 'inf', 'lru', 'memory']

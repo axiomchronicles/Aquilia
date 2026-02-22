@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/manager.py
+# hypothesis_version: 6.151.9
+
+[900, 3600, 'api_key', 'aud', 'auth_method', 'client_metadata', 'email', 'exp', 'iat', 'iss', 'jti', 'key_id', 'nbf', 'password', 'profile', 'refresh', 'revoked', 'roles', 'scopes', 'sid', 'sub', 'tenant_id', 'username']

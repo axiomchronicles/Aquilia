@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/artifacts/kinds.py
+# hypothesis_version: 6.151.9
+
+[0.0, '/', 'BundleArtifact', 'CodeArtifact', 'ConfigArtifact', 'DIGraphArtifact', 'GENERIC', 'MigrationArtifact', 'ModelArtifact', 'RegistryArtifact', 'RouteArtifact', 'TemplateArtifact', 'accuracy', 'artifacts', 'bundle', 'code', 'config', 'controllers', 'count', 'custom', 'depends_on', 'di_graph', 'entrypoint', 'fault_domain', 'files', 'framework', 'head', 'migration', 'migrations_applied', 'model', 'module', 'modules', 'providers', 'registry', 'route', 'route_prefix', 'routes', 'schema_hash', 'services', 'template', 'templates', 'type']

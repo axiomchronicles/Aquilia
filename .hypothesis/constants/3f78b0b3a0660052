@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/bytecode_cache.py
+# hypothesis_version: 6.151.9
+
+[100, 1000, ',', '.tmp', '1.0', ':', '__format__', 'aquilia:templates:', 'artifact_type', 'artifacts', 'bytecode', 'compiled_at', 'created_at', 'crous', 'fingerprint', 'metadata', 'payload', 'rb', 'schema_version', 'size', 'source_hash', 'template_bytecode', 'wb']

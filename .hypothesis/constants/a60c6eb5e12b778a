@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/providers/console.py
+# hypothesis_version: 6.151.9
+
+[100, '=', 'Console mail sent', 'console', 'envelope_id', 'subject', 'to']

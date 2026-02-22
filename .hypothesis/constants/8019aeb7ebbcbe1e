@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/serializers/validators.py
+# hypothesis_version: 6.151.9
+
+['; ', '__len__', '_field_name', '_model', 'and', 'condition', 'exact', 'fields_list', 'inverse_match', 'limit', 'lookup', 'max_value', 'message', 'min_value', 'mode', 'or', 'queryset', 'regex', 'validator', 'validators']

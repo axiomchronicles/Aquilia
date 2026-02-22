@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/providers/file.py
+# hypothesis_version: 6.151.9
+
+[1000, 10000, '%Y-%m-%dT%H-%M-%S', ', ', '.eml', '.health_check', '/', '/tmp/aquilia_mail', '<', '>', '@', 'Bcc', 'Cc', 'Content-Disposition', 'Content-ID', 'Date', 'From', 'Message-ID', 'Reply-To', 'Subject', 'To', 'X-Aquilia-Provider', 'X-Aquilia-Status', 'X-Aquilia-Tenant-ID', 'X-Aquilia-Trace-ID', 'X-Priority', '_', 'a', 'alternative', 'attachment', 'bcc', 'blob:', 'cc', 'envelope_id', 'file', 'filename', 'from', 'html', 'index.jsonl', 'inline', 'localhost', 'metadata', 'mixed', 'ok', 'path', 'plain', 'priority', 'status', 'subject', 'tenant_id', 'timestamp', 'to', 'trace_id', 'utf-8', 'w', 'wb']

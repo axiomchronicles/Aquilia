@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/envelope.py
+# hypothesis_version: 6.151.9
+
+[100, ', ', '@', 'Attachment', 'MailEnvelope', 'attachments', 'attempts', 'bcc', 'body_html', 'body_text', 'bounced', 'cancelled', 'cc', 'content_id', 'content_type', 'created_at', 'digest', 'error_message', 'failed', 'filename', 'from_email', 'headers', 'id', 'idempotency_key', 'inline', 'last_attempt_at', 'max_attempts', 'metadata', 'next_attempt_at', 'priority', 'provider_message_id', 'provider_name', 'queued', 'reply_to', 'sending', 'sent', 'size', 'status', 'subject', 'template_context', 'template_name', 'tenant_id', 'to', 'trace_id', '|']

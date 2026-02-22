@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/oauth.py
+# hypothesis_version: 6.151.9
+
+[128, 900, '=', 'Bearer', 'Code already used', 'Code expired', 'S256', 'access_token', 'authorization_code', 'client_credentials', 'client_id', 'client_name', 'code', 'code_challenge', 'denied', 'device_code', 'expires_at', 'expires_in', 'identity_id', 'interval', 'pending', 'plain', 'redirect_uri', 'refresh_token', 'require_consent', 'scope', 'scopes', 'state', 'status', 'token_type', 'user_code', 'utf-8', 'verification_uri']

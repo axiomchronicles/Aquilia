@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/factory.py
+# hypothesis_version: 6.151.9
+
+['Controller', '_inject_tag', '_inject_token', 'ephemeral', 'get', 'on_request', 'on_shutdown', 'on_startup', 'per_request', 'request', 'resolve', 'resolve_async', 'self', 'singleton', 'tag', 'token', 'transient']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/fields/composite.py
+# hypothesis_version: 6.151.9
+
+[', ', 'COMPOSITE', 'Cannot be null', 'CompositeAttribute', 'CompositeField', 'CompositePrimaryKey', 'JSONB', 'TEXT', 'fields', 'json', 'postgresql', 'prefix', 'schema', 'sqlite', 'strategy', 'type']

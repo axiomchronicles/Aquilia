@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/runtime.py
+# hypothesis_version: 6.151.9
+
+[' AND ', ' LIMIT 1', ' LIMIT 2', ' ORDER BY ', ' WHERE ', '")', '$create', '$delete', '$get', '$link', '$link_many', '$query', '$update', '*', ',\n  ', ', ', '-', '?', 'AUTOINCREMENT', 'BLOB', 'COUNT(*)', 'DATE', 'DECIMAL', 'INTEGER', 'ModelRegistry', 'NOT NULL', 'PK', 'PRIMARY KEY', 'REAL', 'TEXT', 'TIME', 'TIMESTAMP', 'UNIQUE', 'VARCHAR', 'VARCHAR(100)', 'VARCHAR(36)', '_db', '_limit_val', '_model_cls', '_model_node', '_offset_val', '_order_clauses', '_params', '_pk_name', '_registry', '_slot_names', '_table', '_table_name', '_wheres', 'app', 'env("', 'id', 'now_utc()', 'nullable', 'one', 'reason', 'seq()', 'unique', 'uuid4()']

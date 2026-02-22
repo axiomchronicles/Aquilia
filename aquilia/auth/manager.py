@@ -78,6 +78,10 @@ class RateLimiter:
 
     def is_locked_out(self, key: str) -> bool:
         """Check if key is currently locked out."""
+        # Edge case: max_attempts <= 0 means always locked
+        if self.max_attempts <= 0:
+            return True
+
         if key in self._lockouts:
             if datetime.utcnow() < self._lockouts[key]:
                 return True

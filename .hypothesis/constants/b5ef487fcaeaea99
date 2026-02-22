@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/aquilary/loader.py
+# hypothesis_version: 6.151.9
+
+['*_manifest.py', '.json', '.py', '.yaml', '.yml', '_', '__source__', 'apps', 'build', 'builder', 'class', 'controllers', 'depends_on', 'dsl', 'file', 'instance', 'manifest.json', 'manifest.py', 'manifest.yaml', 'manifest.yml', 'middlewares', 'name', 'services', 'socket_controllers', 'unknown', 'version']

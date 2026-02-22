@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/artifacts/__init__.py
+# hypothesis_version: 6.151.9
+
+['1.0.0', 'Artifact', 'ArtifactBuilder', 'ArtifactEnvelope', 'ArtifactIntegrity', 'ArtifactKind', 'ArtifactProvenance', 'ArtifactReader', 'ArtifactStore', 'BundleArtifact', 'CodeArtifact', 'ConfigArtifact', 'DIGraphArtifact', 'MemoryArtifactStore', 'MigrationArtifact', 'ModelArtifact', 'RegistryArtifact', 'RouteArtifact', 'TemplateArtifact']

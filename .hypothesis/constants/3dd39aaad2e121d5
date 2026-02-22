@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/auth/integration/middleware.py
+# hypothesis_version: 6.151.9
+
+[401, 403, 404, 500, 502, 503, 'AquilAuthMiddleware', 'Bearer ', 'SessionMiddleware', 'authenticated', 'authorization', 'code', 'container', 'di_container', 'dispose', 'domain', 'error', 'error_code', 'fault', 'http_status', 'identity', 'message', 'original', 'public', 'request', 'response', 'retryable', 'session', 'shutdown', 'value']

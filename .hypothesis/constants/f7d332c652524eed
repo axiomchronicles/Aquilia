@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/testing/faults.py
+# hypothesis_version: 6.151.9
+
+[0.0, 'UNKNOWN', 'code', 'domain', 'severity']

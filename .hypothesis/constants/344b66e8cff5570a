@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/serializers.py
+# hypothesis_version: 6.151.9
+
+['json', 'msgpack', 'pickle', 'utf-8']

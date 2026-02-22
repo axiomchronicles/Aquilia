@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/blueprints/lenses.py
+# hypothesis_version: 6.151.9
+
+['$ref', '*', '.', '<unknown>', 'Lens', '__aiter__', '__name__', '_fields', '_spec', 'all', 'array', 'blueprint_cls', 'id', 'items', 'object', 'pk', 'projection', 'read_only', 'to', 'type']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di/scopes.py
+# hypothesis_version: 6.151.9
+
+['Scope', 'app', 'ephemeral', 'pooled', 'request', 'singleton', 'transient']

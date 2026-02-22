@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/asgi.py
+# hypothesis_version: 6.151.9
+
+[200, 404, 500, 1003, '/', 'GET', 'Not Found', 'Not found', '_controller_match', '_debug', '_default_container', '_has_routes_cache', '_is_debug', '_server_runtime', 'accept', 'app', 'app_name', 'aquilia.asgi', 'auth', 'code', 'config', 'content-type', 'controller_engine', 'controller_router', 'debug', 'enabled', 'error', 'full_path', 'http', 'lifespan', 'lifespan.shutdown', 'lifespan.startup', 'logger', 'message', 'method', 'middleware_stack', 'path', 'path_params', 'platform', 'python_version', 'request', 'route_pattern', 'routes_by_method', 'runtime', 'server', 'sessions', 'socket_runtime', 'text/html', 'type', 'utf-8', 'websocket', 'websocket.close']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sessions/store.py
+# hypothesis_version: 6.151.9
+
+[1000, 8000, 10000, 15000, 25000, 50000, '.tmp', 'MemoryStore', 'directory', 'file', 'id', 'max_sessions', 'principal', 'sess_*.json', 'total_principals', 'total_sessions', 'total_size_bytes', 'utilization']

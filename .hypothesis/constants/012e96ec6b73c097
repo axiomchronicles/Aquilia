@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/patterns/autofix.py
+# hypothesis_version: 6.151.9
+
+[0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, '(', ')', '.*+?[]{}()|^$\\\\', '/', 'Add parameter name', 'Close regex group', "Use 'str' type", '[', ']', 'ambiguous', 'confidence', 'conflict', 'description', 'duplicate', 'duplicate_name', 'empty token', 'enum', 'error', 'expected_delimiter', 'float', 'int', 'invalid constraint', 'invalid_constraint', 'invalid_type', 'max', 'min', 'new_code', 'occurrences', 'old_code', 'param_type', 'pattern1', 'pattern2', 'regex', 'regex_error', 'str', 'suggestions', 'title', 'unclosed', 'unknown type', 'unterminated', '|min=0|max=100', '|regex=[a-z]+', '«', '«param:str»', '«»', '»']

@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/expression.py
+# hypothesis_version: 6.151.9
+
+[' AND ', ' NULLS FIRST', ' NULLS LAST', '!=', '%', '&', '*', '+', ', ', '-', '/', '1=1', '<', '<=', '=', '>', '>=', '?', 'ABS', 'ASC', 'Abs', 'CASE', 'COALESCE', 'Case', 'Cast', 'Coalesce', 'Col', 'Combinable', 'CombinedExpression', 'Concat', "DATETIME('now')", 'DESC', 'END', 'Exists', 'Expression', 'ExpressionWrapper', 'F', 'Func', 'GREATEST', 'Greatest', 'LEAST', 'LENGTH', 'LIKE', 'LOWER', 'LTRIM', 'LTrim', 'Least', 'Left', 'Length', 'Lower', 'NOW()', 'NULL', 'Now', 'Now()', 'NullIf', 'OrderBy', 'OuterRef', 'Power', 'REPLACE', 'RTRIM', 'RTrim', 'RawSQL', 'Replace', 'Right', 'Round', 'SUBSTR', 'Star', 'Subquery', 'Substr', 'TRIM', 'Trim', 'UPPER', 'Upper', 'Value', 'When', '__', '_build_select', 'contains', 'endswith', 'gt', 'gte', 'in', 'isnull', 'lt', 'lte', 'mysql', 'ne', 'not_in', 'postgresql', 'sqlite', 'startswith', '|']

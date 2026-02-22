@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/di/lifecycle.py
+# hypothesis_version: 6.151.9
+
+['_disposal_strategy', '_finalizers', '_shutdown_hooks', '_startup_hooks', 'fifo', 'lifo', 'parallel', 'shutdown', 'shutdown_hook', 'startup', 'startup_hook']

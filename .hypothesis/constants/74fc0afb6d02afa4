@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/testing/auth.py
+# hypothesis_version: 6.151.9
+
+['*', 'IdentityBuilder', 'X-Test-Identity-Id', '_forced_identities', '_identities', 'admin', 'anonymous', 'client', 'display_name', 'email', 'roles', 'scopes', 'server', 'user']

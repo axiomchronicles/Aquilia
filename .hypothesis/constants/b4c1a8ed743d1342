@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/models/fields/mixins.py
+# hypothesis_version: 6.151.9
+
+['AutoNowMixin', 'ChoiceMixin', 'EncryptedMixin', 'IndexedMixin', 'NullableMixin', 'UniqueMixin', 'ascii', 'auto_now', 'blank', 'choices', 'db_index', 'null', 'unique', 'utf-8']

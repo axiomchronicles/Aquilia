@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/cache/core.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.1, 0.85, 0.99, 5.0, 30.0, 60.0, 100.0, 300, 1000, 10000, '*', 'Accept', 'Accept-Encoding', 'GET', 'HEAD', 'T', 'WARNING', 'aq:', 'avg_get_latency_ms', 'avg_set_latency_ms', 'backend', 'default', 'default_ttl', 'deletes', 'enabled', 'errors', 'eviction_policy', 'evictions', 'fifo', 'hit_rate', 'hits', 'json', 'key_prefix', 'key_version', 'l1_max_size', 'l1_ttl', 'l2_async_write', 'l2_backend', 'lfu', 'lru', 'max_size', 'memory', 'memory_bytes', 'metrics_enabled', 'middleware_enabled', 'misses', 'namespace', 'p99_get_latency_ms', 'random', 'redis', 'redis_url', 'serializer', 'sets', 'size', 'stampede_joins', 'stampede_prevention', 'total_operations', 'trace_enabled', 'ttl', 'ttl_jitter', 'unknown', 'uptime_seconds']

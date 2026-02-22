@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/artifacts/reader.py
+# hypothesis_version: 6.151.9
+
+[120, '_store', 'added_keys', 'by_kind', 'changed_keys', 'common_keys', 'created_at', 'created_by', 'digest', 'digest_match', 'git_sha', 'hostname', 'kind', 'kind_match', 'metadata', 'metadata_changed', 'metadata_keys', 'name', 'name_match', 'newest', 'oldest', 'payload_diff', 'payload_preview', 'payload_size', 'payload_type', 'provenance_changed', 'removed_keys', 'size_bytes', 'source_path', 'tags', 'tags_changed', 'total', 'total_size_bytes', 'unique_names', 'verified', 'version', 'version_a', 'version_b', '…']

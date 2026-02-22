@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/__init__.py
+# hypothesis_version: 6.151.9
+
+['1.0.0', 'BytecodeCache', 'CrousBytecodeCache', 'FlashMessages', 'PackageLoader', 'SandboxPolicy', 'SessionTemplateProxy', 'TemplateAuthMixin', 'TemplateContext', 'TemplateEngine', 'TemplateFlashMixin', 'TemplateLintIssue', 'TemplateLoader', 'TemplateManager', 'TemplateMiddleware', 'TemplateSandbox']

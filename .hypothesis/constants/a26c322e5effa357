@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/controller/metadata.py
+# hypothesis_version: 6.151.9
+
+[100, 200, '/', ':', 'ControllerMetadata', 'Identity', 'Session', '__name__', '__route_metadata__', '_inject_token', 'body', 'cls', 'ctx', 'deprecated', 'description', 'di', 'func_name', 'http_method', 'identity', 'index', 'instantiation_mode', 'list', 'path', 'per_request', 'pipeline', 'prefix', 'query', 'response_model', 'self', 'session', 'signature', 'status_code', 'summary', 'tags', '{', '}', '«', '»']

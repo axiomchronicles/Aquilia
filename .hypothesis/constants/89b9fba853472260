@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/aquilary/handler_wrapper.py
+# hypothesis_version: 6.151.9
+
+['__self__', 'app_container', 'di', 'di_container', 'inspect._empty', 'request', 'self', 'skip', 'state', 'strategy', 'type', 'type_name']

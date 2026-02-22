@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/mail/__init__.py
+# hypothesis_version: 6.151.9
+
+['1.0.0', 'ConsoleProvider', 'EmailMessage', 'EnvelopeStatus', 'FileProvider', 'IMailProvider', 'MailConfig', 'MailConfigFault', 'MailConfigProvider', 'MailEnvelope', 'MailFault', 'MailProviderRegistry', 'MailRateLimitFault', 'MailSendFault', 'MailServiceProvider', 'MailSuppressedFault', 'MailTemplateFault', 'MailValidationFault', 'Priority', 'ProviderConfig', 'ProviderResult', 'ProviderResultStatus', 'QueueConfig', 'RateLimitConfig', 'RetryConfig', 'SESProvider', 'SMTPProvider', 'SecurityConfig', 'SendGridProvider', 'TemplateConfig', 'TemplateMessage', 'asend_mail', 'send_mail']

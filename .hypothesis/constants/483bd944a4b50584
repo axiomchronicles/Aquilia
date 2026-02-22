@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sessions/faults.py
+# hypothesis_version: 6.151.9
+
+['SESSION_EXPIRED', 'SESSION_IDLE_TIMEOUT', 'SESSION_INVALID', 'SESSION_LOCKED', 'SESSION_NOT_FOUND', 'Session has expired', 'Session is locked', 'Session not found']

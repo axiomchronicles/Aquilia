@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/authentication/modules/dashboard/manifest.py
+# hypothesis_version: 6.151.9
+
+['/dashboard', '0.1.0', 'DASHBOARD', 'Dashboard module', 'core', 'dashboard', 'manifest', 'modules.dashboard', 'propagate', 'team@company.com']

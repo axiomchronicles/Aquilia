@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/sockets/adapters/redis.py
+# hypothesis_version: 6.151.9
+
+[300, ':', 'REDIS_URL', 'aquilia:ws:', 'data', 'envelope', 'exclude_connection', 'message', 'namespace', 'room', 'timestamp', 'type', 'utf-8', 'worker_id']

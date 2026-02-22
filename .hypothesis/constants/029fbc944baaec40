@@ -1,0 +1,4 @@
+# file: /Users/kuroyami/PyProjects/Aquilia/aquilia/templates/sessions_integration.py
+# hypothesis_version: 6.151.9
+
+['<No Session>', 'RequestCtx', 'Session', 'SessionEngine', 'TemplateEngine', '_flash_messages', 'authenticated', 'error', 'flash_messages', 'has_session', 'identity_id', 'info', 'level', 'session', 'session_value', 'state', 'success', 'text', 'user_id', 'warning']

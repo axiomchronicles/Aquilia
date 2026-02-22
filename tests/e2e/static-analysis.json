@@ -1,0 +1,238 @@
+{
+    "public_apis": [
+        "Container.resolve",
+        "Container.resolve_async",
+        "Container.register",
+        "Container.bind",
+        "Container.register_instance",
+        "Container.create_request_scope",
+        "Container.shutdown",
+        "Container.startup",
+        "Container.is_registered",
+        "Registry.from_manifests",
+        "Registry.build_container",
+        "ControllerEngine.execute",
+        "ControllerFactory.create"
+    ],
+    "http_endpoints": [
+        "/auth/register",
+        "/auth/login",
+        "/auth/logout",
+        "/auth/me",
+        "/auth/refresh",
+        "/auth/revoke",
+        "/dashboard"
+    ],
+    "controllers": [
+        {
+            "path": "aquilia/controller/base.py",
+            "exported_handlers": [
+                "on_startup",
+                "on_shutdown",
+                "on_request",
+                "on_response",
+                "render"
+            ],
+            "routes": "defined by subclasses via decorators",
+            "expected_inputs": [
+                "RequestCtx"
+            ],
+            "outputs": [
+                "Response"
+            ]
+        },
+        {
+            "path": "aquilia/controller/engine.py",
+            "exported_handlers": [
+                "execute",
+                "shutdown_controller"
+            ],
+            "routes": "CompiledRoute",
+            "expected_inputs": [
+                "CompiledRoute",
+                "Request",
+                "path_params",
+                "Container"
+            ],
+            "outputs": [
+                "Response"
+            ]
+        }
+    ],
+    "di_containers": [
+        {
+            "path": "aquilia/di/core.py",
+            "container_name": "Container",
+            "provider_list": [
+                "_providers dict keyed by cache_key"
+            ],
+            "scopes": [
+                "app",
+                "request"
+            ],
+            "lazy_providers": [
+                "LazyProxyProvider via allow_lazy=True in manifest"
+            ]
+        },
+        {
+            "path": "aquilia/testing/di.py",
+            "container_name": "TestContainer",
+            "provider_list": [
+                "relaxed duplicate registration"
+            ],
+            "scopes": [
+                "test"
+            ],
+            "lazy_providers": []
+        }
+    ],
+    "di_bindings": [
+        {
+            "provider": "ClassProvider",
+            "token": "auto from __init__ type hints",
+            "implementation": "cls",
+            "scope": "configurable",
+            "factory": false,
+            "file": "aquilia/di/providers.py",
+            "lineno": 17
+        },
+        {
+            "provider": "FactoryProvider",
+            "token": "from return type or explicit",
+            "implementation": "factory callable",
+            "scope": "configurable",
+            "factory": true,
+            "file": "aquilia/di/providers.py",
+            "lineno": 180
+        },
+        {
+            "provider": "ValueProvider",
+            "token": "explicit",
+            "implementation": "pre-bound value",
+            "scope": "singleton default",
+            "factory": false,
+            "file": "aquilia/di/providers.py",
+            "lineno": 271
+        },
+        {
+            "provider": "PoolProvider",
+            "token": "explicit",
+            "implementation": "async factory + queue",
+            "scope": "pooled",
+            "factory": true,
+            "file": "aquilia/di/providers.py",
+            "lineno": 306
+        },
+        {
+            "provider": "AliasProvider",
+            "token": "alias token",
+            "implementation": "delegates to target_token",
+            "scope": "singleton",
+            "factory": false,
+            "file": "aquilia/di/providers.py",
+            "lineno": 398
+        },
+        {
+            "provider": "LazyProxyProvider",
+            "token": "proxy token",
+            "implementation": "lazy proxy class",
+            "scope": "singleton",
+            "factory": false,
+            "file": "aquilia/di/providers.py",
+            "lineno": 437
+        },
+        {
+            "provider": "ScopedProvider",
+            "token": "inner provider token",
+            "implementation": "scope wrapper",
+            "scope": "configurable",
+            "factory": false,
+            "file": "aquilia/di/providers.py",
+            "lineno": 524
+        },
+        {
+            "provider": "SerializerProvider",
+            "token": "serializer class",
+            "implementation": "request-bound serializer",
+            "scope": "request",
+            "factory": true,
+            "file": "aquilia/di/providers.py",
+            "lineno": 564
+        }
+    ],
+    "provider_factories": [
+        {
+            "name": "ControllerFactory.create",
+            "file": "aquilia/controller/factory.py",
+            "lineno": 40
+        },
+        {
+            "name": "ControllerFactory._resolve_and_instantiate",
+            "file": "aquilia/controller/factory.py",
+            "lineno": 136
+        }
+    ],
+    "lifecycle_hooks": [
+        {
+            "hook": "Lifecycle.on_startup",
+            "file": "aquilia/di/lifecycle.py",
+            "lineno": 53
+        },
+        {
+            "hook": "Lifecycle.on_shutdown",
+            "file": "aquilia/di/lifecycle.py",
+            "lineno": 77
+        },
+        {
+            "hook": "Lifecycle.register_finalizer",
+            "file": "aquilia/di/lifecycle.py",
+            "lineno": 101
+        },
+        {
+            "hook": "Container._check_lifecycle_hooks",
+            "file": "aquilia/di/core.py",
+            "lineno": 401
+        },
+        {
+            "hook": "Controller.on_startup",
+            "file": "aquilia/controller/base.py",
+            "lineno": 170
+        },
+        {
+            "hook": "Controller.on_shutdown",
+            "file": "aquilia/controller/base.py",
+            "lineno": 178
+        }
+    ],
+    "db_models": [],
+    "cache_keys_patterns": [],
+    "background_jobs": [],
+    "cli_commands": [
+        "aq run",
+        "aq init",
+        "aq add module",
+        "aq di inspect"
+    ],
+    "templates_used": [],
+    "external_integrations": [],
+    "likely_issues": [
+        {
+            "file": "aquilia/di/core.py",
+            "lineno": 328,
+            "issue_type": "design_trade_off",
+            "short_explanation": "resolve() sync method raises RuntimeError in async context, forcing all callers to use resolve_async."
+        },
+        {
+            "file": "aquilia/di/core.py",
+            "lineno": 441,
+            "issue_type": "shared_reference",
+            "short_explanation": "create_request_scope shares _providers dict by reference with parent — mutations in child affect parent."
+        },
+        {
+            "file": "aquilia/di/core.py",
+            "lineno": 364,
+            "issue_type": "cache_miss_none",
+            "short_explanation": "resolve_async fast path uses 'cached is not None' — providers returning None will always re-instantiate."
+        }
+    ]
+}

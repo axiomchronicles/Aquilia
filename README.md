@@ -85,6 +85,20 @@ Aquilia is composed of several deeply integrated subsystems:
 - **Faults**: Structured error handling with recovery domains.
 - **Mail/Cache/Sessions**: Essential services with enterprise interfaces.
 
+## 🧪 Testing
+
+Run the full unit test suite:
+
+```bash
+python -m pytest tests/ -v
+```
+
+Run the auth e2e regression suite (102 tests, no Docker required):
+
+```bash
+python -m pytest tests/e2e/auth/ -v --junitxml=tests/e2e/auth/report.xml
+```
+
 ## 🌐 Learn More
 
 - **Documentation**: [https://aquilia.tubox.cloud](https://aquilia.tubox.cloud)
